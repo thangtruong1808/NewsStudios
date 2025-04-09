@@ -1,0 +1,16 @@
+{
+  "extends": [
+    "next",
+    "next/core-web-vitals",
+    "plugin:import/errors",
+    "plugin:import/warnings"
+  ],
+  "plugins": ["import"],
+  "rules": {
+    "no-unused-vars": ["warn", { "varsIgnorePattern": "^_" }],
+    "import/no-unused-modules": [1, { "unusedExports": true }],
+    "import/no-unresolved": "error",
+    "import/named": "error",
+    "import/namespace": "error"
+  }
+}

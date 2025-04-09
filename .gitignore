@@ -32,6 +32,29 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+.env.local
+.env.development
+.env.test
+.env.production
+
+# database credentials and config
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+config/database.js
+config/database.json
+config/database.yaml
+config/database.yml
+lib/db/config.js
+lib/db/config.json
+lib/db/config.yaml
+lib/db/config.yml
+lib/db/credentials.js
+lib/db/credentials.json
+lib/db/credentials.yaml
+lib/db/credentials.yml
 
 # vercel
 .vercel
