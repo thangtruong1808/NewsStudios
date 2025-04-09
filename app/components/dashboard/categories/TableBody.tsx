@@ -21,7 +21,7 @@ export default function TableBody({
       {categories.map((category, index) => (
         <tr
           key={category.id}
-          className="hover:bg-gray-100 transition-colors duration-150"
+          className="w-full border-b border-zinc-300 py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg hover:bg-zinc-100 transition-colors"
         >
           {columns.map((column) => {
             const isActionsColumn = column.key === "actions";
@@ -32,9 +32,9 @@ export default function TableBody({
             return (
               <td
                 key={`${category.id}-${column.key}`}
-                className={`whitespace-nowrap px-2 py-2 text-xs ${
-                  isMobileVisible ? "table-cell" : "hidden md:table-cell"
-                }`}
+                className={`whitespace-nowrap px-3 py-4 text-sm ${
+                  isActionsColumn ? "" : "text-left"
+                } ${isMobileVisible ? "table-cell" : "hidden md:table-cell"}`}
               >
                 {column.cell(
                   category,

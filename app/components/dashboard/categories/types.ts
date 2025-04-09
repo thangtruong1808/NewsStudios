@@ -18,9 +18,9 @@ export interface PaginationProps {
 
 export interface TableHeaderProps {
   columns: Column[];
-  sortField: keyof Category | null;
+  sortField: string;
   sortDirection: "asc" | "desc";
-  onSort: (field: keyof Category) => void;
+  onSort: (field: string) => void;
 }
 
 export interface TableRowProps {

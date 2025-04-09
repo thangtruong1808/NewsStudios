@@ -1,82 +1,57 @@
 "use client";
 
-import { Category } from "../../../type/definitions";
-import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { Column } from "./types";
 
 interface TableHeaderProps {
-  sortField: keyof Category;
+  columns: Column[];
+  sortField: string;
   sortDirection: "asc" | "desc";
-  onSort: (field: keyof Category) => void;
+  onSort: (field: string) => void;
 }
 
-export default function TableHeader({
+export function TableHeader({
+  columns,
   sortField,
   sortDirection,
   onSort,
 }: TableHeaderProps) {
   return (
-    <thead className="bg-gray-50">
+    <thead className="rounded-lg text-left text-sm font-normal bg-zinc-200">
       <tr>
-        <th
-          scope="col"
-          className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 cursor-pointer"
-          onClick={() => onSort("id")}
-        >
-          <div className="flex items-center">
-            ID
-            {sortField === "id" && (
-              <span className="ml-1">
-                {sortDirection === "asc" ? (
-                  <ChevronUpIcon className="h-4 w-4" />
-                ) : (
-                  <ChevronDownIcon className="h-4 w-4" />
+        {columns.map((column) => {
+          const isMobileVisible = ["id", "name", "actions"].includes(
+            column.key
+          );
+          return (
+            <th
+              key={column.key}
+              scope="col"
+              className={`${
+                column.key === "actions"
+                  ? "relative py-2 pl-4 pr-2 text-center border-b border-zinc-300"
+                  : `px-2 py-2 text-left text-xs font-medium text-gray-900 sm:text-sm ${
+                      column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
+                    } border-b border-zinc-300`
+              } ${isMobileVisible ? "table-cell" : "hidden md:table-cell"}`}
+              onClick={() => column.sortable && onSort(column.key)}
+            >
+              <div
+                className={`group inline-flex items-center ${
+                  column.key === "actions" ? "justify-center" : ""
+                }`}
+              >
+                <span className={column.key === "actions" ? "font-medium" : ""}>
+                  {column.label}
+                </span>
+                {column.sortable && sortField === column.key && (
+                  <span className="ml-1 text-gray-500">
+                    {sortDirection === "asc" ? "↑" : "↓"}
+                  </span>
                 )}
-              </span>
-            )}
-          </div>
-        </th>
-        <th
-          scope="col"
-          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer"
-          onClick={() => onSort("name")}
-        >
-          <div className="flex items-center">
-            Name
-            {sortField === "name" && (
-              <span className="ml-1">
-                {sortDirection === "asc" ? (
-                  <ChevronUpIcon className="h-4 w-4" />
-                ) : (
-                  <ChevronDownIcon className="h-4 w-4" />
-                )}
-              </span>
-            )}
-          </div>
-        </th>
-        <th
-          scope="col"
-          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer"
-          onClick={() => onSort("description")}
-        >
-          <div className="flex items-center">
-            Description
-            {sortField === "description" && (
-              <span className="ml-1">
-                {sortDirection === "asc" ? (
-                  <ChevronUpIcon className="h-4 w-4" />
-                ) : (
-                  <ChevronDownIcon className="h-4 w-4" />
-                )}
-              </span>
-            )}
-          </div>
-        </th>
-        <th
-          scope="col"
-          className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
-        >
-          Actions
-        </th>
+              </div>
+            </th>
+          );
+        })}
       </tr>
     </thead>
   );

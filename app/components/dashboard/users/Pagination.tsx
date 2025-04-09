@@ -174,12 +174,6 @@ export default function Pagination({
           </p>
         </div>
       </div>
-      <div className="sm:hidden">
-        <p className="text-xs text-gray-700">
-          Page <span className="font-medium">{currentPage}</span> of{" "}
-          <span className="font-medium">{totalPages}</span>
-        </p>
-      </div>
     </div>
   );
 }

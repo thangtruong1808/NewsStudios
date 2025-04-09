@@ -17,32 +17,52 @@ export default function TableRow({
   onDelete,
 }: TableRowProps) {
   return (
-    <tr
-      key={category.id}
-      className={`${
-        index % 2 === 0 ? "bg-white" : "bg-gray-50"
-      } border-b hover:bg-gray-100`}
-    >
-      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-        {category.id}
+    <tr className="w-full border-b border-zinc-300 py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg hover:bg-zinc-100 transition-colors">
+      <td className="whitespace-nowrap py-3 pl-6 pr-3">
+        <div className="flex items-center gap-3">
+          <p className="text-xs font-medium text-gray-900 sm:text-sm">
+            {index + 1}
+          </p>
+        </div>
       </td>
-      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-        {category.name}
+      <td className="whitespace-nowrap py-3 pl-6 pr-3">
+        <div className="flex items-center gap-3">
+          <p className="text-xs font-medium text-gray-900 sm:text-sm">
+            {category.id}
+          </p>
+        </div>
       </td>
-      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-        {category.description || "No description"}
+      <td className="whitespace-nowrap px-3 py-3">
+        <p className="text-xs font-medium text-gray-900 sm:text-sm">
+          {category.name}
+        </p>
       </td>
-      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-        <div className="flex justify-end space-x-2">
+      <td className="whitespace-nowrap px-3 py-3">
+        <p className="text-xs text-gray-500 sm:text-sm">
+          {category.description || "-"}
+        </p>
+      </td>
+      <td className="whitespace-nowrap px-3 py-3">
+        <p className="text-xs text-gray-500 sm:text-sm">
+          {new Date(category.created_at).toLocaleDateString()}
+        </p>
+      </td>
+      <td className="whitespace-nowrap px-3 py-3">
+        <p className="text-xs text-gray-500 sm:text-sm">
+          {new Date(category.updated_at).toLocaleDateString()}
+        </p>
+      </td>
+      <td className="whitespace-nowrap px-3 py-3">
+        <div className="flex justify-around">
           <button
             onClick={onEdit}
-            className="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+            className="rounded border border-blue-500 px-3 py-1 text-blue-500 hover:bg-blue-100"
           >
             Edit
           </button>
           <button
             onClick={onDelete}
-            className="rounded bg-red-500 px-3 py-1 text-white hover:bg-red-600"
+            className="rounded border border-red-500 px-3 py-1 text-red-500 hover:bg-red-100"
           >
             Delete
           </button>
