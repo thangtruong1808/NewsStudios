@@ -3,16 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
 import { ImageFormData } from "../validations/imageSchema";
-import { uploadFileViaFTP } from "../utils/ftpUpload";
-import { connectToDatabase } from "../db";
 import { uploadToFTP } from "../utils/ftpUpload";
+import { RowDataPacket, ResultSetHeader } from "mysql2";
 
-interface ImageRecord {
+interface ImageRow extends RowDataPacket {
   id: number;
   article_id: number | null;
   image_url: string;
-  created_at: Date | string;
-  updated_at: Date | string;
+  description: string | null;
+  created_at: Date;
+  updated_at: Date;
 }
 
 // Function to upload image to server and get the URL
@@ -30,12 +30,14 @@ export async function uploadImageToServer(
     }
 
     // Save to database
-    const { db } = await connectToDatabase();
-
-    const result = await db.execute(
+    const result = await query(
       "INSERT INTO Images (article_id, image_url, description, created_at) VALUES (?, ?, ?, NOW())",
       [article_id, url, description]
     );
+
+    if (result.error) {
+      return { error: result.error };
+    }
 
     return { url };
   } catch (error) {
@@ -52,12 +54,16 @@ export async function createImage(data: ImageFormData) {
       [data.article_id, data.image_url]
     );
 
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+
     revalidatePath("/dashboard/photos");
 
     // Return a serializable object instead of the raw database result
     return {
       data: {
-        id: result[0]?.insertId || null,
+        id: (result.data as ResultSetHeader).insertId,
         success: true,
       },
       error: null,
@@ -71,44 +77,56 @@ export async function createImage(data: ImageFormData) {
 // Function to get all images
 export async function getImages() {
   try {
-    const { db } = await connectToDatabase();
+    const result = await query("SELECT * FROM Images ORDER BY created_at DESC");
 
-    const [rows] = await db.execute(
-      "SELECT * FROM Images ORDER BY created_at DESC"
-    );
+    if (result.error) {
+      return { data: [], error: result.error };
+    }
 
-    return { data: rows };
+    const images = result.data as ImageRow[];
+    return {
+      data: images.map((image) => ({
+        id: image.id,
+        article_id: image.article_id,
+        image_url: image.image_url,
+        description: image.description || undefined,
+        created_at: image.created_at.toISOString(),
+        updated_at: image.updated_at.toISOString(),
+      })),
+      error: null,
+    };
   } catch (error) {
     console.error("Error fetching images:", error);
     return { data: [], error: "Failed to fetch images" };
   }
 }
 
-// Function to get an image by ID
+// Function to get a single image by ID
 export async function getImageById(id: number) {
   try {
-    const [image] = await query("SELECT * FROM Images WHERE id = ?", [id]);
+    const result = await query("SELECT * FROM Images WHERE id = ?", [id]);
 
-    if (!image) {
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+
+    const images = result.data as ImageRow[];
+    if (!images || images.length === 0) {
       return { data: null, error: "Image not found" };
     }
 
-    // Convert the database result to a serializable format
-    const serializableImage = {
-      id: image.id,
-      article_id: image.article_id,
-      image_url: image.image_url,
-      created_at:
-        image.created_at instanceof Date
-          ? image.created_at.toISOString()
-          : image.created_at,
-      updated_at:
-        image.updated_at instanceof Date
-          ? image.updated_at.toISOString()
-          : image.updated_at,
+    const image = images[0];
+    return {
+      data: {
+        id: image.id,
+        article_id: image.article_id,
+        image_url: image.image_url,
+        description: image.description || undefined,
+        created_at: image.created_at.toISOString(),
+        updated_at: image.updated_at.toISOString(),
+      },
+      error: null,
     };
-
-    return { data: serializableImage, error: null };
   } catch (error) {
     console.error("Error fetching image:", error);
     return { data: null, error: "Failed to fetch image" };
@@ -118,13 +136,17 @@ export async function getImageById(id: number) {
 // Function to update an image
 export async function updateImage(id: number, data: ImageFormData) {
   try {
-    await query(
+    const result = await query(
       "UPDATE Images SET article_id = ?, image_url = ? WHERE id = ?",
       [data.article_id, data.image_url, id]
     );
 
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+
     revalidatePath("/dashboard/photos");
-    return { data: null, error: null };
+    return { data: { success: true }, error: null };
   } catch (error) {
     console.error("Error updating image:", error);
     return { data: null, error: "Failed to update image" };
@@ -134,10 +156,14 @@ export async function updateImage(id: number, data: ImageFormData) {
 // Function to delete an image
 export async function deleteImage(id: number) {
   try {
-    await query("DELETE FROM Images WHERE id = ?", [id]);
+    const result = await query("DELETE FROM Images WHERE id = ?", [id]);
+
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
 
     revalidatePath("/dashboard/photos");
-    return { data: null, error: null };
+    return { data: { success: true }, error: null };
   } catch (error) {
     console.error("Error deleting image:", error);
     return { data: null, error: "Failed to delete image" };

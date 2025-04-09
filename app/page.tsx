@@ -3,9 +3,8 @@ import Button from "./components/Button";
 
 export default function Home() {
   return (
-    <div>
-      <h1>Hello</h1>
-      <Button href="/dashboard/">Go to dashboard</Button>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <Button href="/login">Login</Button>
     </div>
   );
 }

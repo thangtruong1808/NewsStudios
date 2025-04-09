@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Subcategory } from "../../../type/definitions";
 import { getTableColumns } from "./TableColumns";
 import TableHeader from "./TableHeader";
@@ -9,7 +9,6 @@ import Pagination from "./Pagination";
 import { toast } from "react-hot-toast";
 import { deleteSubcategory } from "../../../lib/actions/subcategories";
 import { useRouter } from "next/navigation";
-import Search from "../search";
 
 interface SubcategoriesTableClientProps {
   subcategories: Subcategory[];
@@ -23,32 +22,9 @@ export default function SubcategoriesTableClient({
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<keyof Subcategory>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredSubcategories, setFilteredSubcategories] =
-    useState<Subcategory[]>(subcategories);
 
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredSubcategories.length / itemsPerPage);
-
-  // Filter subcategories based on search query
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredSubcategories(subcategories);
-    } else {
-      const query = searchQuery.toLowerCase();
-      const filtered = subcategories.filter(
-        (subcategory) =>
-          subcategory.name.toLowerCase().includes(query) ||
-          (subcategory.description &&
-            subcategory.description.toLowerCase().includes(query)) ||
-          (subcategory.category_name &&
-            subcategory.category_name.toLowerCase().includes(query))
-      );
-      setFilteredSubcategories(filtered);
-    }
-    // Reset to first page when search changes
-    setCurrentPage(1);
-  }, [searchQuery, subcategories]);
+  const totalPages = Math.ceil(subcategories.length / itemsPerPage);
 
   const handleSort = (field: keyof Subcategory) => {
     if (field === sortField) {
@@ -105,7 +81,6 @@ export default function SubcategoriesTableClient({
         toast.error(`Failed to delete subcategory: ${error}`);
       } else {
         toast.success("Subcategory deleted successfully");
-        // Use router.refresh() instead of window.location.reload()
         router.refresh();
       }
     } catch (error) {
@@ -113,10 +88,6 @@ export default function SubcategoriesTableClient({
     } finally {
       setIsDeleting(false);
     }
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
   };
 
   const columns = getTableColumns(
@@ -127,7 +98,7 @@ export default function SubcategoriesTableClient({
   );
 
   // Sort subcategories
-  const sortedSubcategories = [...filteredSubcategories].sort((a, b) => {
+  const sortedSubcategories = [...subcategories].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
 
@@ -153,13 +124,6 @@ export default function SubcategoriesTableClient({
 
   return (
     <div className="flex flex-col">
-      <div className="mb-4">
-        <Search
-          placeholder="Search subcategories by name, description, or category..."
-          onChange={handleSearch}
-        />
-      </div>
-
       <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
           <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
@@ -184,7 +148,7 @@ export default function SubcategoriesTableClient({
         currentPage={currentPage}
         totalPages={totalPages}
         itemsPerPage={itemsPerPage}
-        totalItems={filteredSubcategories.length}
+        totalItems={subcategories.length}
         onPageChange={setCurrentPage}
       />
     </div>

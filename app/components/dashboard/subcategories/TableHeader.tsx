@@ -30,7 +30,7 @@ export default function TableHeader({
             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
             onClick={() => onSort(column.accessorKey)}
           >
-            <div className="flex items-center">
+            <div className="flex items-center text-left">
               {column.header}
               {sortField === column.accessorKey && (
                 <span className="ml-1">

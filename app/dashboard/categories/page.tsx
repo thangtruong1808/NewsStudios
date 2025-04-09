@@ -6,6 +6,7 @@ import CategoriesSearchWrapper from "../../components/dashboard/categories/Categ
 import { ErrorMessage } from "../../components/ErrorMessage";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { getCategories, searchCategories } from "../../lib/actions/categories";
+import { PlusIcon } from "lucide-react";
 
 interface CategoriesPageProps {
   searchParams?: Promise<{
@@ -33,21 +34,24 @@ export default async function CategoriesPage({
     const categories = result.data || [];
 
     return (
-      <div className="w-full">
-        <div className="flex items-center justify-between gap-2 md:mt-8">
-          <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
-            Categories
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Categories List
           </h1>
           <Link
             href="/dashboard/categories/create"
-            className="flex h-10 items-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            className="flex h-10 items-center rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
           >
-            Add Category
+            <span className="hidden md:block">Create Category</span>
+            <PlusIcon className="h-5 md:ml-4" />
           </Link>
         </div>
+
         <div className="mt-4">
           <CategoriesSearchWrapper />
         </div>
+
         <Suspense fallback={<LoadingSpinner />}>
           {categories.length > 0 ? (
             <CategoriesTableClient categories={categories} />

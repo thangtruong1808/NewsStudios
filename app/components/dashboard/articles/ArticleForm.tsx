@@ -144,7 +144,7 @@ export default function ArticleForm({
         <input
           type="text"
           {...register("title")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         />
         {errors.title && (
           <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
@@ -157,8 +157,8 @@ export default function ArticleForm({
         </label>
         <textarea
           {...register("content")}
-          rows={4}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          rows={6}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
         />
         {errors.content && (
           <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
@@ -172,7 +172,7 @@ export default function ArticleForm({
         <select
           {...register("category_id")}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         >
           <option value="">Select a category</option>
           {categories.map((category) => (
@@ -194,7 +194,7 @@ export default function ArticleForm({
         </label>
         <select
           {...register("sub_category_id")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
           disabled={!selectedCategory}
         >
           <option value="">Select a subcategory</option>
@@ -212,7 +212,7 @@ export default function ArticleForm({
         </label>
         <select
           {...register("author_id")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         >
           <option value="">Select an author</option>
           {authors.map((author) => (
@@ -235,7 +235,7 @@ export default function ArticleForm({
             type="text"
             {...register("image")}
             placeholder="Image URL"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
           />
           <input
             type="file"
@@ -268,7 +268,7 @@ export default function ArticleForm({
             type="text"
             {...register("video")}
             placeholder="Video URL"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
           />
           <input
             type="file"
@@ -323,7 +323,7 @@ export default function ArticleForm({
         <input
           type="number"
           {...register("headline_priority", { valueAsNumber: true })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         />
       </div>
 
@@ -334,7 +334,7 @@ export default function ArticleForm({
         <input
           type="text"
           {...register("headline_image_url")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         />
       </div>
 
@@ -345,7 +345,7 @@ export default function ArticleForm({
         <input
           type="text"
           {...register("headline_video_url")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         />
       </div>
 

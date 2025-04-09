@@ -18,26 +18,29 @@ export async function getSubcategories() {
       LEFT JOIN Categories c ON s.category_id = c.id
       ORDER BY c.name ASC, s.name ASC
     `);
-    return { data: result, error: null };
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+    return { data: result.data as Subcategory[], error: null };
   } catch (error) {
     console.error("Error fetching subcategories:", error);
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to fetch subcategories",
+      error: "Failed to fetch subcategories",
     };
   }
 }
 
 export async function getSubcategoryById(id: number) {
   try {
-    const [subcategory] = await query(
-      "SELECT * FROM SubCategories WHERE id = ?",
-      [id]
-    );
-    return { data: subcategory, error: null };
+    const result = await query("SELECT * FROM SubCategories WHERE id = ?", [
+      id,
+    ]);
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+    const subcategory = (result.data as any[])?.[0] || null;
+    return { data: subcategory as Subcategory | null, error: null };
   } catch (error) {
     console.error("Error fetching subcategory:", error);
     return { data: null, error: "Failed to fetch subcategory" };
@@ -52,24 +55,17 @@ export async function createSubcategory(data: SubcategoryFormData) {
       [data.name, data.description || null, data.category_id]
     );
 
-    // Serialize the response to only include necessary data
-    return {
-      success: true,
-      data: {
-        id: (result as any).insertId,
-        name: data.name,
-        description: data.description,
-        category_id: data.category_id,
-      },
-      error: null,
-    };
+    if (result.error) {
+      return { success: false, error: result.error };
+    }
+
+    revalidatePath("/dashboard/subcategories");
+    return { success: true, error: null };
   } catch (error) {
     console.error("Error creating subcategory:", error);
     return {
       success: false,
-      data: null,
-      error:
-        error instanceof Error ? error.message : "Failed to create subcategory",
+      error: "Failed to create subcategory",
     };
   }
 }
@@ -84,22 +80,57 @@ export async function updateSubcategory(
       .join(", ");
     const values = [...Object.values(data), id];
 
-    await query(`UPDATE SubCategories SET ${fields} WHERE id = ?`, values);
-    revalidatePath("/dashboard/SubCategories");
-    return { data: true, error: null };
+    const result = await query(
+      `UPDATE SubCategories SET ${fields} WHERE id = ?`,
+      values
+    );
+
+    if (result.error) {
+      return { success: false, error: result.error };
+    }
+
+    revalidatePath("/dashboard/subcategories");
+    return { success: true, error: null };
   } catch (error) {
     console.error("Error updating subcategory:", error);
-    return { data: null, error: "Failed to update subcategory" };
+    return { success: false, error: "Failed to update subcategory" };
   }
 }
 
 export async function deleteSubcategory(id: number) {
   try {
-    await query("DELETE FROM SubCategories WHERE id = ?", [id]);
-    revalidatePath("/dashboard/SubCategories");
-    return { data: true, error: null };
+    const result = await query("DELETE FROM SubCategories WHERE id = ?", [id]);
+
+    if (result.error) {
+      return { success: false, error: result.error };
+    }
+
+    revalidatePath("/dashboard/subcategories");
+    return { success: true, error: null };
   } catch (error) {
     console.error("Error deleting subcategory:", error);
-    return { data: null, error: "Failed to delete subcategory" };
+    return { success: false, error: "Failed to delete subcategory" };
+  }
+}
+
+export async function searchSubcategories(searchQuery: string) {
+  try {
+    const result = await query(
+      `SELECT s.*, c.name as category_name 
+       FROM SubCategories s
+       LEFT JOIN Categories c ON s.category_id = c.id
+       WHERE s.name LIKE ? OR s.description LIKE ? OR c.name LIKE ?
+       ORDER BY c.name ASC, s.name ASC`,
+      [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
+    );
+
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+
+    return { data: result.data as Subcategory[], error: null };
+  } catch (error) {
+    console.error("Error searching subcategories:", error);
+    return { data: null, error: "Failed to search subcategories" };
   }
 }

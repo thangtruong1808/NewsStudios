@@ -51,19 +51,19 @@ export default async function UsersPage(props: PageProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex w-full items-center justify-between">
-        <h1 className={`${lusitana.className} text-2xl`}>Users List</h1>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
-        <UsersSearchWrapper />
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-2xl font-semibold text-gray-900">Users List</h1>
         <Link
           href="/dashboard/users/create"
           className="flex h-10 items-center rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
         >
-          <span className="hidden md:block">Add User</span>{" "}
+          <span className="hidden md:block">Create User</span>{" "}
           <PlusIcon className="h-5 md:ml-4" />
         </Link>
+      </div>
+
+      <div className="mt-4">
+        <UsersSearchWrapper />
       </div>
 
       {hasUsers ? (
