@@ -33,8 +33,8 @@ export default function TableBody({
               <td
                 key={`${category.id}-${column.key}`}
                 className={`whitespace-nowrap px-2 py-2 text-xs ${
-                  isActionsColumn ? "text-center" : ""
-                } ${isMobileVisible ? "table-cell" : "hidden md:table-cell"}`}
+                  isMobileVisible ? "table-cell" : "hidden md:table-cell"
+                }`}
               >
                 {column.cell(
                   category,

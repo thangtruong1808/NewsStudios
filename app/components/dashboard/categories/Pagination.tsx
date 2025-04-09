@@ -69,8 +69,8 @@ export default function Pagination({
 
   return (
     <div className="flex items-center justify-between border-t border-gray-200 bg-white px-2 py-2 sm:px-4 sm:py-3">
-      <div className="flex flex-1 items-center justify-between">
-        <div className="hidden sm:block">
+      <div className="flex flex-1 items-center justify-around w-full">
+        <div>
           <p className="text-xs sm:text-sm text-gray-700">
             Showing{" "}
             <span className="font-medium">
@@ -83,7 +83,7 @@ export default function Pagination({
             of <span className="font-medium">{totalItems}</span> results
           </p>
         </div>
-        <div className="flex w-full sm:w-auto justify-center">
+        <div className="flex justify-center">
           <nav
             className="isolate inline-flex -space-x-px rounded-md shadow-sm"
             aria-label="Pagination"

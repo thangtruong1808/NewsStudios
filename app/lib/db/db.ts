@@ -67,6 +67,14 @@ pool
   });
 
 /**
+ * Gets the database pool
+ * @returns The database pool
+ */
+export async function getPool() {
+  return pool;
+}
+
+/**
  * Executes a query on the database
  * @param query The SQL query to execute
  * @param params Parameters for the query

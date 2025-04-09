@@ -8,6 +8,7 @@ import { toast } from "react-hot-toast";
 import { deleteUser } from "../../lib/actions/users";
 import TableRow from "./users/TableRow";
 import TableHeader from "./users/TableHeader";
+import Pagination from "./users/Pagination";
 
 interface UsersTableClientProps {
   users: User[];
@@ -201,67 +202,13 @@ export default function UsersTableClient({
           </div>
         </div>
       </div>
-      <div className="mt-5 flex w-full justify-center">
-        <div className="flex items-center justify-between w-full max-w-4xl">
-          <div className="text-sm text-gray-500">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-            {Math.min(currentPage * itemsPerPage, users.length)} of{" "}
-            {users.length} results
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage(1)}
-              disabled={currentPage === 1}
-              className="rounded bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50"
-            >
-              First
-            </button>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="rounded bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50"
-            >
-              Previous
-            </button>
-
-            {/* Page numbers */}
-            <div className="flex gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (pageNum) => (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`rounded px-3 py-1 text-sm font-medium ${
-                      currentPage === pageNum
-                        ? "bg-indigo-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                )
-              )}
-            </div>
-
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="rounded bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50"
-            >
-              Next
-            </button>
-            <button
-              onClick={() => setCurrentPage(totalPages)}
-              disabled={currentPage === totalPages}
-              className="rounded bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50"
-            >
-              Last
-            </button>
-          </div>
-        </div>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={Math.ceil(users.length / itemsPerPage)}
+        itemsPerPage={itemsPerPage}
+        totalItems={users.length}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

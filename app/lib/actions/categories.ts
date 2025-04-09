@@ -4,11 +4,15 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { query } from "../db/db";
 import { CategoryFormData } from "../validations/categorySchema";
+import { Category } from "../../type/definitions";
 
 export async function getCategories() {
   try {
-    const categories = await query("SELECT * FROM Categories ORDER BY name");
-    return { data: categories, error: null };
+    const result = await query("SELECT * FROM Categories ORDER BY name");
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+    return { data: result.data as Category[], error: null };
   } catch (error) {
     console.error("Error fetching categories:", error);
     return { data: null, error: "Failed to fetch categories" };
@@ -17,10 +21,12 @@ export async function getCategories() {
 
 export async function getCategoryById(id: number) {
   try {
-    const [category] = await query("SELECT * FROM Categories WHERE id = ?", [
-      id,
-    ]);
-    return { data: category, error: null };
+    const result = await query("SELECT * FROM Categories WHERE id = ?", [id]);
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+    const category = (result.data as any[])?.[0] || null;
+    return { data: category as Category | null, error: null };
   } catch (error) {
     console.error("Error fetching category:", error);
     return { data: null, error: "Failed to fetch category" };

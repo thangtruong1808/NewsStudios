@@ -4,6 +4,7 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { getUsers, searchUsers } from "../../lib/actions/users";
 import UsersTableClient from "../../components/dashboard/UsersTableClient";
 import UsersSearchWrapper from "../../components/dashboard/users/UsersSearchWrapper";
+import { lusitana } from "../../components/fonts";
 
 // Use static rendering by default, but revalidate every 60 seconds
 export const revalidate = 60;
@@ -49,31 +50,33 @@ export default async function UsersPage(props: PageProps) {
   const hasUsers = users.length > 0;
 
   return (
-    <div className="w-full">
+    <div className="space-y-4">
       <div className="flex w-full items-center justify-between">
-        <h1 className="text-2xl">Users List</h1>
+        <h1 className={`${lusitana.className} text-2xl`}>Users List</h1>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
+        <UsersSearchWrapper />
         <Link
           href="/dashboard/users/create"
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+          className="flex h-10 items-center rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
         >
-          <PlusIcon className="h-5 w-5" />
-          Add User
+          <span className="hidden md:block">Add User</span>{" "}
+          <PlusIcon className="h-5 md:ml-4" />
         </Link>
       </div>
-      <div className="mt-4">
-        <UsersSearchWrapper />
-        {hasUsers ? (
-          <UsersTableClient users={users} searchQuery={searchQuery} />
-        ) : (
-          <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
-            <p className="text-gray-500">
-              {searchQuery
-                ? "No users found matching your search criteria."
-                : "No users found. Create your first user to get started."}
-            </p>
-          </div>
-        )}
-      </div>
+
+      {hasUsers ? (
+        <UsersTableClient users={users} searchQuery={searchQuery} />
+      ) : (
+        <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
+          <p className="text-gray-500">
+            {searchQuery
+              ? "No users found matching your search criteria."
+              : "No users found. Create your first user to get started."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

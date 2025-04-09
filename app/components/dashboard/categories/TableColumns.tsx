@@ -48,7 +48,7 @@ export function getTableColumns(
       sortable: false,
       cell: (category: Category) => (
         <div className="whitespace-nowrap text-xs text-gray-500 sm:text-sm">
-          <div className="flex justify-center gap-2 p-3">
+          <div className="flex justify-end gap-2 p-3">
             <Link
               href={`/dashboard/categories/${category.id}/edit`}
               className="text-indigo-600 hover:text-indigo-900"

@@ -27,9 +27,7 @@ export default async function CategoriesPage() {
   return (
     <div className="space-y-4">
       <div className="flex w-full items-center justify-between">
-        <h1 className={`${lusitana.className} text-2xl`}>
-          Categories Management
-        </h1>
+        <h1 className={`${lusitana.className} text-2xl`}>Categories List</h1>
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">

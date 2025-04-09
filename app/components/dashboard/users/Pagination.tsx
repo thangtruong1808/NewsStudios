@@ -69,8 +69,8 @@ export default function Pagination({
 
   return (
     <div className="flex items-center justify-between border-t border-gray-200 bg-white px-2 py-2 sm:px-4 sm:py-3">
-      <div className="flex flex-1 items-center justify-between">
-        <div className="hidden sm:block">
+      <div className="flex flex-1 items-center justify-around w-full">
+        <div>
           <p className="text-xs sm:text-sm text-gray-700">
             Showing{" "}
             <span className="font-medium">
@@ -83,7 +83,7 @@ export default function Pagination({
             of <span className="font-medium">{totalItems}</span> results
           </p>
         </div>
-        <div className="flex w-full sm:w-auto justify-center">
+        <div className="flex justify-center">
           <nav
             className="isolate inline-flex -space-x-px rounded-md shadow-sm"
             aria-label="Pagination"
@@ -104,12 +104,12 @@ export default function Pagination({
               />
             </button>
             <button
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
               className="relative inline-flex items-center px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
-              <span className="sr-only">Next</span>
-              <ChevronRightIcon
+              <span className="sr-only">Previous</span>
+              <ChevronLeftIcon
                 className="h-3 w-3 sm:h-5 sm:w-5"
                 aria-hidden="true"
               />
@@ -140,12 +140,12 @@ export default function Pagination({
             )}
 
             <button
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
               className="relative inline-flex items-center px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
-              <span className="sr-only">Previous</span>
-              <ChevronLeftIcon
+              <span className="sr-only">Next</span>
+              <ChevronRightIcon
                 className="h-3 w-3 sm:h-5 sm:w-5"
                 aria-hidden="true"
               />
