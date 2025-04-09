@@ -11,32 +11,38 @@ export default function TableHeader({
   onSort,
 }: TableHeaderProps) {
   return (
-    <thead className="bg-gray-50">
+    <thead className="rounded-lg text-left text-sm font-normal bg-zinc-200">
       <tr>
         {columns.map((column) => {
-          const isMobileVisible = ["id", "name", "bio", "actions"].includes(
+          const isMobileVisible = ["id", "name", "actions"].includes(
             column.key
           );
           return (
             <th
               key={column.key}
               scope="col"
-              className={`px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
+              className={`${
+                column.key === "actions"
+                  ? "relative py-2 pl-4 pr-2 text-center border-b border-zinc-300"
+                  : `px-2 py-2 text-left text-xs font-medium text-gray-900 sm:text-sm ${
+                      column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
+                    } border-b border-zinc-300`
               } ${isMobileVisible ? "table-cell" : "hidden md:table-cell"}`}
               onClick={() =>
                 column.sortable && onSort(column.key as keyof Author)
               }
             >
-              <div className="flex items-center space-x-1">
-                <span>{column.label}</span>
+              <div
+                className={`group inline-flex items-center ${
+                  column.key === "actions" ? "justify-center" : ""
+                }`}
+              >
+                <span className={column.key === "actions" ? "font-medium" : ""}>
+                  {column.label}
+                </span>
                 {column.sortable && sortField === column.key && (
-                  <span>
-                    {sortDirection === "asc" ? (
-                      <ChevronUpIcon className="h-4 w-4" />
-                    ) : (
-                      <ChevronDownIcon className="h-4 w-4" />
-                    )}
+                  <span className="ml-1 text-gray-500">
+                    {sortDirection === "asc" ? "↑" : "↓"}
                   </span>
                 )}
               </div>

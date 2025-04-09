@@ -1,32 +1,91 @@
 "use server";
 
-import { connectToDatabase } from "../db";
 import { AuthorFormData } from "../validations/authorSchema";
 import { Author } from "../../type/definitions";
 import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
+import { RowDataPacket } from "mysql2";
+
+interface AuthorRow extends RowDataPacket {
+  id: number;
+  name: string;
+  description: string | null;
+  bio: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export async function getAuthorById(
+  id: number
+): Promise<{ data?: Author; error?: string }> {
+  try {
+    const result = await query(
+      "SELECT id, name, description, bio, created_at, updated_at FROM Authors WHERE id = ?",
+      [id]
+    );
+
+    if (result.error) {
+      return { error: result.error };
+    }
+
+    const authors = result.data as AuthorRow[];
+    if (!authors || authors.length === 0) {
+      return { error: "Author not found" };
+    }
+
+    const authorData = authors[0];
+    const author: Author = {
+      id: authorData.id,
+      name: authorData.name,
+      description: authorData.description || undefined,
+      bio: authorData.bio || undefined,
+      created_at: authorData.created_at.toISOString(),
+      updated_at: authorData.updated_at.toISOString(),
+    };
+
+    return { data: author };
+  } catch (error) {
+    console.error("Error getting author by ID:", error);
+    return { error: "Failed to get author" };
+  }
+}
 
 export async function getAuthors() {
   try {
-    const result = await query("SELECT * FROM Authors ORDER BY name ASC");
-    return { data: result, error: null };
-  } catch (error) {
-    console.error("Error fetching authors:", error);
+    const result = await query("SELECT * FROM Authors ORDER BY name");
+    if (result.error) {
+      return { data: [], error: result.error };
+    }
+    const authors = result.data as AuthorRow[];
     return {
-      data: null,
-      error: error instanceof Error ? error.message : "Failed to fetch authors",
+      data: authors.map((author) => ({
+        id: author.id,
+        name: author.name,
+        description: author.description || undefined,
+        bio: author.bio || undefined,
+        created_at: author.created_at.toISOString(),
+        updated_at: author.updated_at.toISOString(),
+      })),
+      error: null,
     };
+  } catch (error) {
+    console.error("Error in getAuthors:", error);
+    return { data: [], error: "Failed to fetch authors" };
   }
 }
 
 export async function createAuthor(authorData: AuthorFormData) {
   try {
-    const { db } = await connectToDatabase();
-    await db.query(
+    const result = await query(
       "INSERT INTO Authors (name, description, bio, created_at) VALUES (?, ?, ?, NOW())",
       [authorData.name, authorData.description || null, authorData.bio || null]
     );
-    await db.end();
+
+    if (result.error) {
+      return { success: false, error: result.error };
+    }
+
+    revalidatePath("/dashboard/authors");
     return { success: true, error: null };
   } catch (error) {
     console.error("Error creating author:", error);
@@ -39,8 +98,7 @@ export async function createAuthor(authorData: AuthorFormData) {
 
 export async function updateAuthor(id: number, authorData: AuthorFormData) {
   try {
-    const { db } = await connectToDatabase();
-    await db.query(
+    const result = await query(
       "UPDATE Authors SET name = ?, description = ?, bio = ? WHERE id = ?",
       [
         authorData.name,
@@ -49,7 +107,12 @@ export async function updateAuthor(id: number, authorData: AuthorFormData) {
         id,
       ]
     );
-    await db.end();
+
+    if (result.error) {
+      return { success: false, error: result.error };
+    }
+
+    revalidatePath("/dashboard/authors");
     return { success: true, error: null };
   } catch (error) {
     console.error("Error updating author:", error);
@@ -62,9 +125,13 @@ export async function updateAuthor(id: number, authorData: AuthorFormData) {
 
 export async function deleteAuthor(id: number) {
   try {
-    const { db } = await connectToDatabase();
-    await db.query("DELETE FROM Authors WHERE id = ?", [id]);
-    await db.end();
+    const result = await query("DELETE FROM Authors WHERE id = ?", [id]);
+
+    if (result.error) {
+      return { success: false, error: result.error };
+    }
+
+    revalidatePath("/dashboard/authors");
     return { success: true, error: null };
   } catch (error) {
     console.error("Error deleting author:", error);
@@ -75,22 +142,35 @@ export async function deleteAuthor(id: number) {
   }
 }
 
-export async function getAuthorById(id: number) {
+export async function searchAuthors(searchQuery: string) {
   try {
-    const { db } = await connectToDatabase();
-    const [rows] = await db.query("SELECT * FROM Authors WHERE id = ?", [id]);
-    await db.end();
-
-    if (Array.isArray(rows) && rows.length > 0) {
-      return { data: rows[0] as Author, error: null };
-    } else {
-      return { data: null, error: "Author not found" };
+    if (!searchQuery.trim()) {
+      return getAuthors();
     }
-  } catch (error) {
-    console.error("Error fetching author:", error);
+
+    const result = await query(
+      "SELECT * FROM Authors WHERE name LIKE ? OR description LIKE ? OR bio LIKE ? ORDER BY name",
+      [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
+    );
+
+    if (result.error) {
+      return { data: [], error: result.error };
+    }
+
+    const authors = result.data as AuthorRow[];
     return {
-      data: null,
-      error: error instanceof Error ? error.message : "Failed to fetch author",
+      data: authors.map((author) => ({
+        id: author.id,
+        name: author.name,
+        description: author.description || undefined,
+        bio: author.bio || undefined,
+        created_at: author.created_at.toISOString(),
+        updated_at: author.updated_at.toISOString(),
+      })),
+      error: null,
     };
+  } catch (error) {
+    console.error("Error searching authors:", error);
+    return { data: [], error: "Failed to search authors" };
   }
 }

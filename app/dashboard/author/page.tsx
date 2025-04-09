@@ -1,13 +1,28 @@
-import { getAuthors } from "../../lib/actions/authors";
+import { getAuthors, searchAuthors } from "../../lib/actions/authors";
 import AuthorsTableClient from "../../components/dashboard/authors/AuthorsTableClient";
+import AuthorsSearchWrapper from "../../components/dashboard/authors/AuthorsSearchWrapper";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { Author } from "../../type/definitions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AuthorsPage() {
-  const result = await getAuthors();
+interface AuthorsPageProps {
+  searchParams?: Promise<{
+    query?: string;
+  }>;
+}
+
+export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
+  // Await searchParams before accessing its properties
+  const searchParamsResolved = await searchParams;
+  const searchQuery = searchParamsResolved?.query || "";
+
+  // Use searchAuthors if there's a search query, otherwise use getAuthors
+  const result = searchQuery
+    ? await searchAuthors(searchQuery)
+    : await getAuthors();
+
   const authors = Array.isArray(result.data) ? (result.data as Author[]) : [];
   const error = result.error;
 
@@ -22,6 +37,10 @@ export default async function AuthorsPage() {
           <span className="hidden md:block">Create Author</span>{" "}
           <PlusIcon className="h-5 md:ml-4" />
         </Link>
+      </div>
+
+      <div className="mt-4">
+        <AuthorsSearchWrapper />
       </div>
 
       {error ? (

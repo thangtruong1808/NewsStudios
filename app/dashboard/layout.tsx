@@ -18,7 +18,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <Toaster
         position="top-right"
         toastOptions={{
-          duration: 5000,
+          duration: 3000,
           style: {
             background: "#363636",
             color: "#fff",

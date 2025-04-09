@@ -1,17 +1,15 @@
 "use client";
 
-import React from "react";
+import React, { ReactElement } from "react";
 import { Column } from "./types";
 import { Author } from "../../../type/definitions";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import DeleteAuthorButton from "./DeleteAuthorButton";
 
-// Helper function to split text into rows of 10 words each
+// Helper function to split text into rows of 8 words each
 const splitTextIntoRows = (
   text: string | undefined | null,
-  wordsPerRow: number
-): JSX.Element => {
+  wordsPerRow: number = 8
+): ReactElement => {
   if (!text) return <>-</>;
 
   const words = text.split(/\s+/);
@@ -20,14 +18,20 @@ const splitTextIntoRows = (
     return <>{text}</>;
   }
 
-  const firstRow = words.slice(0, wordsPerRow).join(" ");
-  const secondRow = words.slice(wordsPerRow).join(" ");
+  const rows = [];
+  for (let i = 0; i < words.length; i += wordsPerRow) {
+    const rowWords = words.slice(i, i + wordsPerRow);
+    rows.push(rowWords.join(" "));
+  }
 
   return (
     <>
-      {firstRow}
-      <br />
-      {secondRow}
+      {rows.map((row, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && <br />}
+          {row}
+        </React.Fragment>
+      ))}
     </>
   );
 };
@@ -41,71 +45,97 @@ export function getTableColumns(
   return [
     {
       key: "sequence",
-      label: "No",
+      label: "#",
       sortable: false,
-      cell: (author: Author, index: number) =>
-        (currentPage - 1) * itemsPerPage + index + 1,
+      cell: (author: Author, index: number) => (
+        <div className="whitespace-nowrap text-xs text-gray-500 sm:text-sm">
+          {(currentPage - 1) * itemsPerPage + index + 1}
+        </div>
+      ),
     },
     {
       key: "id",
       label: "ID",
       sortable: true,
-      cell: (author: Author) => author.id,
+      cell: (author: Author) => (
+        <div className="whitespace-nowrap text-xs text-gray-900 sm:text-sm">
+          {author.id}
+        </div>
+      ),
     },
     {
       key: "name",
       label: "Name",
       sortable: true,
-      cell: (author: Author) => author.name,
+      cell: (author: Author) => (
+        <div className="whitespace-nowrap text-xs text-gray-900 sm:text-sm">
+          {author.name}
+        </div>
+      ),
     },
     {
       key: "description",
       label: "Description",
       sortable: false,
-      cell: (author: Author) => splitTextIntoRows(author.description, 10),
+      cell: (author: Author) => (
+        <div className="text-xs text-gray-500 sm:text-sm">
+          {splitTextIntoRows(author.description)}
+        </div>
+      ),
     },
     {
       key: "bio",
       label: "Bio",
       sortable: false,
-      cell: (author: Author) => splitTextIntoRows(author.bio, 10),
+      cell: (author: Author) => (
+        <div className="text-xs text-gray-500 sm:text-sm">
+          {splitTextIntoRows(author.bio)}
+        </div>
+      ),
     },
     {
       key: "created_at",
       label: "Created At",
       sortable: true,
-      cell: (author: Author) =>
-        author.created_at
-          ? new Date(author.created_at).toLocaleDateString()
-          : "-",
+      cell: (author: Author) => (
+        <div className="whitespace-nowrap text-xs text-gray-500 sm:text-sm">
+          {author.created_at
+            ? new Date(author.created_at).toLocaleDateString()
+            : "-"}
+        </div>
+      ),
     },
     {
       key: "updated_at",
       label: "Updated At",
       sortable: true,
-      cell: (author: Author) =>
-        author.updated_at
-          ? new Date(author.updated_at).toLocaleDateString()
-          : "-",
+      cell: (author: Author) => (
+        <div className="whitespace-nowrap text-xs text-gray-500 sm:text-sm">
+          {author.updated_at
+            ? new Date(author.updated_at).toLocaleDateString()
+            : "-"}
+        </div>
+      ),
     },
     {
       key: "actions",
       label: "Actions",
       sortable: false,
       cell: (author: Author) => (
-        <div className="flex justify-center space-x-2">
+        <div className="flex justify-center gap-2">
           <Link
             href={`/dashboard/author/${author.id}/edit`}
-            className="text-indigo-600 hover:text-indigo-900"
+            className="rounded border border-blue-500 px-3 py-1 text-blue-500 hover:bg-blue-50"
           >
-            <PencilIcon className="h-5 w-5" />
+            Edit
           </Link>
-          <DeleteAuthorButton
-            authorId={author.id}
-            authorName={author.name}
-            onDelete={onDelete}
-            isDeleting={isDeleting}
-          />
+          <button
+            onClick={() => onDelete(author.id, author.name)}
+            disabled={isDeleting}
+            className="rounded border border-red-500 px-3 py-1 text-red-500 hover:bg-red-50 disabled:opacity-50"
+          >
+            Delete
+          </button>
         </div>
       ),
     },

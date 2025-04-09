@@ -6,7 +6,7 @@ declare global {
   }
 }
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Author } from "../../../type/definitions";
 import { getTableColumns } from "./TableColumns";
 import TableHeader from "./TableHeader";
@@ -16,9 +16,18 @@ import { toast } from "react-hot-toast";
 import { deleteAuthor } from "../../../lib/actions/authors";
 import { useRouter } from "next/navigation";
 import MobileAuthorCard from "./MobileAuthorCard";
+import Link from "next/link";
 
 interface AuthorsTableClientProps {
   authors: Author[];
+  searchQuery?: string;
+}
+
+interface TableHeaderProps {
+  columns: any[];
+  sortField: keyof Author;
+  sortDirection: "asc" | "desc";
+  onSort: (field: keyof Author) => void;
 }
 
 export default function AuthorsTableClient({
@@ -31,7 +40,7 @@ export default function AuthorsTableClient({
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [mounted, setMounted] = useState(false);
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 8;
   const totalPages = Math.ceil(authors.length / itemsPerPage);
 
   useEffect(() => {

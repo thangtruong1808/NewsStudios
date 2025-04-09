@@ -34,7 +34,7 @@ const links = [
     href: "/dashboard/users",
     icon: UsersIcon,
   },
-  { name: "Author", href: "/dashboard/author", icon: UserIcon },
+  { name: "Authors", href: "/dashboard/author", icon: UserIcon },
   { name: "Articles", href: "/dashboard/articles", icon: NewspaperIcon },
   { name: "Videos", href: "/dashboard/videos", icon: VideoCameraIcon },
   { name: "Photos", href: "/dashboard/photos", icon: PhotoIcon },
