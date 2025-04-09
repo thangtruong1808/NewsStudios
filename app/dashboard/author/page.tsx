@@ -7,7 +7,9 @@ import { Author } from "../../type/definitions";
 export const dynamic = "force-dynamic";
 
 export default async function AuthorsPage() {
-  const { data: authors, error } = await getAuthors();
+  const result = await getAuthors();
+  const authors = Array.isArray(result.data) ? (result.data as Author[]) : [];
+  const error = result.error;
 
   return (
     <div className="space-y-4">
@@ -34,7 +36,7 @@ export default async function AuthorsPage() {
           </div>
         </div>
       ) : (
-        <AuthorsTableClient authors={authors || []} />
+        <AuthorsTableClient authors={authors} />
       )}
     </div>
   );

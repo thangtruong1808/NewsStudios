@@ -1,5 +1,11 @@
 "use client";
 
+declare global {
+  interface Window {
+    confirm: (message?: string) => boolean;
+  }
+}
+
 import { useState, useEffect } from "react";
 import { Author } from "../../../type/definitions";
 import { getTableColumns } from "./TableColumns";
@@ -7,9 +13,9 @@ import TableHeader from "./TableHeader";
 import TableBody from "./TableBody";
 import Pagination from "./Pagination";
 import { toast } from "react-hot-toast";
-import { useRouter } from "next/navigation";
 import { deleteAuthor } from "../../../lib/actions/authors";
-import Search from "../search";
+import { useRouter } from "next/navigation";
+import MobileAuthorCard from "./MobileAuthorCard";
 
 interface AuthorsTableClientProps {
   authors: Author[];
@@ -23,59 +29,79 @@ export default function AuthorsTableClient({
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<keyof Author>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredAuthors, setFilteredAuthors] = useState<Author[]>(authors);
+  const [mounted, setMounted] = useState(false);
 
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredAuthors.length / itemsPerPage);
+  const totalPages = Math.ceil(authors.length / itemsPerPage);
 
-  // Filter authors based on search query
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredAuthors(authors);
-    } else {
-      const query = searchQuery.toLowerCase();
-      const filtered = authors.filter((author) =>
-        author.name.toLowerCase().includes(query)
-      );
-      setFilteredAuthors(filtered);
-    }
-    // Reset to first page when search changes
-    setCurrentPage(1);
-  }, [searchQuery, authors]);
+    setMounted(true);
+  }, []);
 
-  const handleSort = (field: keyof Author) => {
+  const handleSort = (field: string) => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field);
+      setSortField(field as keyof Author);
       setSortDirection("asc");
     }
   };
 
+  const handleEdit = (author: Author) => {
+    router.push(`/dashboard/author/${author.id}/edit`);
+  };
+
   const handleDelete = async (id: number, authorName: string) => {
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      toast(
+        (t) => (
+          <div className="flex flex-col items-center">
+            <p className="mb-2">
+              Are you sure you want to delete author "{authorName}"?
+            </p>
+            <div className="flex space-x-2">
+              <button
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  resolve(true);
+                }}
+              >
+                Delete
+              </button>
+              <button
+                className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  resolve(false);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ),
+        { duration: 5000 }
+      );
+    });
+
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
+
     setIsDeleting(true);
     try {
       const { success, error } = await deleteAuthor(id);
-
       if (error) {
-        toast.error(error);
-        return;
-      }
-
-      if (success) {
+        toast.error(`Failed to delete author: ${error}`);
+      } else if (success) {
         toast.success("Author deleted successfully");
         router.refresh();
       }
     } catch (error) {
-      toast.error("Failed to delete author");
+      toast.error("An error occurred while deleting the author");
     } finally {
       setIsDeleting(false);
     }
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
   };
 
   const columns = getTableColumns(
@@ -86,12 +112,17 @@ export default function AuthorsTableClient({
   );
 
   // Sort authors
-  const sortedAuthors = [...filteredAuthors].sort((a, b) => {
+  const sortedAuthors = [...authors].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
 
-    if (aValue === null || aValue === undefined) return 1;
-    if (bValue === null || bValue === undefined) return -1;
+    if (
+      aValue === null ||
+      aValue === undefined ||
+      bValue === null ||
+      bValue === undefined
+    )
+      return 0;
 
     if (typeof aValue === "string" && typeof bValue === "string") {
       return sortDirection === "asc"
@@ -99,30 +130,40 @@ export default function AuthorsTableClient({
         : bValue.localeCompare(aValue);
     }
 
-    return sortDirection === "asc"
-      ? (aValue as number) - (bValue as number)
-      : (bValue as number) - (aValue as number);
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
   });
 
   // Paginate authors
+  const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedAuthors = sortedAuthors.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    startIndex,
+    startIndex + itemsPerPage
   );
 
-  return (
-    <div className="flex flex-col">
-      <div className="mb-4">
-        <Search
-          placeholder="Search authors by name..."
-          onChange={handleSearch}
-        />
-      </div>
+  if (!mounted) {
+    return null;
+  }
 
-      <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-          <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200">
+  return (
+    <div className="mt-6 flow-root">
+      <div className="overflow-x-auto">
+        <div className="inline-block min-w-full align-middle">
+          <div className="overflow-hidden rounded-md bg-gray-50">
+            {/* Mobile view */}
+            <div className="md:hidden">
+              {paginatedAuthors.map((author) => (
+                <MobileAuthorCard
+                  key={author.id}
+                  author={author}
+                  onDelete={handleDelete}
+                  isDeleting={isDeleting}
+                />
+              ))}
+            </div>
+            {/* Desktop view */}
+            <table className="hidden min-w-full text-gray-900 md:table">
               <TableHeader
                 columns={columns}
                 sortField={sortField}
@@ -142,9 +183,9 @@ export default function AuthorsTableClient({
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
-        itemsPerPage={itemsPerPage}
-        totalItems={filteredAuthors.length}
         onPageChange={setCurrentPage}
+        itemsPerPage={itemsPerPage}
+        totalItems={authors.length}
       />
     </div>
   );

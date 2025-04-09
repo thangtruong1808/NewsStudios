@@ -1,17 +1,28 @@
-import React from "react";
+"use client";
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useDebouncedCallback } from "use-debounce";
 
 interface SearchProps {
   placeholder?: string;
-  value: string;
-  onChange: (value: string) => void;
 }
 
-export function Search({
-  placeholder = "Search...",
-  value,
-  onChange,
-}: SearchProps) {
+export function Search({ placeholder = "Search..." }: SearchProps) {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
+
+  const handleSearch = useDebouncedCallback((term: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (term) {
+      params.set("q", term);
+    } else {
+      params.delete("q");
+    }
+    replace(`${pathname}?${params.toString()}`);
+  }, 300);
+
   return (
     <div className="relative flex flex-1 flex-shrink-0">
       <label htmlFor="search-field" className="sr-only">
@@ -26,9 +37,8 @@ export function Search({
         className="block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
         placeholder={placeholder}
         type="search"
-        name="search"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        defaultValue={searchParams.get("q")?.toString()}
+        onChange={(e) => handleSearch(e.target.value)}
       />
     </div>
   );

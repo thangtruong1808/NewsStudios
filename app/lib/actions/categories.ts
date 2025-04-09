@@ -71,3 +71,19 @@ export async function deleteCategory(id: number) {
     return { data: null, error: "Failed to delete category" };
   }
 }
+
+export async function searchCategories(searchQuery: string) {
+  try {
+    const result = await query(
+      "SELECT * FROM Categories WHERE name LIKE ? ORDER BY name",
+      [`%${searchQuery}%`]
+    );
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+    return { data: result.data as Category[], error: null };
+  } catch (error) {
+    console.error("Error searching categories:", error);
+    return { data: null, error: "Failed to search categories" };
+  }
+}

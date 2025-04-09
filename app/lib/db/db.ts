@@ -76,13 +76,13 @@ export async function getPool() {
 
 /**
  * Executes a query on the database
- * @param query The SQL query to execute
+ * @param sqlQuery The SQL query to execute
  * @param params Parameters for the query
  * @returns The query results
  */
-export async function query(query: string, params: any[] = []) {
+export async function query(sqlQuery: string, params: any[] = []) {
   try {
-    const [results] = await pool.execute(query, params);
+    const [results] = await pool.execute(sqlQuery, params);
     return { data: results, error: null };
   } catch (error) {
     console.error("Database query error:", error);
