@@ -45,12 +45,13 @@ export async function getUserById(id: number) {
     const userData = rows[0];
     console.log(`User data found:`, userData);
 
-    // Return only the necessary user fields
+    // Return all user fields including password
     const user = {
       id: userData.id,
       firstname: userData.firstname,
       lastname: userData.lastname,
       email: userData.email,
+      password: userData.password, // Include the password field
       role: userData.role,
       status: userData.status,
       description: userData.description,
@@ -129,7 +130,52 @@ export async function updateUser(
   userData: UserFormData
 ): Promise<{ success: boolean; data: any; error: string | null }> {
   try {
-    // If password is "********" or empty, don't update the password
+    // Check if the password is the same as the one in the database
+    const userResult = await query("SELECT password FROM Users WHERE id = ?", [
+      id,
+    ]);
+    const currentPassword =
+      userResult.data &&
+      Array.isArray(userResult.data) &&
+      userResult.data.length > 0
+        ? (userResult.data[0] as any).password
+        : null;
+
+    // If password is the same as the one in the database, don't update it
+    if (userData.password === currentPassword) {
+      // Update without password
+      const result = await query(
+        `UPDATE Users 
+         SET firstname = ?, lastname = ?, email = ?, role = ?, status = ?, description = ?
+         WHERE id = ?`,
+        [
+          userData.firstname,
+          userData.lastname,
+          userData.email,
+          userData.role,
+          userData.status,
+          userData.description || null,
+          id,
+        ]
+      );
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      revalidatePath("/dashboard/users");
+      return {
+        success: true,
+        data: {
+          id,
+          ...userData,
+          password: undefined,
+        },
+        error: null,
+      };
+    }
+
+    // If password is empty or "********", don't update the password
     if (!userData.password || userData.password === "********") {
       // Update without password
       const result = await query(

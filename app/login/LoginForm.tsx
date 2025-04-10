@@ -10,7 +10,7 @@ import FormInput from "./components/FormInput";
 import ErrorMessage from "./components/ErrorMessage";
 import SubmitButton from "./components/SubmitButton";
 import PasswordToggle from "./components/PasswordToggle";
-import { FormData, FormErrors, validateForm } from "./utils/validation";
+import { LoginFormData, FormErrors, validateForm } from "./utils/validation";
 
 export default function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
@@ -19,7 +19,7 @@ export default function LoginForm() {
   const [isPending, setIsPending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   });

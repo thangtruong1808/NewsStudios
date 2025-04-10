@@ -66,7 +66,7 @@ export default function UserForm({ userId }: UserFormProps) {
               firstname: user.firstname,
               lastname: user.lastname,
               email: user.email,
-              password: "********",
+              password: user.password || "",
               role: user.role,
               status: user.status,
               description: user.description || "",
@@ -93,7 +93,7 @@ export default function UserForm({ userId }: UserFormProps) {
 
       if (userId) {
         const updateData = { ...data };
-        if (!updateData.password || updateData.password === "********") {
+        if (!updateData.password) {
           delete updateData.password;
         }
 

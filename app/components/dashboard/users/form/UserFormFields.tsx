@@ -2,6 +2,8 @@
 
 import { UseFormRegister, FieldErrors } from "react-hook-form";
 import { UserFormValues } from "./userSchema";
+import { useState } from "react";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 interface UserFormFieldsProps {
   register: UseFormRegister<UserFormValues>;
@@ -14,6 +16,12 @@ export default function UserFormFields({
   errors,
   isEditMode,
 }: UserFormFieldsProps) {
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -22,7 +30,7 @@ export default function UserFormFields({
             htmlFor="firstname"
             className="block text-sm font-medium text-gray-700"
           >
-            First Name
+            First Name <span className="text-red-500 ml-1"> *</span>
           </label>
           <input
             type="text"
@@ -42,7 +50,7 @@ export default function UserFormFields({
             htmlFor="lastname"
             className="block text-sm font-medium text-gray-700"
           >
-            Last Name
+            Last Name<span className="text-red-500 ml-1"> *</span>
           </label>
           <input
             type="text"
@@ -62,7 +70,7 @@ export default function UserFormFields({
             htmlFor="email"
             className="block text-sm font-medium text-gray-700"
           >
-            Email
+            Email Address <span className="text-red-500 ml-1"> *</span>
           </label>
           <input
             type="email"
@@ -75,19 +83,40 @@ export default function UserFormFields({
           )}
         </div>
 
-        <div>
+        <div className="relative">
           <label
             htmlFor="password"
             className="block text-sm font-medium text-gray-700"
           >
-            Password {isEditMode && "(leave blank to keep current)"}
+            Password{" "}
+            {isEditMode ? (
+              <span className="text-gray-500">
+                (leave blank to keep current)
+              </span>
+            ) : (
+              <span className="text-red-500 ml-1"> *</span>
+            )}
           </label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             id="password"
             {...register("password")}
+            placeholder={
+              isEditMode ? "Enter new password to change" : "Password"
+            }
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
           />
+          <button
+            type="button"
+            onClick={togglePasswordVisibility}
+            className="absolute right-3 top-9 text-gray-400 hover:text-gray-500 focus:outline-none"
+          >
+            {showPassword ? (
+              <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <EyeIcon className="h-5 w-5" aria-hidden="true" />
+            )}
+          </button>
           {errors.password && (
             <p className="mt-1 text-sm text-red-600">
               {errors.password.message}
@@ -100,7 +129,7 @@ export default function UserFormFields({
             htmlFor="role"
             className="block text-sm font-medium text-gray-700"
           >
-            Role
+            Role <span className="text-red-500 ml-1"> *</span>
           </label>
           <select
             id="role"
@@ -121,7 +150,7 @@ export default function UserFormFields({
             htmlFor="status"
             className="block text-sm font-medium text-gray-700"
           >
-            Status
+            Status <span className="text-red-500 ml-1"> *</span>
           </label>
           <select
             id="status"
@@ -142,7 +171,8 @@ export default function UserFormFields({
           htmlFor="description"
           className="block text-sm font-medium text-gray-700"
         >
-          Description
+          Description{" "}
+          <span className="text-sm text-gray-400 ml-1"> (optional)</span>
         </label>
         <textarea
           id="description"
