@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sponsor } from "../../../type/definitions";
+import { Sponsor } from "../../../login/login-definitions";
 import { getTableColumns } from "./TableColumns";
 import TableHeader from "./TableHeader";
 import TableBody from "./TableBody";

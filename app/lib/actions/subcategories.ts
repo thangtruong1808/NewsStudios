@@ -1,7 +1,7 @@
 "use server";
 
 import { query } from "../db/db";
-import { Subcategory } from "../../type/definitions";
+import { Subcategory } from "../../login/login-definitions";
 import { revalidatePath } from "next/cache";
 
 interface SubcategoryFormData {

@@ -9,7 +9,7 @@ import {
   type TagFormData,
 } from "../../../lib/validations/tagSchema";
 import { createTag, updateTag } from "../../../lib/actions/tags";
-import { Tag } from "../../../type/definitions";
+import { Tag } from "../../../login/login-definitions";
 import toast from "react-hot-toast";
 
 interface TagFormProps {

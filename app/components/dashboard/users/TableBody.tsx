@@ -1,7 +1,7 @@
 "use client";
 
 import { Column } from "./types";
-import { User } from "../../../type/definitions";
+import { User } from "../../../login/login-definitions";
 
 interface TableBodyProps {
   users: User[];

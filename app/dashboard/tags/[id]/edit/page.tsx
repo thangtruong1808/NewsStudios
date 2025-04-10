@@ -1,7 +1,7 @@
 import { getTagById } from "../../../../lib/actions/tags";
 import TagForm from "../../../../components/dashboard/tags/TagForm";
 import { notFound } from "next/navigation";
-import { Tag } from "../../../../type/definitions";
+import { Tag } from "../../../../login/login-definitions";
 
 interface EditTagPageProps {
   params: {

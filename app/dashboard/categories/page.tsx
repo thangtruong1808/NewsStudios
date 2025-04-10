@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { Category } from "../../type/definitions";
+import { Category } from "../../login/login-definitions";
 import CategoriesTableClient from "../../components/dashboard/categories/CategoriesTableClient";
 import CategoriesSearchWrapper from "../../components/dashboard/categories/CategoriesSearchWrapper";
 import { ErrorMessage } from "../../components/ErrorMessage";

@@ -10,7 +10,7 @@ import {
 import { createSponsor, updateSponsor } from "../../../lib/actions/sponsors";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { Sponsor } from "../../../type/definitions";
+import { Sponsor } from "../../../login/login-definitions";
 
 interface SponsorFormProps {
   sponsor?: Sponsor;

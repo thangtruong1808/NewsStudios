@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Category } from "../../../type/definitions";
+import { Category } from "../../../login/login-definitions";
 import { Column } from "./types";
 
 export function getTableColumns(

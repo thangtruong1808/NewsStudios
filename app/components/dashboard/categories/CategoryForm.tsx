@@ -13,7 +13,7 @@ import {
   updateCategory,
   getCategoryById,
 } from "../../../lib/actions/categories";
-import { Category } from "../../../type/definitions";
+import { Category } from "../../../login/login-definitions";
 import toast from "react-hot-toast";
 
 interface CategoryFormProps {

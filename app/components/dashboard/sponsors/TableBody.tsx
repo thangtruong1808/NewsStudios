@@ -1,4 +1,4 @@
-import { Sponsor } from "../../../type/definitions";
+import { Sponsor } from "../../../login/login-definitions";
 
 interface Column {
   accessorKey: keyof Sponsor | "sequence";

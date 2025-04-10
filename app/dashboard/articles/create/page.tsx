@@ -2,7 +2,11 @@ import { getCategories } from "../../../lib/actions/categories";
 import { getAuthors } from "../../../lib/actions/authors";
 import { getSubcategories } from "../../../lib/actions/subcategories";
 import ArticleForm from "../../../components/dashboard/articles/ArticleForm";
-import { Category, Author, Subcategory } from "../../../type/definitions";
+import {
+  Category,
+  Author,
+  Subcategory,
+} from "../../../login/login-definitions";
 
 export default async function CreateArticlePage() {
   try {

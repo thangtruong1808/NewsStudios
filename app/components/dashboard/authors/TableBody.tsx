@@ -1,6 +1,6 @@
 "use client";
 
-import { Author } from "../../../type/definitions";
+import { Author } from "../../../login/login-definitions";
 import { Column } from "./types";
 
 interface TableBodyProps {

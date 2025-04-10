@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Video } from "../../../type/definitions";
+import { Video } from "../../../login/login-definitions";
 import { TableHeader } from "./TableHeader";
 import { TableBody } from "./TableBody";
 import { Pagination } from "./Pagination";

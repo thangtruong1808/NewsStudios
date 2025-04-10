@@ -1,6 +1,6 @@
 "use client";
 
-import { Category } from "../../../type/definitions";
+import { Category } from "../../../login/login-definitions";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 interface MobileCategoryCardProps {

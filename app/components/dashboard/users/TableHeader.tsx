@@ -1,6 +1,6 @@
 "use client";
 
-import { User } from "../../../type/definitions";
+import { User } from "../../../login/login-definitions";
 
 interface TableHeaderProps {
   sortField: keyof User;

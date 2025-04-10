@@ -1,7 +1,7 @@
 "use server";
 
 import { query } from "../db/db";
-import { Tag, TagFormData } from "../../type/definitions";
+import { Tag, TagFormData } from "../../login/login-definitions";
 
 interface QueryResult {
   insertId?: number;

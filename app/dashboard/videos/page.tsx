@@ -5,7 +5,7 @@ import { lusitana } from "../../components/fonts";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { VideosTableClient } from "../../components/dashboard/videos/VideosTableClient";
 import { getVideos } from "../../lib/actions/videos";
-import { Video } from "../../type/definitions";
+import { Video } from "../../login/login-definitions";
 
 export default async function VideosPage() {
   const result = await getVideos();

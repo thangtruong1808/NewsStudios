@@ -8,7 +8,11 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { createArticle } from "../../../lib/actions/articles";
 import { uploadToFTP } from "../../../lib/utils/ftp";
-import { Category, Author, Subcategory } from "../../../type/definitions";
+import {
+  Category,
+  Author,
+  Subcategory,
+} from "../../../login/login-definitions";
 
 const articleSchema = z.object({
   title: z.string().min(1, "Title is required"),

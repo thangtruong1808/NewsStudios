@@ -1,4 +1,4 @@
-import { Category } from "../../../type/definitions";
+import { Category } from "../../../login/login-definitions";
 import { ReactNode } from "react";
 
 export interface Column {

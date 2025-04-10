@@ -10,7 +10,7 @@ declare global {
 }
 
 import { useState } from "react";
-import { Tag } from "../../../type/definitions";
+import { Tag } from "../../../login/login-definitions";
 import { getTableColumns } from "./TableColumns";
 import TableHeader from "./TableHeader";
 import TableBody from "./TableBody";

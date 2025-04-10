@@ -2,7 +2,7 @@
 
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { TableHeaderProps } from "./types";
-import { Tag } from "../../../type/definitions";
+import { Tag } from "../../../login/login-definitions";
 
 export default function TableHeader({
   columns,

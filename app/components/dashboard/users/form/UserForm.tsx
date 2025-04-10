@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
-import { User } from "../../../../type/definitions";
+import { User } from "../../../../login/login-definitions";
 import {
   createUser,
   updateUser,

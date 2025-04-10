@@ -7,7 +7,7 @@ declare global {
 }
 
 import { useState, useEffect } from "react";
-import { Category } from "../../../type/definitions";
+import { Category } from "../../../login/login-definitions";
 import { getTableColumns } from "./TableColumns";
 import { TableHeader } from "./TableHeader";
 import TableBody from "./TableBody";

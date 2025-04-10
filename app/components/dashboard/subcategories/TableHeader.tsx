@@ -1,6 +1,6 @@
 "use client";
 
-import { Subcategory } from "../../../type/definitions";
+import { Subcategory } from "../../../login/login-definitions";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 
 interface TableHeaderProps {

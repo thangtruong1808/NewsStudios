@@ -7,7 +7,7 @@ declare global {
 }
 
 import React, { useState, useEffect } from "react";
-import { Author } from "../../../type/definitions";
+import { Author } from "../../../login/login-definitions";
 import { getTableColumns } from "./TableColumns";
 import TableHeader from "./TableHeader";
 import TableBody from "./TableBody";

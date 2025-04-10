@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "react-hot-toast";
-import { Video } from "../../../type/definitions";
+import { Video } from "../../../login/login-definitions";
 import { createVideo, updateVideo } from "../../../lib/actions/videos";
 import { getArticles, Article } from "../../../lib/actions/articles";
 import { useRouter } from "next/navigation";

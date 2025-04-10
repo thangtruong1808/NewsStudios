@@ -1,7 +1,7 @@
 "use client";
 
 import { Column } from "./types";
-import { Category } from "../../../type/definitions";
+import { Category } from "../../../login/login-definitions";
 
 interface TableBodyProps {
   categories: Category[];

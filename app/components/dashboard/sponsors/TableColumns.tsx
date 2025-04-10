@@ -1,4 +1,4 @@
-import { Sponsor } from "../../../type/definitions";
+import { Sponsor } from "../../../login/login-definitions";
 import { PencilIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import DeleteSponsorButton from "./DeleteSponsorButton";

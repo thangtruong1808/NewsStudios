@@ -2,7 +2,7 @@ import { getTags } from "../../lib/actions/tags";
 import TagsTableClient from "../../components/dashboard/tags/TagsTableClient";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { Tag } from "../../type/definitions";
+import { Tag } from "../../login/login-definitions";
 import { SearchWrapper } from "../../components/dashboard/search";
 
 export default async function TagsPage() {

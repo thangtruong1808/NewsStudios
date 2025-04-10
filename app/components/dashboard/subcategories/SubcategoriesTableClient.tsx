@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Subcategory } from "../../../type/definitions";
+import { Subcategory } from "../../../login/login-definitions";
 import { getTableColumns } from "./TableColumns";
 import TableHeader from "./TableHeader";
 import TableBody from "./TableBody";

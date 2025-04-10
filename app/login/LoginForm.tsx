@@ -1,56 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import * as z from "zod";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import { authenticateUser } from "../lib/auth";
-import { LoginFormData } from "../type/definitions";
+import { toast } from "react-hot-toast";
+import { authenticateUser, LoginFormData } from "./login";
 import { useAuth } from "../context/AuthContext";
 
 // Define the form schema with zod
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+const formSchema = z.object({
+  email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export default function LoginForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  // Initialize react-hook-form with zod resolver
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(formSchema),
   });
 
-  // Handle form submission
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsSubmitting(true);
-
-      // Call the authentication service
+      setAuthError(null);
       const response = await authenticateUser(data);
 
       if (response.success && response.user) {
-        // Store user in context
         login(response.user);
         toast.success("Login successful!");
         router.push("/dashboard");
       } else {
-        toast.error(
-          response.error || "Login failed. Please check your credentials."
-        );
+        setAuthError(response.error || "Invalid credentials");
       }
     } catch (error) {
-      toast.error("An error occurred during login. Please try again.");
       console.error("Login error:", error);
+      setAuthError("An error occurred during login");
     } finally {
       setIsSubmitting(false);
     }
@@ -102,6 +96,21 @@ export default function LoginForm() {
             </p>
           )}
         </div>
+
+        {authError && (
+          <div className="rounded-md bg-red-50 p-4">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  Authentication Error
+                </h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{authError}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-between">
           <div className="flex items-center">

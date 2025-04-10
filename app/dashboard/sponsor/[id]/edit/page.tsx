@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import SponsorForm from "../../../../components/dashboard/sponsors/SponsorForm";
 import { getSponsorById } from "../../../../lib/actions/sponsors";
-import { Sponsor } from "../../../../type/definitions";
+import { Sponsor } from "../../../../login/login-definitions";
 
 export default function EditSponsorPage() {
   const params = useParams();

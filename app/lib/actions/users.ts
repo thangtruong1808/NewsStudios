@@ -1,7 +1,7 @@
 "use server";
 
 import { query } from "../db/db";
-import { User, UserFormData } from "../../type/definitions";
+import { User, UserFormData } from "../../login/login-definitions";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { ResultSetHeader } from "mysql2";

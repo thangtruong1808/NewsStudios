@@ -1,7 +1,7 @@
 "use server";
 
 import { AuthorFormData } from "../validations/authorSchema";
-import { Author } from "../../type/definitions";
+import { Author } from "../../login/login-definitions";
 import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
 import { RowDataPacket } from "mysql2";

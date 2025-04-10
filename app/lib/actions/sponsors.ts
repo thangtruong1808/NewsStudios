@@ -1,7 +1,7 @@
 "use server";
 
 import { query } from "../db/db";
-import { Sponsor } from "../../type/definitions";
+import { Sponsor } from "../../login/login-definitions";
 
 export async function getSponsors() {
   try {

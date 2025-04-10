@@ -1,6 +1,6 @@
 "use client";
 
-import { Subcategory } from "../../../type/definitions";
+import { Subcategory } from "../../../login/login-definitions";
 
 interface TableBodyProps {
   subcategories: Subcategory[];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User } from "../../type/definitions";
+import { User } from "../../login/login-definitions";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-hot-toast";

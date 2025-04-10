@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Tag } from "../../../type/definitions";
+import { Tag } from "../../../login/login-definitions";
 import { Column } from "./types";
 
 export function getTableColumns(

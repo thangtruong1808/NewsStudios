@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { query } from "../db/db";
 import { CategoryFormData } from "../validations/categorySchema";
-import { Category } from "../../type/definitions";
+import { Category } from "../../login/login-definitions";
 
 export async function getCategories() {
   try {

@@ -2,7 +2,7 @@
 
 import React, { ReactElement } from "react";
 import { Column } from "./types";
-import { Author } from "../../../type/definitions";
+import { Author } from "../../../login/login-definitions";
 import Link from "next/link";
 
 // Helper function to split text into rows of 8 words each

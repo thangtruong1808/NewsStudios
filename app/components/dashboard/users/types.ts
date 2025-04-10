@@ -1,4 +1,4 @@
-import { User } from "../../../type/definitions";
+import { User } from "../../../login/login-definitions";
 import { ReactNode } from "react";
 
 export interface Column {

@@ -1,6 +1,6 @@
 "use client";
 
-import { User } from "../../../type/definitions";
+import { User } from "../../../login/login-definitions";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 interface TableRowProps {
