@@ -1,17 +1,14 @@
 "use server";
 
 import mysql from "mysql2/promise";
-import { env } from "../env";
-
-// Removed console.log for environment variables loaded
 
 // Database configuration
 const dbConfig = {
-  host: env.DB_HOST,
-  user: env.DB_USER,
-  password: env.DB_PASSWORD,
-  database: env.DB_NAME,
-  port: parseInt(env.DB_PORT),
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: parseInt(process.env.DB_PORT || "3306"),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -33,7 +30,7 @@ if (
   });
 
   // Instead of throwing an error, use default values for development
-  if (env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV === "development") {
     console.warn("Using default database configuration for development");
     dbConfig.host = dbConfig.host || "localhost";
     dbConfig.user = dbConfig.user || "root";

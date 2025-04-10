@@ -10,20 +10,13 @@ import {
   FolderIcon,
   AcademicCapIcon,
   BanknotesIcon,
-  CurrencyDollarIcon,
   TagIcon,
-  DocumentIcon,
-  ChartBarIcon,
-  CogIcon,
-  BellIcon,
-  ArrowUpTrayIcon,
   CloudIcon,
   FolderOpenIcon,
 } from "@heroicons/react/24/outline";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import NavLink from "./NavLink";
-import SignOutLink from "./SignOutLink";
 
 // Map of links to display in the side navigation.
 // Depending on the size of the application, this would be stored in a database.
@@ -86,9 +79,6 @@ export default function NavLinks() {
           </div>
         );
       })}
-      <div className="md:hidden">
-        <SignOutLink />
-      </div>
     </div>
   );
 }

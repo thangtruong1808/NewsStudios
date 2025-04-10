@@ -2,13 +2,12 @@
   "compilerOptions": {
     "target": "es2017",
     "module": "commonjs",
-    "lib": ["es2017", "esnext.asynciterable", "dom"],
+    "lib": ["es2017", "esnext.asynciterable", "dom", "dom.iterable"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "./app",
     "allowJs": true,
     "noEmit": true,
     "incremental": true,
@@ -18,7 +17,7 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./app/*"]
+      "@/*": ["./*"]
     },
     "plugins": [
       {
@@ -26,6 +25,14 @@
       }
     ]
   },
-  "include": ["app/**/*", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "auth.ts",
+    "middleware.ts",
+    "next.config.ts",
+    ".next/types/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }

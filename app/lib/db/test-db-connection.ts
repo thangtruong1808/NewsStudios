@@ -1,8 +1,14 @@
-import { query, closeConnection } from "./db";
+import { query, getConnection, releaseConnection } from "./db";
 
 async function testConnection() {
+  let connection;
   try {
     console.log("Testing database connection...");
+    const connResult = await getConnection();
+    if (connResult.error) {
+      throw new Error(connResult.error);
+    }
+    connection = connResult.connection;
     const result = await query("SELECT 1 as test");
     console.log("Connection successful:", result);
     return true;
@@ -10,7 +16,9 @@ async function testConnection() {
     console.error("Connection failed:", error);
     return false;
   } finally {
-    await closeConnection();
+    if (connection) {
+      await releaseConnection(connection);
+    }
   }
 }
 

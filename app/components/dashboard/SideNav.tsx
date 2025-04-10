@@ -1,18 +1,6 @@
-"use client";
-
-import { PowerIcon } from "@heroicons/react/24/outline";
 import MyLogo from "./MyLogo";
 import NavLinks from "./NavLinks";
-import {
-  HomeIcon,
-  UserIcon,
-  DocumentIcon,
-  ChartBarIcon,
-  CogIcon,
-  BellIcon,
-} from "@heroicons/react/24/outline";
-import NavLink from "./NavLink";
-import SignOutLink from "./SignOutLink";
+import SignOutButton from "./SignOutButton";
 
 export default function SideNav() {
   return (
@@ -23,8 +11,11 @@ export default function SideNav() {
       <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">
         <NavLinks />
         <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
+        <div className="md:hidden">
+          <SignOutButton isMobile={true} />
+        </div>
         <div className="hidden w-full md:block">
-          <SignOutLink />
+          <SignOutButton />
         </div>
       </div>
     </div>
