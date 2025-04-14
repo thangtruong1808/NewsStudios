@@ -71,18 +71,38 @@ export interface Article {
   title: string;
   content: string;
   category_id: number;
-  sub_category_id?: number;
-  author_id: number;
   user_id: number;
-  image?: string;
-  video?: string;
-  published_at?: Date;
+  author_id: number;
+  sub_category_id?: number;
+  image?: string | null;
+  video?: string | null;
+  created_at: Date;
   updated_at: Date;
+  published_at: Date;
   is_featured: boolean;
   headline_priority: number;
-  headline_image_url?: string;
-  headline_video_url?: string;
+  headline_image_url?: string | null;
+  headline_video_url?: string | null;
   is_trending: boolean;
+  category_name?: string;
+  author_name?: string;
+  tag_names?: string[];
+  tag_ids?: number[];
+}
+
+export type CreateArticleData = Omit<
+  Article,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "category_name"
+  | "author_name"
+  | "tag_names"
+  | "tag_ids"
+>;
+
+export interface ArticleWithTags extends Article {
+  tags: Tag[];
 }
 
 export interface Image {

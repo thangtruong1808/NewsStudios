@@ -20,8 +20,11 @@ export function Pagination({
   currentPage,
   onPageChange,
 }: PaginationProps) {
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const totalPages = Math.ceil(
+    totalItems / itemsPerPage
+  );
+  const startItem =
+    (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(
     currentPage * itemsPerPage,
     totalItems
@@ -52,14 +55,18 @@ export function Pagination({
     const maxVisiblePages = 5;
     let startPage = Math.max(
       1,
-      currentPage - Math.floor(maxVisiblePages / 2)
+      currentPage -
+        Math.floor(maxVisiblePages / 2)
     );
     let endPage = Math.min(
       totalPages,
       startPage + maxVisiblePages - 1
     );
 
-    if (endPage - startPage + 1 < maxVisiblePages) {
+    if (
+      endPage - startPage + 1 <
+      maxVisiblePages
+    ) {
       startPage = Math.max(
         1,
         endPage - maxVisiblePages + 1
@@ -81,9 +88,13 @@ export function Pagination({
         <div>
           <p className="text-xs sm:text-sm text-gray-700">
             Showing{" "}
-            <span className="font-medium">{startItem}</span>{" "}
+            <span className="font-medium">
+              {startItem}
+            </span>{" "}
             to{" "}
-            <span className="font-medium">{endItem}</span>{" "}
+            <span className="font-medium">
+              {endItem}
+            </span>{" "}
             of{" "}
             <span className="font-medium">
               {totalItems}
@@ -101,7 +112,9 @@ export function Pagination({
               disabled={currentPage === 1}
               className="relative inline-flex items-center rounded-l-md px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
-              <span className="sr-only">First</span>
+              <span className="sr-only">
+                First
+              </span>
               <ChevronDoubleLeftIcon
                 className="h-3 w-3 sm:h-5 sm:w-5"
                 aria-hidden="true"
@@ -112,31 +125,41 @@ export function Pagination({
               disabled={currentPage === 1}
               className="relative inline-flex items-center px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
-              <span className="sr-only">Previous</span>
+              <span className="sr-only">
+                Previous
+              </span>
               <ChevronLeftIcon
                 className="h-3 w-3 sm:h-5 sm:w-5"
                 aria-hidden="true"
               />
             </button>
-            {generatePageNumbers().map((pageNumber) => (
-              <button
-                key={pageNumber}
-                onClick={() => onPageChange(pageNumber)}
-                className={`relative inline-flex items-center px-2 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold ${
-                  pageNumber === currentPage
-                    ? "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                    : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                }`}
-              >
-                {pageNumber}
-              </button>
-            ))}
+            {generatePageNumbers().map(
+              (pageNumber) => (
+                <button
+                  key={pageNumber}
+                  onClick={() =>
+                    onPageChange(pageNumber)
+                  }
+                  className={`relative inline-flex items-center px-2 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold ${
+                    pageNumber === currentPage
+                      ? "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                      : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              )
+            )}
             <button
               onClick={handleNext}
-              disabled={currentPage === totalPages}
+              disabled={
+                currentPage === totalPages
+              }
               className="relative inline-flex items-center px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
-              <span className="sr-only">Next</span>
+              <span className="sr-only">
+                Next
+              </span>
               <ChevronRightIcon
                 className="h-3 w-3 sm:h-5 sm:w-5"
                 aria-hidden="true"
@@ -144,10 +167,14 @@ export function Pagination({
             </button>
             <button
               onClick={handleLastPage}
-              disabled={currentPage === totalPages}
+              disabled={
+                currentPage === totalPages
+              }
               className="relative inline-flex items-center rounded-r-md px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
-              <span className="sr-only">Last</span>
+              <span className="sr-only">
+                Last
+              </span>
               <ChevronDoubleRightIcon
                 className="h-3 w-3 sm:h-5 sm:w-5"
                 aria-hidden="true"
@@ -171,9 +198,13 @@ export function Pagination({
       <div className="sm:hidden">
         <p className="text-xs text-gray-700">
           Page{" "}
-          <span className="font-medium">{currentPage}</span>{" "}
+          <span className="font-medium">
+            {currentPage}
+          </span>{" "}
           of{" "}
-          <span className="font-medium">{totalPages}</span>
+          <span className="font-medium">
+            {totalPages}
+          </span>
         </p>
       </div>
     </div>

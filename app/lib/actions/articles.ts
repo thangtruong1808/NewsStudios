@@ -1,7 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { query } from "../db/db";
+import {
+  query,
+  transaction,
+  TransactionClient,
+} from "../db/query";
 import { RowDataPacket } from "mysql2";
 import { Article } from "../definition";
 
@@ -15,77 +19,48 @@ export interface ArticleWithJoins
 }
 
 export async function getArticles() {
-  try {
-    const result = await query(`
-      SELECT a.*, c.name as category_name, au.name as author_name, u.firstname as user_firstname, u.lastname as user_lastname
-      FROM Articles a
-      LEFT JOIN Categories c ON a.category_id = c.id
-      LEFT JOIN Authors au ON a.author_id = au.id
-      LEFT JOIN Users u ON a.user_id = u.id
-      ORDER BY a.published_at DESC
-    `);
+  const { data, error } = await query(`
+    SELECT 
+      a.*,
+      c.name as category_name,
+      CONCAT(u.firstname, ' ', u.lastname) as author_name,
+      GROUP_CONCAT(t.name) as tag_names,
+      GROUP_CONCAT(t.id) as tag_ids
+    FROM Articles a
+    LEFT JOIN Categories c ON a.category_id = c.id
+    LEFT JOIN Users u ON a.user_id = u.id
+    LEFT JOIN Article_Tags at ON a.id = at.article_id
+    LEFT JOIN Tags t ON at.tag_id = t.id
+    GROUP BY a.id, c.name, u.firstname, u.lastname
+    ORDER BY a.published_at DESC
+  `);
 
-    if (result.error) {
-      console.error("Error in getArticles:", result.error);
-      return { error: result.error };
-    }
-
-    return { data: result.data || [] };
-  } catch (error) {
-    console.error("Error in getArticles:", error);
-    try {
-      // Fallback to simpler query if join fails
-      const fallbackResult = await query(
-        "SELECT * FROM Articles ORDER BY published_at DESC"
-      );
-
-      if (fallbackResult.error) {
-        console.error(
-          "Error in getArticles fallback:",
-          fallbackResult.error
-        );
-        return { error: fallbackResult.error };
-      }
-
-      return { data: fallbackResult.data || [] };
-    } catch (fallbackError) {
-      console.error(
-        "Error in getArticles fallback:",
-        fallbackError
-      );
-      return { error: "Failed to fetch articles" };
-    }
-  }
+  if (error) throw new Error(error);
+  return data || [];
 }
 
 export async function getArticleById(id: number) {
-  try {
-    const result = await query(
-      `
-      SELECT a.*, c.name as category_name, au.name as author_name, u.firstname as user_firstname, u.lastname as user_lastname
-      FROM Articles a
-      LEFT JOIN Categories c ON a.category_id = c.id
-      LEFT JOIN Authors au ON a.author_id = au.id
-      LEFT JOIN Users u ON a.user_id = u.id
-      WHERE a.id = ?
-    `,
-      [id]
-    );
+  const { data, error } = await query(
+    `
+    SELECT 
+      a.*,
+      c.name as category_name,
+      CONCAT(u.firstname, ' ', u.lastname) as author_name,
+      GROUP_CONCAT(t.name) as tag_names,
+      GROUP_CONCAT(t.id) as tag_ids
+    FROM Articles a
+    LEFT JOIN Categories c ON a.category_id = c.id
+    LEFT JOIN Users u ON a.user_id = u.id
+    LEFT JOIN Article_Tags at ON a.id = at.article_id
+    LEFT JOIN Tags t ON at.tag_id = t.id
+    WHERE a.id = ?
+    GROUP BY a.id, c.name, u.firstname, u.lastname
+  `,
+    [id]
+  );
 
-    if (result.error) {
-      console.error(
-        "Error fetching article:",
-        result.error
-      );
-      return { data: null, error: result.error };
-    }
-
-    const articles = result.data as ArticleWithJoins[];
-    return { data: articles?.[0] || null, error: null };
-  } catch (error) {
-    console.error("Error fetching article:", error);
-    return { data: null, error: "Failed to fetch article" };
-  }
+  if (error) return { data: null, error };
+  return { data: data?.[0], error: null };
 }
 
 type CreateArticleData = Omit<
@@ -96,193 +71,189 @@ type CreateArticleData = Omit<
 };
 
 export async function createArticle(
-  data: CreateArticleData
+  article: Article,
+  tag_ids: number[]
 ) {
-  try {
-    // Validate required fields
-    if (!data.title || data.title.trim() === "") {
-      return { error: "Title is required" };
-    }
-
-    if (!data.content || data.content.trim() === "") {
-      return { error: "Content is required" };
-    }
-
-    if (!data.category_id) {
-      return { error: "Category is required" };
-    }
-
-    if (!data.author_id) {
-      return { error: "Author is required" };
-    }
-
-    if (!data.user_id) {
-      return { error: "User is required" };
-    }
-
-    // Check if category exists
-    const categoryResult = await query(
-      "SELECT id FROM Categories WHERE id = ?",
-      [data.category_id]
-    );
-
-    if (
-      categoryResult.error ||
-      !categoryResult.data ||
-      (Array.isArray(categoryResult.data) &&
-        categoryResult.data.length === 0)
-    ) {
-      return { error: "Selected category does not exist" };
-    }
-
-    // Check if author exists
-    const authorResult = await query(
-      "SELECT id FROM Authors WHERE id = ?",
-      [data.author_id]
-    );
-
-    if (
-      authorResult.error ||
-      !authorResult.data ||
-      (Array.isArray(authorResult.data) &&
-        authorResult.data.length === 0)
-    ) {
-      return { error: "Selected author does not exist" };
-    }
-
-    // Check if user exists
-    const userResult = await query(
-      "SELECT id FROM Users WHERE id = ?",
-      [data.user_id]
-    );
-
-    if (
-      userResult.error ||
-      !userResult.data ||
-      (Array.isArray(userResult.data) &&
-        userResult.data.length === 0)
-    ) {
-      return { error: "Selected user does not exist" };
-    }
-
-    // Check if subcategory exists if provided
-    if (data.sub_category_id) {
-      const subcategoryResult = await query(
-        "SELECT id FROM SubCategories WHERE id = ?",
-        [data.sub_category_id]
-      );
-
-      if (
-        subcategoryResult.error ||
-        !subcategoryResult.data ||
-        (Array.isArray(subcategoryResult.data) &&
-          subcategoryResult.data.length === 0)
-      ) {
-        return {
-          error: "Selected subcategory does not exist",
-        };
-      }
-    }
-
-    // Start transaction
-    const transactionResult = await query(
-      "START TRANSACTION"
-    );
-    if (transactionResult.error) {
-      return { error: "Failed to start transaction" };
-    }
-
-    try {
+  return transaction(
+    async (trx: TransactionClient) => {
       // Insert article
-      const insertResult = await query(
+      const {
+        data: articleResult,
+        error: articleError,
+      } = await query(
         `INSERT INTO Articles (
-          title, content, category_id, author_id, user_id, sub_category_id,
-          image, video, is_featured, headline_priority, headline_image_url,
-          headline_video_url, is_trending, published_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+          title, content, category_id, user_id, author_id, 
+          sub_category_id, image, video, published_at, updated_at,
+          is_featured, headline_priority, headline_image_url, 
+          headline_video_url, is_trending
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?, ?, ?, ?, ?)`,
         [
-          data.title,
-          data.content,
-          data.category_id,
-          data.author_id,
-          data.user_id,
-          data.sub_category_id || null,
-          data.image || null,
-          data.video || null,
-          data.is_featured || false,
-          data.headline_priority || 0,
-          data.headline_image_url || null,
-          data.headline_video_url || null,
-          data.is_trending || false,
-        ]
+          article.title,
+          article.content,
+          article.category_id,
+          article.user_id,
+          article.author_id,
+          article.sub_category_id || null,
+          article.image || null,
+          article.video || null,
+          article.is_featured || false,
+          article.headline_priority || 0,
+          article.headline_image_url || null,
+          article.headline_video_url || null,
+          article.is_trending || false,
+        ],
+        trx
       );
 
-      if (insertResult.error) {
-        throw new Error(insertResult.error);
+      if (articleError)
+        throw new Error(articleError);
+
+      // Get the inserted article ID
+      const {
+        data: insertedArticle,
+        error: getError,
+      } = await query(
+        "SELECT * FROM Articles WHERE id = LAST_INSERT_ID()",
+        [],
+        trx
+      );
+
+      if (getError) throw new Error(getError);
+      const newArticle = insertedArticle?.[0];
+
+      // Insert article tags
+      if (tag_ids.length > 0) {
+        const placeholders = tag_ids
+          .map(() => "(?, ?)")
+          .join(",");
+        const values = tag_ids.flatMap(
+          (tagId) => [newArticle.id, tagId]
+        );
+
+        const { error: tagError } = await query(
+          `INSERT INTO Article_Tags (article_id, tag_id) VALUES ${placeholders}`,
+          values,
+          trx
+        );
+
+        if (tagError) throw new Error(tagError);
       }
 
-      const articleId = (insertResult.data as any).insertId;
+      return newArticle;
+    }
+  );
+}
 
-      // Insert tag associations if tags are provided
-      if (data.tag_ids && data.tag_ids.length > 0) {
-        const placeholders = data.tag_ids
-          .map(() => "(?, ?)")
-          .join(", ");
-        const flatValues = data.tag_ids.flatMap(
-          (tagId: number) => [articleId, tagId]
-        );
-        const tagInsertResult = await query(
-          `INSERT INTO Article_Tags (article_id, tag_id) VALUES ${placeholders}`,
-          flatValues
+export async function updateArticle(
+  id: number,
+  article: Partial<Article>,
+  tag_ids?: number[]
+) {
+  return transaction(
+    async (trx: TransactionClient) => {
+      // Filter out non-database fields and undefined values
+      const validFields = [
+        "title",
+        "content",
+        "category_id",
+        "author_id",
+        "user_id",
+        "sub_category_id",
+        "image",
+        "video",
+        "is_featured",
+        "headline_priority",
+        "headline_image_url",
+        "headline_video_url",
+        "is_trending",
+      ];
+
+      const articleData = Object.fromEntries(
+        Object.entries(article).filter(
+          ([key, value]) =>
+            validFields.includes(key) &&
+            value !== undefined
+        )
+      );
+
+      // Update article
+      const setClauses = Object.keys(articleData)
+        .map((key) => `${key} = ?`)
+        .join(", ");
+
+      const { error: articleError } = await query(
+        `UPDATE Articles SET ${setClauses}, updated_at = NOW() WHERE id = ?`,
+        [...Object.values(articleData), id],
+        trx
+      );
+
+      if (articleError)
+        throw new Error(articleError);
+
+      // Get the updated article
+      const {
+        data: updatedArticle,
+        error: getError,
+      } = await query(
+        "SELECT * FROM Articles WHERE id = ?",
+        [id],
+        trx
+      );
+
+      if (getError) throw new Error(getError);
+
+      // Update tags if provided
+      if (tag_ids !== undefined) {
+        // Delete existing tags
+        await query(
+          "DELETE FROM Article_Tags WHERE article_id = ?",
+          [id],
+          trx
         );
 
-        if (tagInsertResult.error) {
-          throw new Error(tagInsertResult.error);
+        // Insert new tags
+        if (tag_ids.length > 0) {
+          const placeholders = tag_ids
+            .map(() => "(?, ?)")
+            .join(",");
+          const values = tag_ids.flatMap(
+            (tagId) => [id, tagId]
+          );
+
+          const { error: tagError } = await query(
+            `INSERT INTO Article_Tags (article_id, tag_id) VALUES ${placeholders}`,
+            values,
+            trx
+          );
+
+          if (tagError) throw new Error(tagError);
         }
       }
 
-      // Commit transaction
-      const commitResult = await query("COMMIT");
-      if (commitResult.error) {
-        throw new Error(commitResult.error);
-      }
-
-      // Revalidate the articles path
-      revalidatePath("/dashboard/articles");
-
-      // Get the created article
-      const { data: createdArticle, error: fetchError } =
-        await getArticleById(articleId);
-      if (fetchError) {
-        console.error(
-          "Error fetching created article:",
-          fetchError
-        );
-        return {
-          error:
-            "Article created but failed to fetch details",
-        };
-      }
-
-      return { data: createdArticle, error: null };
-    } catch (error) {
-      // Rollback transaction on error
-      const rollbackResult = await query("ROLLBACK");
-      if (rollbackResult.error) {
-        console.error(
-          "Error rolling back transaction:",
-          rollbackResult.error
-        );
-      }
-      throw error;
+      return updatedArticle?.[0];
     }
-  } catch (error) {
-    console.error("Error creating article:", error);
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to create article",
-    };
-  }
+  );
+}
+
+export async function deleteArticle(id: number) {
+  return transaction(
+    async (trx: TransactionClient) => {
+      // Delete article tags first
+      await query(
+        "DELETE FROM Article_Tags WHERE article_id = ?",
+        [id],
+        trx
+      );
+
+      // Delete article
+      const { data: result, error } = await query(
+        "DELETE FROM Articles WHERE id = ?",
+        [id],
+        trx
+      );
+
+      if (error) throw new Error(error);
+      return result?.[0];
+    }
+  );
 }

@@ -20,11 +20,14 @@ export function TableBody({
 }: TableBodyProps) {
   const formatDate = (date: Date | undefined) => {
     if (!date) return "Not published";
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return new Date(date).toLocaleDateString(
+      "en-US",
+      {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }
+    );
   };
 
   return (
@@ -35,9 +38,13 @@ export function TableBody({
           className="border-b border-gray-200 hover:bg-gray-50"
         >
           <td className="px-4 py-3">
-            {(currentPage - 1) * itemsPerPage + index + 1}
+            {(currentPage - 1) * itemsPerPage +
+              index +
+              1}
           </td>
-          <td className="px-4 py-3">{article.id}</td>
+          <td className="px-4 py-3">
+            {article.id}
+          </td>
           <td className="px-4 py-3">
             <Link
               href={`/dashboard/articles/${article.id}`}
@@ -52,9 +59,13 @@ export function TableBody({
             </div>
           </td>
           <td className="px-4 py-3">
-            {article.category_id}
+            {(article as any).category_name ||
+              "Unknown Category"}
           </td>
-          <td className="px-4 py-3">{article.author_id}</td>
+          <td className="px-4 py-3">
+            {(article as any).author_name ||
+              "Unknown Author"}
+          </td>
           <td className="px-4 py-3">
             {formatDate(article.published_at)}
           </td>
@@ -84,9 +95,9 @@ export function TableBody({
             <div className="flex justify-end gap-2">
               <Link
                 href={`/dashboard/articles/${article.id}/edit`}
-                className="text-blue-600 hover:text-blue-800"
+                className="rounded border border-blue-500 px-3 py-1 text-blue-500 hover:bg-blue-100"
               >
-                <PencilIcon className="h-5 w-5" />
+                Edit
               </Link>
               <button
                 onClick={() => {
@@ -96,9 +107,9 @@ export function TableBody({
                     article.id
                   );
                 }}
-                className="text-red-600 hover:text-red-800"
+                className="rounded border border-red-500 px-3 py-1 text-red-500 hover:bg-red-100"
               >
-                <TrashIcon className="h-5 w-5" />
+                Delete
               </button>
             </div>
           </td>

@@ -5,7 +5,6 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { getArticles } from "../../lib/actions/articles";
 import { ArticlesTableClient } from "../../components/dashboard/articles/ArticlesTableClient";
 import { Article } from "../../lib/definition";
-import type { ArticleWithJoins } from "../../lib/actions/articles";
 import ArticlesSearchWrapper from "../../components/dashboard/articles/ArticlesSearchWrapper";
 
 // Use static rendering by default, but revalidate every 60 seconds
@@ -24,12 +23,23 @@ export default async function ArticlesPage(
   // Await searchParams before accessing its properties
   const searchParams = await props.searchParams;
   const searchQuery = searchParams?.query || "";
-  const currentPage = Number(searchParams?.page) || 1;
+  const currentPage =
+    Number(searchParams?.page) || 1;
 
-  const result = await getArticles();
+  let articles: Article[] = [];
+  let error: string | null = null;
+
+  try {
+    articles = await getArticles();
+  } catch (err) {
+    error =
+      err instanceof Error
+        ? err.message
+        : "Failed to load articles";
+  }
 
   // Handle error case
-  if (result.error) {
+  if (error) {
     return (
       <div className="rounded-md bg-red-50 p-4">
         <div className="flex">
@@ -38,7 +48,7 @@ export default async function ArticlesPage(
               Error loading articles
             </h3>
             <div className="mt-2 text-sm text-red-700">
-              <p>{result.error}</p>
+              <p>{error}</p>
             </div>
           </div>
         </div>
@@ -47,14 +57,14 @@ export default async function ArticlesPage(
   }
 
   // Handle empty data case and ensure proper typing
-  const articles = (result.data ||
-    []) as ArticleWithJoins[];
   const hasArticles = articles.length > 0;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <h1 className={`${lusitana.className} text-2xl`}>
+        <h1
+          className={`${lusitana.className} text-2xl`}
+        >
           Articles List
         </h1>
         <Link

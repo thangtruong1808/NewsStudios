@@ -1,12 +1,19 @@
 "use client";
 
-import { useState, useRef } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { createArticle } from "../../../lib/actions/articles";
+import {
+  createArticle,
+  updateArticle,
+} from "../../../lib/actions/articles";
 import { uploadToFTP } from "../../../lib/utils/ftp";
 import {
   User,
@@ -37,12 +44,18 @@ interface Subcategory {
 
 const articleSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  content: z.string().min(1, "Content is required"),
+  content: z
+    .string()
+    .min(1, "Content is required"),
   category_id: z.coerce
     .number()
     .min(1, "Category is required"),
-  author_id: z.coerce.number().min(1, "Author is required"),
-  user_id: z.coerce.number().min(1, "User is required"),
+  author_id: z.coerce
+    .number()
+    .min(1, "Author is required"),
+  user_id: z.coerce
+    .number()
+    .min(1, "User is required"),
   sub_category_id: z.coerce.number().optional(),
   image: z.string().optional(),
   video: z.string().optional(),
@@ -54,9 +67,31 @@ const articleSchema = z.object({
   tag_ids: z.array(z.number()).optional(),
 });
 
-type ArticleFormData = z.infer<typeof articleSchema>;
+type ArticleFormData = z.infer<
+  typeof articleSchema
+>;
 
 interface ArticleFormProps {
+  article?: {
+    id: number;
+    title: string;
+    content: string;
+    category_id: number;
+    author_id: number;
+    user_id: number;
+    sub_category_id?: number;
+    image?: string | null;
+    video?: string | null;
+    is_featured: boolean;
+    headline_priority: number;
+    headline_image_url?: string | null;
+    headline_video_url?: string | null;
+    is_trending: boolean;
+    tag_ids: number[];
+    created_at: Date;
+    updated_at: Date;
+    published_at: Date;
+  };
   categories: Category[];
   authors: Author[];
   subcategories: Subcategory[];
@@ -65,6 +100,7 @@ interface ArticleFormProps {
 }
 
 export default function ArticleForm({
+  article,
   categories = [],
   authors = [],
   subcategories = [],
@@ -72,34 +108,43 @@ export default function ArticleForm({
   tags = [],
 }: ArticleFormProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] =
+    useState(false);
   const [selectedCategory, setSelectedCategory] =
-    useState("");
-  const [selectedTags, setSelectedTags] = useState<
-    number[]
-  >([]);
+    useState(
+      article?.category_id.toString() || ""
+    );
+  const [selectedTags, setSelectedTags] =
+    useState<number[]>(
+      Array.isArray(article?.tag_ids)
+        ? article.tag_ids
+        : []
+    );
 
   // Add state for file URLs
-  const [imageUrl, setImageUrl] = useState<string | null>(
-    null
-  );
-  const [videoUrl, setVideoUrl] = useState<string | null>(
-    null
-  );
-  const [headlineImageUrl, setHeadlineImageUrl] = useState<
+  const [imageUrl, setImageUrl] = useState<
     string | null
-  >(null);
-  const [headlineVideoUrl, setHeadlineVideoUrl] = useState<
+  >(article?.image || null);
+  const [videoUrl, setVideoUrl] = useState<
     string | null
-  >(null);
+  >(article?.video || null);
+  const [headlineImageUrl, setHeadlineImageUrl] =
+    useState<string | null>(
+      article?.headline_image_url || null
+    );
+  const [headlineVideoUrl, setHeadlineVideoUrl] =
+    useState<string | null>(
+      article?.headline_video_url || null
+    );
 
   // Add state for upload progress
-  const [uploadProgress, setUploadProgress] = useState<{
-    image?: number;
-    video?: number;
-    headlineImage?: number;
-    headlineVideo?: number;
-  }>({});
+  const [uploadProgress, setUploadProgress] =
+    useState<{
+      image?: number;
+      video?: number;
+      headlineImage?: number;
+      headlineVideo?: number;
+    }>({});
 
   const {
     register,
@@ -107,19 +152,103 @@ export default function ArticleForm({
     formState: { errors },
     setValue,
     watch,
+    setError,
   } = useForm<ArticleFormData>({
     resolver: zodResolver(articleSchema),
     defaultValues: {
-      is_featured: false,
-      is_trending: false,
-      headline_priority: 0,
-      tag_ids: [],
+      title: article?.title || "",
+      content: article?.content || "",
+      category_id:
+        article?.category_id || undefined,
+      author_id: article?.author_id || undefined,
+      user_id: article?.user_id || undefined,
+      sub_category_id:
+        article?.sub_category_id || undefined,
+      image: article?.image || "",
+      video: article?.video || "",
+      is_featured: article?.is_featured || false,
+      headline_priority:
+        article?.headline_priority || 0,
+      headline_image_url:
+        article?.headline_image_url || "",
+      headline_video_url:
+        article?.headline_video_url || "",
+      is_trending: article?.is_trending || false,
+      tag_ids: article?.tag_ids || [],
     },
   });
 
-  const filteredSubcategories = subcategories.filter(
-    (sub) => sub.category_id === parseInt(selectedCategory)
-  );
+  // Initialize form with article data if editing
+  useEffect(() => {
+    if (article) {
+      // Set form values
+      setValue("title", article.title);
+      setValue("content", article.content);
+      setValue(
+        "category_id",
+        article.category_id
+      );
+      setValue("author_id", article.author_id);
+      setValue("user_id", article.user_id);
+      setValue(
+        "sub_category_id",
+        article.sub_category_id || undefined
+      );
+      setValue("image", article.image || "");
+      setValue("video", article.video || "");
+      setValue(
+        "is_featured",
+        article.is_featured
+      );
+      setValue(
+        "headline_priority",
+        article.headline_priority
+      );
+      setValue(
+        "headline_image_url",
+        article.headline_image_url || ""
+      );
+      setValue(
+        "headline_video_url",
+        article.headline_video_url || ""
+      );
+      setValue(
+        "is_trending",
+        article.is_trending
+      );
+
+      // Set selected category for subcategory filtering
+      setSelectedCategory(
+        article.category_id.toString()
+      );
+
+      // Set image and video URLs
+      setImageUrl(article.image || null);
+      setVideoUrl(article.video || null);
+      setHeadlineImageUrl(
+        article.headline_image_url || null
+      );
+      setHeadlineVideoUrl(
+        article.headline_video_url || null
+      );
+
+      // Set selected tags
+      if (
+        article.tag_ids &&
+        article.tag_ids.length > 0
+      ) {
+        setSelectedTags(article.tag_ids);
+        setValue("tag_ids", article.tag_ids);
+      }
+    }
+  }, [article, setValue]);
+
+  const filteredSubcategories =
+    subcategories.filter(
+      (sub) =>
+        sub.category_id ===
+        parseInt(selectedCategory)
+    );
 
   // Handle tag selection
   const handleTagChange = (
@@ -141,12 +270,19 @@ export default function ArticleForm({
       | "headlineVideo"
   ) => {
     try {
-      setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
+      setUploadProgress((prev) => ({
+        ...prev,
+        [type]: 0,
+      }));
 
-      const { url, error } = await uploadToFTP(file);
+      const { url, error } = await uploadToFTP(
+        file
+      );
 
       if (error) {
-        toast.error(`Failed to upload ${type}: ${error}`);
+        toast.error(
+          `Failed to upload ${type}: ${error}`
+        );
         return;
       }
 
@@ -170,10 +306,15 @@ export default function ArticleForm({
           break;
       }
 
-      toast.success(`${type} uploaded successfully`);
+      toast.success(
+        `${type} uploaded successfully`
+      );
     } catch (error) {
       toast.error(`Error uploading ${type}`);
-      console.error(`Error uploading ${type}:`, error);
+      console.error(
+        `Error uploading ${type}:`,
+        error
+      );
     } finally {
       setUploadProgress((prev) => ({
         ...prev,
@@ -182,43 +323,74 @@ export default function ArticleForm({
     }
   };
 
-  const onSubmit = async (data: ArticleFormData) => {
+  const handleTagSelect = (tagId: number) => {
+    if (!selectedTags.includes(tagId)) {
+      setSelectedTags([...selectedTags, tagId]);
+    }
+  };
+
+  const handleTagRemove = (tagId: number) => {
+    setSelectedTags(
+      selectedTags.filter((id) => id !== tagId)
+    );
+  };
+
+  const onSubmit = async (
+    data: ArticleFormData
+  ) => {
     setIsSubmitting(true);
     try {
-      // Add selected tags to the data
-      data.tag_ids = selectedTags;
-
-      // Ensure boolean fields have default values
+      // Prepare article data
       const articleData = {
         ...data,
-        is_featured: data.is_featured || false,
-        is_trending: data.is_trending || false,
-        headline_priority: data.headline_priority || 0,
-        image: imageUrl ?? data.image ?? undefined,
-        video: videoUrl ?? data.video ?? undefined,
-        headline_image_url:
-          headlineImageUrl ??
-          data.headline_image_url ??
-          undefined,
-        headline_video_url:
-          headlineVideoUrl ??
-          data.headline_video_url ??
-          undefined,
+        image: imageUrl,
+        video: videoUrl,
+        headline_image_url: headlineImageUrl,
+        headline_video_url: headlineVideoUrl,
+        tag_ids: selectedTags,
+        id: article?.id || 0,
+        created_at:
+          article?.created_at || new Date(),
+        updated_at: new Date(),
+        published_at:
+          article?.published_at || new Date(),
       };
 
-      const result = await createArticle(articleData);
-
-      if (result.error) {
-        toast.error(result.error);
-        return;
+      // Create or update article
+      if (article?.id) {
+        // Update existing article
+        await updateArticle(
+          article.id,
+          articleData,
+          selectedTags
+        );
+        toast.success(
+          "Article updated successfully"
+        );
+      } else {
+        // Create new article
+        await createArticle(
+          articleData,
+          selectedTags
+        );
+        toast.success(
+          "Article created successfully"
+        );
       }
 
-      toast.success("Article created successfully!");
+      // Redirect to articles page
       router.push("/dashboard/articles");
       router.refresh();
     } catch (error) {
-      console.error("Error creating article:", error);
-      toast.error("Failed to create article");
+      console.error(
+        "Error submitting article:",
+        error
+      );
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to submit article"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -272,9 +444,14 @@ export default function ArticleForm({
           }
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         >
-          <option value="">Select a category</option>
+          <option value="">
+            Select a category
+          </option>
           {categories.map((category) => (
-            <option key={category.id} value={category.id}>
+            <option
+              key={category.id}
+              value={category.id}
+            >
               {category.name}
             </option>
           ))}
@@ -295,15 +472,19 @@ export default function ArticleForm({
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
           disabled={!selectedCategory}
         >
-          <option value="">Select a subcategory</option>
-          {filteredSubcategories.map((subcategory) => (
-            <option
-              key={subcategory.id}
-              value={subcategory.id}
-            >
-              {subcategory.name}
-            </option>
-          ))}
+          <option value="">
+            Select a subcategory
+          </option>
+          {filteredSubcategories.map(
+            (subcategory) => (
+              <option
+                key={subcategory.id}
+                value={subcategory.id}
+              >
+                {subcategory.name}
+              </option>
+            )
+          )}
         </select>
       </div>
 
@@ -315,9 +496,14 @@ export default function ArticleForm({
           {...register("author_id")}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         >
-          <option value="">Select an author</option>
+          <option value="">
+            Select an author
+          </option>
           {authors.map((author) => (
-            <option key={author.id} value={author.id}>
+            <option
+              key={author.id}
+              value={author.id}
+            >
               {author.name}
             </option>
           ))}
@@ -492,19 +678,27 @@ export default function ArticleForm({
         <select
           id="tag_ids"
           multiple
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-4"
           onChange={handleTagChange}
-          value={selectedTags.map(String)}
+          value={
+            Array.isArray(selectedTags)
+              ? selectedTags.map(String)
+              : []
+          }
         >
           {tags.map((tag) => (
-            <option key={tag.id} value={tag.id}>
+            <option
+              key={tag.id}
+              value={tag.id}
+              className="py-2"
+            >
               {tag.name}
             </option>
           ))}
         </select>
-        <p className="text-xs text-gray-500">
-          Hold Ctrl (Windows) or Command (Mac) to select
-          multiple tags
+        <p className="text-xs text-gray-500 mt-2">
+          Hold Ctrl (Windows) or Command (Mac) to
+          select multiple tags
         </p>
         {errors.tag_ids && (
           <p className="text-sm text-red-600">
@@ -526,7 +720,13 @@ export default function ArticleForm({
           disabled={isSubmitting}
           className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {isSubmitting ? "Creating..." : "Create Article"}
+          {isSubmitting
+            ? article?.id
+              ? "Updating..."
+              : "Creating..."
+            : article?.id
+            ? "Update Article"
+            : "Create Article"}
         </button>
       </div>
     </form>
