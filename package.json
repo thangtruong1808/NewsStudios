@@ -9,7 +9,9 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "check-schema": "ts-node app/lib/db/update-interfaces.ts > schema-output.txt",
-    "test": "jest"
+    "test": "jest",
+    "seed-db": "ts-node app/lib/db/seed-database.ts",
+    "setup-db": "ts-node app/lib/db/setup-database.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.1",

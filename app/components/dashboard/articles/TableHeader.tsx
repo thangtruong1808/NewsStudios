@@ -1,7 +1,10 @@
 "use client";
 
-import { Article } from "../../../type/Article";
-import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { Article } from "../../../lib/definition";
+import {
+  ChevronUpIcon,
+  ChevronDownIcon,
+} from "@heroicons/react/24/outline";
 
 interface TableHeaderProps {
   sortField: keyof Article;
@@ -15,13 +18,35 @@ export function TableHeader({
   onSort,
 }: TableHeaderProps) {
   const columns = [
+    {
+      key: "sequence" as keyof Article,
+      label: "#",
+      sortable: false,
+    },
+    {
+      key: "id" as keyof Article,
+      label: "ID",
+      sortable: false,
+    },
     { key: "title" as keyof Article, label: "Title" },
     { key: "content" as keyof Article, label: "Content" },
-    { key: "category_id" as keyof Article, label: "Category" },
+    {
+      key: "category_id" as keyof Article,
+      label: "Category",
+    },
     { key: "author_id" as keyof Article, label: "Author" },
-    { key: "published_at" as keyof Article, label: "Published" },
-    { key: "is_featured" as keyof Article, label: "Featured" },
-    { key: "is_trending" as keyof Article, label: "Trending" },
+    {
+      key: "published_at" as keyof Article,
+      label: "Published",
+    },
+    {
+      key: "is_featured" as keyof Article,
+      label: "Featured",
+    },
+    {
+      key: "is_trending" as keyof Article,
+      label: "Trending",
+    },
   ];
 
   return (
@@ -31,7 +56,10 @@ export function TableHeader({
           <th
             key={column.key}
             className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
-            onClick={() => onSort(column.key)}
+            onClick={() =>
+              column.sortable !== false &&
+              onSort(column.key)
+            }
           >
             <div className="flex items-center gap-1">
               {column.label}

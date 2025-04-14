@@ -1,16 +1,26 @@
 "use client";
 
-import { Article } from "../../../type/Article";
+import { Article } from "../../../lib/definition";
 import Link from "next/link";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  PencilIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 
 interface TableBodyProps {
   articles: Article[];
+  currentPage: number;
+  itemsPerPage: number;
 }
 
-export function TableBody({ articles }: TableBodyProps) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+export function TableBody({
+  articles,
+  currentPage,
+  itemsPerPage,
+}: TableBodyProps) {
+  const formatDate = (date: Date | undefined) => {
+    if (!date) return "Not published";
+    return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -19,11 +29,15 @@ export function TableBody({ articles }: TableBodyProps) {
 
   return (
     <tbody className="bg-white">
-      {articles.map((article) => (
+      {articles.map((article, index) => (
         <tr
           key={article.id}
           className="border-b border-gray-200 hover:bg-gray-50"
         >
+          <td className="px-4 py-3">
+            {(currentPage - 1) * itemsPerPage + index + 1}
+          </td>
+          <td className="px-4 py-3">{article.id}</td>
           <td className="px-4 py-3">
             <Link
               href={`/dashboard/articles/${article.id}`}
@@ -33,11 +47,17 @@ export function TableBody({ articles }: TableBodyProps) {
             </Link>
           </td>
           <td className="px-4 py-3">
-            <div className="max-w-xs truncate">{article.content}</div>
+            <div className="max-w-xs truncate">
+              {article.content}
+            </div>
           </td>
-          <td className="px-4 py-3">{article.category_id}</td>
+          <td className="px-4 py-3">
+            {article.category_id}
+          </td>
           <td className="px-4 py-3">{article.author_id}</td>
-          <td className="px-4 py-3">{formatDate(article.published_at)}</td>
+          <td className="px-4 py-3">
+            {formatDate(article.published_at)}
+          </td>
           <td className="px-4 py-3">
             {article.is_featured ? (
               <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
@@ -71,7 +91,10 @@ export function TableBody({ articles }: TableBodyProps) {
               <button
                 onClick={() => {
                   // TODO: Implement delete functionality
-                  console.log("Delete article:", article.id);
+                  console.log(
+                    "Delete article:",
+                    article.id
+                  );
                 }}
                 className="text-red-600 hover:text-red-800"
               >

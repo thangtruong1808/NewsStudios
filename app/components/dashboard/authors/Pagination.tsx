@@ -1,7 +1,12 @@
 "use client";
 
 import { PaginationProps } from "./types";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "@heroicons/react/24/outline";
 
 export default function Pagination({
   currentPage,
@@ -26,7 +31,10 @@ export default function Pagination({
 
       // Calculate start and end of visible pages
       let startPage = Math.max(2, currentPage - 1);
-      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      let endPage = Math.min(
+        totalPages - 1,
+        currentPage + 1
+      );
 
       // Adjust if we're near the beginning
       if (currentPage <= 2) {
@@ -71,9 +79,16 @@ export default function Pagination({
             </span>{" "}
             to{" "}
             <span className="font-medium">
-              {Math.min(currentPage * itemsPerPage, totalItems)}
+              {Math.min(
+                currentPage * itemsPerPage,
+                totalItems
+              )}
             </span>{" "}
-            of <span className="font-medium">{totalItems}</span> results
+            of{" "}
+            <span className="font-medium">
+              {totalItems}
+            </span>{" "}
+            results
           </p>
         </div>
         <div className="flex w-full sm:w-auto justify-center">
@@ -87,11 +102,8 @@ export default function Pagination({
               className="relative inline-flex items-center rounded-l-md px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
               <span className="sr-only">First</span>
-              <ChevronLeftIcon
-                className="h-3 w-3 sm:h-5 sm:w-5"
-                aria-hidden="true"
-              />
-              <ChevronLeftIcon
+
+              <ChevronDoubleLeftIcon
                 className="h-3 w-3 sm:h-5 sm:w-5 -ml-0.5 sm:-ml-1"
                 aria-hidden="true"
               />
@@ -149,12 +161,8 @@ export default function Pagination({
               className="relative inline-flex items-center rounded-r-md px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
               <span className="sr-only">Last</span>
-              <ChevronRightIcon
+              <ChevronDoubleRightIcon
                 className="h-3 w-3 sm:h-5 sm:w-5"
-                aria-hidden="true"
-              />
-              <ChevronRightIcon
-                className="h-3 w-3 sm:h-5 sm:w-5 -ml-0.5 sm:-ml-1"
                 aria-hidden="true"
               />
             </button>
@@ -162,14 +170,22 @@ export default function Pagination({
         </div>
         <div className="hidden sm:block">
           <p className="text-xs sm:text-sm text-gray-700">
-            Page <span className="font-medium">{currentPage}</span> of{" "}
-            <span className="font-medium">{totalPages}</span>
+            Page{" "}
+            <span className="font-medium">
+              {currentPage}
+            </span>{" "}
+            of{" "}
+            <span className="font-medium">
+              {totalPages}
+            </span>
           </p>
         </div>
       </div>
       <div className="sm:hidden">
         <p className="text-xs text-gray-700">
-          Page <span className="font-medium">{currentPage}</span> of{" "}
+          Page{" "}
+          <span className="font-medium">{currentPage}</span>{" "}
+          of{" "}
           <span className="font-medium">{totalPages}</span>
         </p>
       </div>

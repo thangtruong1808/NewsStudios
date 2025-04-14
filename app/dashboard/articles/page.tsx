@@ -3,26 +3,28 @@ import Link from "next/link";
 import { lusitana } from "../../components/fonts";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { getArticles } from "../../lib/actions/articles";
-import ArticlesTableClient from "../../components/dashboard/articles/ArticlesTableClient";
+import { ArticlesTableClient } from "../../components/dashboard/articles/ArticlesTableClient";
+import { Article } from "../../lib/definition";
+import type { ArticleWithJoins } from "../../lib/actions/articles";
+import ArticlesSearchWrapper from "../../components/dashboard/articles/ArticlesSearchWrapper";
 
 // Use static rendering by default, but revalidate every 60 seconds
 export const revalidate = 60;
 
 interface PageProps {
-  searchParams: {
-    [key: string]: string | string[] | undefined;
-  };
+  searchParams?: Promise<{
+    query?: string;
+    page?: string;
+  }>;
 }
 
-export default async function ArticlesPage({
-  searchParams,
-}: PageProps) {
-  // Safely access search parameter without using JSON.stringify
-  const searchQuery = searchParams?.search
-    ? Array.isArray(searchParams.search)
-      ? searchParams.search[0]
-      : searchParams.search
-    : "";
+export default async function ArticlesPage(
+  props: PageProps
+) {
+  // Await searchParams before accessing its properties
+  const searchParams = await props.searchParams;
+  const searchQuery = searchParams?.query || "";
+  const currentPage = Number(searchParams?.page) || 1;
 
   const result = await getArticles();
 
@@ -44,19 +46,16 @@ export default async function ArticlesPage({
     );
   }
 
-  // Handle empty data case
-  const articles = result.data
-    ? Array.isArray(result.data)
-      ? result.data
-      : []
-    : [];
+  // Handle empty data case and ensure proper typing
+  const articles = (result.data ||
+    []) as ArticleWithJoins[];
   const hasArticles = articles.length > 0;
 
   return (
-    <div className="w-full">
-      <div className="flex w-full items-center justify-between">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-2">
         <h1 className={`${lusitana.className} text-2xl`}>
-          Articles
+          Articles List
         </h1>
         <Link
           href="/dashboard/articles/create"
@@ -66,18 +65,25 @@ export default async function ArticlesPage({
           Add Article
         </Link>
       </div>
+
       <div className="mt-4">
-        {hasArticles ? (
-          <ArticlesTableClient articles={articles} />
-        ) : (
-          <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
-            <p className="text-gray-500">
-              No articles found. Create your first article
-              to get started.
-            </p>
-          </div>
-        )}
+        <ArticlesSearchWrapper />
       </div>
+
+      {hasArticles ? (
+        <ArticlesTableClient
+          articles={articles}
+          searchQuery={searchQuery}
+        />
+      ) : (
+        <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
+          <p className="text-gray-500">
+            {searchQuery
+              ? "No articles found matching your search criteria."
+              : "No articles found. Create your first article to get started."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
