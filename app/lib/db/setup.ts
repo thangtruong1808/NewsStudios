@@ -70,6 +70,7 @@ export async function setupDatabase() {
         category_id INT NOT NULL,
         sub_category_id INT,
         author_id INT NOT NULL,
+        user_id INT NOT NULL,
         image VARCHAR(255),
         video VARCHAR(255),
         published_at TIMESTAMP,
@@ -81,7 +82,8 @@ export async function setupDatabase() {
         is_trending BOOLEAN DEFAULT FALSE,
         FOREIGN KEY (category_id) REFERENCES Categories(id) ON DELETE CASCADE,
         FOREIGN KEY (sub_category_id) REFERENCES SubCategories(id) ON DELETE SET NULL,
-        FOREIGN KEY (author_id) REFERENCES Authors(id) ON DELETE CASCADE
+        FOREIGN KEY (author_id) REFERENCES Authors(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
       )
     `);
 
@@ -184,7 +186,9 @@ export async function setupDatabase() {
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : "An unknown error occurred",
+        error instanceof Error
+          ? error.message
+          : "An unknown error occurred",
     };
   }
 }

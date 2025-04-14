@@ -73,6 +73,7 @@ export interface Article {
   category_id: number;
   sub_category_id?: number;
   author_id: number;
+  user_id: number;
   image?: string;
   video?: string;
   published_at?: Date;

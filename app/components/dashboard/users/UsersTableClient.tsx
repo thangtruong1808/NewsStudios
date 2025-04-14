@@ -22,15 +22,20 @@ export default function UsersTableClient({
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState<keyof User>("firstname");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] =
+    useState<keyof User>("firstname");
+  const [sortDirection, setSortDirection] = useState<
+    "asc" | "desc"
+  >("asc");
 
   const itemsPerPage = 10;
   const totalPages = Math.ceil(users.length / itemsPerPage);
 
   const handleSort = (field: keyof User) => {
     if (field === sortField) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      setSortDirection(
+        sortDirection === "asc" ? "desc" : "asc"
+      );
     } else {
       setSortField(field);
       setSortDirection("asc");
@@ -38,7 +43,10 @@ export default function UsersTableClient({
   };
 
   const handleEdit = (userId: number) => {
-    router.push(`/dashboard/users/${userId}/edit?edit=true`, { scroll: false });
+    router.push(
+      `/dashboard/users/${userId}/edit?edit=true`,
+      { scroll: false }
+    );
   };
 
   const sortedUsers = [...users].sort((a, b) => {
@@ -48,7 +56,10 @@ export default function UsersTableClient({
     if (aValue === null || aValue === undefined) return 1;
     if (bValue === null || bValue === undefined) return -1;
 
-    if (typeof aValue === "string" && typeof bValue === "string") {
+    if (
+      typeof aValue === "string" &&
+      typeof bValue === "string"
+    ) {
       return sortDirection === "asc"
         ? aValue.localeCompare(bValue)
         : bValue.localeCompare(aValue);
@@ -64,39 +75,45 @@ export default function UsersTableClient({
     currentPage * itemsPerPage
   );
 
-  const handleDelete = async (id: number, userName: string) => {
-    const confirmPromise = new Promise<boolean>((resolve) => {
-      toast(
-        (t) => (
-          <div className="flex flex-col items-center">
-            <p className="mb-2">
-              Are you sure you want to delete user "{userName}"?
-            </p>
-            <div className="flex space-x-2">
-              <button
-                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                onClick={() => {
-                  toast.dismiss(t.id);
-                  resolve(true);
-                }}
-              >
-                Delete
-              </button>
-              <button
-                className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-                onClick={() => {
-                  toast.dismiss(t.id);
-                  resolve(false);
-                }}
-              >
-                Cancel
-              </button>
+  const handleDelete = async (
+    id: number,
+    userName: string
+  ) => {
+    const confirmPromise = new Promise<boolean>(
+      (resolve) => {
+        toast(
+          (t) => (
+            <div className="flex flex-col items-center">
+              <p className="mb-2">
+                Are you sure you want to delete user "
+                {userName}"?
+              </p>
+              <div className="flex space-x-2">
+                <button
+                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                  onClick={() => {
+                    toast.dismiss(t.id);
+                    resolve(true);
+                  }}
+                >
+                  Delete
+                </button>
+                <button
+                  className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                  onClick={() => {
+                    toast.dismiss(t.id);
+                    resolve(false);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
-        ),
-        { duration: 5000 }
-      );
-    });
+          ),
+          { duration: 5000 }
+        );
+      }
+    );
 
     const isConfirmed = await confirmPromise;
     if (!isConfirmed) return;
@@ -107,7 +124,9 @@ export default function UsersTableClient({
       if (error) {
         toast.error(
           <div>
-            <p className="font-bold">Failed to delete user</p>
+            <p className="font-bold">
+              Failed to delete user
+            </p>
             <p className="text-sm">{error}</p>
           </div>,
           { duration: 5000 }
@@ -120,9 +139,13 @@ export default function UsersTableClient({
       console.error("Error deleting user:", error);
       toast.error(
         <div>
-          <p className="font-bold">An error occurred while deleting the user</p>
+          <p className="font-bold">
+            An error occurred while deleting the user
+          </p>
           <p className="text-sm">
-            {error instanceof Error ? error.message : "Unknown error"}
+            {error instanceof Error
+              ? error.message
+              : "Unknown error"}
           </p>
         </div>,
         { duration: 5000 }
@@ -147,10 +170,13 @@ export default function UsersTableClient({
                     <div>
                       <div className="mb-2 flex items-center">
                         <p className="font-medium text-gray-900">
-                          ID: {user.id} - {user.firstname} {user.lastname}
+                          ID: {user.id} - {user.firstname}{" "}
+                          {user.lastname}
                         </p>
                       </div>
-                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <p className="text-sm text-gray-500">
+                        {user.email}
+                      </p>
                     </div>
                     <div className="flex space-x-2">
                       <button
@@ -187,7 +213,10 @@ export default function UsersTableClient({
                   <TableRow
                     key={user.id}
                     user={user}
-                    index={(currentPage - 1) * itemsPerPage + index}
+                    index={
+                      (currentPage - 1) * itemsPerPage +
+                      index
+                    }
                     onEdit={(user) => handleEdit(user.id)}
                     onDelete={(user) =>
                       handleDelete(

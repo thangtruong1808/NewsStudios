@@ -5,7 +5,9 @@ import { query } from "../db/db";
 import { RowDataPacket } from "mysql2";
 import { Article } from "../definition";
 
-export interface ArticleWithJoins extends Article, RowDataPacket {
+export interface ArticleWithJoins
+  extends Article,
+    RowDataPacket {
   category_name?: string;
   author_name?: string;
   user_firstname?: string;
@@ -38,13 +40,19 @@ export async function getArticles() {
       );
 
       if (fallbackResult.error) {
-        console.error("Error in getArticles fallback:", fallbackResult.error);
+        console.error(
+          "Error in getArticles fallback:",
+          fallbackResult.error
+        );
         return { error: fallbackResult.error };
       }
 
       return { data: fallbackResult.data || [] };
     } catch (fallbackError) {
-      console.error("Error in getArticles fallback:", fallbackError);
+      console.error(
+        "Error in getArticles fallback:",
+        fallbackError
+      );
       return { error: "Failed to fetch articles" };
     }
   }
@@ -65,7 +73,10 @@ export async function getArticleById(id: number) {
     );
 
     if (result.error) {
-      console.error("Error fetching article:", result.error);
+      console.error(
+        "Error fetching article:",
+        result.error
+      );
       return { data: null, error: result.error };
     }
 
@@ -77,53 +88,201 @@ export async function getArticleById(id: number) {
   }
 }
 
-interface CreateArticleData {
-  title: string;
-  content: string;
-  category_id: number;
-  author_id: number;
-  user_id: number;
-  sub_category_id?: number;
-  image?: string;
-  video?: string;
-  is_featured?: boolean;
-  headline_priority?: number;
-  headline_image_url?: string;
-  headline_video_url?: string;
-  is_trending?: boolean;
-}
+type CreateArticleData = Omit<
+  Article,
+  "id" | "published_at" | "updated_at"
+> & {
+  tag_ids?: number[];
+};
 
 export async function createArticle(
-  data: Omit<Article, "id" | "published_at" | "updated_at">
+  data: CreateArticleData
 ) {
   try {
-    const result = await query(
-      `INSERT INTO Articles (
-        title, content, category_id, author_id, user_id, sub_category_id,
-        image, video, is_featured, headline_priority,
-        headline_image_url, headline_video_url, is_trending
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        data.title,
-        data.content,
-        data.category_id,
-        data.author_id,
-        data.user_id,
-        data.sub_category_id || null,
-        data.image || null,
-        data.video || null,
-        data.is_featured || false,
-        data.headline_priority || null,
-        data.headline_image_url || null,
-        data.headline_video_url || null,
-        data.is_trending || false,
-      ]
+    // Validate required fields
+    if (!data.title || data.title.trim() === "") {
+      return { error: "Title is required" };
+    }
+
+    if (!data.content || data.content.trim() === "") {
+      return { error: "Content is required" };
+    }
+
+    if (!data.category_id) {
+      return { error: "Category is required" };
+    }
+
+    if (!data.author_id) {
+      return { error: "Author is required" };
+    }
+
+    if (!data.user_id) {
+      return { error: "User is required" };
+    }
+
+    // Check if category exists
+    const categoryResult = await query(
+      "SELECT id FROM Categories WHERE id = ?",
+      [data.category_id]
     );
 
-    revalidatePath("/dashboard/articles");
-    return { data: result };
+    if (
+      categoryResult.error ||
+      !categoryResult.data ||
+      (Array.isArray(categoryResult.data) &&
+        categoryResult.data.length === 0)
+    ) {
+      return { error: "Selected category does not exist" };
+    }
+
+    // Check if author exists
+    const authorResult = await query(
+      "SELECT id FROM Authors WHERE id = ?",
+      [data.author_id]
+    );
+
+    if (
+      authorResult.error ||
+      !authorResult.data ||
+      (Array.isArray(authorResult.data) &&
+        authorResult.data.length === 0)
+    ) {
+      return { error: "Selected author does not exist" };
+    }
+
+    // Check if user exists
+    const userResult = await query(
+      "SELECT id FROM Users WHERE id = ?",
+      [data.user_id]
+    );
+
+    if (
+      userResult.error ||
+      !userResult.data ||
+      (Array.isArray(userResult.data) &&
+        userResult.data.length === 0)
+    ) {
+      return { error: "Selected user does not exist" };
+    }
+
+    // Check if subcategory exists if provided
+    if (data.sub_category_id) {
+      const subcategoryResult = await query(
+        "SELECT id FROM SubCategories WHERE id = ?",
+        [data.sub_category_id]
+      );
+
+      if (
+        subcategoryResult.error ||
+        !subcategoryResult.data ||
+        (Array.isArray(subcategoryResult.data) &&
+          subcategoryResult.data.length === 0)
+      ) {
+        return {
+          error: "Selected subcategory does not exist",
+        };
+      }
+    }
+
+    // Start transaction
+    const transactionResult = await query(
+      "START TRANSACTION"
+    );
+    if (transactionResult.error) {
+      return { error: "Failed to start transaction" };
+    }
+
+    try {
+      // Insert article
+      const insertResult = await query(
+        `INSERT INTO Articles (
+          title, content, category_id, author_id, user_id, sub_category_id,
+          image, video, is_featured, headline_priority, headline_image_url,
+          headline_video_url, is_trending, published_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        [
+          data.title,
+          data.content,
+          data.category_id,
+          data.author_id,
+          data.user_id,
+          data.sub_category_id || null,
+          data.image || null,
+          data.video || null,
+          data.is_featured || false,
+          data.headline_priority || 0,
+          data.headline_image_url || null,
+          data.headline_video_url || null,
+          data.is_trending || false,
+        ]
+      );
+
+      if (insertResult.error) {
+        throw new Error(insertResult.error);
+      }
+
+      const articleId = (insertResult.data as any).insertId;
+
+      // Insert tag associations if tags are provided
+      if (data.tag_ids && data.tag_ids.length > 0) {
+        const placeholders = data.tag_ids
+          .map(() => "(?, ?)")
+          .join(", ");
+        const flatValues = data.tag_ids.flatMap(
+          (tagId: number) => [articleId, tagId]
+        );
+        const tagInsertResult = await query(
+          `INSERT INTO Article_Tags (article_id, tag_id) VALUES ${placeholders}`,
+          flatValues
+        );
+
+        if (tagInsertResult.error) {
+          throw new Error(tagInsertResult.error);
+        }
+      }
+
+      // Commit transaction
+      const commitResult = await query("COMMIT");
+      if (commitResult.error) {
+        throw new Error(commitResult.error);
+      }
+
+      // Revalidate the articles path
+      revalidatePath("/dashboard/articles");
+
+      // Get the created article
+      const { data: createdArticle, error: fetchError } =
+        await getArticleById(articleId);
+      if (fetchError) {
+        console.error(
+          "Error fetching created article:",
+          fetchError
+        );
+        return {
+          error:
+            "Article created but failed to fetch details",
+        };
+      }
+
+      return { data: createdArticle, error: null };
+    } catch (error) {
+      // Rollback transaction on error
+      const rollbackResult = await query("ROLLBACK");
+      if (rollbackResult.error) {
+        console.error(
+          "Error rolling back transaction:",
+          rollbackResult.error
+        );
+      }
+      throw error;
+    }
   } catch (error) {
-    console.error("Error in createArticle:", error);
-    return { error: "Failed to create article" };
+    console.error("Error creating article:", error);
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to create article",
+    };
   }
 }

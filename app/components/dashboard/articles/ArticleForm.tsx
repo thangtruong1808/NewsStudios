@@ -6,9 +6,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { createArticle, Article } from "../../../lib/actions/articles";
+import { createArticle } from "../../../lib/actions/articles";
 import { uploadToFTP } from "../../../lib/utils/ftp";
-import { User, Category, Author, SubCategory } from "../../../lib/definition";
+import {
+  User,
+  Category as CategoryType,
+  Author as AuthorType,
+  SubCategory,
+  Tag,
+} from "../../../lib/definition";
 
 // Define types for the form
 interface Category {
@@ -32,17 +38,20 @@ interface Subcategory {
 const articleSchema = z.object({
   title: z.string().min(1, "Title is required"),
   content: z.string().min(1, "Content is required"),
-  category_id: z.coerce.number().min(1, "Category is required"),
+  category_id: z.coerce
+    .number()
+    .min(1, "Category is required"),
   author_id: z.coerce.number().min(1, "Author is required"),
   user_id: z.coerce.number().min(1, "User is required"),
   sub_category_id: z.coerce.number().optional(),
   image: z.string().optional(),
   video: z.string().optional(),
-  is_featured: z.boolean().optional(),
-  headline_priority: z.coerce.number().optional(),
+  is_featured: z.boolean().default(false),
+  headline_priority: z.coerce.number().default(0),
   headline_image_url: z.string().optional(),
   headline_video_url: z.string().optional(),
-  is_trending: z.boolean().optional(),
+  is_trending: z.boolean().default(false),
+  tag_ids: z.array(z.number()).optional(),
 });
 
 type ArticleFormData = z.infer<typeof articleSchema>;
@@ -52,6 +61,7 @@ interface ArticleFormProps {
   authors: Author[];
   subcategories: Subcategory[];
   users: User[];
+  tags: Tag[];
 }
 
 export default function ArticleForm({
@@ -59,16 +69,29 @@ export default function ArticleForm({
   authors = [],
   subcategories = [],
   users = [],
+  tags = [],
 }: ArticleFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] =
+    useState("");
+  const [selectedTags, setSelectedTags] = useState<
+    number[]
+  >([]);
 
   // Add state for file URLs
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [headlineImageUrl, setHeadlineImageUrl] = useState<string | null>(null);
-  const [headlineVideoUrl, setHeadlineVideoUrl] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(
+    null
+  );
+  const [videoUrl, setVideoUrl] = useState<string | null>(
+    null
+  );
+  const [headlineImageUrl, setHeadlineImageUrl] = useState<
+    string | null
+  >(null);
+  const [headlineVideoUrl, setHeadlineVideoUrl] = useState<
+    string | null
+  >(null);
 
   // Add state for upload progress
   const [uploadProgress, setUploadProgress] = useState<{
@@ -82,11 +105,15 @@ export default function ArticleForm({
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    watch,
   } = useForm<ArticleFormData>({
     resolver: zodResolver(articleSchema),
     defaultValues: {
       is_featured: false,
       is_trending: false,
+      headline_priority: 0,
+      tag_ids: [],
     },
   });
 
@@ -94,9 +121,24 @@ export default function ArticleForm({
     (sub) => sub.category_id === parseInt(selectedCategory)
   );
 
+  // Handle tag selection
+  const handleTagChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const selectedOptions = Array.from(
+      e.target.selectedOptions
+    ).map((option) => parseInt(option.value));
+    setSelectedTags(selectedOptions);
+    setValue("tag_ids", selectedOptions);
+  };
+
   const handleFileUpload = async (
     file: File,
-    type: "image" | "video" | "headlineImage" | "headlineVideo"
+    type:
+      | "image"
+      | "video"
+      | "headlineImage"
+      | "headlineVideo"
   ) => {
     try {
       setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
@@ -108,7 +150,10 @@ export default function ArticleForm({
         return;
       }
 
-      setUploadProgress((prev) => ({ ...prev, [type]: 100 }));
+      setUploadProgress((prev) => ({
+        ...prev,
+        [type]: 100,
+      }));
 
       switch (type) {
         case "image":
@@ -130,29 +175,49 @@ export default function ArticleForm({
       toast.error(`Error uploading ${type}`);
       console.error(`Error uploading ${type}:`, error);
     } finally {
-      setUploadProgress((prev) => ({ ...prev, [type]: undefined }));
+      setUploadProgress((prev) => ({
+        ...prev,
+        [type]: undefined,
+      }));
     }
   };
 
   const onSubmit = async (data: ArticleFormData) => {
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      const result = await createArticle({
+      // Add selected tags to the data
+      data.tag_ids = selectedTags;
+
+      // Ensure boolean fields have default values
+      const articleData = {
         ...data,
+        is_featured: data.is_featured || false,
+        is_trending: data.is_trending || false,
+        headline_priority: data.headline_priority || 0,
         image: imageUrl ?? data.image ?? undefined,
         video: videoUrl ?? data.video ?? undefined,
         headline_image_url:
-          headlineImageUrl ?? data.headline_image_url ?? undefined,
+          headlineImageUrl ??
+          data.headline_image_url ??
+          undefined,
         headline_video_url:
-          headlineVideoUrl ?? data.headline_video_url ?? undefined,
-      });
+          headlineVideoUrl ??
+          data.headline_video_url ??
+          undefined,
+      };
+
+      const result = await createArticle(articleData);
+
       if (result.error) {
         toast.error(result.error);
-      } else {
-        toast.success("Article created successfully");
-        router.push("/dashboard/articles");
+        return;
       }
+
+      toast.success("Article created successfully!");
+      router.push("/dashboard/articles");
+      router.refresh();
     } catch (error) {
+      console.error("Error creating article:", error);
       toast.error("Failed to create article");
     } finally {
       setIsSubmitting(false);
@@ -160,16 +225,23 @@ export default function ArticleForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-6"
+    >
       <div>
-        <label className="block text-sm font-medium text-gray-700">Title</label>
+        <label className="block text-sm font-medium text-gray-700">
+          Title
+        </label>
         <input
           type="text"
           {...register("title")}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         />
         {errors.title && (
-          <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.title.message}
+          </p>
         )}
       </div>
 
@@ -183,7 +255,9 @@ export default function ArticleForm({
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
         />
         {errors.content && (
-          <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.content.message}
+          </p>
         )}
       </div>
 
@@ -193,7 +267,9 @@ export default function ArticleForm({
         </label>
         <select
           {...register("category_id")}
-          onChange={(e) => setSelectedCategory(e.target.value)}
+          onChange={(e) =>
+            setSelectedCategory(e.target.value)
+          }
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         >
           <option value="">Select a category</option>
@@ -221,7 +297,10 @@ export default function ArticleForm({
         >
           <option value="">Select a subcategory</option>
           {filteredSubcategories.map((subcategory) => (
-            <option key={subcategory.id} value={subcategory.id}>
+            <option
+              key={subcategory.id}
+              value={subcategory.id}
+            >
               {subcategory.name}
             </option>
           ))}
@@ -251,7 +330,9 @@ export default function ArticleForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">User</label>
+        <label className="block text-sm font-medium text-gray-700">
+          User
+        </label>
         <select
           {...register("user_id")}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
@@ -264,12 +345,16 @@ export default function ArticleForm({
           ))}
         </select>
         {errors.user_id && (
-          <p className="mt-1 text-sm text-red-600">{errors.user_id.message}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.user_id.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Image</label>
+        <label className="block text-sm font-medium text-gray-700">
+          Image
+        </label>
         <div className="mt-1 flex items-center space-x-4">
           <input
             type="text"
@@ -294,7 +379,9 @@ export default function ArticleForm({
             <div className="h-2 w-full bg-gray-200 rounded-full">
               <div
                 className="h-2 bg-indigo-600 rounded-full"
-                style={{ width: `${uploadProgress.image}%` }}
+                style={{
+                  width: `${uploadProgress.image}%`,
+                }}
               />
             </div>
           </div>
@@ -302,7 +389,9 @@ export default function ArticleForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Video</label>
+        <label className="block text-sm font-medium text-gray-700">
+          Video
+        </label>
         <div className="mt-1 flex items-center space-x-4">
           <input
             type="text"
@@ -327,7 +416,9 @@ export default function ArticleForm({
             <div className="h-2 w-full bg-gray-200 rounded-full">
               <div
                 className="h-2 bg-indigo-600 rounded-full"
-                style={{ width: `${uploadProgress.video}%` }}
+                style={{
+                  width: `${uploadProgress.video}%`,
+                }}
               />
             </div>
           </div>
@@ -362,7 +453,9 @@ export default function ArticleForm({
         </label>
         <input
           type="number"
-          {...register("headline_priority", { valueAsNumber: true })}
+          {...register("headline_priority", {
+            valueAsNumber: true,
+          })}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         />
       </div>
@@ -387,6 +480,37 @@ export default function ArticleForm({
           {...register("headline_video_url")}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         />
+      </div>
+
+      <div className="space-y-2">
+        <label
+          htmlFor="tag_ids"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Tags
+        </label>
+        <select
+          id="tag_ids"
+          multiple
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          onChange={handleTagChange}
+          value={selectedTags.map(String)}
+        >
+          {tags.map((tag) => (
+            <option key={tag.id} value={tag.id}>
+              {tag.name}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-500">
+          Hold Ctrl (Windows) or Command (Mac) to select
+          multiple tags
+        </p>
+        {errors.tag_ids && (
+          <p className="text-sm text-red-600">
+            {errors.tag_ids.message}
+          </p>
+        )}
       </div>
 
       <div className="flex justify-end space-x-4">

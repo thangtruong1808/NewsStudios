@@ -64,7 +64,9 @@ export async function createTag(tagData: TagFormData) {
     )) as QueryResult;
 
     if (result.insertId) {
-      const { data: tag } = await getTagById(result.insertId);
+      const { data: tag } = await getTagById(
+        result.insertId
+      );
       return { data: tag, error: null };
     }
 
@@ -75,7 +77,10 @@ export async function createTag(tagData: TagFormData) {
   }
 }
 
-export async function updateTag(id: number, tagData: TagFormData) {
+export async function updateTag(
+  id: number,
+  tagData: TagFormData
+) {
   try {
     await query(
       `
