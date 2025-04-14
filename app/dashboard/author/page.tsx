@@ -3,7 +3,7 @@ import AuthorsTableClient from "../../components/dashboard/authors/AuthorsTableC
 import AuthorsSearchWrapper from "../../components/dashboard/authors/AuthorsSearchWrapper";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { Author } from "../../login/login-definitions";
+import { Author } from "../../lib/definition";
 
 export const dynamic = "force-dynamic";
 

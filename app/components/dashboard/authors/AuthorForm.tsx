@@ -101,7 +101,7 @@ export default function AuthorForm({ author }: AuthorFormProps) {
             type="text"
             id="name"
             {...register("name")}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-3"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-3"
           />
           {errors.name && (
             <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -119,7 +119,7 @@ export default function AuthorForm({ author }: AuthorFormProps) {
             type="text"
             id="description"
             {...register("description")}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-3"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-3"
           />
           {errors.description && (
             <p className="mt-1 text-sm text-red-600">
@@ -139,7 +139,7 @@ export default function AuthorForm({ author }: AuthorFormProps) {
             id="bio"
             rows={3}
             {...register("bio")}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-3"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-3"
           />
           {errors.bio && (
             <p className="mt-1 text-sm text-red-600">{errors.bio.message}</p>

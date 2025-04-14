@@ -18,6 +18,7 @@ export async function setupDatabase() {
         role ENUM('admin', 'user', 'editor') NOT NULL DEFAULT 'user',
         status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
         description TEXT,
+        user_image VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )

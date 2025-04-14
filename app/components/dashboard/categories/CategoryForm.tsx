@@ -13,7 +13,7 @@ import {
   updateCategory,
   getCategoryById,
 } from "../../../lib/actions/categories";
-import { Category } from "../../../login/login-definitions";
+import { Category } from "../../../lib/definition";
 import toast from "react-hot-toast";
 
 interface CategoryFormProps {
@@ -135,7 +135,7 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
             type="text"
             id="name"
             {...register("name")}
-            className="mt-1 block w-full rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
           {errors.name && (
             <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -152,7 +152,7 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
             id="description"
             {...register("description")}
             rows={3}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-6"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-6"
           />
           {errors.description && (
             <p className="mt-1 text-sm text-red-600">

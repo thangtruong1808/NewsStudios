@@ -2,8 +2,12 @@ import { getTags } from "../../lib/actions/tags";
 import TagsTableClient from "../../components/dashboard/tags/TagsTableClient";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { Tag } from "../../login/login-definitions";
+import { Tag } from "../../lib/definition";
 import { SearchWrapper } from "../../components/dashboard/search";
+
+// Use force-dynamic to ensure fresh data
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function TagsPage() {
   let tags: Tag[] = [];
@@ -14,7 +18,8 @@ export default async function TagsPage() {
     if (result.error) {
       error = result.error;
     } else if (result.data) {
-      tags = result.data as unknown as Tag[];
+      // Ensure we have an array of tags
+      tags = Array.isArray(result.data) ? result.data : [];
     }
   } catch (err) {
     console.error("Error in TagsPage:", err);

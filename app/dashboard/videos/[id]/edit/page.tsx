@@ -4,7 +4,8 @@ import React from "react";
 import { useParams } from "next/navigation";
 import VideoForm from "../../../../components/dashboard/videos/VideoForm";
 import { getVideoById } from "../../../../lib/actions/videos";
-import { Video } from "../../../../login/login-definitions";
+import { getArticles } from "../../../../lib/actions/articles";
+import { Video } from "../../../../lib/definition";
 
 export default function EditVideoPage() {
   const params = useParams();

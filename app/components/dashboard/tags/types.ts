@@ -1,4 +1,4 @@
-import { Tag } from "../../../login/login-definitions";
+import { Tag } from "../../../lib/definition";
 import { ReactNode } from "react";
 
 export interface Column {

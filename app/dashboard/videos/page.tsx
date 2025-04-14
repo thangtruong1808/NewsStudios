@@ -1,11 +1,11 @@
 import React from "react";
 import Link from "next/link";
-import { SearchWrapper } from "../../components/dashboard/search/SearchWrapper";
+import { SearchWrapper } from "../../components/dashboard/search";
 import { lusitana } from "../../components/fonts";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { VideosTableClient } from "../../components/dashboard/videos/VideosTableClient";
 import { getVideos } from "../../lib/actions/videos";
-import { Video } from "../../login/login-definitions";
+import { Video } from "../../lib/definition";
 
 export default async function VideosPage() {
   const result = await getVideos();

@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Tag } from "../../../login/login-definitions";
+import { Tag } from "../../../lib/definition";
 import { Column } from "./types";
 
 export function getTableColumns(
@@ -13,8 +12,8 @@ export function getTableColumns(
 ): Column[] {
   return [
     {
-      key: "id",
-      label: "ID",
+      key: "sequence",
+      label: "#",
       sortable: false,
       cell: (
         tag: Tag,
@@ -22,8 +21,18 @@ export function getTableColumns(
         currentPage: number,
         itemsPerPage: number
       ) => (
-        <div className="whitespace-nowrap text-xs font-medium text-gray-900 sm:text-sm">
+        <div className="whitespace-nowrap text-xs font-medium text-gray-900 sm:text-sm text-center">
           {(currentPage - 1) * itemsPerPage + index + 1}
+        </div>
+      ),
+    },
+    {
+      key: "id",
+      label: "ID",
+      sortable: true,
+      cell: (tag: Tag) => (
+        <div className="whitespace-nowrap text-xs font-medium text-gray-900 sm:text-sm text-center">
+          {tag.id}
         </div>
       ),
     },
@@ -69,19 +78,19 @@ export function getTableColumns(
       sortable: false,
       cell: (tag: Tag) => (
         <div className="whitespace-nowrap text-xs text-gray-500 sm:text-sm">
-          <div className="flex justify-center gap-2 p-3">
+          <div className="flex justify-center gap-2">
             <Link
               href={`/dashboard/tags/${tag.id}/edit`}
-              className="text-indigo-600 hover:text-indigo-900"
+              className="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
             >
-              <PencilIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+              Edit
             </Link>
             <button
               onClick={() => onDelete(tag.id, tag.name)}
               disabled={isDeleting}
-              className="text-red-600 hover:text-red-900 disabled:opacity-50"
+              className="rounded bg-red-500 px-3 py-1 text-white hover:bg-red-600 disabled:opacity-50"
             >
-              <TrashIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+              Delete
             </button>
           </div>
         </div>

@@ -6,19 +6,35 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { createArticle } from "../../../lib/actions/articles";
+import { createArticle, Article } from "../../../lib/actions/articles";
 import { uploadToFTP } from "../../../lib/utils/ftp";
-import {
-  Category,
-  Author,
-  Subcategory,
-} from "../../../login/login-definitions";
+import { User, Category, Author, SubCategory } from "../../../lib/definition";
+
+// Define types for the form
+interface Category {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+interface Author {
+  id: number;
+  name: string;
+}
+
+interface Subcategory {
+  id: number;
+  name: string;
+  category_id: number;
+  description?: string;
+}
 
 const articleSchema = z.object({
   title: z.string().min(1, "Title is required"),
   content: z.string().min(1, "Content is required"),
   category_id: z.coerce.number().min(1, "Category is required"),
   author_id: z.coerce.number().min(1, "Author is required"),
+  user_id: z.coerce.number().min(1, "User is required"),
   sub_category_id: z.coerce.number().optional(),
   image: z.string().optional(),
   video: z.string().optional(),
@@ -35,12 +51,14 @@ interface ArticleFormProps {
   categories: Category[];
   authors: Author[];
   subcategories: Subcategory[];
+  users: User[];
 }
 
 export default function ArticleForm({
   categories = [],
   authors = [],
   subcategories = [],
+  users = [],
 }: ArticleFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -229,6 +247,24 @@ export default function ArticleForm({
           <p className="mt-1 text-sm text-red-600">
             {errors.author_id.message}
           </p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">User</label>
+        <select
+          {...register("user_id")}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
+        >
+          <option value="">Select a user</option>
+          {users.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.firstname} {user.lastname}
+            </option>
+          ))}
+        </select>
+        {errors.user_id && (
+          <p className="mt-1 text-sm text-red-600">{errors.user_id.message}</p>
         )}
       </div>
 

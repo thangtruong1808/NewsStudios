@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
-import { Video } from "../../login/login-definitions";
+import { Video } from "../definition";
 import { uploadToFTP } from "../utils/ftp";
 
 export async function getVideos() {

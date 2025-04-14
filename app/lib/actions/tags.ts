@@ -1,7 +1,7 @@
 "use server";
 
 import { query } from "../db/db";
-import { Tag, TagFormData } from "../../login/login-definitions";
+import { Tag, TagFormData } from "../definition";
 
 interface QueryResult {
   insertId?: number;
@@ -10,10 +10,26 @@ interface QueryResult {
 
 export async function getTags() {
   try {
-    const tags = await query<Tag[]>(`
-      SELECT * FROM Tags
+    const result = await query(`
+      SELECT id, name, description, color, 
+             DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as created_at,
+             DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s') as updated_at
+      FROM Tags
       ORDER BY name ASC
     `);
+
+    if (result.error) {
+      console.error("Error fetching tags:", result.error);
+      return { data: null, error: result.error };
+    }
+
+    // Convert the dates to proper Date objects
+    const tags = (result.data as any[]).map((tag) => ({
+      ...tag,
+      created_at: new Date(tag.created_at),
+      updated_at: new Date(tag.updated_at),
+    })) as Tag[];
+
     return { data: tags, error: null };
   } catch (error) {
     console.error("Error fetching tags:", error);

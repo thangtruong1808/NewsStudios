@@ -1,6 +1,6 @@
 "use client";
 
-import CategoryForm from "@/components/dashboard/categories/CategoryForm";
+import CategoryForm from "../../../components/dashboard/categories/CategoryForm";
 
 export default function CreateCategoryPage() {
   return (

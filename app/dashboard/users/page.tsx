@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { getUsers, searchUsers } from "../../lib/actions/users";
-import UsersTableClient from "../../components/dashboard/UsersTableClient";
+import UsersTableClient from "../../components/dashboard/users/UsersTableClient";
 import UsersSearchWrapper from "../../components/dashboard/users/UsersSearchWrapper";
 import { lusitana } from "../../components/fonts";
 

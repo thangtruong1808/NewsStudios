@@ -1,7 +1,6 @@
 import { getTagById } from "../../../../lib/actions/tags";
 import TagForm from "../../../../components/dashboard/tags/TagForm";
-import { notFound } from "next/navigation";
-import { Tag } from "../../../../login/login-definitions";
+import { Tag } from "../../../../lib/definition";
 
 interface EditTagPageProps {
   params: {
@@ -13,13 +12,13 @@ export default async function EditTagPage({ params }: EditTagPageProps) {
   const tagId = parseInt(params.id);
 
   if (isNaN(tagId)) {
-    notFound();
+    return <div>Tag not found</div>;
   }
 
-  const { data: tagData, error } = await getTagById(tagId);
-  const tag = tagData as Tag | null;
+  const result = await getTagById(tagId);
+  const tag = result.data;
 
-  if (error || !tag) {
+  if (!tag) {
     return (
       <div className="space-y-4">
         <div className="flex w-full items-center justify-between">
@@ -32,7 +31,7 @@ export default async function EditTagPage({ params }: EditTagPageProps) {
                 Error loading tag
               </h3>
               <div className="mt-2 text-sm text-red-700">
-                <p>{error || "Tag not found"}</p>
+                <p>{result.error || "Tag not found"}</p>
               </div>
             </div>
           </div>

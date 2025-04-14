@@ -1,33 +1,35 @@
 "use client";
 
-declare global {
-  interface Window {
-    confirm: (message: string) => boolean;
-  }
+import { useState } from "react";
+import { User } from "../../../lib/definition";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { toast } from "react-hot-toast";
+import { deleteUser } from "../../../lib/actions/users";
+import TableRow from "./TableRow";
+import TableHeader from "./TableHeader";
+import Pagination from "./Pagination";
+
+interface UsersTableClientProps {
+  users: User[];
+  searchQuery?: string;
 }
 
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import toast from "react-hot-toast";
-import { deleteUser } from "../../lib/actions/users";
-import { User } from "../../lib/definitions";
-import Pagination from "./users/Pagination";
-import TableBody from "./users/TableBody";
-import { getTableColumns } from "./users/TableColumns";
-import TableHeader from "./users/TableHeader";
-
-export default function UsersTableClient({ users }: { users: User[] }) {
+export default function UsersTableClient({
+  users,
+  searchQuery = "",
+}: UsersTableClientProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<keyof User>("firstname");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [sortField, setSortField] = useState<keyof User | null>("firstname");
 
   const itemsPerPage = 10;
   const totalPages = Math.ceil(users.length / itemsPerPage);
 
   const handleSort = (field: keyof User) => {
-    if (sortField === field) {
+    if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
@@ -35,20 +37,16 @@ export default function UsersTableClient({ users }: { users: User[] }) {
     }
   };
 
+  const handleEdit = (userId: number) => {
+    router.push(`/dashboard/users/${userId}/edit?edit=true`, { scroll: false });
+  };
+
   const sortedUsers = [...users].sort((a, b) => {
-    if (!sortField) return 0;
-
-    // Special handling for name sorting
-    if (sortField === "firstname") {
-      const aName = `${a.firstname} ${a.lastname}`;
-      const bName = `${b.firstname} ${b.lastname}`;
-      return sortDirection === "asc"
-        ? aName.localeCompare(bName)
-        : bName.localeCompare(aName);
-    }
-
     const aValue = a[sortField];
     const bValue = b[sortField];
+
+    if (aValue === null || aValue === undefined) return 1;
+    if (bValue === null || bValue === undefined) return -1;
 
     if (typeof aValue === "string" && typeof bValue === "string") {
       return sortDirection === "asc"
@@ -56,7 +54,9 @@ export default function UsersTableClient({ users }: { users: User[] }) {
         : bValue.localeCompare(aValue);
     }
 
-    return 0;
+    return sortDirection === "asc"
+      ? String(aValue).localeCompare(String(bValue))
+      : String(bValue).localeCompare(String(aValue));
   });
 
   const paginatedUsers = sortedUsers.slice(
@@ -65,11 +65,8 @@ export default function UsersTableClient({ users }: { users: User[] }) {
   );
 
   const handleDelete = async (id: number, userName: string) => {
-    // Custom confirmation dialog using toast
     const confirmPromise = new Promise<boolean>((resolve) => {
-      let resolved = false;
-
-      const toastId = toast(
+      toast(
         (t) => (
           <div className="flex flex-col items-center">
             <p className="mb-2">
@@ -79,7 +76,6 @@ export default function UsersTableClient({ users }: { users: User[] }) {
               <button
                 className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                 onClick={() => {
-                  resolved = true;
                   toast.dismiss(t.id);
                   resolve(true);
                 }}
@@ -89,7 +85,6 @@ export default function UsersTableClient({ users }: { users: User[] }) {
               <button
                 className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
                 onClick={() => {
-                  resolved = true;
                   toast.dismiss(t.id);
                   resolve(false);
                 }}
@@ -99,82 +94,121 @@ export default function UsersTableClient({ users }: { users: User[] }) {
             </div>
           </div>
         ),
-        {
-          duration: 5000, // Auto-dismiss after 5 seconds
-        }
+        { duration: 5000 }
       );
-
-      // Auto-resolve as false if the toast is dismissed by timeout
-      setTimeout(() => {
-        if (!resolved) {
-          toast.dismiss(toastId);
-          resolve(false);
-        }
-      }, 5000);
     });
 
     const isConfirmed = await confirmPromise;
     if (!isConfirmed) return;
 
-    const deletePromise = new Promise(async (resolve, reject) => {
-      try {
-        setIsDeleting(true);
-        await deleteUser(id);
-        resolve(true);
-      } catch (error) {
-        reject(error);
-      } finally {
-        setIsDeleting(false);
-      }
-    });
-
-    toast
-      .promise(deletePromise, {
-        loading: "Deleting user...",
-        success: "User deleted successfully",
-        error: (err) =>
-          err instanceof Error ? err.message : "Failed to delete user",
-      })
-      .then(() => {
+    setIsDeleting(true);
+    try {
+      const { error } = await deleteUser(id);
+      if (error) {
+        toast.error(
+          <div>
+            <p className="font-bold">Failed to delete user</p>
+            <p className="text-sm">{error}</p>
+          </div>,
+          { duration: 5000 }
+        );
+      } else {
+        toast.success("User deleted successfully");
         router.refresh();
-      });
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error(
+        <div>
+          <p className="font-bold">An error occurred while deleting the user</p>
+          <p className="text-sm">
+            {error instanceof Error ? error.message : "Unknown error"}
+          </p>
+        </div>,
+        { duration: 5000 }
+      );
+    } finally {
+      setIsDeleting(false);
+    }
   };
-
-  const columns = getTableColumns(
-    currentPage,
-    itemsPerPage,
-    handleDelete,
-    isDeleting
-  );
 
   return (
     <div className="mt-6 flow-root">
-      <div className="inline-block min-w-full align-middle">
-        <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
-          <table className="min-w-full text-gray-900">
-            <TableHeader
-              columns={columns}
-              sortField={sortField}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-            />
-            <TableBody
-              users={paginatedUsers}
-              columns={columns}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
-            />
-          </table>
-
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            itemsPerPage={itemsPerPage}
-            totalItems={users.length}
-            onPageChange={setCurrentPage}
-          />
+      <div className="overflow-x-auto">
+        <div className="inline-block min-w-full align-middle">
+          <div className="overflow-hidden rounded-md bg-gray-50">
+            <div className="md:hidden">
+              {paginatedUsers.map((user) => (
+                <div
+                  key={user.id}
+                  className="mb-2 w-full rounded-md bg-white p-4"
+                >
+                  <div className="flex items-center justify-between border-b pb-4">
+                    <div>
+                      <div className="mb-2 flex items-center">
+                        <p className="font-medium text-gray-900">
+                          ID: {user.id} - {user.firstname} {user.lastname}
+                        </p>
+                      </div>
+                      <p className="text-sm text-gray-500">{user.email}</p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEdit(user.id)}
+                        className="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleDelete(
+                            user.id,
+                            `${user.firstname} ${user.lastname}`
+                          )
+                        }
+                        disabled={isDeleting}
+                        className="rounded bg-red-500 px-3 py-1 text-white hover:bg-red-600 disabled:opacity-50"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <table className="hidden min-w-full text-gray-900 md:table ">
+              <TableHeader
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
+              <tbody className="bg-white">
+                {paginatedUsers.map((user, index) => (
+                  <TableRow
+                    key={user.id}
+                    user={user}
+                    index={(currentPage - 1) * itemsPerPage + index}
+                    onEdit={(user) => handleEdit(user.id)}
+                    onDelete={(user) =>
+                      handleDelete(
+                        user.id,
+                        `${user.firstname} ${user.lastname}`
+                      )
+                    }
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        totalItems={users.length}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

@@ -13,7 +13,9 @@ export default function TableBody({
       {tags.map((tag, index) => (
         <tr
           key={tag.id}
-          className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+          className={`${
+            index % 2 === 0 ? "bg-white" : "bg-gray-50"
+          } hover:bg-gray-100 transition-colors duration-150`}
         >
           {columns.map((column) => (
             <td

@@ -1,7 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
-import { Sponsor } from "../../login/login-definitions";
+import { Sponsor } from "../definition";
 
 export async function getSponsors() {
   try {

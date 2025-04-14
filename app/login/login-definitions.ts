@@ -7,6 +7,7 @@ export interface User {
   role: "admin" | "user" | "editor";
   status: "active" | "inactive";
   description?: string;
+  user_image?: string;
   created_at: string;
   updated_at: string;
 }

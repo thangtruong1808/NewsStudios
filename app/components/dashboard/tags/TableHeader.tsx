@@ -2,7 +2,7 @@
 
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { TableHeaderProps } from "./types";
-import { Tag } from "../../../login/login-definitions";
+import { Tag } from "../../../lib/definition";
 
 export default function TableHeader({
   columns,
@@ -20,21 +20,25 @@ export default function TableHeader({
           );
           const isActionsColumn = column.key === "actions";
           const isNameColumn = column.key === "name";
+          const isSequenceColumn = column.key === "sequence";
+          const isIdColumn = column.key === "id";
 
           return (
             <th
               key={column.key}
               scope="col"
-              className={`px-2 py-2 text-left text-xs font-semibold text-gray-900 ${
+              className={`px-6 py-4 text-left text-xs font-semibold text-gray-900 ${
                 column.sortable ? "cursor-pointer" : ""
               } ${isMobileVisible ? "table-cell" : "hidden md:table-cell"} ${
                 isActionsColumn ? "text-center" : ""
-              }`}
+              } ${isSequenceColumn || isIdColumn ? "text-center" : ""}`}
               onClick={() => column.sortable && onSort(column.key as keyof Tag)}
             >
               <div
                 className={`group inline-flex ${
-                  isActionsColumn ? "justify-center w-full" : ""
+                  isActionsColumn || isSequenceColumn || isIdColumn
+                    ? "justify-center w-full"
+                    : ""
                 }`}
               >
                 {column.label}

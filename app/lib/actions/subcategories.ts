@@ -1,7 +1,7 @@
 "use server";
 
 import { query } from "../db/db";
-import { Subcategory } from "../../login/login-definitions";
+import { SubCategory } from "../definition";
 import { revalidatePath } from "next/cache";
 
 interface SubcategoryFormData {
@@ -21,7 +21,7 @@ export async function getSubcategories() {
     if (result.error) {
       return { data: null, error: result.error };
     }
-    return { data: result.data as Subcategory[], error: null };
+    return { data: result.data as SubCategory[], error: null };
   } catch (error) {
     console.error("Error fetching subcategories:", error);
     return {
@@ -40,7 +40,7 @@ export async function getSubcategoryById(id: number) {
       return { data: null, error: result.error };
     }
     const subcategory = (result.data as any[])?.[0] || null;
-    return { data: subcategory as Subcategory | null, error: null };
+    return { data: subcategory as SubCategory | null, error: null };
   } catch (error) {
     console.error("Error fetching subcategory:", error);
     return { data: null, error: "Failed to fetch subcategory" };
@@ -72,7 +72,7 @@ export async function createSubcategory(data: SubcategoryFormData) {
 
 export async function updateSubcategory(
   id: number,
-  data: Partial<Omit<Subcategory, "id" | "created_at" | "updated_at">>
+  data: Partial<Omit<SubCategory, "id" | "created_at" | "updated_at">>
 ) {
   try {
     const fields = Object.keys(data)
@@ -128,7 +128,7 @@ export async function searchSubcategories(searchQuery: string) {
       return { data: null, error: result.error };
     }
 
-    return { data: result.data as Subcategory[], error: null };
+    return { data: result.data as SubCategory[], error: null };
   } catch (error) {
     console.error("Error searching subcategories:", error);
     return { data: null, error: "Failed to search subcategories" };

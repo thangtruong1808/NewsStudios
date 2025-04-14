@@ -1,0 +1,4 @@
+Starting database schema check...
+Database connection established successfully
+
+Schema check completed. Please review the output above.
