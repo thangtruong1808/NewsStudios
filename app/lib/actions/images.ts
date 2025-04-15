@@ -16,30 +16,42 @@ interface ImageRow extends RowDataPacket {
 }
 
 // Function to upload image to server and get the URL
-export async function uploadImageToServer(
-  file: File,
-  article_id: number | null = null,
-  description: string | null = null
-) {
+export async function uploadImageToServer(formData: FormData) {
   try {
-    // Upload to FTP server
-    const { url, error } = await uploadToFTP(file);
+    const file = formData.get("file") as File;
+    const article_id = formData.get("article_id");
+    const description = formData.get("description");
 
-    if (error) {
-      return { error };
+    if (!file) {
+      return { error: "No file provided" };
     }
 
-    // Save to database
-    const result = await query(
-      "INSERT INTO Images (article_id, image_url, description, created_at) VALUES (?, ?, ?, NOW())",
-      [article_id, url, description]
-    );
+    // Upload to FTP server
+    const result = await uploadToFTP(file);
 
     if (result.error) {
       return { error: result.error };
     }
 
-    return { url };
+    if (!result.url) {
+      return { error: "Failed to get URL from FTP upload" };
+    }
+
+    // Save to database
+    const dbResult = await query(
+      "INSERT INTO Images (article_id, image_url, description, created_at) VALUES (?, ?, ?, NOW())",
+      [
+        article_id ? parseInt(article_id.toString(), 10) : null,
+        result.url,
+        description || null,
+      ]
+    );
+
+    if (dbResult.error) {
+      return { error: dbResult.error };
+    }
+
+    return { url: result.url };
   } catch (error) {
     console.error("Error uploading image:", error);
     return { error: "Failed to upload image" };

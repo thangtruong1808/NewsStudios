@@ -2,10 +2,7 @@
 
 import { Article } from "../../../lib/definition";
 import Link from "next/link";
-import {
-  PencilIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 interface TableBodyProps {
   articles: Article[];
@@ -18,16 +15,19 @@ export function TableBody({
   currentPage,
   itemsPerPage,
 }: TableBodyProps) {
-  const formatDate = (date: Date | undefined) => {
+  const formatDate = (date: Date | string | undefined) => {
     if (!date) return "Not published";
-    return new Date(date).toLocaleDateString(
-      "en-US",
-      {
+    try {
+      const dateObj = typeof date === "string" ? new Date(date) : date;
+      return dateObj.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
-      }
-    );
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
   };
 
   return (
@@ -38,13 +38,9 @@ export function TableBody({
           className="border-b border-gray-200 hover:bg-gray-50"
         >
           <td className="px-4 py-3">
-            {(currentPage - 1) * itemsPerPage +
-              index +
-              1}
+            {(currentPage - 1) * itemsPerPage + index + 1}
           </td>
-          <td className="px-4 py-3">
-            {article.id}
-          </td>
+          <td className="px-4 py-3">{article.id}</td>
           <td className="px-4 py-3">
             <Link
               href={`/dashboard/articles/${article.id}`}
@@ -54,21 +50,15 @@ export function TableBody({
             </Link>
           </td>
           <td className="px-4 py-3">
-            <div className="max-w-xs truncate">
-              {article.content}
-            </div>
+            <div className="max-w-xs truncate">{article.content}</div>
           </td>
           <td className="px-4 py-3">
-            {(article as any).category_name ||
-              "Unknown Category"}
+            {article.category_name || "Unknown Category"}
           </td>
           <td className="px-4 py-3">
-            {(article as any).author_name ||
-              "Unknown Author"}
+            {article.author_name || "Unknown Author"}
           </td>
-          <td className="px-4 py-3">
-            {formatDate(article.published_at)}
-          </td>
+          <td className="px-4 py-3">{formatDate(article.published_at)}</td>
           <td className="px-4 py-3">
             {article.is_featured ? (
               <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
@@ -102,10 +92,7 @@ export function TableBody({
               <button
                 onClick={() => {
                   // TODO: Implement delete functionality
-                  console.log(
-                    "Delete article:",
-                    article.id
-                  );
+                  console.log("Delete article:", article.id);
                 }}
                 className="rounded border border-red-500 px-3 py-1 text-red-500 hover:bg-red-100"
               >
