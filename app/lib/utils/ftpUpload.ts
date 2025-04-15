@@ -29,7 +29,7 @@ const BASE_URL =
 const DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || "thang-truong.com";
 
 // Use the direct file server URL with the exact format required
-const FILE_SERVER_URL = "https://srv876-files.hstgr.io/33f9f3e6b3a8af46/files";
+const FILE_SERVER_URL = "https://srv876-files.hstgr.io/83e36b91bb471f62/files";
 
 /**
  * Uploads a file to the server via FTP
@@ -988,11 +988,10 @@ export async function uploadToFTP(file: File) {
     const stream = Readable.from(buffer);
     await client.uploadFrom(stream, uniqueFilename);
 
-    // Construct URL using the exact format required
-    const url = `${FILE_SERVER_URL}/public_html/Images/${uniqueFilename}`;
-    console.log(`File uploaded successfully. URL: ${url}`);
+    // Return just the filename instead of the full URL
+    console.log(`File uploaded successfully. Filename: ${uniqueFilename}`);
 
-    return { url, error: null };
+    return { url: uniqueFilename, error: null };
   } catch (error) {
     console.error("FTP upload error:", error);
     return { url: null, error: "Failed to upload file to FTP server" };

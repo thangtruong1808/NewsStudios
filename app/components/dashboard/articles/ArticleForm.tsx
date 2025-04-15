@@ -1,19 +1,12 @@
 "use client";
 
-import {
-  useState,
-  useRef,
-  useEffect,
-} from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import {
-  createArticle,
-  updateArticle,
-} from "../../../lib/actions/articles";
+import { createArticle, updateArticle } from "../../../lib/actions/articles";
 import { uploadToFTP } from "../../../lib/utils/ftp";
 import {
   User,
@@ -44,18 +37,10 @@ interface Subcategory {
 
 const articleSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  content: z
-    .string()
-    .min(1, "Content is required"),
-  category_id: z.coerce
-    .number()
-    .min(1, "Category is required"),
-  author_id: z.coerce
-    .number()
-    .min(1, "Author is required"),
-  user_id: z.coerce
-    .number()
-    .min(1, "User is required"),
+  content: z.string().min(1, "Content is required"),
+  category_id: z.coerce.number().min(1, "Category is required"),
+  author_id: z.coerce.number().min(1, "Author is required"),
+  user_id: z.coerce.number().min(1, "User is required"),
   sub_category_id: z.coerce.number().optional(),
   image: z.string().optional(),
   video: z.string().optional(),
@@ -67,9 +52,7 @@ const articleSchema = z.object({
   tag_ids: z.array(z.number()).optional(),
 });
 
-type ArticleFormData = z.infer<
-  typeof articleSchema
->;
+type ArticleFormData = z.infer<typeof articleSchema>;
 
 interface ArticleFormProps {
   article?: {
@@ -108,43 +91,35 @@ export default function ArticleForm({
   tags = [],
 }: ArticleFormProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
-  const [selectedCategory, setSelectedCategory] =
-    useState(
-      article?.category_id.toString() || ""
-    );
-  const [selectedTags, setSelectedTags] =
-    useState<number[]>(
-      Array.isArray(article?.tag_ids)
-        ? article.tag_ids
-        : []
-    );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(
+    article?.category_id.toString() || ""
+  );
+  const [selectedTags, setSelectedTags] = useState<number[]>(
+    Array.isArray(article?.tag_ids) ? article.tag_ids : []
+  );
 
   // Add state for file URLs
-  const [imageUrl, setImageUrl] = useState<
-    string | null
-  >(article?.image || null);
-  const [videoUrl, setVideoUrl] = useState<
-    string | null
-  >(article?.video || null);
-  const [headlineImageUrl, setHeadlineImageUrl] =
-    useState<string | null>(
-      article?.headline_image_url || null
-    );
-  const [headlineVideoUrl, setHeadlineVideoUrl] =
-    useState<string | null>(
-      article?.headline_video_url || null
-    );
+  const [imageUrl, setImageUrl] = useState<string | null>(
+    article?.image || null
+  );
+  const [videoUrl, setVideoUrl] = useState<string | null>(
+    article?.video || null
+  );
+  const [headlineImageUrl, setHeadlineImageUrl] = useState<string | null>(
+    article?.headline_image_url || null
+  );
+  const [headlineVideoUrl, setHeadlineVideoUrl] = useState<string | null>(
+    article?.headline_video_url || null
+  );
 
   // Add state for upload progress
-  const [uploadProgress, setUploadProgress] =
-    useState<{
-      image?: number;
-      video?: number;
-      headlineImage?: number;
-      headlineVideo?: number;
-    }>({});
+  const [uploadProgress, setUploadProgress] = useState<{
+    image?: number;
+    video?: number;
+    headlineImage?: number;
+    headlineVideo?: number;
+  }>({});
 
   const {
     register,
@@ -158,21 +133,16 @@ export default function ArticleForm({
     defaultValues: {
       title: article?.title || "",
       content: article?.content || "",
-      category_id:
-        article?.category_id || undefined,
+      category_id: article?.category_id || undefined,
       author_id: article?.author_id || undefined,
       user_id: article?.user_id || undefined,
-      sub_category_id:
-        article?.sub_category_id || undefined,
+      sub_category_id: article?.sub_category_id || undefined,
       image: article?.image || "",
       video: article?.video || "",
       is_featured: article?.is_featured || false,
-      headline_priority:
-        article?.headline_priority || 0,
-      headline_image_url:
-        article?.headline_image_url || "",
-      headline_video_url:
-        article?.headline_video_url || "",
+      headline_priority: article?.headline_priority || 0,
+      headline_image_url: article?.headline_image_url || "",
+      headline_video_url: article?.headline_video_url || "",
       is_trending: article?.is_trending || false,
       tag_ids: article?.tag_ids || [],
     },
@@ -184,90 +154,51 @@ export default function ArticleForm({
       // Set form values
       setValue("title", article.title);
       setValue("content", article.content);
-      setValue(
-        "category_id",
-        article.category_id
-      );
+      setValue("category_id", article.category_id);
       setValue("author_id", article.author_id);
       setValue("user_id", article.user_id);
-      setValue(
-        "sub_category_id",
-        article.sub_category_id || undefined
-      );
+      setValue("sub_category_id", article.sub_category_id || undefined);
       setValue("image", article.image || "");
       setValue("video", article.video || "");
-      setValue(
-        "is_featured",
-        article.is_featured
-      );
-      setValue(
-        "headline_priority",
-        article.headline_priority
-      );
-      setValue(
-        "headline_image_url",
-        article.headline_image_url || ""
-      );
-      setValue(
-        "headline_video_url",
-        article.headline_video_url || ""
-      );
-      setValue(
-        "is_trending",
-        article.is_trending
-      );
+      setValue("is_featured", article.is_featured);
+      setValue("headline_priority", article.headline_priority);
+      setValue("headline_image_url", article.headline_image_url || "");
+      setValue("headline_video_url", article.headline_video_url || "");
+      setValue("is_trending", article.is_trending);
 
       // Set selected category for subcategory filtering
-      setSelectedCategory(
-        article.category_id.toString()
-      );
+      setSelectedCategory(article.category_id.toString());
 
       // Set image and video URLs
       setImageUrl(article.image || null);
       setVideoUrl(article.video || null);
-      setHeadlineImageUrl(
-        article.headline_image_url || null
-      );
-      setHeadlineVideoUrl(
-        article.headline_video_url || null
-      );
+      setHeadlineImageUrl(article.headline_image_url || null);
+      setHeadlineVideoUrl(article.headline_video_url || null);
 
       // Set selected tags
-      if (
-        article.tag_ids &&
-        article.tag_ids.length > 0
-      ) {
+      if (article.tag_ids && article.tag_ids.length > 0) {
         setSelectedTags(article.tag_ids);
         setValue("tag_ids", article.tag_ids);
       }
     }
   }, [article, setValue]);
 
-  const filteredSubcategories =
-    subcategories.filter(
-      (sub) =>
-        sub.category_id ===
-        parseInt(selectedCategory)
-    );
+  const filteredSubcategories = subcategories.filter(
+    (sub) => sub.category_id === parseInt(selectedCategory)
+  );
 
   // Handle tag selection
-  const handleTagChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const selectedOptions = Array.from(
-      e.target.selectedOptions
-    ).map((option) => parseInt(option.value));
+  const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions).map((option) =>
+      parseInt(option.value)
+    );
     setSelectedTags(selectedOptions);
     setValue("tag_ids", selectedOptions);
   };
 
   const handleFileUpload = async (
     file: File,
-    type:
-      | "image"
-      | "video"
-      | "headlineImage"
-      | "headlineVideo"
+    type: "image" | "video" | "headlineImage" | "headlineVideo"
   ) => {
     try {
       setUploadProgress((prev) => ({
@@ -275,14 +206,10 @@ export default function ArticleForm({
         [type]: 0,
       }));
 
-      const { url, error } = await uploadToFTP(
-        file
-      );
+      const { url, error } = await uploadToFTP(file);
 
       if (error) {
-        toast.error(
-          `Failed to upload ${type}: ${error}`
-        );
+        toast.error(`Failed to upload ${type}: ${error}`);
         return;
       }
 
@@ -306,15 +233,10 @@ export default function ArticleForm({
           break;
       }
 
-      toast.success(
-        `${type} uploaded successfully`
-      );
+      toast.success(`${type} uploaded successfully`);
     } catch (error) {
       toast.error(`Error uploading ${type}`);
-      console.error(
-        `Error uploading ${type}:`,
-        error
-      );
+      console.error(`Error uploading ${type}:`, error);
     } finally {
       setUploadProgress((prev) => ({
         ...prev,
@@ -330,14 +252,10 @@ export default function ArticleForm({
   };
 
   const handleTagRemove = (tagId: number) => {
-    setSelectedTags(
-      selectedTags.filter((id) => id !== tagId)
-    );
+    setSelectedTags(selectedTags.filter((id) => id !== tagId));
   };
 
-  const onSubmit = async (
-    data: ArticleFormData
-  ) => {
+  const onSubmit = async (data: ArticleFormData) => {
     setIsSubmitting(true);
     try {
       // Prepare article data
@@ -349,71 +267,55 @@ export default function ArticleForm({
         headline_video_url: headlineVideoUrl,
         tag_ids: selectedTags,
         id: article?.id || 0,
-        created_at:
-          article?.created_at || new Date(),
+        created_at: article?.created_at || new Date(),
         updated_at: new Date(),
-        published_at:
-          article?.published_at || new Date(),
+        published_at: article?.published_at || new Date(),
       };
 
       // Create or update article
       if (article?.id) {
         // Update existing article
-        await updateArticle(
-          article.id,
-          articleData,
-          selectedTags
-        );
-        toast.success(
-          "Article updated successfully"
-        );
+        await updateArticle(article.id, articleData, selectedTags);
+        toast.success("Article updated successfully");
       } else {
         // Create new article
-        await createArticle(
-          articleData,
-          selectedTags
-        );
-        toast.success(
-          "Article created successfully"
-        );
+        await createArticle(articleData, selectedTags);
+        toast.success("Article created successfully");
       }
 
       // Redirect to articles page
       router.push("/dashboard/articles");
       router.refresh();
     } catch (error) {
-      console.error(
-        "Error submitting article:",
-        error
-      );
+      console.error("Error submitting article:", error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to submit article"
+        error instanceof Error ? error.message : "Failed to submit article"
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const getImageUrl = (imagePath: string) => {
+    // Construct the full URL from the filename
+    const imageUrl = `/Images/${imagePath}`;
+    const fullUrl = `https://srv876-files.hstgr.io/83e36b91bb471f62/files/public_html${imageUrl}`;
+
+    // Return the direct URL
+    return fullUrl;
+  };
+
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-6"
-    >
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Title
-        </label>
+        <label className="block text-sm font-medium text-gray-700">Title</label>
         <input
           type="text"
           {...register("title")}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         />
         {errors.title && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.title.message}
-          </p>
+          <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
         )}
       </div>
 
@@ -427,9 +329,7 @@ export default function ArticleForm({
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
         />
         {errors.content && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.content.message}
-          </p>
+          <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
         )}
       </div>
 
@@ -439,19 +339,12 @@ export default function ArticleForm({
         </label>
         <select
           {...register("category_id")}
-          onChange={(e) =>
-            setSelectedCategory(e.target.value)
-          }
+          onChange={(e) => setSelectedCategory(e.target.value)}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         >
-          <option value="">
-            Select a category
-          </option>
+          <option value="">Select a category</option>
           {categories.map((category) => (
-            <option
-              key={category.id}
-              value={category.id}
-            >
+            <option key={category.id} value={category.id}>
               {category.name}
             </option>
           ))}
@@ -472,19 +365,12 @@ export default function ArticleForm({
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
           disabled={!selectedCategory}
         >
-          <option value="">
-            Select a subcategory
-          </option>
-          {filteredSubcategories.map(
-            (subcategory) => (
-              <option
-                key={subcategory.id}
-                value={subcategory.id}
-              >
-                {subcategory.name}
-              </option>
-            )
-          )}
+          <option value="">Select a subcategory</option>
+          {filteredSubcategories.map((subcategory) => (
+            <option key={subcategory.id} value={subcategory.id}>
+              {subcategory.name}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -496,14 +382,9 @@ export default function ArticleForm({
           {...register("author_id")}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
         >
-          <option value="">
-            Select an author
-          </option>
+          <option value="">Select an author</option>
           {authors.map((author) => (
-            <option
-              key={author.id}
-              value={author.id}
-            >
+            <option key={author.id} value={author.id}>
               {author.name}
             </option>
           ))}
@@ -516,9 +397,7 @@ export default function ArticleForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
-          User
-        </label>
+        <label className="block text-sm font-medium text-gray-700">User</label>
         <select
           {...register("user_id")}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
@@ -531,16 +410,12 @@ export default function ArticleForm({
           ))}
         </select>
         {errors.user_id && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.user_id.message}
-          </p>
+          <p className="mt-1 text-sm text-red-600">{errors.user_id.message}</p>
         )}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Image
-        </label>
+        <label className="block text-sm font-medium text-gray-700">Image</label>
         <div className="mt-1 flex items-center space-x-4">
           <input
             type="text"
@@ -575,9 +450,7 @@ export default function ArticleForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Video
-        </label>
+        <label className="block text-sm font-medium text-gray-700">Video</label>
         <div className="mt-1 flex items-center space-x-4">
           <input
             type="text"
@@ -680,30 +553,19 @@ export default function ArticleForm({
           multiple
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-4"
           onChange={handleTagChange}
-          value={
-            Array.isArray(selectedTags)
-              ? selectedTags.map(String)
-              : []
-          }
+          value={Array.isArray(selectedTags) ? selectedTags.map(String) : []}
         >
           {tags.map((tag) => (
-            <option
-              key={tag.id}
-              value={tag.id}
-              className="py-2"
-            >
+            <option key={tag.id} value={tag.id} className="py-2">
               {tag.name}
             </option>
           ))}
         </select>
         <p className="text-xs text-gray-500 mt-2">
-          Hold Ctrl (Windows) or Command (Mac) to
-          select multiple tags
+          Hold Ctrl (Windows) or Command (Mac) to select multiple tags
         </p>
         {errors.tag_ids && (
-          <p className="text-sm text-red-600">
-            {errors.tag_ids.message}
-          </p>
+          <p className="text-sm text-red-600">{errors.tag_ids.message}</p>
         )}
       </div>
 

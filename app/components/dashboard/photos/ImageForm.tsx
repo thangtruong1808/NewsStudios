@@ -48,12 +48,19 @@ export default function ImageForm({ articleId }: ImageFormProps) {
     // Upload to server
     setIsUploading(true);
     try {
-      const { url, error } = await uploadImageToServer(file);
+      // Create a FormData object from the File
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const { url, error } = await uploadImageToServer(formData);
       if (error) {
         setError(error);
         toast.error(error);
       } else if (url) {
-        setValue("image_url", url);
+        // Extract just the filename from the URL for storage
+        const urlParts = url.split("/");
+        const filename = urlParts[urlParts.length - 1];
+        setValue("image_url", filename);
         toast.success("Image uploaded successfully");
         // Image is now saved in the database, we can redirect
         setImageAlreadySaved(true);

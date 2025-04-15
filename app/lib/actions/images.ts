@@ -37,12 +37,12 @@ export async function uploadImageToServer(formData: FormData) {
       return { error: "Failed to get URL from FTP upload" };
     }
 
-    // Save to database
+    // Save to database - store just the filename
     const dbResult = await query(
       "INSERT INTO Images (article_id, image_url, description, created_at) VALUES (?, ?, ?, NOW())",
       [
         article_id ? parseInt(article_id.toString(), 10) : null,
-        result.url,
+        result.url, // This is now just the filename
         description || null,
       ]
     );
@@ -51,7 +51,10 @@ export async function uploadImageToServer(formData: FormData) {
       return { error: dbResult.error };
     }
 
-    return { url: result.url };
+    // Return the full URL for display purposes
+    const fullUrl = `https://srv876-files.hstgr.io/83e36b91bb471f62/files/public_html/Images/${result.url}`;
+
+    return { url: fullUrl };
   } catch (error) {
     console.error("Error uploading image:", error);
     return { error: "Failed to upload image" };
@@ -179,5 +182,34 @@ export async function deleteImage(id: number) {
   } catch (error) {
     console.error("Error deleting image:", error);
     return { data: null, error: "Failed to delete image" };
+  }
+}
+
+export async function getImageData(filename: string): Promise<{
+  data: string | null;
+  error: string | null;
+  useDirectUrl: boolean;
+}> {
+  if (!filename) {
+    return { data: null, error: "Filename is required", useDirectUrl: true };
+  }
+
+  try {
+    // Construct the full URL
+    const fullUrl = `https://srv876-files.hstgr.io/83e36b91bb471f62/files/public_html/Images/${filename}`;
+
+    // Return the direct URL
+    return {
+      data: fullUrl,
+      error: null,
+      useDirectUrl: true,
+    };
+  } catch (error) {
+    console.error(`Error preparing image data for ${filename}:`, error);
+    return {
+      data: null,
+      error: "Failed to prepare image data",
+      useDirectUrl: false,
+    };
   }
 }

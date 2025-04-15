@@ -6,10 +6,11 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "srv876-files.hstgr.io",
-        port: "",
         pathname: "/**",
       },
     ],
+    minimumCacheTTL: 60,
+    unoptimized: process.env.NODE_ENV === "development",
   },
   // Ensure environment variables are loaded
   env: {
@@ -17,6 +18,7 @@ const nextConfig = {
     DB_USER: process.env.DB_USER,
     DB_PASSWORD: process.env.DB_PASSWORD,
     DB_NAME: process.env.DB_NAME,
+    NEXT_PUBLIC_SERVER_URL: process.env.NEXT_PUBLIC_SERVER_URL,
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -35,6 +37,9 @@ const nextConfig = {
         util: false,
       };
     }
+
+    // Ignore punycode warning
+    config.ignoreWarnings = [{ module: /node_modules\/punycode/ }];
 
     return config;
   },
