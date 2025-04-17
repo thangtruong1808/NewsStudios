@@ -7,13 +7,13 @@ declare global {
 }
 
 import { useState, useEffect } from "react";
-import { Category } from "../../../login/login-definitions";
+import { Category } from "@/app/lib/definition";
 import { getTableColumns } from "./TableColumns";
 import { TableHeader } from "./TableHeader";
 import TableBody from "./TableBody";
 import Pagination from "./Pagination";
 import { toast } from "react-hot-toast";
-import { deleteCategory } from "../../../lib/actions/categories";
+import { deleteCategory } from "@/app/lib/actions/categories";
 import { useRouter } from "next/navigation";
 import MobileCategoryCard from "./MobileCategoryCard";
 
@@ -27,7 +27,7 @@ export default function CategoriesTableClient({
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState<keyof Category>("name");
+  const [sortField, setSortField] = useState<string>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [mounted, setMounted] = useState(false);
 
@@ -42,7 +42,7 @@ export default function CategoriesTableClient({
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field as keyof Category);
+      setSortField(field);
       setSortDirection("asc");
     }
   };
@@ -111,23 +111,32 @@ export default function CategoriesTableClient({
     isDeleting
   );
 
+  const sortData = (data: Category[]) => {
+    return [...data].sort((a, b) => {
+      const aValue = a[sortField as keyof Category];
+      const bValue = b[sortField as keyof Category];
+
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortDirection === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (aValue instanceof Date && bValue instanceof Date) {
+        return sortDirection === "asc"
+          ? aValue.getTime() - bValue.getTime()
+          : bValue.getTime() - aValue.getTime();
+      }
+
+      return 0;
+    });
+  };
+
   // Sort categories
-  const sortedCategories = [...categories].sort((a, b) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
-
-    if (aValue === null || bValue === null) return 0;
-
-    if (typeof aValue === "string" && typeof bValue === "string") {
-      return sortDirection === "asc"
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
-    }
-
-    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-    return 0;
-  });
+  const sortedCategories = sortData(categories);
 
   // Paginate categories
   const startIndex = (currentPage - 1) * itemsPerPage;

@@ -25,16 +25,6 @@ export const advertisementSchema = z
       message: "End date must be after start date",
       path: ["end_date"],
     }
-  )
-  .refine(
-    (data) => {
-      // Ensure at least one of image_url or video_url is provided
-      return data.image_url || data.video_url;
-    },
-    {
-      message: "Either image URL or video URL must be provided",
-      path: ["image_url"],
-    }
   );
 
 export type AdvertisementFormData = z.infer<typeof advertisementSchema>;

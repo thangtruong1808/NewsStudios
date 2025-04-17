@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { Column, TableHeaderProps } from "./types";
 
 export default function TableHeader({
@@ -9,16 +8,6 @@ export default function TableHeader({
   sortDirection,
   onSort,
 }: TableHeaderProps) {
-  const getSortIcon = (column: Column) => {
-    if (!column.sortable) return null;
-    if (sortField !== column.key) return null;
-    return sortDirection === "asc" ? (
-      <ChevronUpIcon className="h-4 w-4" />
-    ) : (
-      <ChevronDownIcon className="h-4 w-4" />
-    );
-  };
-
   return (
     <thead className="bg-gray-50">
       <tr>
@@ -33,9 +22,11 @@ export default function TableHeader({
           >
             <div className="group inline-flex">
               {column.label}
-              <span className="ml-2 flex-none rounded text-gray-400">
-                {getSortIcon(column)}
-              </span>
+              {column.sortable && sortField === column.key && (
+                <span className="ml-1 text-gray-500">
+                  {sortDirection === "asc" ? "↑" : "↓"}
+                </span>
+              )}
             </div>
           </th>
         ))}

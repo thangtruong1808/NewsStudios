@@ -2,7 +2,7 @@
 
 import { query } from "../db/db";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
-import { Advertisement } from "../definition";
+import { Advertisement, CreateAdvertisementData } from "../definition";
 import { revalidatePath } from "next/cache";
 
 interface IdResult extends RowDataPacket {
@@ -341,72 +341,83 @@ export async function insertSampleAdvertisements() {
   }
 }
 
-export async function createAdvertisement(data: Partial<Advertisement>) {
+export async function createAdvertisement(
+  data: Omit<CreateAdvertisementData, "start_date" | "end_date"> & {
+    start_date: string;
+    end_date: string;
+  }
+) {
   try {
-    // Validate required fields
-    const requiredFields = [
-      "sponsor_id",
-      "article_id",
-      "category_id",
-      "start_date",
-      "end_date",
-      "ad_type",
-      "ad_content",
-    ];
+    const {
+      sponsor_id,
+      article_id,
+      category_id,
+      ad_type,
+      ad_content,
+      start_date,
+      end_date,
+      image_url,
+      video_url,
+    } = data;
 
-    for (const field of requiredFields) {
-      if (!data[field as keyof Advertisement]) {
-        return {
-          success: false,
-          error: `Missing required field: ${field}`,
-        };
-      }
+    // Validate required fields
+    if (
+      !sponsor_id ||
+      !article_id ||
+      !category_id ||
+      !ad_type ||
+      !ad_content ||
+      !start_date ||
+      !end_date
+    ) {
+      return { error: "Missing required fields" };
     }
 
-    const sql = `
+    const result = await query(
+      `
       INSERT INTO Advertisements (
         sponsor_id,
         article_id,
         category_id,
-        start_date,
-        end_date,
         ad_type,
         ad_content,
+        start_date,
+        end_date,
+        image_url,
+        video_url,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-    `;
-
-    const result = await query(sql, [
-      data.sponsor_id,
-      data.article_id,
-      data.category_id,
-      data.start_date,
-      data.end_date,
-      data.ad_type,
-      data.ad_content,
-    ]);
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+    `,
+      [
+        sponsor_id,
+        article_id,
+        category_id,
+        ad_type,
+        ad_content,
+        new Date(start_date),
+        new Date(end_date),
+        image_url || null,
+        video_url || null,
+      ]
+    );
 
     if (result.error) {
-      return {
-        success: false,
-        error: result.error,
-      };
+      return { error: result.error };
     }
 
+    // Return a serializable response with string dates
     return {
-      success: true,
-      data: result.data,
+      data: {
+        ...data,
+        id: (result.data as ResultSetHeader).insertId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
     };
   } catch (error) {
     console.error("Error creating advertisement:", error);
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to create advertisement",
-    };
+    return { error: "Failed to create advertisement" };
   }
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Advertisement,
@@ -15,6 +15,8 @@ import {
   AdvertisementFormData,
 } from "@/app/lib/validations/advertisementSchema";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import { uploadImage } from "@/app/lib/utils/cloudinaryUtils";
+import { toast } from "react-hot-toast";
 
 interface CreateAdvertisementFormProps {
   sponsors: Pick<Sponsor, "id" | "name">[];
@@ -41,6 +43,8 @@ export default function CreateAdvertisementForm({
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   // Format dates for HTML date inputs (YYYY-MM-DD)
   const formatDateForInput = (dateString: string | undefined) => {
@@ -79,11 +83,60 @@ export default function CreateAdvertisementForm({
     try {
       setIsSubmitting(true);
       setError(null);
-      await onSubmit(data);
+
+      // Create a copy of the data object to modify
+      const submissionData = { ...data };
+
+      // Handle image upload if a new file is selected
+      if (selectedImageFile) {
+        setIsUploadingImage(true);
+        try {
+          const imageResult = await uploadImage(
+            selectedImageFile,
+            "advertisements"
+          );
+          if (!imageResult.success) {
+            throw new Error(imageResult.error || "Failed to upload image");
+          }
+          submissionData.image_url = imageResult.url;
+        } catch (error) {
+          toast.error("Failed to upload image");
+          throw error;
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
+
+      // Handle video upload if a new file is selected
+      if (selectedVideoFile) {
+        setIsUploadingVideo(true);
+        try {
+          const videoResult = await uploadImage(
+            selectedVideoFile,
+            "advertisements"
+          );
+          if (!videoResult.success) {
+            throw new Error(videoResult.error || "Failed to upload video");
+          }
+          submissionData.video_url = videoResult.url;
+        } catch (error) {
+          toast.error("Failed to upload video");
+          throw error;
+        } finally {
+          setIsUploadingVideo(false);
+        }
+      }
+
+      // Submit the form with the updated data
+      await onSubmit(submissionData);
+
+      // Show success message and redirect
+      toast.success("Advertisement created successfully");
       router.push("/dashboard/advertisements");
       router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "An error occurred");
+      toast.error("Failed to create advertisement");
     } finally {
       setIsSubmitting(false);
     }
@@ -93,31 +146,40 @@ export default function CreateAdvertisementForm({
     router.push("/dashboard/advertisements");
   };
 
-  const handleImageFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+  const handleImageFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    try {
+      const file = e.target.files?.[0];
+      if (!file) {
+        console.log("No file selected");
+        return;
+      }
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      setError("Please select a valid image file");
-      return;
+      // Validate file type
+      const fileType = file.type;
+      const isImage = fileType.startsWith("image/");
+      if (!isImage) {
+        toast.error("Invalid file type. Only images are supported.");
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        toast.error("File size exceeds 5MB limit");
+        return;
+      }
+
+      setSelectedImageFile(file);
+      setPreviewImage(URL.createObjectURL(file));
+    } catch (error) {
+      console.error("Error handling image file:", error);
+      toast.error("Error uploading image");
     }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Image file size should be less than 5MB");
-      return;
-    }
-
-    setSelectedImageFile(file);
-    const imageUrl = URL.createObjectURL(file);
-    setPreviewImage(imageUrl);
-    setValue("image_url", imageUrl);
   };
 
-  const handleVideoFileChange = (
+  const handleVideoFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
@@ -136,9 +198,7 @@ export default function CreateAdvertisementForm({
     }
 
     setSelectedVideoFile(file);
-    const videoUrl = URL.createObjectURL(file);
-    setPreviewVideo(videoUrl);
-    setValue("video_url", videoUrl);
+    setPreviewVideo(URL.createObjectURL(file));
   };
 
   const handleImageUrlChange = async (url: string) => {
@@ -190,6 +250,18 @@ export default function CreateAdvertisementForm({
       setIsVideoLoading(false);
     }
   };
+
+  // Clean up object URLs when component unmounts or previews change
+  useEffect(() => {
+    return () => {
+      if (previewImage && previewImage.startsWith("blob:")) {
+        URL.revokeObjectURL(previewImage);
+      }
+      if (previewVideo && previewVideo.startsWith("blob:")) {
+        URL.revokeObjectURL(previewVideo);
+      }
+    };
+  }, [previewImage, previewVideo]);
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -391,29 +463,18 @@ export default function CreateAdvertisementForm({
                 htmlFor="image_url"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Image{" "}
-                {!watch("video_url") && <span className="text-red-500">*</span>}
+                Image
               </label>
-              <div className="mt-1 flex items-center space-x-4 w-full">
+              <div className="mt-1 flex items-center">
                 <input
-                  type="url"
-                  id="image_url"
-                  {...register("image_url")}
-                  onChange={(e) => handleImageUrlChange(e.target.value)}
-                  className={`w-full rounded-md border px-3 py-2 ${
-                    errors.image_url ? "border-red-500" : "border-gray-300"
-                  } shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
-                  placeholder="Enter image URL or upload a file"
+                  type="file"
+                  id="image"
+                  name="image"
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                  disabled={isUploadingImage}
                 />
-                <label className="cursor-pointer bg-white px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap">
-                  Upload
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageFileChange}
-                    className="hidden"
-                  />
-                </label>
               </div>
               {errors.image_url && (
                 <div className="mt-1 flex items-center text-sm text-red-500">
@@ -427,12 +488,15 @@ export default function CreateAdvertisementForm({
                 </div>
               )}
               {previewImage && (
-                <div className="mt-2 rounded-md border border-gray-300 p-2">
-                  <img
-                    src={previewImage}
-                    alt="Preview"
-                    className="max-h-40 object-contain"
-                  />
+                <div className="mt-2">
+                  <p className="text-sm font-medium text-gray-700">Preview:</p>
+                  <div className="mt-1 relative h-48 w-48 overflow-hidden rounded-md">
+                    <img
+                      src={previewImage}
+                      alt="Preview"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -442,29 +506,18 @@ export default function CreateAdvertisementForm({
                 htmlFor="video_url"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Video{" "}
-                {!watch("image_url") && <span className="text-red-500">*</span>}
+                Video
               </label>
-              <div className="mt-1 flex items-center space-x-4 w-full">
+              <div className="mt-1 flex items-center">
                 <input
-                  type="url"
-                  id="video_url"
-                  {...register("video_url")}
-                  onChange={(e) => handleVideoUrlChange(e.target.value)}
-                  className={`w-full rounded-md border px-3 py-2 ${
-                    errors.video_url ? "border-red-500" : "border-gray-300"
-                  } shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
-                  placeholder="Enter video URL or upload a file"
+                  type="file"
+                  id="video"
+                  name="video"
+                  accept="video/*"
+                  onChange={handleVideoFileChange}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                  disabled={isUploadingVideo}
                 />
-                <label className="cursor-pointer bg-white px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap">
-                  Upload
-                  <input
-                    type="file"
-                    accept="video/*"
-                    onChange={handleVideoFileChange}
-                    className="hidden"
-                  />
-                </label>
               </div>
               {errors.video_url && (
                 <div className="mt-1 flex items-center text-sm text-red-500">
@@ -478,26 +531,29 @@ export default function CreateAdvertisementForm({
                 </div>
               )}
               {previewVideo && (
-                <div className="mt-2 rounded-md border border-gray-300 p-2">
-                  {previewVideo.includes("youtube") ? (
-                    <iframe
-                      width="100%"
-                      height="200"
-                      src={previewVideo.replace("watch?v=", "embed/")}
-                      title="Video preview"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  ) : (
-                    <video
-                      controls
-                      className="max-h-40 w-full"
-                      src={previewVideo}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
-                  )}
+                <div className="mt-2">
+                  <p className="text-sm font-medium text-gray-700">Preview:</p>
+                  <div className="mt-1 relative h-48 w-48 overflow-hidden rounded-md">
+                    {previewVideo.includes("youtube") ? (
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src={previewVideo.replace("watch?v=", "embed/")}
+                        title="Video preview"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    ) : (
+                      <video
+                        controls
+                        className="h-full w-full object-cover"
+                        src={previewVideo}
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

@@ -35,40 +35,86 @@ export async function uploadImageToCloudinary(
   try {
     // Check if Cloudinary is properly configured
     if (!process.env.CLOUDINARY_CLOUD_NAME) {
+      console.error("Cloudinary configuration missing: cloud_name");
       throw new Error("Cloudinary cloud_name is not configured");
     }
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    if (!process.env.CLOUDINARY_API_KEY) {
+      console.error("Cloudinary configuration missing: api_key");
+      throw new Error("Cloudinary api_key is not configured");
+    }
+
+    if (!process.env.CLOUDINARY_API_SECRET) {
+      console.error("Cloudinary configuration missing: api_secret");
+      throw new Error("Cloudinary api_secret is not configured");
+    }
+
+    // Validate file
+    if (!file || !file.name) {
+      throw new Error("Invalid file: File is missing or has no name");
+    }
 
     console.log(
-      `Uploading file to Cloudinary: ${file.name}, size: ${file.size} bytes, folder: ${folder}`
+      `Uploading file to Cloudinary: ${file.name}, size: ${file.size} bytes, type: ${file.type}, folder: ${folder}`
     );
+
+    // Convert file to buffer
+    let buffer: Buffer;
+    try {
+      const bytes = await file.arrayBuffer();
+      buffer = Buffer.from(bytes);
+      console.log(`File converted to buffer: ${buffer.length} bytes`);
+    } catch (error) {
+      console.error("Error converting file to buffer:", error);
+      throw new Error(
+        `Failed to process file: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+
+    // Determine resource type based on file type
+    let resourceType: "image" | "video" | "auto" | "raw" = "auto";
+    if (file.type.startsWith("image/")) {
+      resourceType = "image";
+    } else if (file.type.startsWith("video/")) {
+      resourceType = "video";
+    }
+
+    console.log(`Resource type determined: ${resourceType}`);
 
     // Upload to Cloudinary
     const result = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: folder,
-          resource_type: "auto",
-        },
-        (error, result) => {
-          if (error) {
-            console.error("Cloudinary upload error details:", error);
-            reject(error);
-          } else {
-            console.log("Cloudinary upload successful:", result);
-            resolve(result);
+      try {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: folder,
+            resource_type: resourceType,
+          },
+          (error, result) => {
+            if (error) {
+              console.error("Cloudinary upload error details:", error);
+              reject(error);
+            } else {
+              console.log("Cloudinary upload successful:", {
+                public_id: (result as any).public_id,
+                format: (result as any).format,
+                resource_type: (result as any).resource_type,
+              });
+              resolve(result);
+            }
           }
-        }
-      );
+        );
 
-      // Create a stream from the buffer
-      const stream = require("stream");
-      const bufferStream = new stream.PassThrough();
-      bufferStream.end(buffer);
-      bufferStream.pipe(uploadStream);
+        // Create a stream from the buffer
+        const stream = require("stream");
+        const bufferStream = new stream.PassThrough();
+        bufferStream.end(buffer);
+        bufferStream.pipe(uploadStream);
+      } catch (error) {
+        console.error("Error setting up upload stream:", error);
+        reject(error);
+      }
     });
 
     return {
@@ -77,13 +123,13 @@ export async function uploadImageToCloudinary(
       publicId: (result as any).public_id,
     };
   } catch (error) {
-    console.error("Error uploading image to Cloudinary:", error);
+    console.error("Error uploading file to Cloudinary:", error);
     return {
       success: false,
       error:
         error instanceof Error
           ? error.message
-          : "Failed to upload image to Cloudinary",
+          : "Failed to upload file to Cloudinary",
     };
   }
 }

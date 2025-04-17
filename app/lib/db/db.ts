@@ -12,7 +12,15 @@ const dbConfig = {
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  connectTimeout: 10000, // 10 seconds timeout
+  connectTimeout: 30000, // Increased to 30 seconds
+  acquireTimeout: 30000, // Added acquire timeout
+  timeout: 60000, // Added general query timeout
+  enableKeepAlive: true, // Enable keep-alive
+  keepAliveInitialDelay: 10000, // Keep-alive ping every 10 seconds
+  multipleStatements: true, // Allow multiple statements
+  // Add connection retry strategy
+  maxReconnects: 10,
+  reconnectDelay: 2000, // 2 seconds between reconnect attempts
 };
 
 // Validate required environment variables
@@ -46,21 +54,35 @@ if (
 // Create a connection pool
 const pool = mysql.createPool(dbConfig);
 
-// Test the connection
-pool
-  .getConnection()
-  .then((connection) => {
-    console.log("Database connection established successfully");
-    connection.release();
+// Test the connection and handle reconnection
+async function testConnection(retries = 3, delay = 5000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const connection = await pool.getConnection();
+      console.log("Database connection established successfully");
+      connection.release();
+      return true;
+    } catch (err) {
+      console.error(`Connection attempt ${i + 1} failed:`, err);
+      if (i < retries - 1) {
+        console.log(`Retrying in ${delay / 1000} seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+  console.error(`Failed to connect after ${retries} attempts`);
+  return false;
+}
+
+// Initialize connection
+testConnection()
+  .then((success) => {
+    if (!success) {
+      console.error("Initial database connection failed");
+    }
   })
   .catch((err) => {
-    console.error("Error connecting to the database:", err);
-    console.error("Connection details:", {
-      host: dbConfig.host,
-      user: dbConfig.user,
-      database: dbConfig.database,
-      port: dbConfig.port,
-    });
+    console.error("Error in connection test:", err);
   });
 
 /**

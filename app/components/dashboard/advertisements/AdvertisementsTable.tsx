@@ -10,7 +10,11 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 interface AdvertisementsTableProps {
-  advertisements: Advertisement[];
+  advertisements: (Advertisement & {
+    sponsor_name: string;
+    article_title: string;
+    category_name: string;
+  })[];
 }
 
 export default function AdvertisementsTable({
@@ -66,12 +70,14 @@ export default function AdvertisementsTable({
         <tbody className="divide-y divide-gray-200">
           {advertisements.map((ad) => (
             <tr key={ad.id}>
-              <td className="px-6 py-4 whitespace-nowrap">{ad.sponsor_name}</td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {ad.article_title}
+                {ad.sponsor_name || `Sponsor ID: ${ad.sponsor_id}`}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {ad.category_name}
+                {ad.article_title || `Article ID: ${ad.article_id}`}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {ad.category_name || `Category ID: ${ad.category_id}`}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">{ad.ad_type}</td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -83,24 +89,18 @@ export default function AdvertisementsTable({
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex space-x-2">
                   <Link href={`/dashboard/advertisements/${ad.id}/edit`}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-1"
-                    >
+                    <button className="rounded border border-blue-500 px-3 py-1 text-blue-500 hover:bg-blue-100 flex items-center gap-1">
                       <PencilIcon className="h-4 w-4" />
                       Edit
-                    </Button>
+                    </button>
                   </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1 text-red-500 hover:text-red-600"
+                  <button
+                    className="rounded bg-red-500 px-3 py-1 text-white hover:bg-red-600 disabled:opacity-50 flex items-center gap-1"
                     onClick={() => handleDelete(ad.id)}
                   >
                     <TrashIcon className="h-4 w-4" />
                     Delete
-                  </Button>
+                  </button>
                 </div>
               </td>
             </tr>

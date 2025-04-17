@@ -182,25 +182,20 @@ export interface Advertisement {
   sponsor_id: number;
   article_id: number;
   category_id: number;
-  type: string;
-  content: string;
-  start_date: Date;
-  end_date: Date;
+  ad_type: string;
+  ad_content: string;
+  start_date: string;
+  end_date: string;
   image_url?: string;
   video_url?: string;
+  created_at: Date;
+  updated_at: Date;
   sponsor_name?: string;
   article_title?: string;
   category_name?: string;
-  created_at: Date;
-  updated_at: Date;
 }
 
 export type CreateAdvertisementData = Omit<
   Advertisement,
-  | "id"
-  | "sponsor_name"
-  | "article_title"
-  | "category_name"
-  | "created_at"
-  | "updated_at"
+  "id" | "created_at" | "updated_at"
 >;

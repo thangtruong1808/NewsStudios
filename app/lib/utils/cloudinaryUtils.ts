@@ -33,23 +33,63 @@ export async function uploadImage(
   error?: string;
 }> {
   try {
+    console.log("Starting uploadImage function with:", {
+      fileType: typeof file,
+      isFile: file instanceof File,
+      folder,
+    });
+
     let fileToUpload: File;
 
     if (typeof file === "string") {
       // If it's a base64 string, convert it to a File object
-      const response = await fetch(file);
-      const blob = await response.blob();
-      const fileName = "image.jpg";
-      fileToUpload = new File([blob], fileName, { type: blob.type });
+      try {
+        console.log("Converting string to File object");
+        const response = await fetch(file);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image: ${response.statusText}`);
+        }
+        const blob = await response.blob();
+        const fileName = "image.jpg";
+        fileToUpload = new File([blob], fileName, { type: blob.type });
+        console.log("Successfully converted string to File object");
+      } catch (error) {
+        console.error("Error converting string to File:", error);
+        throw new Error("Failed to process image data");
+      }
     } else {
       fileToUpload = file;
+      console.log("Using provided File object:", {
+        name: fileToUpload.name,
+        size: fileToUpload.size,
+        type: fileToUpload.type,
+      });
+    }
+
+    // Validate file type
+    const fileType = fileToUpload.type;
+    const isImage = fileType.startsWith("image/");
+    const isVideo = fileType.startsWith("video/");
+
+    console.log("File validation:", {
+      fileType,
+      isImage,
+      isVideo,
+    });
+
+    if (!isImage && !isVideo) {
+      throw new Error(
+        `Unsupported file type: ${fileType}. Only images and videos are supported.`
+      );
     }
 
     // Use the server action to upload the image
+    console.log("Calling server action uploadImageToCloudinary");
     const result = await uploadImageToCloudinary(fileToUpload, folder);
+    console.log("Server action result:", result);
 
     if (!result.success) {
-      throw new Error(result.error || "Failed to upload image");
+      throw new Error(result.error || "Failed to upload file to Cloudinary");
     }
 
     return {
@@ -58,10 +98,10 @@ export async function uploadImage(
       publicId: result.publicId,
     };
   } catch (error) {
-    console.error("Error uploading image:", error);
+    console.error("Error uploading file:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to upload image",
+      error: error instanceof Error ? error.message : "Failed to upload file",
     };
   }
 }
