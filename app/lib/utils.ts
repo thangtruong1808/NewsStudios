@@ -1,3 +1,6 @@
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 export function formatDateToLocal(date: string | Date) {
   if (!date) return "";
 
@@ -9,4 +12,8 @@ export function formatDateToLocal(date: string | Date) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }

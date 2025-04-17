@@ -1,7 +1,13 @@
 "use client";
 
+declare global {
+  interface Window {
+    confirm: (message?: string) => boolean;
+  }
+}
+
 import { useState, useEffect } from "react";
-import { Sponsor } from "../../../login/login-definitions";
+import { Sponsor } from "../../../lib/definition";
 import { getTableColumns } from "./TableColumns";
 import TableHeader from "./TableHeader";
 import TableBody from "./TableBody";
@@ -9,7 +15,7 @@ import Pagination from "./Pagination";
 import { toast } from "react-hot-toast";
 import { deleteSponsor } from "../../../lib/actions/sponsors";
 import { useRouter } from "next/navigation";
-import Search from "../search";
+import MobileSponsorCard from "./MobileSponsorCard";
 
 interface SponsorsTableClientProps {
   sponsors: Sponsor[];
@@ -23,37 +29,65 @@ export default function SponsorsTableClient({
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<keyof Sponsor>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredSponsors, setFilteredSponsors] = useState<Sponsor[]>(sponsors);
+  const [mounted, setMounted] = useState(false);
 
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(filteredSponsors.length / itemsPerPage);
+  const totalPages = Math.ceil(sponsors.length / itemsPerPage);
 
-  // Filter sponsors based on search query
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredSponsors(sponsors);
-    } else {
-      const query = searchQuery.toLowerCase();
-      const filtered = sponsors.filter((sponsor) =>
-        sponsor.name.toLowerCase().includes(query)
-      );
-      setFilteredSponsors(filtered);
-    }
-    // Reset to first page when search changes
-    setCurrentPage(1);
-  }, [searchQuery, sponsors]);
+    setMounted(true);
+  }, []);
 
-  const handleSort = (field: keyof Sponsor) => {
+  const handleSort = (field: string) => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field);
+      setSortField(field as keyof Sponsor);
       setSortDirection("asc");
     }
   };
 
-  const handleDelete = async (id: number, sponsorName: string) => {
+  const handleEdit = (sponsor: Sponsor) => {
+    router.push(`/dashboard/sponsor/${sponsor.id}/edit`);
+  };
+
+  const handleDelete = async (id: number, name: string) => {
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      toast(
+        (t) => (
+          <div className="flex flex-col items-center">
+            <p className="mb-2">
+              Are you sure you want to delete sponsor "{name}"?
+            </p>
+            <div className="flex space-x-2">
+              <button
+                className="px-3 py-1 border border-red-500 text-red-500 rounded hover:bg-red-50"
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  resolve(true);
+                }}
+              >
+                Delete
+              </button>
+              <button
+                className="px-3 py-1 border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  resolve(false);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ),
+        { duration: 5000 }
+      );
+    });
+
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
+
     setIsDeleting(true);
     try {
       const { error } = await deleteSponsor(id);
@@ -70,10 +104,6 @@ export default function SponsorsTableClient({
     }
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-
   const columns = getTableColumns(
     currentPage,
     itemsPerPage,
@@ -82,7 +112,7 @@ export default function SponsorsTableClient({
   );
 
   // Sort sponsors
-  const sortedSponsors = [...filteredSponsors].sort((a, b) => {
+  const sortedSponsors = [...sponsors].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
 
@@ -106,19 +136,26 @@ export default function SponsorsTableClient({
     currentPage * itemsPerPage
   );
 
-  return (
-    <div className="flex flex-col">
-      <div className="mb-4">
-        <Search
-          placeholder="Search sponsors by name..."
-          onChange={handleSearch}
-        />
-      </div>
+  if (!mounted) {
+    return null;
+  }
 
-      <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-          <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200">
+  return (
+    <div className="mt-6 flow-root">
+      <div className="overflow-x-auto">
+        <div className="inline-block min-w-full align-middle">
+          <div className="overflow-hidden rounded-md bg-gray-50">
+            <div className="md:hidden">
+              {paginatedSponsors.map((sponsor) => (
+                <MobileSponsorCard
+                  key={sponsor.id}
+                  sponsor={sponsor}
+                  onEdit={handleEdit}
+                  onDelete={(sponsor) => handleDelete(sponsor.id, sponsor.name)}
+                />
+              ))}
+            </div>
+            <table className="hidden min-w-full text-gray-900 md:table">
               <TableHeader
                 columns={columns}
                 sortField={sortField}
@@ -139,7 +176,7 @@ export default function SponsorsTableClient({
         currentPage={currentPage}
         totalPages={totalPages}
         itemsPerPage={itemsPerPage}
-        totalItems={filteredSponsors.length}
+        totalItems={sponsors.length}
         onPageChange={setCurrentPage}
       />
     </div>

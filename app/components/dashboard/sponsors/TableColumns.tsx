@@ -1,5 +1,4 @@
-import { Sponsor } from "../../../login/login-definitions";
-import { PencilIcon } from "@heroicons/react/24/outline";
+import { Sponsor } from "../../../lib/definition";
 import Link from "next/link";
 import DeleteSponsorButton from "./DeleteSponsorButton";
 
@@ -84,9 +83,9 @@ export function getTableColumns(
           <div className="flex items-center space-x-2">
             <Link
               href={`/dashboard/sponsor/${sponsor.id}/edit`}
-              className="text-blue-600 hover:text-blue-800"
+              className="rounded-md border border-blue-500 px-3 py-1 text-blue-500 hover:bg-blue-50"
             >
-              <PencilIcon className="h-5 w-5" />
+              Edit
             </Link>
             <DeleteSponsorButton
               id={sponsor.id}

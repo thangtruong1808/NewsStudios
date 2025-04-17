@@ -184,8 +184,11 @@ export interface Sponsor {
 export interface Advertisement {
   id: number;
   sponsor_id: number;
+  sponsor_name?: string;
   article_id: number;
+  article_title?: string;
   category_id: number;
+  category_name?: string;
   start_date: string;
   end_date: string;
   ad_type: string;

@@ -6,8 +6,11 @@ import { Sponsor } from "../definition";
 
 export async function getSponsors() {
   try {
-    const sponsors = await query("SELECT * FROM Sponsors ORDER BY name ASC");
-    return { data: sponsors as Sponsor[], error: null };
+    const result = await query("SELECT * FROM Sponsors ORDER BY name ASC");
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+    return { data: result.data as Sponsor[], error: null };
   } catch (error) {
     console.error("Error fetching sponsors:", error);
     return {
@@ -18,9 +21,34 @@ export async function getSponsors() {
   }
 }
 
+export async function searchSponsors(searchQuery: string) {
+  try {
+    const result = await query(
+      "SELECT * FROM Sponsors WHERE name LIKE ? ORDER BY name ASC",
+      [`%${searchQuery}%`]
+    );
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+    return { data: result.data as Sponsor[], error: null };
+  } catch (error) {
+    console.error("Error searching sponsors:", error);
+    return {
+      data: null,
+      error:
+        error instanceof Error ? error.message : "Failed to search sponsors",
+    };
+  }
+}
+
 export async function getSponsorById(id: number) {
   try {
-    const [sponsor] = await query("SELECT * FROM Sponsors WHERE id = ?", [id]);
+    const result = await query("SELECT * FROM Sponsors WHERE id = ?", [id]);
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+    const sponsors = result.data as Sponsor[];
+    const sponsor = sponsors.length > 0 ? sponsors[0] : null;
     return { data: sponsor, error: null };
   } catch (error) {
     console.error(`Error fetching sponsor with ID ${id}:`, error);
@@ -49,10 +77,22 @@ export async function createSponsor(sponsorData: Omit<Sponsor, "id">) {
       ]
     );
 
+    if (result.error) {
+      return {
+        success: false,
+        id: null,
+        error: result.error,
+      };
+    }
+
+    // Get the inserted ID from the result
+    const insertResult = result.data as any;
+    const insertId = insertResult.insertId || null;
+
     // Return a serialized version of the result
     return {
       success: true,
-      id: result.insertId,
+      id: insertId,
       error: null,
     };
   } catch (error) {

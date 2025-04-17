@@ -22,7 +22,7 @@ interface SimpleImageProps {
 const SimpleImage: React.FC<SimpleImageProps> = ({
   src,
   alt,
-  width = 300,
+  width = 400,
   height = 200,
   className = "",
   useProxy = true,
