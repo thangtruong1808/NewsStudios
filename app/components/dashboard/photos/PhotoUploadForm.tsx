@@ -151,7 +151,7 @@ export default function PhotoUploadForm({ articles }: PhotoUploadFormProps) {
             onChange={(e) =>
               setSelectedArticle(e.target.value ? Number(e.target.value) : null)
             }
-            className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
             <option value="">Select an article</option>
             {articles.map((article) => (
@@ -175,7 +175,7 @@ export default function PhotoUploadForm({ articles }: PhotoUploadFormProps) {
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             placeholder="Enter a description for this image"
           />
         </div>

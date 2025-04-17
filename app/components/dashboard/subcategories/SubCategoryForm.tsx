@@ -14,7 +14,7 @@ import {
   getSubcategoryById,
 } from "../../../lib/actions/subcategories";
 import { getCategories } from "../../../lib/actions/categories";
-import { Category } from "../../../login/login-definitions";
+import { Category } from "../../../lib/definition";
 import toast from "react-hot-toast";
 
 interface SubCategoryFormProps {
@@ -144,7 +144,7 @@ export default function SubCategoryForm({
           <select
             id="category_id"
             {...register("category_id", { valueAsNumber: true })}
-            className="mt-1 block w-full rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
             <option value="">Select a category</option>
             {categories.map((category) => (
@@ -170,7 +170,7 @@ export default function SubCategoryForm({
             type="text"
             id="name"
             {...register("name")}
-            className="mt-1 block w-full rounded-md border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
           {errors.name && (
             <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -187,7 +187,7 @@ export default function SubCategoryForm({
             id="description"
             {...register("description")}
             rows={3}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-6"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
           {errors.description && (
             <p className="mt-1 text-sm text-red-600">

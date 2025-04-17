@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { createArticle, updateArticle } from "../../../lib/actions/articles";
-import { uploadToFTP } from "../../../lib/utils/ftp";
+import { uploadFile } from "../../../lib/actions/upload";
 import {
   User,
   Category as CategoryType,
@@ -98,6 +98,10 @@ export default function ArticleForm({
   const [selectedTags, setSelectedTags] = useState<number[]>(
     Array.isArray(article?.tag_ids) ? article.tag_ids : []
   );
+  const [activeTab, setActiveTab] = useState("basic");
+  const [filteredSubcategories, setFilteredSubcategories] = useState<
+    Subcategory[]
+  >([]);
 
   // Add state for file URLs
   const [imageUrl, setImageUrl] = useState<string | null>(
@@ -183,9 +187,27 @@ export default function ArticleForm({
     }
   }, [article, setValue]);
 
-  const filteredSubcategories = subcategories.filter(
-    (sub) => sub.category_id === parseInt(selectedCategory)
-  );
+  // Update filtered subcategories when selected category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      const filtered = subcategories.filter(
+        (sub) => sub.category_id === parseInt(selectedCategory)
+      );
+      setFilteredSubcategories(filtered);
+
+      // Reset subcategory selection if the current selection is not in the filtered list
+      const currentSubcategoryId = watch("sub_category_id");
+      if (
+        currentSubcategoryId &&
+        !filtered.some((sub) => sub.id === currentSubcategoryId)
+      ) {
+        setValue("sub_category_id", undefined);
+      }
+    } else {
+      setFilteredSubcategories([]);
+      setValue("sub_category_id", undefined);
+    }
+  }, [selectedCategory, subcategories, setValue, watch]);
 
   // Handle tag selection
   const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -206,7 +228,7 @@ export default function ArticleForm({
         [type]: 0,
       }));
 
-      const { url, error } = await uploadToFTP(file);
+      const { url, error } = await uploadFile(file);
 
       if (error) {
         toast.error(`Failed to upload ${type}: ${error}`);
@@ -253,6 +275,13 @@ export default function ArticleForm({
 
   const handleTagRemove = (tagId: number) => {
     setSelectedTags(selectedTags.filter((id) => id !== tagId));
+  };
+
+  // Handle category change
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const categoryId = e.target.value;
+    setSelectedCategory(categoryId);
+    setValue("category_id", parseInt(categoryId));
   };
 
   const onSubmit = async (data: ArticleFormData) => {
@@ -307,269 +336,369 @@ export default function ArticleForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Title</label>
-        <input
-          type="text"
-          {...register("title")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
-        />
-        {errors.title && (
-          <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-        )}
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          <button
+            type="button"
+            onClick={() => setActiveTab("basic")}
+            className={`${
+              activeTab === "basic"
+                ? "border-indigo-500 text-indigo-600"
+                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+          >
+            Basic Information
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("content")}
+            className={`${
+              activeTab === "content"
+                ? "border-indigo-500 text-indigo-600"
+                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+          >
+            Content
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("media")}
+            className={`${
+              activeTab === "media"
+                ? "border-indigo-500 text-indigo-600"
+                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+          >
+            Media
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("settings")}
+            className={`${
+              activeTab === "settings"
+                ? "border-indigo-500 text-indigo-600"
+                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+          >
+            Settings
+          </button>
+        </nav>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Content
-        </label>
-        <textarea
-          {...register("content")}
-          rows={6}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2"
-        />
-        {errors.content && (
-          <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
-        )}
-      </div>
+      {/* Basic Information Tab */}
+      {activeTab === "basic" && (
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Title
+            </label>
+            <input
+              type="text"
+              {...register("title")}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+            />
+            {errors.title && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.title.message}
+              </p>
+            )}
+          </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Category
-        </label>
-        <select
-          {...register("category_id")}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
-        >
-          <option value="">Select a category</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        {errors.category_id && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.category_id.message}
-          </p>
-        )}
-      </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Category
+              </label>
+              <select
+                {...register("category_id")}
+                onChange={handleCategoryChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+              >
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              {errors.category_id && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.category_id.message}
+                </p>
+              )}
+            </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Subcategory
-        </label>
-        <select
-          {...register("sub_category_id")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
-          disabled={!selectedCategory}
-        >
-          <option value="">Select a subcategory</option>
-          {filteredSubcategories.map((subcategory) => (
-            <option key={subcategory.id} value={subcategory.id}>
-              {subcategory.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Author
-        </label>
-        <select
-          {...register("author_id")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
-        >
-          <option value="">Select an author</option>
-          {authors.map((author) => (
-            <option key={author.id} value={author.id}>
-              {author.name}
-            </option>
-          ))}
-        </select>
-        {errors.author_id && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.author_id.message}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700">User</label>
-        <select
-          {...register("user_id")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
-        >
-          <option value="">Select a user</option>
-          {users.map((user) => (
-            <option key={user.id} value={user.id}>
-              {user.firstname} {user.lastname}
-            </option>
-          ))}
-        </select>
-        {errors.user_id && (
-          <p className="mt-1 text-sm text-red-600">{errors.user_id.message}</p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Image</label>
-        <div className="mt-1 flex items-center space-x-4">
-          <input
-            type="text"
-            {...register("image")}
-            placeholder="Image URL"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
-          />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                handleFileUpload(file, "image");
-              }
-            }}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-          />
-        </div>
-        {uploadProgress.image !== undefined && (
-          <div className="mt-2">
-            <div className="h-2 w-full bg-gray-200 rounded-full">
-              <div
-                className="h-2 bg-indigo-600 rounded-full"
-                style={{
-                  width: `${uploadProgress.image}%`,
-                }}
-              />
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Subcategory
+              </label>
+              <select
+                {...register("sub_category_id")}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+                disabled={!selectedCategory}
+              >
+                <option value="">Select a subcategory</option>
+                {filteredSubcategories.map((subcategory) => (
+                  <option key={subcategory.id} value={subcategory.id}>
+                    {subcategory.name}
+                  </option>
+                ))}
+              </select>
+              {!selectedCategory && (
+                <p className="mt-1 text-sm text-gray-500">
+                  Please select a category first to enable subcategory selection
+                </p>
+              )}
+              {errors.sub_category_id && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.sub_category_id.message}
+                </p>
+              )}
             </div>
           </div>
-        )}
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Video</label>
-        <div className="mt-1 flex items-center space-x-4">
-          <input
-            type="text"
-            {...register("video")}
-            placeholder="Video URL"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
-          />
-          <input
-            type="file"
-            accept="video/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                handleFileUpload(file, "video");
-              }
-            }}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-          />
-        </div>
-        {uploadProgress.video !== undefined && (
-          <div className="mt-2">
-            <div className="h-2 w-full bg-gray-200 rounded-full">
-              <div
-                className="h-2 bg-indigo-600 rounded-full"
-                style={{
-                  width: `${uploadProgress.video}%`,
-                }}
-              />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Author
+              </label>
+              <select
+                {...register("author_id")}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+              >
+                <option value="">Select an author</option>
+                {authors.map((author) => (
+                  <option key={author.id} value={author.id}>
+                    {author.name}
+                  </option>
+                ))}
+              </select>
+              {errors.author_id && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.author_id.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                User
+              </label>
+              <select
+                {...register("user_id")}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+              >
+                <option value="">Select a user</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.firstname} {user.lastname}
+                  </option>
+                ))}
+              </select>
+              {errors.user_id && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.user_id.message}
+                </p>
+              )}
             </div>
           </div>
-        )}
-      </div>
 
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          {...register("is_featured")}
-          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-        />
-        <label className="ml-2 block text-sm text-gray-900">
-          Featured Article
-        </label>
-      </div>
+          <div className="space-y-2">
+            <label
+              htmlFor="tag_ids"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Tags
+            </label>
+            <select
+              id="tag_ids"
+              multiple
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2"
+              onChange={handleTagChange}
+              value={
+                Array.isArray(selectedTags) ? selectedTags.map(String) : []
+              }
+            >
+              {tags.map((tag) => (
+                <option key={tag.id} value={tag.id} className="py-2">
+                  {tag.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-2">
+              Hold Ctrl (Windows) or Command (Mac) to select multiple tags
+            </p>
+            {errors.tag_ids && (
+              <p className="text-sm text-red-600">{errors.tag_ids.message}</p>
+            )}
+          </div>
+        </div>
+      )}
 
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          {...register("is_trending")}
-          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-        />
-        <label className="ml-2 block text-sm text-gray-900">
-          Trending Article
-        </label>
-      </div>
+      {/* Content Tab */}
+      {activeTab === "content" && (
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Content
+            </label>
+            <textarea
+              {...register("content")}
+              rows={12}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+            />
+            {errors.content && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.content.message}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Headline Priority
-        </label>
-        <input
-          type="number"
-          {...register("headline_priority", {
-            valueAsNumber: true,
-          })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
-        />
-      </div>
+      {/* Media Tab */}
+      {activeTab === "media" && (
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Image
+            </label>
+            <div className="mt-1 flex items-center space-x-4">
+              <input
+                type="text"
+                {...register("image")}
+                placeholder="Image URL"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleFileUpload(file, "image");
+                  }
+                }}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+              />
+            </div>
+            {uploadProgress.image !== undefined && (
+              <div className="mt-2">
+                <div className="h-2 w-full bg-gray-200 rounded-full">
+                  <div
+                    className="h-2 bg-indigo-600 rounded-full"
+                    style={{
+                      width: `${uploadProgress.image}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Headline Image URL
-        </label>
-        <input
-          type="text"
-          {...register("headline_image_url")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
-        />
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Video
+            </label>
+            <div className="mt-1 flex items-center space-x-4">
+              <input
+                type="text"
+                {...register("video")}
+                placeholder="Video URL"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+              />
+              <input
+                type="file"
+                accept="video/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleFileUpload(file, "video");
+                  }
+                }}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+              />
+            </div>
+            {uploadProgress.video !== undefined && (
+              <div className="mt-2">
+                <div className="h-2 w-full bg-gray-200 rounded-full">
+                  <div
+                    className="h-2 bg-indigo-600 rounded-full"
+                    style={{
+                      width: `${uploadProgress.video}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Headline Video URL
-        </label>
-        <input
-          type="text"
-          {...register("headline_video_url")}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-2 py-2"
-        />
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Headline Image URL
+            </label>
+            <input
+              type="text"
+              {...register("headline_image_url")}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+            />
+          </div>
 
-      <div className="space-y-2">
-        <label
-          htmlFor="tag_ids"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Tags
-        </label>
-        <select
-          id="tag_ids"
-          multiple
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-4"
-          onChange={handleTagChange}
-          value={Array.isArray(selectedTags) ? selectedTags.map(String) : []}
-        >
-          {tags.map((tag) => (
-            <option key={tag.id} value={tag.id} className="py-2">
-              {tag.name}
-            </option>
-          ))}
-        </select>
-        <p className="text-xs text-gray-500 mt-2">
-          Hold Ctrl (Windows) or Command (Mac) to select multiple tags
-        </p>
-        {errors.tag_ids && (
-          <p className="text-sm text-red-600">{errors.tag_ids.message}</p>
-        )}
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Headline Video URL
+            </label>
+            <input
+              type="text"
+              {...register("headline_video_url")}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+            />
+          </div>
+        </div>
+      )}
 
-      <div className="flex justify-end space-x-4">
+      {/* Settings Tab */}
+      {activeTab === "settings" && (
+        <div className="space-y-6">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              {...register("is_featured")}
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <label className="ml-2 block text-sm text-gray-900">
+              Featured Article
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              {...register("is_trending")}
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <label className="ml-2 block text-sm text-gray-900">
+              Trending Article
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Headline Priority
+            </label>
+            <input
+              type="number"
+              {...register("headline_priority", {
+                valueAsNumber: true,
+              })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
         <button
           type="button"
           onClick={() => router.back()}

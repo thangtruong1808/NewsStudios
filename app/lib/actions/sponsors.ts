@@ -59,7 +59,15 @@ export async function getSponsorById(id: number) {
   }
 }
 
-export async function createSponsor(sponsorData: Omit<Sponsor, "id">) {
+export async function createSponsor(sponsorData: {
+  name: string;
+  contact_email?: string;
+  contact_phone?: string;
+  website_url?: string;
+  image_url?: string;
+  video_url?: string;
+  description?: string;
+}) {
   try {
     const result = await query(
       `INSERT INTO Sponsors (

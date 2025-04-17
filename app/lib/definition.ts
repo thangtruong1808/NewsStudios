@@ -71,38 +71,34 @@ export interface Article {
   title: string;
   content: string;
   category_id: number;
-  user_id: number;
   author_id: number;
-  sub_category_id?: number;
-  image?: string | null;
-  video?: string | null;
-  created_at: Date;
-  updated_at: Date;
-  published_at: Date;
+  user_id: number;
+  sub_category_id: number;
+  image?: string;
+  video?: string;
   is_featured: boolean;
   headline_priority: number;
-  headline_image_url?: string | null;
-  headline_video_url?: string | null;
+  headline_image_url?: string;
+  headline_video_url?: string;
   is_trending: boolean;
-  category_name?: string;
-  author_name?: string;
-  tag_names?: string[];
-  tag_ids?: number[];
+  published_at?: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export type CreateArticleData = Omit<
   Article,
-  | "id"
-  | "created_at"
-  | "updated_at"
-  | "category_name"
-  | "author_name"
-  | "tag_names"
-  | "tag_ids"
->;
+  "id" | "published_at" | "updated_at" | "created_at"
+> & {
+  tag_ids?: number[];
+};
 
-export interface ArticleWithTags extends Article {
-  tags: Tag[];
+export interface ArticleWithJoins extends Article {
+  category?: Category;
+  author?: Author;
+  user?: User;
+  subcategory?: SubCategory;
+  tags?: Tag[];
 }
 
 export interface Image {
@@ -184,17 +180,27 @@ export interface Sponsor {
 export interface Advertisement {
   id: number;
   sponsor_id: number;
-  sponsor_name?: string;
   article_id: number;
-  article_title?: string;
   category_id: number;
-  category_name?: string;
-  start_date: string;
-  end_date: string;
-  ad_type: string;
-  ad_content: string;
+  type: string;
+  content: string;
+  start_date: Date;
+  end_date: Date;
   image_url?: string;
   video_url?: string;
-  created_at: string;
-  updated_at: string;
+  sponsor_name?: string;
+  article_title?: string;
+  category_name?: string;
+  created_at: Date;
+  updated_at: Date;
 }
+
+export type CreateAdvertisementData = Omit<
+  Advertisement,
+  | "id"
+  | "sponsor_name"
+  | "article_title"
+  | "category_name"
+  | "created_at"
+  | "updated_at"
+>;

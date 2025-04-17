@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import {
-  testFTPUpload,
-  uploadFileViaFTP,
-  createIndexHtml,
-  listImagesDirectory,
-  checkFileAccessibility,
-  createDiagnosticHtml,
-} from "../../lib/utils/ftpUpload";
+  testFTPConnection,
+  uploadFileToFTP,
+  createIndexHtmlFile,
+  listImagesDir,
+  checkFileAccess,
+  createDiagnosticHtmlFile,
+} from "../../lib/actions/ftpUploadActions";
 
 export default function TestUploadPage() {
   const [result, setResult] = useState<any>(null);
@@ -23,7 +23,7 @@ export default function TestUploadPage() {
   const handleTestUpload = async () => {
     setLoading(true);
     try {
-      const result = await testFTPUpload();
+      const result = await testFTPConnection();
       setResult(result);
       if (result.url) {
         setUrlToCheck(result.url);
@@ -57,7 +57,7 @@ export default function TestUploadPage() {
     setLoading(true);
     try {
       const filename = customFilename || selectedFile.name;
-      const result = await uploadFileViaFTP(selectedFile, filename);
+      const result = await uploadFileToFTP(selectedFile, filename);
       setResult(result);
       if (result.url) {
         setUrlToCheck(result.url);
@@ -76,7 +76,7 @@ export default function TestUploadPage() {
   const handleCreateIndexHtml = async () => {
     setLoading(true);
     try {
-      const result = await createIndexHtml();
+      const result = await createIndexHtmlFile();
       setResult(result);
     } catch (error) {
       setResult({
@@ -92,7 +92,7 @@ export default function TestUploadPage() {
   const handleListDirectory = async () => {
     setLoading(true);
     try {
-      const result = await listImagesDirectory();
+      const result = await listImagesDir();
       setDirectoryContents(result);
     } catch (error) {
       setDirectoryContents({ success: false, error });
@@ -112,7 +112,7 @@ export default function TestUploadPage() {
 
     setLoading(true);
     try {
-      const result = await checkFileAccessibility(urlToCheck);
+      const result = await checkFileAccess(urlToCheck);
       setAccessibilityResult(result);
     } catch (error) {
       setAccessibilityResult({
@@ -127,7 +127,7 @@ export default function TestUploadPage() {
   const handleCreateDiagnosticHtml = async () => {
     setLoading(true);
     try {
-      const result = await createDiagnosticHtml();
+      const result = await createDiagnosticHtmlFile();
       setDiagnosticResult(result);
       if (result.url) {
         setUrlToCheck(result.url);

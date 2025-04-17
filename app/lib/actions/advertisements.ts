@@ -340,3 +340,150 @@ export async function insertSampleAdvertisements() {
     };
   }
 }
+
+export async function createAdvertisement(data: Partial<Advertisement>) {
+  try {
+    // Validate required fields
+    const requiredFields = [
+      "sponsor_id",
+      "article_id",
+      "category_id",
+      "start_date",
+      "end_date",
+      "ad_type",
+      "ad_content",
+    ];
+
+    for (const field of requiredFields) {
+      if (!data[field as keyof Advertisement]) {
+        return {
+          success: false,
+          error: `Missing required field: ${field}`,
+        };
+      }
+    }
+
+    const sql = `
+      INSERT INTO Advertisements (
+        sponsor_id,
+        article_id,
+        category_id,
+        start_date,
+        end_date,
+        ad_type,
+        ad_content,
+        created_at,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+    `;
+
+    const result = await query(sql, [
+      data.sponsor_id,
+      data.article_id,
+      data.category_id,
+      data.start_date,
+      data.end_date,
+      data.ad_type,
+      data.ad_content,
+    ]);
+
+    if (result.error) {
+      return {
+        success: false,
+        error: result.error,
+      };
+    }
+
+    return {
+      success: true,
+      data: result.data,
+    };
+  } catch (error) {
+    console.error("Error creating advertisement:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to create advertisement",
+    };
+  }
+}
+
+export async function updateAdvertisement(
+  id: number,
+  data: Partial<Advertisement>
+) {
+  try {
+    // Validate required fields
+    const requiredFields = [
+      "sponsor_id",
+      "article_id",
+      "category_id",
+      "start_date",
+      "end_date",
+      "ad_type",
+      "ad_content",
+    ];
+
+    for (const field of requiredFields) {
+      if (!data[field as keyof Advertisement]) {
+        return {
+          success: false,
+          error: `Missing required field: ${field}`,
+        };
+      }
+    }
+
+    const sql = `
+      UPDATE Advertisements 
+      SET 
+        sponsor_id = ?,
+        article_id = ?,
+        category_id = ?,
+        start_date = ?,
+        end_date = ?,
+        ad_type = ?,
+        ad_content = ?,
+        image_url = ?,
+        video_url = ?,
+        updated_at = NOW()
+      WHERE id = ?
+    `;
+
+    const result = await query(sql, [
+      data.sponsor_id,
+      data.article_id,
+      data.category_id,
+      data.start_date,
+      data.end_date,
+      data.ad_type,
+      data.ad_content,
+      data.image_url || null,
+      data.video_url || null,
+      id,
+    ]);
+
+    if (result.error) {
+      return {
+        success: false,
+        error: result.error,
+      };
+    }
+
+    revalidatePath("/dashboard/advertisements");
+    return {
+      success: true,
+      data: result.data,
+    };
+  } catch (error) {
+    console.error("Error updating advertisement:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update advertisement",
+    };
+  }
+}

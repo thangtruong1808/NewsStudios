@@ -1,4 +1,4 @@
-"use server";
+// "use server";
 
 import { Client } from "basic-ftp";
 import { v4 as uuidv4 } from "uuid";
