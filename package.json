@@ -23,6 +23,7 @@
     "@types/uuid": "^10.0.0",
     "basic-ftp": "^5.0.5",
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.6.0",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
     "googleapis": "^148.0.0",

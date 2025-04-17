@@ -1,8 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { getImages, getImageData } from "../../lib/actions/images";
-import ServerImage from "../../components/dashboard/photos/ServerImage";
+import { getImages } from "../../lib/actions/images";
+import SimpleImage from "../../components/SimpleImage";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -29,33 +29,6 @@ export default async function PhotosPage() {
 
   const images = result.data || [];
   const hasImages = images.length > 0;
-
-  // Fetch image data for each image
-  const imageDataPromises = images.map(async (image) => {
-    if (!image.image_url) return { id: image.id, data: null };
-
-    // Extract just the filename if there's a path
-    const filename = image.image_url.includes("/")
-      ? image.image_url.split("/").pop()
-      : image.image_url;
-
-    if (!filename) return { id: image.id, data: null };
-
-    const imageResult = await getImageData(filename);
-    return {
-      id: image.id,
-      data: imageResult.data,
-      error: imageResult.error,
-    };
-  });
-
-  const imageDataResults = await Promise.all(imageDataPromises);
-
-  // Create a map of image IDs to their base64 data
-  const imageDataMap = imageDataResults.reduce((map, result) => {
-    map[result.id] = result.data;
-    return map;
-  }, {} as Record<number, string | null>);
 
   return (
     <div className="space-y-4">
@@ -84,19 +57,38 @@ export default async function PhotosPage() {
               return null;
             }
 
+            // Determine if the image_url is a full URL or just a filename
+            let imageUrl = image.image_url;
+
+            // If it's not a full URL (doesn't start with http/https), construct the full URL
+            if (
+              !image.image_url.startsWith("http://") &&
+              !image.image_url.startsWith("https://")
+            ) {
+              imageUrl = `https://srv876-files.hstgr.io/3fd7426401e9c4d8/files/public_html/Images/${image.image_url}`;
+            }
+
+            console.log(`Processing image ${image.id} with URL:`, imageUrl);
+
             return (
               <div key={image.id} className="relative aspect-square">
-                <ServerImage
-                  imageData={imageDataMap[image.id] || ""}
+                <SimpleImage
+                  src={imageUrl}
                   alt={`Image ${image.id}`}
-                  className="shadow-lg"
-                  useDirectUrl={true}
+                  width={500}
+                  height={300}
+                  className="shadow-lg w-full h-full object-cover"
+                  useProxy={false}
+                  useIframe={true}
                 />
-                {image.description && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-sm">
-                    {image.description}
+                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-sm">
+                  {image.description && (
+                    <div className="mb-1">{image.description}</div>
+                  )}
+                  <div className="text-xs text-gray-300 break-all">
+                    {imageUrl || "No URL available"}
                   </div>
-                )}
+                </div>
               </div>
             );
           })}

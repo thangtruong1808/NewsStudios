@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { getImages } from "../../../lib/actions/images";
-import ServerImage from "../../../components/ServerImage";
+import SimpleImage from "../../../components/SimpleImage";
+import { constructImageUrl } from "../../../lib/utils/imageUtils";
 
 interface ImageData {
   id: number;
@@ -23,6 +23,11 @@ interface PhotosClientNewProps {
 
 export default function PhotosClientNew({ images }: PhotosClientNewProps) {
   const [selectedImage, setSelectedImage] = useState<ImageData | null>(null);
+
+  // Function to get the full image URL
+  const getImageUrl = (imagePath: string) => {
+    return constructImageUrl(imagePath);
+  };
 
   return (
     <div className="space-y-4">
@@ -44,13 +49,12 @@ export default function PhotosClientNew({ images }: PhotosClientNewProps) {
             className="relative aspect-square cursor-pointer overflow-hidden rounded-lg"
             onClick={() => setSelectedImage(image)}
           >
-            <ServerImage
-              imageData={image.image_url}
+            <SimpleImage
+              src={getImageUrl(image.image_url)}
               alt={image.title || "Gallery image"}
               width={400}
               height={400}
               className="object-cover transition-transform duration-300 hover:scale-110"
-              useDirectUrl={true}
             />
           </div>
         ))}
@@ -62,13 +66,12 @@ export default function PhotosClientNew({ images }: PhotosClientNewProps) {
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative max-h-[90vh] max-w-[90vw]">
-            <ServerImage
-              imageData={selectedImage.image_url}
+            <SimpleImage
+              src={getImageUrl(selectedImage.image_url)}
               alt={selectedImage.title || "Gallery image"}
               width={800}
               height={800}
               className="object-contain"
-              useDirectUrl={true}
             />
             <button
               className="absolute top-4 right-4 rounded-full bg-white p-2 text-black hover:bg-gray-200"

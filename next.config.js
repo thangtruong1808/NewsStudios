@@ -6,7 +6,7 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "srv876-files.hstgr.io",
-        pathname: "/**",
+        pathname: "/3fd7426401e9c4d8/files/public_html/**",
       },
     ],
     minimumCacheTTL: 60,

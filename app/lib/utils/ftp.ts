@@ -23,14 +23,14 @@ const ftpConfig: FTPConfig = {
 
 // Base URL for uploaded files
 const BASE_URL =
-  "https://srv876-files.hstgr.io/83e36b91bb471f62/files/public_html";
+  "https://srv876-files.hstgr.io/3fd7426401e9c4d8/files/public_html";
 
 // Get the domain from environment variable or use a default
 const DOMAIN = "srv876-files.hstgr.io";
 
 // Use the direct file server URL with the exact format required
-const FILE_SERVER_URL =
-  "https://srv876-files.hstgr.io/83e36b91bb471f62/files/public_html";
+export const FILE_SERVER_URL =
+  "https://srv876-files.hstgr.io/3fd7426401e9c4d8/files";
 
 /**
  * Uploads a file to the server via FTP

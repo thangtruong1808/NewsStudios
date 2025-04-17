@@ -14,6 +14,6 @@ export default function imageLoader({
 
   // For relative URLs, construct the full URL
   const serverUrl =
-    "https://srv876-files.hstgr.io/83e36b91bb471f62/files/public_html";
+    "https://srv876-files.hstgr.io/3fd7426401e9c4d8/files/public_html";
   return `${serverUrl}${src.startsWith("/") ? "" : "/"}${src}`;
 }

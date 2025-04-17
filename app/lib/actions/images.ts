@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
 import { ImageFormData } from "../validations/imageSchema";
 import { uploadToFTP } from "../utils/ftpUpload";
+import { uploadImageToCloudinary } from "../utils/cloudinaryServerUtils";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 
 interface ImageRow extends RowDataPacket {
@@ -26,23 +27,44 @@ export async function uploadImageToServer(formData: FormData) {
       return { error: "No file provided" };
     }
 
-    // Upload to FTP server
-    const result = await uploadToFTP(file);
+    // Log file details for debugging
+    console.log("File details for upload:", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    });
 
-    if (result.error) {
-      return { error: result.error };
+    // Check if file is valid
+    if (!file.type.startsWith("image/")) {
+      return { error: "File must be an image" };
+    }
+
+    // Check file size (limit to 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      return { error: "File size must be less than 10MB" };
+    }
+
+    // Upload to Cloudinary instead of FTP
+    console.log("Uploading image to Cloudinary...");
+    const result = await uploadImageToCloudinary(file, "portfolio");
+
+    if (!result.success) {
+      console.error("Cloudinary upload error:", result.error);
+      return { error: result.error || "Failed to upload image to Cloudinary" };
     }
 
     if (!result.url) {
-      return { error: "Failed to get URL from FTP upload" };
+      return { error: "Failed to get URL from Cloudinary upload" };
     }
 
-    // Save to database - store just the filename
+    console.log("Image uploaded to Cloudinary successfully:", result.url);
+
+    // Save to database - store the full Cloudinary URL
     const dbResult = await query(
       "INSERT INTO Images (article_id, image_url, description, created_at) VALUES (?, ?, ?, NOW())",
       [
         article_id ? parseInt(article_id.toString(), 10) : null,
-        result.url, // This is now just the filename
+        result.url, // Store the full Cloudinary URL
         description || null,
       ]
     );
@@ -51,13 +73,13 @@ export async function uploadImageToServer(formData: FormData) {
       return { error: dbResult.error };
     }
 
-    // Return the full URL for display purposes
-    const fullUrl = `https://srv876-files.hstgr.io/83e36b91bb471f62/files/public_html/Images/${result.url}`;
-
-    return { url: fullUrl };
+    // Return the Cloudinary URL
+    return { url: result.url };
   } catch (error) {
     console.error("Error uploading image:", error);
-    return { error: "Failed to upload image" };
+    return {
+      error: error instanceof Error ? error.message : "Failed to upload image",
+    };
   }
 }
 
@@ -98,18 +120,26 @@ export async function getImages() {
       return { data: [], error: result.error };
     }
 
-    const images = result.data as ImageRow[];
-    return {
-      data: images.map((image) => ({
-        id: image.id,
-        article_id: image.article_id,
-        image_url: image.image_url,
-        description: image.description || undefined,
-        created_at: image.created_at.toISOString(),
-        updated_at: image.updated_at.toISOString(),
-      })),
-      error: null,
-    };
+    // Process the images to ensure they have proper URLs
+    const images = (result.data as ImageRow[]).map((image) => {
+      // If the image_url is already a full URL (including Cloudinary URLs), use it as is
+      if (
+        image.image_url.startsWith("http://") ||
+        image.image_url.startsWith("https://")
+      ) {
+        return image;
+      }
+
+      // For backward compatibility with old records that only store filenames
+      // This will be phased out as we migrate to Cloudinary
+      const fullUrl = `https://srv876-files.hstgr.io/3fd7426401e9c4d8/files/public_html/Images/${image.image_url}`;
+      return {
+        ...image,
+        image_url: fullUrl,
+      };
+    });
+
+    return { data: images, error: null };
   } catch (error) {
     console.error("Error fetching images:", error);
     return { data: [], error: "Failed to fetch images" };
@@ -195,12 +225,12 @@ export async function getImageData(filename: string): Promise<{
   }
 
   try {
-    // Construct the full URL
-    const fullUrl = `https://srv876-files.hstgr.io/83e36b91bb471f62/files/public_html/Images/${filename}`;
+    // Return just the filename with the Images path
+    const imagePath = `Images/${filename}`;
 
-    // Return the direct URL
+    // Return the path
     return {
-      data: fullUrl,
+      data: imagePath,
       error: null,
       useDirectUrl: true,
     };
