@@ -265,14 +265,20 @@ export default function AdvertisementsTableClient({
                       </span>
                     </button>
                   </th>
-                  <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                    <span className="sr-only">Actions</span>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  >
+                    Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {paginatedAdvertisements.map((ad, index) => (
-                  <tr key={ad.id}>
+                  <tr
+                    key={ad.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>

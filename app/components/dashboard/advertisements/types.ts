@@ -1,4 +1,4 @@
-import { Advertisement } from "@/app/lib/definitions";
+import { Advertisement } from "../../../lib/definition";
 import { ReactNode } from "react";
 
 export type SortDirection = "asc" | "desc";
@@ -8,6 +8,7 @@ export interface Column {
   label: string;
   sortable?: boolean;
   render?: (item: Advertisement, index: number) => React.ReactNode;
+  cell?: (item: Advertisement, index: number) => React.ReactNode;
 }
 
 export interface TableHeaderProps {
