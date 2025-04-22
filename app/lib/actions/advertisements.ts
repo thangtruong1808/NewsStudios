@@ -357,11 +357,19 @@ export async function createAdvertisement(data: {
         ]
       );
 
-      return rows;
+      // Get the inserted advertisement
+      const [insertedRows] = await connection.execute<RowDataPacket[]>(
+        `SELECT * FROM Advertisements WHERE id = LAST_INSERT_ID()`
+      );
+
+      return insertedRows[0];
     });
 
+    // Ensure the result is properly serialized
+    const serializedResult = JSON.parse(JSON.stringify(result));
+
     revalidatePath("/dashboard/advertisements");
-    return { data: result, error: null };
+    return { data: serializedResult, error: null };
   } catch (error) {
     console.error("Error creating advertisement:", error);
     return { data: null, error: "Failed to create advertisement" };

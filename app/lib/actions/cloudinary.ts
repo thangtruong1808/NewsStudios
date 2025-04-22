@@ -11,58 +11,53 @@ cloudinary.config({
 
 /**
  * Upload an image to Cloudinary using server-side action
- * @param formData - FormData containing the file to upload
+ * @param base64String - The base64 string of the image to upload
  * @returns Promise with the upload result
  */
-export async function uploadImageToCloudinary(formData: FormData) {
+export async function uploadImageToCloudinary(base64String: string) {
   try {
-    const file = formData.get("file") as File;
-    const folder = (formData.get("folder") as string) || "newshub_photos";
-    const uploadPreset = (formData.get("upload_preset") as string) || "NewsHub";
+    // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
+    const base64Data = base64String.replace(/^data:image\/\w+;base64,/, "");
 
-    if (!file) {
-      return { success: false, error: "No file provided" };
-    }
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(
+      `data:image/jpeg;base64,${base64Data}`,
+      {
+        resource_type: "image",
+        folder: "advertisements",
+      }
+    );
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Create a stream from the buffer
-    const stream = require("stream");
-    const bufferStream = new stream.PassThrough();
-    bufferStream.end(buffer);
-
-    // Upload to Cloudinary using stream
-    const uploadPromise = new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: folder,
-          resource_type: "auto",
-          upload_preset: uploadPreset,
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
-
-      bufferStream.pipe(uploadStream);
-    });
-
-    const result = await uploadPromise;
-
-    return {
-      success: true,
-      url: (result as any).secure_url,
-      publicId: (result as any).public_id,
-    };
+    return { url: result.secure_url, error: null };
   } catch (error) {
-    console.error("Error uploading to Cloudinary:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to upload image",
-    };
+    console.error("Error uploading image to Cloudinary:", error);
+    return { url: null, error: "Failed to upload image" };
+  }
+}
+
+/**
+ * Upload a video to Cloudinary using server-side action
+ * @param base64String - The base64 string of the video to upload
+ * @returns Promise with the upload result
+ */
+export async function uploadVideoToCloudinary(base64String: string) {
+  try {
+    // Remove the data URL prefix (e.g., "data:video/mp4;base64,")
+    const base64Data = base64String.replace(/^data:video\/\w+;base64,/, "");
+
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(
+      `data:video/mp4;base64,${base64Data}`,
+      {
+        resource_type: "video",
+        folder: "advertisements",
+      }
+    );
+
+    return { url: result.secure_url, error: null };
+  } catch (error) {
+    console.error("Error uploading video to Cloudinary:", error);
+    return { url: null, error: "Failed to upload video" };
   }
 }
 

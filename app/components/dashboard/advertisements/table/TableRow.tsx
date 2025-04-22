@@ -48,6 +48,9 @@ export default function TableRow({
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
         {format(new Date(advertisement.end_date), "MMM d, yyyy")}
       </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        {advertisement.ad_content}
+      </td>
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
         <Link
           href={`/dashboard/advertisements/${advertisement.id}/edit`}

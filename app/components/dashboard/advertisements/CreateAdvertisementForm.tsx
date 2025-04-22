@@ -24,6 +24,11 @@ interface CreateAdvertisementFormProps {
   categories: Pick<Category, "id" | "name">[];
   onSubmit: (data: FormData) => Promise<void>;
   defaultValues?: Partial<AdvertisementFormData>;
+  onImageFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  onVideoFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  isUploading: boolean;
+  imageUrl: string | null;
+  videoUrl: string | null;
 }
 
 export default function CreateAdvertisementForm({
@@ -32,6 +37,11 @@ export default function CreateAdvertisementForm({
   categories,
   onSubmit,
   defaultValues,
+  onImageFileChange,
+  onVideoFileChange,
+  isUploading,
+  imageUrl,
+  videoUrl,
 }: CreateAdvertisementFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -43,8 +53,6 @@ export default function CreateAdvertisementForm({
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   // Format dates for HTML date inputs (YYYY-MM-DD)
   const formatDateForInput = (dateString: string | undefined) => {
@@ -82,11 +90,11 @@ export default function CreateAdvertisementForm({
   const handleFormSubmit = async (data: AdvertisementFormData) => {
     try {
       setIsSubmitting(true);
-      const formDataObj = new FormData();
+      const formData = new FormData();
 
       // Handle image upload if provided
       if (selectedImageFile) {
-        setIsUploadingImage(true);
+        setIsImageLoading(true);
         try {
           const uploadResult = await uploadImage(
             selectedImageFile,
@@ -95,17 +103,17 @@ export default function CreateAdvertisementForm({
           if (uploadResult.error) {
             throw new Error(uploadResult.error || "Failed to upload image");
           }
-          formDataObj.append("image_url", uploadResult.url || "");
-          setIsUploadingImage(false);
+          formData.append("image_url", uploadResult.url || "");
+          setIsImageLoading(false);
         } catch (error) {
-          setIsUploadingImage(false);
+          setIsImageLoading(false);
           throw error;
         }
       }
 
       // Handle video upload if provided
       if (selectedVideoFile) {
-        setIsUploadingVideo(true);
+        setIsVideoLoading(true);
         try {
           const uploadResult = await uploadImage(
             selectedVideoFile,
@@ -114,25 +122,31 @@ export default function CreateAdvertisementForm({
           if (uploadResult.error) {
             throw new Error(uploadResult.error || "Failed to upload video");
           }
-          formDataObj.append("video_url", uploadResult.url || "");
-          setIsUploadingVideo(false);
+          formData.append("video_url", uploadResult.url || "");
+          setIsVideoLoading(false);
         } catch (error) {
-          setIsUploadingVideo(false);
+          setIsVideoLoading(false);
           throw error;
         }
       }
 
       // Add all form fields to FormData
-      Object.entries(data).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formDataObj.append(key, value.toString());
-        }
-      });
+      formData.append("sponsor_id", data.sponsor_id.toString());
+      formData.append("article_id", data.article_id.toString());
+      formData.append("category_id", data.category_id.toString());
+      formData.append("ad_type", data.ad_type);
+      formData.append("ad_content", data.ad_content);
+      formData.append("start_date", data.start_date);
+      formData.append("end_date", data.end_date);
+      if (data.image_url) formData.append("image_url", data.image_url);
+      if (data.video_url) formData.append("video_url", data.video_url);
 
       // Call the onSubmit handler with the FormData
-      await onSubmit(formDataObj);
+      await onSubmit(formData);
     } catch (error) {
       console.error("Error submitting form:", error);
+      setError(error instanceof Error ? error.message : "An error occurred");
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsSubmitting(false);
     }
@@ -208,7 +222,7 @@ export default function CreateAdvertisementForm({
     setPreviewVideo(previewUrl);
 
     // Set loading state
-    setIsUploadingVideo(true);
+    setIsVideoLoading(true);
     setError(null);
 
     try {
@@ -230,7 +244,7 @@ export default function CreateAdvertisementForm({
       // Reset preview on error
       setPreviewVideo("");
     } finally {
-      setIsUploadingVideo(false);
+      setIsVideoLoading(false);
     }
   };
 
@@ -443,7 +457,7 @@ export default function CreateAdvertisementForm({
           <div className="md:col-span-2 space-y-4">
             <div className="relative w-full">
               <label
-                htmlFor="image_url"
+                htmlFor="image_file"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Image
@@ -451,12 +465,11 @@ export default function CreateAdvertisementForm({
               <div className="mt-1 flex items-center">
                 <input
                   type="file"
-                  id="image"
-                  name="image"
+                  id="image_file"
+                  name="image_file"
                   accept="image/*"
                   onChange={handleImageFileChange}
                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                  disabled={isUploadingImage}
                 />
               </div>
               {errors.image_url && (
@@ -486,7 +499,7 @@ export default function CreateAdvertisementForm({
 
             <div className="relative w-full">
               <label
-                htmlFor="video_url"
+                htmlFor="video_file"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Video
@@ -494,12 +507,11 @@ export default function CreateAdvertisementForm({
               <div className="mt-1 flex items-center">
                 <input
                   type="file"
-                  id="video"
-                  name="video"
+                  id="video_file"
+                  name="video_file"
                   accept="video/*"
                   onChange={handleVideoFileChange}
                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                  disabled={isUploadingVideo}
                 />
               </div>
               {errors.video_url && (
@@ -553,7 +565,7 @@ export default function CreateAdvertisementForm({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isUploading}
             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             {isSubmitting

@@ -50,41 +50,21 @@ export default function AdvertisementsTableClient({
     }
   };
 
-  const handleDelete = async (id: number, adType: string) => {
-    toast((t: Toast) => (
-      <div className="flex flex-col gap-4">
-        <p className="text-sm font-medium">
-          Are you sure you want to delete this {adType} advertisement?
-        </p>
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="px-3 py-1 border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={async () => {
-              toast.dismiss(t.id);
-              try {
-                const result = await deleteAdvertisement(id);
-                if (result.error) {
-                  toast.error(result.error);
-                } else {
-                  toast.success("Advertisement deleted successfully");
-                  router.refresh();
-                }
-              } catch (error) {
-                toast.error("Failed to delete advertisement");
-              }
-            }}
-            className="px-3 py-1 border border-red-500 text-red-500 rounded hover:bg-red-50"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    ));
+  const handleDelete = async (id: number) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this advertisement?"
+    );
+
+    if (confirmed) {
+      const { error } = await deleteAdvertisement(id);
+
+      if (error) {
+        toast.error("Failed to delete advertisement");
+      } else {
+        toast.success("Advertisement deleted successfully");
+        router.refresh();
+      }
+    }
   };
 
   const sortedAdvertisements = [...advertisements].sort((a, b) => {
@@ -109,6 +89,17 @@ export default function AdvertisementsTableClient({
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const columns = [
+    { key: "sponsor_name", label: "Sponsor" },
+    { key: "article_title", label: "Article" },
+    { key: "category_name", label: "Category" },
+    { key: "ad_type", label: "Type" },
+    { key: "ad_content", label: "Content" },
+    { key: "start_date", label: "Start Date" },
+    { key: "end_date", label: "End Date" },
+    { key: "actions", label: "Actions" },
+  ];
 
   return (
     <div className="mt-8 flow-root">

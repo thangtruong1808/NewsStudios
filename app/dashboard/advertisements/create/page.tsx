@@ -5,45 +5,19 @@ import { Sponsor, Article, Category } from "@/app/lib/definition";
 // Helper function to add a small delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Helper function to ensure data is serializable
-const serializeData = <T extends { id: number; [key: string]: any }>(
-  data: T[],
-  fields: (keyof T)[]
-): T[] => {
-  return data.map((item) => {
-    const serialized: any = {};
-    fields.forEach((field) => {
-      const value = item[field];
-      serialized[field] =
-        typeof value === "string"
-          ? String(value)
-          : typeof value === "number"
-          ? Number(value)
-          : value === null
-          ? null
-          : String(value);
-    });
-    return serialized as T;
-  });
-};
+// Helper function to clean up any object for safe passing
+function serializeForClient<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
 
 export default async function CreateAdvertisementPage() {
   try {
-    console.log("Fetching data for advertisements page...");
-
     // Fetch data sequentially with small delays to ensure connections are released
     const sponsorsResult = await query("SELECT id, name FROM Sponsors");
     await delay(100); // Small delay to ensure connection is released
     const articlesResult = await query("SELECT id, title FROM Articles");
     await delay(100); // Small delay to ensure connection is released
     const categoriesResult = await query("SELECT id, name FROM Categories");
-
-    // Log the results for debugging
-    console.log("Query results:", {
-      sponsors: sponsorsResult,
-      articles: articlesResult,
-      categories: categoriesResult,
-    });
 
     if (
       sponsorsResult.error ||
@@ -56,8 +30,6 @@ export default async function CreateAdvertisementPage() {
         categories: categoriesResult.error,
       };
       console.error("Database query errors:", errors);
-
-      // Return a more detailed error message
       return (
         <div className="rounded-md bg-red-50 p-4">
           <div className="flex">
@@ -86,7 +58,6 @@ export default async function CreateAdvertisementPage() {
       !articlesResult.data ||
       !categoriesResult.data
     ) {
-      console.error("Missing data in query results");
       return (
         <div className="rounded-md bg-red-50 p-4">
           <div className="flex">
@@ -104,27 +75,9 @@ export default async function CreateAdvertisementPage() {
     }
 
     // Format the data to ensure proper serialization
-    const sponsors = sponsorsResult.data.map((sponsor: any) => ({
-      id: Number(sponsor.id),
-      name: String(sponsor.name),
-    }));
-
-    const articles = articlesResult.data.map((article: any) => ({
-      id: Number(article.id),
-      title: String(article.title),
-    }));
-
-    const categories = categoriesResult.data.map((category: any) => ({
-      id: Number(category.id),
-      name: String(category.name),
-    }));
-
-    // Log the formatted data for debugging
-    console.log("Formatted data:", {
-      sponsors,
-      articles,
-      categories,
-    });
+    const sponsors = serializeForClient(sponsorsResult.data);
+    const articles = serializeForClient(articlesResult.data);
+    const categories = serializeForClient(categoriesResult.data);
 
     return (
       <CreateAdvertisementPageClient
