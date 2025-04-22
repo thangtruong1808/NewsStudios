@@ -22,8 +22,7 @@ interface CreateAdvertisementFormProps {
   sponsors: Pick<Sponsor, "id" | "name">[];
   articles: Pick<Article, "id" | "title">[];
   categories: Pick<Category, "id" | "name">[];
-  onSubmit: (data: FormData) => Promise<void>;
-  defaultValues?: Partial<AdvertisementFormData>;
+  onSubmit: (formData: FormData) => Promise<void>;
   onImageFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   onVideoFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   isUploading: boolean;
@@ -36,7 +35,6 @@ export default function CreateAdvertisementForm({
   articles,
   categories,
   onSubmit,
-  defaultValues,
   onImageFileChange,
   onVideoFileChange,
   isUploading,
@@ -46,7 +44,7 @@ export default function CreateAdvertisementForm({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isEditMode = !!defaultValues;
+  const isEditMode = !!imageUrl || !!videoUrl;
   const [previewImage, setPreviewImage] = useState<string>("");
   const [previewVideo, setPreviewVideo] = useState<string>("");
   const [isImageLoading, setIsImageLoading] = useState(false);
@@ -54,101 +52,50 @@ export default function CreateAdvertisementForm({
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
 
-  // Format dates for HTML date inputs (YYYY-MM-DD)
-  const formatDateForInput = (dateString: string | undefined) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "";
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-  };
-
-  // Prepare formatted default values
-  const formattedDefaultValues = defaultValues
-    ? {
-        ...defaultValues,
-        start_date: formatDateForInput(defaultValues.start_date),
-        end_date: formatDateForInput(defaultValues.end_date),
-      }
-    : undefined;
-
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
     watch,
+    setValue,
   } = useForm<AdvertisementFormData>({
     resolver: zodResolver(advertisementSchema),
-    defaultValues: formattedDefaultValues,
+    defaultValues: {
+      sponsor_id: 0,
+      article_id: 0,
+      category_id: 0,
+      ad_type: "banner",
+      ad_content: "",
+      start_date: "",
+      end_date: "",
+    },
   });
+
+  const adType = watch("ad_type");
 
   const handleFormSubmit = async (data: AdvertisementFormData) => {
     try {
-      setIsSubmitting(true);
       const formData = new FormData();
 
-      // Handle image upload if provided
-      if (selectedImageFile) {
-        setIsImageLoading(true);
-        try {
-          const uploadResult = await uploadImage(
-            selectedImageFile,
-            "advertisements"
-          );
-          if (uploadResult.error) {
-            throw new Error(uploadResult.error || "Failed to upload image");
-          }
-          formData.append("image_url", uploadResult.url || "");
-          setIsImageLoading(false);
-        } catch (error) {
-          setIsImageLoading(false);
-          throw error;
-        }
-      }
+      // Handle numeric fields - convert to string when appending to FormData
+      formData.append("sponsor_id", String(data.sponsor_id));
+      formData.append("article_id", String(data.article_id));
+      formData.append("category_id", String(data.category_id));
 
-      // Handle video upload if provided
-      if (selectedVideoFile) {
-        setIsVideoLoading(true);
-        try {
-          const uploadResult = await uploadImage(
-            selectedVideoFile,
-            "advertisements"
-          );
-          if (uploadResult.error) {
-            throw new Error(uploadResult.error || "Failed to upload video");
-          }
-          formData.append("video_url", uploadResult.url || "");
-          setIsVideoLoading(false);
-        } catch (error) {
-          setIsVideoLoading(false);
-          throw error;
-        }
-      }
-
-      // Add all form fields to FormData
-      formData.append("sponsor_id", data.sponsor_id.toString());
-      formData.append("article_id", data.article_id.toString());
-      formData.append("category_id", data.category_id.toString());
+      // Handle string fields
       formData.append("ad_type", data.ad_type);
       formData.append("ad_content", data.ad_content);
       formData.append("start_date", data.start_date);
       formData.append("end_date", data.end_date);
-      if (data.image_url) formData.append("image_url", data.image_url);
-      if (data.video_url) formData.append("video_url", data.video_url);
 
-      // Call the onSubmit handler with the FormData
+      // Add media URLs if they exist
+      if (imageUrl) formData.append("image_url", imageUrl);
+      if (videoUrl) formData.append("video_url", videoUrl);
+
       await onSubmit(formData);
     } catch (error) {
       console.error("Error submitting form:", error);
-      setError(error instanceof Error ? error.message : "An error occurred");
-      toast.error(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsSubmitting(false);
+      toast.error("Failed to submit form");
     }
   };
 
@@ -455,103 +402,111 @@ export default function CreateAdvertisementForm({
           </div>
 
           <div className="md:col-span-2 space-y-4">
-            <div className="relative w-full">
-              <label
-                htmlFor="image_file"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Image
-              </label>
-              <div className="mt-1 flex items-center">
-                <input
-                  type="file"
-                  id="image_file"
-                  name="image_file"
-                  accept="image/*"
-                  onChange={handleImageFileChange}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                />
-              </div>
-              {errors.image_url && (
-                <div className="mt-1 flex items-center text-sm text-red-500">
-                  <ExclamationCircleIcon className="mr-1 h-4 w-4" />
-                  {errors.image_url.message}
+            {adType === "banner" && (
+              <div className="relative w-full">
+                <label
+                  htmlFor="image_file"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Image
+                </label>
+                <div className="mt-1 flex items-center">
+                  <input
+                    type="file"
+                    id="image_file"
+                    name="image_file"
+                    accept="image/*"
+                    onChange={handleImageFileChange}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                  />
                 </div>
-              )}
-              {isImageLoading && (
-                <div className="mt-2 text-sm text-gray-500">
-                  Loading preview...
-                </div>
-              )}
-              {previewImage && (
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-gray-700">Preview:</p>
-                  <div className="mt-1 relative h-48 w-48 overflow-hidden rounded-md">
-                    <img
-                      src={previewImage}
-                      alt="Preview"
-                      className="h-full w-full object-cover"
-                    />
+                {errors.image_url && (
+                  <div className="mt-1 flex items-center text-sm text-red-500">
+                    <ExclamationCircleIcon className="mr-1 h-4 w-4" />
+                    {errors.image_url.message}
                   </div>
-                </div>
-              )}
-            </div>
-
-            <div className="relative w-full">
-              <label
-                htmlFor="video_file"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Video
-              </label>
-              <div className="mt-1 flex items-center">
-                <input
-                  type="file"
-                  id="video_file"
-                  name="video_file"
-                  accept="video/*"
-                  onChange={handleVideoFileChange}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                />
-              </div>
-              {errors.video_url && (
-                <div className="mt-1 flex items-center text-sm text-red-500">
-                  <ExclamationCircleIcon className="mr-1 h-4 w-4" />
-                  {errors.video_url.message}
-                </div>
-              )}
-              {isVideoLoading && (
-                <div className="mt-2 text-sm text-gray-500">
-                  Validating video URL...
-                </div>
-              )}
-              {previewVideo && (
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-gray-700">Preview:</p>
-                  <div className="mt-1 relative h-48 w-48 overflow-hidden rounded-md">
-                    {previewVideo.includes("youtube") ? (
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        src={previewVideo.replace("watch?v=", "embed/")}
-                        title="Video preview"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      ></iframe>
-                    ) : (
-                      <video
-                        controls
+                )}
+                {isImageLoading && (
+                  <div className="mt-2 text-sm text-gray-500">
+                    Loading preview...
+                  </div>
+                )}
+                {previewImage && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium text-gray-700">
+                      Preview:
+                    </p>
+                    <div className="mt-1 relative h-48 w-48 overflow-hidden rounded-md">
+                      <img
+                        src={previewImage}
+                        alt="Preview"
                         className="h-full w-full object-cover"
-                        src={previewVideo}
-                      >
-                        Your browser does not support the video tag.
-                      </video>
-                    )}
+                      />
+                    </div>
                   </div>
+                )}
+              </div>
+            )}
+
+            {adType === "video" && (
+              <div className="relative w-full">
+                <label
+                  htmlFor="video_file"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Video
+                </label>
+                <div className="mt-1 flex items-center">
+                  <input
+                    type="file"
+                    id="video_file"
+                    name="video_file"
+                    accept="video/*"
+                    onChange={handleVideoFileChange}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                  />
                 </div>
-              )}
-            </div>
+                {errors.video_url && (
+                  <div className="mt-1 flex items-center text-sm text-red-500">
+                    <ExclamationCircleIcon className="mr-1 h-4 w-4" />
+                    {errors.video_url.message}
+                  </div>
+                )}
+                {isVideoLoading && (
+                  <div className="mt-2 text-sm text-gray-500">
+                    Validating video URL...
+                  </div>
+                )}
+                {previewVideo && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium text-gray-700">
+                      Preview:
+                    </p>
+                    <div className="mt-1 relative h-48 w-48 overflow-hidden rounded-md">
+                      {previewVideo.includes("youtube") ? (
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={previewVideo.replace("watch?v=", "embed/")}
+                          title="Video preview"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                      ) : (
+                        <video
+                          controls
+                          className="h-full w-full object-cover"
+                          src={previewVideo}
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

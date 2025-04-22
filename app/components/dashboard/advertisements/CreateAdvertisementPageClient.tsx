@@ -32,18 +32,56 @@ export default function CreateAdvertisementPageClient({
     try {
       setIsSubmitting(true);
 
-      // Convert FormData to a plain object with only serializable values
+      // Get raw form values
+      const sponsorId = formData.get("sponsor_id");
+      const articleId = formData.get("article_id");
+      const categoryId = formData.get("category_id");
+      const adType = formData.get("ad_type");
+      const adContent = formData.get("ad_content");
+      const startDate = formData.get("start_date");
+      const endDate = formData.get("end_date");
+
+      // Validate required fields
+      if (
+        !sponsorId ||
+        !articleId ||
+        !categoryId ||
+        !adType ||
+        !adContent ||
+        !startDate ||
+        !endDate
+      ) {
+        throw new Error("All required fields must be filled out");
+      }
+
+      // Convert and validate numeric IDs
+      const sponsor_id = parseInt(sponsorId as string, 10);
+      const article_id = parseInt(articleId as string, 10);
+      const category_id = parseInt(categoryId as string, 10);
+
+      if (isNaN(sponsor_id) || isNaN(article_id) || isNaN(category_id)) {
+        throw new Error("Invalid ID values. Please select valid options.");
+      }
+
+      // Validate ad type
+      if (adType !== "banner" && adType !== "video") {
+        throw new Error("Invalid advertisement type");
+      }
+
+      // Construct the data object with proper types
       const data = {
-        sponsor_id: parseInt(formData.get("sponsor_id") as string),
-        article_id: parseInt(formData.get("article_id") as string),
-        category_id: parseInt(formData.get("category_id") as string),
-        ad_type: formData.get("ad_type") as "banner" | "video",
-        ad_content: formData.get("ad_content") as string,
-        start_date: formData.get("start_date") as string,
-        end_date: formData.get("end_date") as string,
+        sponsor_id,
+        article_id,
+        category_id,
+        ad_type: adType as "banner" | "video",
+        ad_content: adContent as string,
+        start_date: startDate as string,
+        end_date: endDate as string,
         image_url: imageUrl || undefined,
         video_url: videoUrl || undefined,
       };
+
+      console.log("Submitting data:", data);
 
       const result = await createAdvertisement(data);
       if (result.error) {
@@ -68,6 +106,17 @@ export default function CreateAdvertisementPageClient({
 
     try {
       setIsUploading(true);
+      toast.loading("Uploading image...");
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Please select a valid image file");
+      }
+
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error("Image file size should be less than 10MB");
+      }
 
       // Convert file to base64 string
       const base64String = await new Promise<string>((resolve, reject) => {
@@ -83,10 +132,16 @@ export default function CreateAdvertisementPageClient({
         throw new Error(result.error);
       }
 
+      if (!result.url) {
+        throw new Error("No URL returned from Cloudinary");
+      }
+
       setImageUrl(result.url);
+      toast.dismiss();
       toast.success("Image uploaded successfully");
     } catch (error) {
       console.error("Error uploading image:", error);
+      toast.dismiss();
       toast.error(
         error instanceof Error ? error.message : "Failed to upload image"
       );
@@ -103,6 +158,17 @@ export default function CreateAdvertisementPageClient({
 
     try {
       setIsUploading(true);
+      toast.loading("Uploading video...");
+
+      // Validate file type
+      if (!file.type.startsWith("video/")) {
+        throw new Error("Please select a valid video file");
+      }
+
+      // Validate file size (max 50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        throw new Error("Video file size should be less than 50MB");
+      }
 
       // Convert file to base64 string
       const base64String = await new Promise<string>((resolve, reject) => {
@@ -118,10 +184,16 @@ export default function CreateAdvertisementPageClient({
         throw new Error(result.error);
       }
 
+      if (!result.url) {
+        throw new Error("No URL returned from Cloudinary");
+      }
+
       setVideoUrl(result.url);
+      toast.dismiss();
       toast.success("Video uploaded successfully");
     } catch (error) {
       console.error("Error uploading video:", error);
+      toast.dismiss();
       toast.error(
         error instanceof Error ? error.message : "Failed to upload video"
       );
