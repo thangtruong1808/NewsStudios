@@ -36,6 +36,14 @@ export default async function AdvertisementsPage({
 
     const advertisements = result.data || [];
 
+    // Format advertisements to ensure required fields are present
+    const formattedAdvertisements = advertisements.map((ad) => ({
+      ...ad,
+      sponsor_name: ad.sponsor_name || `Sponsor ID: ${ad.sponsor_id}`,
+      article_title: ad.article_title || `Article ID: ${ad.article_id}`,
+      category_name: ad.category_name || `Category ID: ${ad.category_id}`,
+    }));
+
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between mb-2">
@@ -56,8 +64,10 @@ export default async function AdvertisementsPage({
         </div>
 
         <Suspense fallback={<LoadingSpinner />}>
-          {advertisements.length > 0 ? (
-            <AdvertisementsTableClient advertisements={advertisements} />
+          {formattedAdvertisements.length > 0 ? (
+            <AdvertisementsTableClient
+              advertisements={formattedAdvertisements}
+            />
           ) : (
             <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
               <p className="text-gray-500">

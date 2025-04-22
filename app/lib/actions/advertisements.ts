@@ -1,6 +1,6 @@
 "use server";
 
-import { query } from "../db/db";
+import { query, transaction } from "../db/db";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { Advertisement, CreateAdvertisementData } from "../definition";
 import { revalidatePath } from "next/cache";
@@ -17,15 +17,11 @@ interface AdvertisementWithRelations extends Advertisement, RowDataPacket {
 
 export async function getAdvertisements() {
   try {
-    const result = await query(`
-      SELECT 
-        a.*,
-        s.name as sponsor_name,
-        art.title as article_title,
-        c.name as category_name
+    const result = await query<Advertisement>(`
+      SELECT a.*, s.name as sponsor_name, ar.title as article_title, c.name as category_name
       FROM Advertisements a
       LEFT JOIN Sponsors s ON a.sponsor_id = s.id
-      LEFT JOIN Articles art ON a.article_id = art.id
+      LEFT JOIN Articles ar ON a.article_id = ar.id
       LEFT JOIN Categories c ON a.category_id = c.id
       ORDER BY a.created_at DESC
     `);
@@ -34,16 +30,10 @@ export async function getAdvertisements() {
       return { data: null, error: result.error };
     }
 
-    return { data: result.data as AdvertisementWithRelations[], error: null };
+    return { data: result.data || [], error: null };
   } catch (error) {
     console.error("Error fetching advertisements:", error);
-    return {
-      data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to fetch advertisements",
-    };
+    return { data: null, error: "Failed to fetch advertisements" };
   }
 }
 
@@ -96,19 +86,13 @@ export async function searchAdvertisements(searchQuery: string) {
 
 export async function getAdvertisementById(id: number) {
   try {
-    const result = await query(
-      `
-      SELECT 
-        a.*,
-        s.name as sponsor_name,
-        art.title as article_title,
-        c.name as category_name
-      FROM Advertisements a
-      LEFT JOIN Sponsors s ON a.sponsor_id = s.id
-      LEFT JOIN Articles art ON a.article_id = art.id
-      LEFT JOIN Categories c ON a.category_id = c.id
-      WHERE a.id = ?
-    `,
+    const result = await query<Advertisement>(
+      `SELECT a.*, s.name as sponsor_name, ar.title as article_title, c.name as category_name
+       FROM Advertisements a
+       LEFT JOIN Sponsors s ON a.sponsor_id = s.id
+       LEFT JOIN Articles ar ON a.article_id = ar.id
+       LEFT JOIN Categories c ON a.category_id = c.id
+       WHERE a.id = ?`,
       [id]
     );
 
@@ -116,42 +100,30 @@ export async function getAdvertisementById(id: number) {
       return { data: null, error: result.error };
     }
 
-    const data = result.data as AdvertisementWithRelations[];
-    if (!data || data.length === 0) {
-      return { data: null, error: "Advertisement not found" };
-    }
-
-    return { data: data[0], error: null };
+    return { data: result.data?.[0] || null, error: null };
   } catch (error) {
     console.error("Error fetching advertisement:", error);
-    return {
-      data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to fetch advertisement",
-    };
+    return { data: null, error: "Failed to fetch advertisement" };
   }
 }
 
 export async function deleteAdvertisement(id: number) {
   try {
-    const result = await query("DELETE FROM Advertisements WHERE id = ?", [id]);
+    // Use transaction to ensure data consistency
+    const result = await transaction(async (connection) => {
+      const [rows] = await connection.execute(
+        "DELETE FROM Advertisements WHERE id = ?",
+        [id]
+      );
 
-    if (result.error) {
-      return { error: result.error };
-    }
+      return rows;
+    });
 
     revalidatePath("/dashboard/advertisements");
-    return { error: null };
+    return { data: result, error: null };
   } catch (error) {
     console.error("Error deleting advertisement:", error);
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to delete advertisement",
-    };
+    return { data: null, error: "Failed to delete advertisement" };
   }
 }
 
@@ -341,83 +313,58 @@ export async function insertSampleAdvertisements() {
   }
 }
 
-export async function createAdvertisement(
-  data: Omit<CreateAdvertisementData, "start_date" | "end_date"> & {
-    start_date: string;
-    end_date: string;
-  }
-) {
+export async function createAdvertisement(data: {
+  sponsor_id: number;
+  article_id: number;
+  category_id: number;
+  ad_type: "banner" | "video";
+  ad_content: string;
+  start_date: string;
+  end_date: string;
+  image_url?: string;
+  video_url?: string;
+}) {
   try {
-    const {
-      sponsor_id,
-      article_id,
-      category_id,
-      ad_type,
-      ad_content,
-      start_date,
-      end_date,
-      image_url,
-      video_url,
-    } = data;
-
     // Validate required fields
     if (
-      !sponsor_id ||
-      !article_id ||
-      !category_id ||
-      !ad_type ||
-      !ad_content ||
-      !start_date ||
-      !end_date
+      !data.sponsor_id ||
+      !data.article_id ||
+      !data.category_id ||
+      !data.ad_type ||
+      !data.start_date ||
+      !data.end_date
     ) {
-      return { error: "Missing required fields" };
+      return { data: null, error: "Missing required fields" };
     }
 
-    const result = await query(
-      `
-      INSERT INTO Advertisements (
-        sponsor_id,
-        article_id,
-        category_id,
-        ad_type,
-        ad_content,
-        start_date,
-        end_date,
-        image_url,
-        video_url,
-        created_at,
-        updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-    `,
-      [
-        sponsor_id,
-        article_id,
-        category_id,
-        ad_type,
-        ad_content,
-        new Date(start_date),
-        new Date(end_date),
-        image_url || null,
-        video_url || null,
-      ]
-    );
+    // Use transaction to ensure data consistency
+    const result = await transaction(async (connection) => {
+      const [rows] = await connection.execute(
+        `INSERT INTO Advertisements (
+          sponsor_id, article_id, category_id, ad_type, ad_content,
+          start_date, end_date, image_url, video_url, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        [
+          data.sponsor_id,
+          data.article_id,
+          data.category_id,
+          data.ad_type,
+          data.ad_content,
+          data.start_date,
+          data.end_date,
+          data.image_url || null,
+          data.video_url || null,
+        ]
+      );
 
-    if (result.error) {
-      return { error: result.error };
-    }
+      return rows;
+    });
 
-    // Return a serializable response with string dates
-    return {
-      data: {
-        ...data,
-        id: (result.data as ResultSetHeader).insertId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-    };
+    revalidatePath("/dashboard/advertisements");
+    return { data: result, error: null };
   } catch (error) {
     console.error("Error creating advertisement:", error);
-    return { error: "Failed to create advertisement" };
+    return { data: null, error: "Failed to create advertisement" };
   }
 }
 
@@ -426,75 +373,35 @@ export async function updateAdvertisement(
   data: Partial<Advertisement>
 ) {
   try {
-    // Validate required fields
-    const requiredFields = [
-      "sponsor_id",
-      "article_id",
-      "category_id",
-      "start_date",
-      "end_date",
-      "ad_type",
-      "ad_content",
-    ];
+    // Use transaction to ensure data consistency
+    const result = await transaction(async (connection) => {
+      const [rows] = await connection.execute(
+        `UPDATE Advertisements 
+         SET sponsor_id = ?, article_id = ?, category_id = ?, ad_type = ?, 
+             ad_content = ?, start_date = ?, end_date = ?, image_url = ?, 
+             video_url = ?, updated_at = NOW()
+         WHERE id = ?`,
+        [
+          data.sponsor_id,
+          data.article_id,
+          data.category_id,
+          data.ad_type,
+          data.ad_content,
+          data.start_date,
+          data.end_date,
+          data.image_url || null,
+          data.video_url || null,
+          id,
+        ]
+      );
 
-    for (const field of requiredFields) {
-      if (!data[field as keyof Advertisement]) {
-        return {
-          success: false,
-          error: `Missing required field: ${field}`,
-        };
-      }
-    }
-
-    const sql = `
-      UPDATE Advertisements 
-      SET 
-        sponsor_id = ?,
-        article_id = ?,
-        category_id = ?,
-        start_date = ?,
-        end_date = ?,
-        ad_type = ?,
-        ad_content = ?,
-        image_url = ?,
-        video_url = ?,
-        updated_at = NOW()
-      WHERE id = ?
-    `;
-
-    const result = await query(sql, [
-      data.sponsor_id,
-      data.article_id,
-      data.category_id,
-      data.start_date,
-      data.end_date,
-      data.ad_type,
-      data.ad_content,
-      data.image_url || null,
-      data.video_url || null,
-      id,
-    ]);
-
-    if (result.error) {
-      return {
-        success: false,
-        error: result.error,
-      };
-    }
+      return rows;
+    });
 
     revalidatePath("/dashboard/advertisements");
-    return {
-      success: true,
-      data: result.data,
-    };
+    return { data: result, error: null };
   } catch (error) {
     console.error("Error updating advertisement:", error);
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to update advertisement",
-    };
+    return { data: null, error: "Failed to update advertisement" };
   }
 }

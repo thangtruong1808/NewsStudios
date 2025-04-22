@@ -1,115 +1,105 @@
-"use server";
-
 import mysql from "mysql2/promise";
+import { ResultSetHeader } from "mysql2";
 
-// Database configuration
+// Database configuration with fallback values for development
 const dbConfig = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: parseInt(process.env.DB_PORT || "3306"),
+  host: process.env.DB_HOST || "srv876.hstgr.io",
+  user: process.env.DB_USER || "u506579725_thangtruong",
+  password: process.env.DB_PASSWORD || "052025ThangTruong!@",
+  database: process.env.DB_NAME || "u506579725_nextjs_mysql",
+  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  connectTimeout: 30000, // Increased to 30 seconds
-  acquireTimeout: 30000, // Added acquire timeout
-  timeout: 60000, // Added general query timeout
-  enableKeepAlive: true, // Enable keep-alive
-  keepAliveInitialDelay: 10000, // Keep-alive ping every 10 seconds
-  multipleStatements: true, // Allow multiple statements
-  // Add connection retry strategy
-  maxReconnects: 10,
-  reconnectDelay: 2000, // 2 seconds between reconnect attempts
+  connectionLimit: 3, // Reduced from 5 to 3 to stay well under the server limit
+  queueLimit: 10, // Added queue limit to handle connection requests when pool is full
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
+  connectTimeout: 10000, // 10 seconds timeout
+  acquireTimeout: 10000, // 10 seconds timeout for acquiring a connection
+  idleTimeout: 60000, // Close idle connections after 60 seconds
+  maxIdle: 2, // Maximum number of idle connections to keep in the pool
 };
 
-// Validate required environment variables
-if (
-  !dbConfig.host ||
-  !dbConfig.user ||
-  !dbConfig.password ||
-  !dbConfig.database
-) {
-  console.error("Missing database configuration:", {
-    host: dbConfig.host ? "Set" : "Missing",
-    user: dbConfig.user ? "Set" : "Missing",
-    password: dbConfig.password ? "Set" : "Missing",
-    database: dbConfig.database ? "Set" : "Missing",
-  });
+// Create the connection pool
+export const pool = mysql.createPool(dbConfig);
 
-  // Instead of throwing an error, use default values for development
-  if (process.env.NODE_ENV === "development") {
-    console.warn("Using default database configuration for development");
-    dbConfig.host = dbConfig.host || "localhost";
-    dbConfig.user = dbConfig.user || "root";
-    dbConfig.password = dbConfig.password || "";
-    dbConfig.database = dbConfig.database || "personal_portfolio";
-  } else {
-    throw new Error(
-      "Missing required database configuration. Please check your .env file."
-    );
-  }
-}
-
-// Create a connection pool
-const pool = mysql.createPool(dbConfig);
-
-// Test the connection and handle reconnection
-async function testConnection(retries = 3, delay = 5000) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const connection = await pool.getConnection();
-      console.log("Database connection established successfully");
-      connection.release();
-      return true;
-    } catch (err) {
-      console.error(`Connection attempt ${i + 1} failed:`, err);
-      if (i < retries - 1) {
-        console.log(`Retrying in ${delay / 1000} seconds...`);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
-  }
-  console.error(`Failed to connect after ${retries} attempts`);
-  return false;
-}
-
-// Initialize connection
-testConnection()
-  .then((success) => {
-    if (!success) {
-      console.error("Initial database connection failed");
-    }
+// Test the connection and log status
+pool
+  .getConnection()
+  .then((connection) => {
+    console.log("Successfully connected to the database");
+    connection.release();
   })
-  .catch((err) => {
-    console.error("Error in connection test:", err);
+  .catch((error) => {
+    console.error("Error connecting to the database:", error);
+    if (error.code === "ECONNREFUSED") {
+      console.error(
+        "Connection refused. Please check if MySQL server is running and accessible."
+      );
+    }
   });
 
-/**
- * Gets the database pool
- * @returns The database pool
- */
-export async function getPool() {
-  return pool;
-}
-
-/**
- * Executes a query on the database
- * @param sqlQuery The SQL query to execute
- * @param params Parameters for the query
- * @returns The query results
- */
-export async function query(sqlQuery: string, params: any[] = []) {
+// Query function with improved error handling
+export async function query<T = any>(
+  text: string,
+  params?: any[]
+): Promise<{
+  data: T[] | null;
+  error: string | null;
+}> {
+  let connection;
   try {
-    const [results] = await pool.execute(sqlQuery, params);
-    return { data: results, error: null };
+    connection = await pool.getConnection();
+    const [rows] = await connection.execute(text, params);
+    return { data: rows as T[], error: null };
   } catch (error) {
     console.error("Database query error:", error);
-    return {
-      data: null,
-      error:
-        error instanceof Error ? error.message : "An unknown error occurred",
-    };
+    const errorMessage =
+      error instanceof Error ? error.message : "Database query failed";
+    // Check for specific error types
+    if (error instanceof Error) {
+      if (error.message.includes("ECONNREFUSED")) {
+        return {
+          data: null,
+          error:
+            "Unable to connect to the database. Please check your database connection.",
+        };
+      }
+      if (error.message.includes("ER_ACCESS_DENIED_ERROR")) {
+        return {
+          data: null,
+          error: "Access denied. Please check your database credentials.",
+        };
+      }
+      if (error.message.includes("ER_BAD_DB_ERROR")) {
+        return {
+          data: null,
+          error: "Database not found. Please check your database name.",
+        };
+      }
+    }
+    return { data: null, error: errorMessage };
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
+// Transaction function with proper connection handling
+export async function transaction<T>(
+  callback: (connection: mysql.PoolConnection) => Promise<T>
+): Promise<T> {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const result = await callback(connection);
+    await connection.commit();
+    return result;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
   }
 }
 

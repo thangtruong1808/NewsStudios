@@ -10,6 +10,7 @@ import FormInput from "./components/FormInput";
 import PasswordInput from "./components/PasswordInput";
 import SubmitButton from "./components/SubmitButton";
 import { resetPasswordSchema, ResetPasswordFormData } from "./schema";
+import { resetPassword } from "../actions/reset-password";
 
 export default function ResetPasswordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,31 +27,17 @@ export default function ResetPasswordForm() {
   const onSubmit = async (data: ResetPasswordFormData) => {
     try {
       setIsSubmitting(true);
-      const response = await fetch("/api/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
-      });
+      const result = await resetPassword(data);
 
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to reset password");
+      if (result.error) {
+        toast.error(result.error);
+        return;
       }
 
-      toast.success(
-        "Password reset successful! Please login with your new password."
-      );
+      toast.success("Password reset successful");
       router.push("/login");
     } catch (error) {
-      console.error("Password reset error:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "An error occurred during password reset"
-      );
+      toast.error("An error occurred while resetting your password");
     } finally {
       setIsSubmitting(false);
     }

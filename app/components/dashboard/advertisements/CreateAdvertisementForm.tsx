@@ -22,7 +22,7 @@ interface CreateAdvertisementFormProps {
   sponsors: Pick<Sponsor, "id" | "name">[];
   articles: Pick<Article, "id" | "title">[];
   categories: Pick<Category, "id" | "name">[];
-  onSubmit: (data: AdvertisementFormData) => Promise<void>;
+  onSubmit: (data: FormData) => Promise<void>;
   defaultValues?: Partial<AdvertisementFormData>;
 }
 
@@ -82,61 +82,57 @@ export default function CreateAdvertisementForm({
   const handleFormSubmit = async (data: AdvertisementFormData) => {
     try {
       setIsSubmitting(true);
-      setError(null);
+      const formDataObj = new FormData();
 
-      // Create a copy of the data object to modify
-      const submissionData = { ...data };
-
-      // Handle image upload if a new file is selected
+      // Handle image upload if provided
       if (selectedImageFile) {
         setIsUploadingImage(true);
         try {
-          const imageResult = await uploadImage(
+          const uploadResult = await uploadImage(
             selectedImageFile,
             "advertisements"
           );
-          if (!imageResult.success) {
-            throw new Error(imageResult.error || "Failed to upload image");
+          if (uploadResult.error) {
+            throw new Error(uploadResult.error || "Failed to upload image");
           }
-          submissionData.image_url = imageResult.url;
-        } catch (error) {
-          toast.error("Failed to upload image");
-          throw error;
-        } finally {
+          formDataObj.append("image_url", uploadResult.url || "");
           setIsUploadingImage(false);
+        } catch (error) {
+          setIsUploadingImage(false);
+          throw error;
         }
       }
 
-      // Handle video upload if a new file is selected
+      // Handle video upload if provided
       if (selectedVideoFile) {
         setIsUploadingVideo(true);
         try {
-          const videoResult = await uploadImage(
+          const uploadResult = await uploadImage(
             selectedVideoFile,
             "advertisements"
           );
-          if (!videoResult.success) {
-            throw new Error(videoResult.error || "Failed to upload video");
+          if (uploadResult.error) {
+            throw new Error(uploadResult.error || "Failed to upload video");
           }
-          submissionData.video_url = videoResult.url;
-        } catch (error) {
-          toast.error("Failed to upload video");
-          throw error;
-        } finally {
+          formDataObj.append("video_url", uploadResult.url || "");
           setIsUploadingVideo(false);
+        } catch (error) {
+          setIsUploadingVideo(false);
+          throw error;
         }
       }
 
-      // Submit the form with the updated data
-      await onSubmit(submissionData);
+      // Add all form fields to FormData
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formDataObj.append(key, value.toString());
+        }
+      });
 
-      // Show success message and redirect
-      toast.success("Advertisement created successfully");
-      router.push("/dashboard/advertisements");
-      router.refresh();
+      // Call the onSubmit handler with the FormData
+      await onSubmit(formDataObj);
     } catch (error) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-      toast.error("Failed to create advertisement");
+      console.error("Error submitting form:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -171,11 +167,18 @@ export default function CreateAdvertisementForm({
         return;
       }
 
+      // Store the selected file
       setSelectedImageFile(file);
-      setPreviewImage(URL.createObjectURL(file));
+
+      // Create a preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+
+      // Don't upload to Cloudinary immediately - wait for form submission
+      toast.success("Image selected successfully");
     } catch (error) {
       console.error("Error handling image file:", error);
-      toast.error("Error uploading image");
+      toast.error("Error selecting image");
     }
   };
 
@@ -197,57 +200,37 @@ export default function CreateAdvertisementForm({
       return;
     }
 
+    // Store the file for later processing
     setSelectedVideoFile(file);
-    setPreviewVideo(URL.createObjectURL(file));
-  };
 
-  const handleImageUrlChange = async (url: string) => {
-    if (!url) {
-      setPreviewImage("");
-      setSelectedImageFile(null);
-      return;
-    }
+    // Create a preview URL for the video
+    const previewUrl = URL.createObjectURL(file);
+    setPreviewVideo(previewUrl);
 
-    setIsImageLoading(true);
+    // Set loading state
+    setIsUploadingVideo(true);
+    setError(null);
+
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        setError("Failed to load image. Please check the URL.");
-        setPreviewImage("");
-      } else {
-        setPreviewImage(url);
-        setValue("image_url", url);
-      }
-    } catch (error) {
-      setError("Invalid image URL");
-      setPreviewImage("");
-    } finally {
-      setIsImageLoading(false);
-    }
-  };
+      // Upload to Cloudinary
+      const result = await uploadImage(file, "advertisements");
 
-  const handleVideoUrlChange = async (url: string) => {
-    if (!url) {
-      setPreviewVideo("");
-      setSelectedVideoFile(null);
-      return;
-    }
-
-    setIsVideoLoading(true);
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        setError("Failed to load video. Please check the URL.");
-        setPreviewVideo("");
-      } else {
-        setPreviewVideo(url);
-        setValue("video_url", url);
+      if (!result.success) {
+        throw new Error(result.error || "Failed to upload video");
       }
-    } catch (error) {
-      setError("Invalid video URL");
+
+      if (result.url) {
+        // Update the form with the Cloudinary URL
+        setValue("video_url", result.url);
+        setPreviewVideo(result.url);
+        setSelectedVideoFile(null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload video");
+      // Reset preview on error
       setPreviewVideo("");
     } finally {
-      setIsVideoLoading(false);
+      setIsUploadingVideo(false);
     }
   };
 

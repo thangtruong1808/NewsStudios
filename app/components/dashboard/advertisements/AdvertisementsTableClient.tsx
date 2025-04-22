@@ -28,12 +28,10 @@ interface AdvertisementWithDetails extends Advertisement {
 
 interface AdvertisementsTableClientProps {
   advertisements: AdvertisementWithDetails[];
-  onDelete: (id: number) => void;
 }
 
 export default function AdvertisementsTableClient({
   advertisements,
-  onDelete,
 }: AdvertisementsTableClientProps) {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
@@ -118,7 +116,7 @@ export default function AdvertisementsTableClient({
         <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
           <MobileView
             advertisements={paginatedAdvertisements}
-            onDelete={onDelete}
+            onDelete={handleDelete}
           />
           <div className="hidden sm:block">
             <table className="min-w-full divide-y divide-gray-300">
@@ -132,7 +130,7 @@ export default function AdvertisementsTableClient({
                   <TableRow
                     key={advertisement.id}
                     advertisement={advertisement}
-                    onDelete={onDelete}
+                    onDelete={handleDelete}
                     index={index}
                   />
                 ))}

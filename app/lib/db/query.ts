@@ -1,23 +1,10 @@
 import mysql from "mysql2/promise";
+import { pool } from "./db";
 
 // Define types for database clients
-export type QueryClient =
-  | mysql.Pool
-  | mysql.PoolConnection;
-export type TransactionClient =
-  mysql.PoolConnection;
+export type QueryClient = mysql.Pool | mysql.PoolConnection;
+export type TransactionClient = mysql.PoolConnection;
 export type QueryResult<T = any> = T[];
-
-// Create database pool with proper connection configuration
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
 
 // Query function with proper typing
 export async function query<T = any>(
@@ -28,29 +15,32 @@ export async function query<T = any>(
   data: QueryResult<T> | null;
   error: string | null;
 }> {
+  let connection: mysql.PoolConnection | null = null;
   try {
-    const [rows] = await client.execute(
-      text,
-      params
-    );
-    return { data: rows as T[], error: null };
+    if (client === pool) {
+      connection = await pool.getConnection();
+      const [rows] = await connection.execute(text, params);
+      return { data: rows as T[], error: null };
+    } else {
+      const [rows] = await client.execute(text, params);
+      return { data: rows as T[], error: null };
+    }
   } catch (error) {
     console.error("Database query error:", error);
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Database query failed",
+      error: error instanceof Error ? error.message : "Database query failed",
     };
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 }
 
 // Transaction function with proper typing
 export async function transaction<T>(
-  callback: (
-    client: TransactionClient
-  ) => Promise<T>
+  callback: (client: TransactionClient) => Promise<T>
 ): Promise<T> {
   const connection = await pool.getConnection();
 
@@ -70,5 +60,4 @@ export async function transaction<T>(
 export default {
   query,
   transaction,
-  pool,
 };
