@@ -16,18 +16,18 @@ export default function NavLink({ href, icon: Icon, label }: NavLinkProps) {
   const isActive = pathname === href;
 
   return (
-    <div className="group relative w-full px-2">
+    <div className="group relative w-full">
       <Link
         href={href}
         className={clsx(
           "flex h-12 w-full items-center justify-center text-sm font-medium md:h-10 md:w-full md:flex-none md:justify-start",
           {
             "bg-indigo-600 text-white rounded-md": isActive,
-            "text-gray-600 hover:bg-zinc-200 rounded-md": !isActive,
+            "text-gray-600 hover:bg-stone-200 rounded-md": !isActive,
           }
         )}
       >
-        <div className="flex items-center justify-center md:justify-start w-full px-3">
+        <div className="flex items-center justify-center md:justify-start w-full px-2">
           <Icon className="h-7 w-7 md:h-6 md:w-6" />
           <span className="hidden md:ml-3 md:block text-sm"> {label}</span>
         </div>

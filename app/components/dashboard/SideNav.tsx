@@ -10,6 +10,7 @@ export default function SideNav() {
           <MyLogo />
         </div>
       </div>
+
       <div className="flex flex-col space-y-2 px-2 py-2 md:px-2 md:h-full">
         <div className="flex flex-col space-y-2 md:grow">
           <NavLinks />

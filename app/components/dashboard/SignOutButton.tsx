@@ -16,9 +16,9 @@ export default function SignOutButton({
       <form action={signOutAction} className="w-full">
         <button
           className={clsx(
-            "flex h-12 w-full items-center justify-center text-sm font-medium md:h-10 md:w-full md:flex-none md:justify-start",
+            "flex h-12 w-full items-center justify-center text-sm font-medium px-2 py-2 md:h-10 md:w-full md:flex-none md:justify-start",
             {
-              "text-gray-600 hover:bg-zinc-200 rounded-md": true,
+              "text-gray-600 hover:bg-stone-200 rounded-md": true,
             }
           )}
         >
