@@ -321,10 +321,12 @@ export async function createAdvertisement(data: {
   ad_content: string;
   start_date: string;
   end_date: string;
-  image_url?: string;
-  video_url?: string;
-}) {
+  image_url: string | null;
+  video_url: string | null;
+}): Promise<{ success: boolean; error?: string }> {
   try {
+    console.log("createAdvertisement received data:", data);
+
     // Validate required fields
     if (
       !data.sponsor_id ||
@@ -334,11 +336,36 @@ export async function createAdvertisement(data: {
       !data.start_date ||
       !data.end_date
     ) {
-      return { data: null, error: "Missing required fields" };
+      console.error("Missing required fields:", data);
+      return { success: false, error: "Missing required fields" };
     }
+
+    // Format dates to ensure they're stored correctly
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      // Add timezone offset to ensure the date is stored correctly
+      date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+      return date.toISOString().split("T")[0];
+    };
+
+    const formattedStartDate = formatDate(data.start_date);
+    const formattedEndDate = formatDate(data.end_date);
+
+    console.log("Formatted dates:", {
+      originalStart: data.start_date,
+      formattedStart: formattedStartDate,
+      originalEnd: data.end_date,
+      formattedEnd: formattedEndDate,
+    });
 
     // Use transaction to ensure data consistency
     const result = await transaction(async (connection) => {
+      console.log("Executing SQL insert with data:", {
+        ...data,
+        start_date: formattedStartDate,
+        end_date: formattedEndDate,
+      });
+
       const [rows] = await connection.execute(
         `INSERT INTO Advertisements (
           sponsor_id, article_id, category_id, ad_type, ad_content,
@@ -350,29 +377,33 @@ export async function createAdvertisement(data: {
           data.category_id,
           data.ad_type,
           data.ad_content,
-          data.start_date,
-          data.end_date,
+          formattedStartDate,
+          formattedEndDate,
           data.image_url || null,
           data.video_url || null,
         ]
       );
+
+      console.log("Insert result:", rows);
 
       // Get the inserted advertisement
       const [insertedRows] = await connection.execute<RowDataPacket[]>(
         `SELECT * FROM Advertisements WHERE id = LAST_INSERT_ID()`
       );
 
+      console.log("Retrieved inserted row:", insertedRows[0]);
       return insertedRows[0];
     });
 
     // Ensure the result is properly serialized
     const serializedResult = JSON.parse(JSON.stringify(result));
+    console.log("Serialized result:", serializedResult);
 
     revalidatePath("/dashboard/advertisements");
     return { data: serializedResult, error: null };
   } catch (error) {
-    console.error("Error creating advertisement:", error);
-    return { data: null, error: "Failed to create advertisement" };
+    console.error("Error in createAdvertisement:", error);
+    return { success: false, error: "Failed to create advertisement" };
   }
 }
 

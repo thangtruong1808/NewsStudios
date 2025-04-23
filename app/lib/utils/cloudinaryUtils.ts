@@ -220,3 +220,86 @@ export function getPublicIdFromUrl(url: string): string | null {
     return null;
   }
 }
+
+export async function uploadToCloudinary(
+  file: File,
+  type: "image" | "video" = "image"
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    // Get environment variables from .env
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    console.log("Cloudinary configuration:", {
+      cloudName,
+      uploadPreset,
+      hasCloudName: !!cloudName,
+      hasUploadPreset: !!uploadPreset,
+      fileType: file.type,
+      fileName: file.name,
+      fileSize: file.size,
+    });
+
+    // Validate environment variables with detailed error messages
+    if (!cloudName) {
+      throw new Error(
+        "Cloudinary cloud name is not configured. Please set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME in your .env file."
+      );
+    }
+    if (!uploadPreset) {
+      throw new Error(
+        "Cloudinary upload preset is not configured. Please set NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET in your .env file."
+      );
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+    formData.append("cloud_name", cloudName);
+    formData.append("folder", "NewsHub");
+
+    const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${type}/upload`;
+    console.log("Uploading to:", uploadUrl);
+
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Cloudinary upload error:", {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData,
+      });
+
+      // Handle specific Cloudinary errors
+      if (errorData.error?.message?.includes("Upload preset")) {
+        throw new Error(
+          `Upload preset "${uploadPreset}" not found in your Cloudinary account. Please verify the preset name in your Cloudinary dashboard.`
+        );
+      }
+
+      throw new Error(errorData.error?.message || "Upload failed");
+    }
+
+    const data = await response.json();
+    console.log("Cloudinary upload success:", {
+      url: data.secure_url,
+      publicId: data.public_id,
+      folder: data.folder,
+    });
+
+    return {
+      success: true,
+      url: data.secure_url,
+    };
+  } catch (error) {
+    console.error("Error in uploadToCloudinary:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to upload file",
+    };
+  }
+}

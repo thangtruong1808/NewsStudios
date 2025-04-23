@@ -15,19 +15,24 @@ import {
   AdvertisementFormData,
 } from "@/app/lib/validations/advertisementSchema";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
-import { uploadImage } from "@/app/lib/utils/cloudinaryUtils";
+import { uploadToCloudinary } from "@/app/lib/utils/cloudinaryUtils";
 import { toast } from "react-hot-toast";
 
 interface CreateAdvertisementFormProps {
   sponsors: Pick<Sponsor, "id" | "name">[];
   articles: Pick<Article, "id" | "title">[];
   categories: Pick<Category, "id" | "name">[];
-  onSubmit: (formData: FormData) => Promise<void>;
-  onImageFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
-  onVideoFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
-  isUploading: boolean;
-  imageUrl: string | null;
-  videoUrl: string | null;
+  onSubmit: (data: {
+    sponsor_id: number;
+    article_id: number;
+    category_id: number;
+    ad_type: "banner" | "video";
+    ad_content: string;
+    start_date: string;
+    end_date: string;
+    image_url: string | null;
+    video_url: string | null;
+  }) => Promise<void>;
 }
 
 export default function CreateAdvertisementForm({
@@ -35,16 +40,11 @@ export default function CreateAdvertisementForm({
   articles,
   categories,
   onSubmit,
-  onImageFileChange,
-  onVideoFileChange,
-  isUploading,
-  imageUrl,
-  videoUrl,
 }: CreateAdvertisementFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isEditMode = !!imageUrl || !!videoUrl;
+  const [isUploading, setIsUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string>("");
   const [previewVideo, setPreviewVideo] = useState<string>("");
   const [isImageLoading, setIsImageLoading] = useState(false);
@@ -55,9 +55,9 @@ export default function CreateAdvertisementForm({
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    watch,
     setValue,
+    watch,
+    formState: { errors },
   } = useForm<AdvertisementFormData>({
     resolver: zodResolver(advertisementSchema),
     defaultValues: {
@@ -68,6 +68,8 @@ export default function CreateAdvertisementForm({
       ad_content: "",
       start_date: "",
       end_date: "",
+      image_url: "",
+      video_url: "",
     },
   });
 
@@ -75,27 +77,14 @@ export default function CreateAdvertisementForm({
 
   const handleFormSubmit = async (data: AdvertisementFormData) => {
     try {
-      const formData = new FormData();
-
-      // Handle numeric fields - convert to string when appending to FormData
-      formData.append("sponsor_id", String(data.sponsor_id));
-      formData.append("article_id", String(data.article_id));
-      formData.append("category_id", String(data.category_id));
-
-      // Handle string fields
-      formData.append("ad_type", data.ad_type);
-      formData.append("ad_content", data.ad_content);
-      formData.append("start_date", data.start_date);
-      formData.append("end_date", data.end_date);
-
-      // Add media URLs if they exist
-      if (imageUrl) formData.append("image_url", imageUrl);
-      if (videoUrl) formData.append("video_url", videoUrl);
-
-      await onSubmit(formData);
+      await onSubmit({
+        ...data,
+        image_url: data.image_url || null,
+        video_url: data.video_url || null,
+      });
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("Failed to submit form");
+      toast.error("Failed to create advertisement");
     }
   };
 
@@ -106,92 +95,62 @@ export default function CreateAdvertisementForm({
   const handleImageFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     try {
-      const file = e.target.files?.[0];
-      if (!file) {
-        console.log("No file selected");
-        return;
+      console.log("Starting image upload with file:", {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      });
+
+      const result = await uploadToCloudinary(file, "image");
+      console.log("Image upload result:", result);
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to upload image");
       }
 
-      // Validate file type
-      const fileType = file.type;
-      const isImage = fileType.startsWith("image/");
-      if (!isImage) {
-        toast.error("Invalid file type. Only images are supported.");
-        return;
-      }
-
-      // Validate file size (5MB limit)
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (file.size > maxSize) {
-        toast.error("File size exceeds 5MB limit");
-        return;
-      }
-
-      // Store the selected file
-      setSelectedImageFile(file);
-
-      // Create a preview URL
-      const previewUrl = URL.createObjectURL(file);
-      setPreviewImage(previewUrl);
-
-      // Don't upload to Cloudinary immediately - wait for form submission
-      toast.success("Image selected successfully");
+      setValue("image_url", result.url || "");
+      setPreviewImage(result.url || "");
+      toast.success("Image uploaded successfully");
     } catch (error) {
-      console.error("Error handling image file:", error);
-      toast.error("Error selecting image");
+      console.error("Error uploading image:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to upload image"
+      );
     }
   };
 
   const handleVideoFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith("video/")) {
-      setError("Please select a valid video file");
-      return;
-    }
-
-    // Validate file size (max 50MB)
-    if (file.size > 50 * 1024 * 1024) {
-      setError("Video file size should be less than 50MB");
-      return;
-    }
-
-    // Store the file for later processing
-    setSelectedVideoFile(file);
-
-    // Create a preview URL for the video
-    const previewUrl = URL.createObjectURL(file);
-    setPreviewVideo(previewUrl);
-
-    // Set loading state
-    setIsVideoLoading(true);
-    setError(null);
-
     try {
-      // Upload to Cloudinary
-      const result = await uploadImage(file, "advertisements");
+      console.log("Starting video upload with file:", {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      });
+
+      const result = await uploadToCloudinary(file, "video");
+      console.log("Video upload result:", result);
 
       if (!result.success) {
         throw new Error(result.error || "Failed to upload video");
       }
 
-      if (result.url) {
-        // Update the form with the Cloudinary URL
-        setValue("video_url", result.url);
-        setPreviewVideo(result.url);
-        setSelectedVideoFile(null);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to upload video");
-      // Reset preview on error
-      setPreviewVideo("");
-    } finally {
-      setIsVideoLoading(false);
+      setValue("video_url", result.url || "");
+      setPreviewVideo(result.url || "");
+      toast.success("Video uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading video:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to upload video"
+      );
     }
   };
 
@@ -211,7 +170,9 @@ export default function CreateAdvertisementForm({
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-800">
         <h2 className="text-xl font-semibold text-white">
-          {isEditMode ? "Edit Advertisement" : "Create New Advertisement"}
+          {previewImage || previewVideo
+            ? "Edit Advertisement"
+            : "Create New Advertisement"}
         </h2>
       </div>
 
@@ -523,11 +484,7 @@ export default function CreateAdvertisementForm({
             disabled={isSubmitting || isUploading}
             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            {isSubmitting
-              ? "Saving..."
-              : isEditMode
-              ? "Update Advertisement"
-              : "Create Advertisement"}
+            {isSubmitting ? "Saving..." : "Create Advertisement"}
           </button>
         </div>
       </form>

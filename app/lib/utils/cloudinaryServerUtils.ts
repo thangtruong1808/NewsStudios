@@ -25,7 +25,7 @@ cloudinary.config({
  */
 export async function uploadImageToCloudinary(
   file: File,
-  folder: string = "portfolio"
+  folder: string = "NewsHub"
 ): Promise<{
   success: boolean;
   url?: string;

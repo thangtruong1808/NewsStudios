@@ -24,7 +24,7 @@ export async function uploadImageToCloudinary(base64String: string) {
       `data:image/jpeg;base64,${base64Data}`,
       {
         resource_type: "image",
-        folder: "advertisements",
+        folder: "NewsHub",
       }
     );
 
@@ -50,7 +50,7 @@ export async function uploadVideoToCloudinary(base64String: string) {
       `data:video/mp4;base64,${base64Data}`,
       {
         resource_type: "video",
-        folder: "advertisements",
+        folder: "NewsHub",
       }
     );
 

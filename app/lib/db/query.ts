@@ -42,17 +42,30 @@ export async function query<T = any>(
 export async function transaction<T>(
   callback: (client: TransactionClient) => Promise<T>
 ): Promise<T> {
+  console.log("Starting transaction");
   const connection = await pool.getConnection();
+  console.log("Transaction connection established");
 
   try {
+    console.log("Beginning transaction");
     await connection.beginTransaction();
+
+    console.log("Executing transaction callback");
     const result = await callback(connection);
+    console.log("Transaction callback completed successfully");
+
+    console.log("Committing transaction");
     await connection.commit();
+    console.log("Transaction committed successfully");
+
     return result;
   } catch (error) {
+    console.error("Transaction error:", error);
+    console.log("Rolling back transaction");
     await connection.rollback();
     throw error;
   } finally {
+    console.log("Releasing transaction connection");
     connection.release();
   }
 }
