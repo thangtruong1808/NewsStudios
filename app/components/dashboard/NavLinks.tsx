@@ -66,14 +66,7 @@ export default function NavLinks() {
 
         return (
           <div key={link.name}>
-            <div
-              className={clsx(
-                "flex items-center justify-between rounded-md p-2 text-sm font-medium hover:bg-gray-100",
-                {
-                  "bg-gray-100": isActive,
-                }
-              )}
-            >
+            <div className="flex items-center justify-between rounded-md p-2 text-sm font-medium">
               <NavLink href={link.href} icon={LinkIcon} label={link.name} />
             </div>
           </div>

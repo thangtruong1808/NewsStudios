@@ -4,14 +4,17 @@ import SignOutButton from "./SignOutButton";
 
 export default function SideNav() {
   return (
-    <div className="flex h-full flex-col px-3 py-4 md:px-2">
-      <div className="mb-2 flex h-20 items-center justify-start rounded-md bg-indigo-600 p-4 md:h-40">
-        <MyLogo />
+    <div className="flex h-full flex-col bg-indigo-200">
+      <div className="w-full bg-indigo-600">
+        <div className="h-20 md:h-40">
+          <MyLogo />
+        </div>
       </div>
-      <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">
-        <NavLinks />
-        <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
-        <div className="md:hidden">
+      <div className="flex flex-col space-y-2 px-2 py-2 md:px-2 md:h-full">
+        <div className="flex flex-col space-y-2 md:grow">
+          <NavLinks />
+        </div>
+        <div className="flex h-12 items-center md:hidden">
           <SignOutButton isMobile={true} />
         </div>
         <div className="hidden w-full md:block">
