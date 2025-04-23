@@ -33,6 +33,11 @@ interface CreateAdvertisementFormProps {
     image_url: string | null;
     video_url: string | null;
   }) => Promise<void>;
+  onImageFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  onVideoFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  isUploading: boolean;
+  imageUrl: string | null;
+  videoUrl: string | null;
 }
 
 export default function CreateAdvertisementForm({
@@ -40,11 +45,15 @@ export default function CreateAdvertisementForm({
   articles,
   categories,
   onSubmit,
+  onImageFileChange,
+  onVideoFileChange,
+  isUploading,
+  imageUrl,
+  videoUrl,
 }: CreateAdvertisementFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string>("");
   const [previewVideo, setPreviewVideo] = useState<string>("");
   const [isImageLoading, setIsImageLoading] = useState(false);

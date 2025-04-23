@@ -80,20 +80,25 @@ export default function CreateAdvertisementPageClient({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const toastId = toast.loading("Preparing to upload image...");
     try {
       setIsUploading(true);
 
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        toast.error("Please upload an image file");
+        toast.error("Please upload an image file", { id: toastId });
         return;
       }
 
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size should be less than 5MB");
+        toast.error("Image size should be less than 5MB", { id: toastId });
         return;
       }
+
+      // Simulate validation phase
+      await new Promise((res) => setTimeout(res, 1000));
+      toast.loading("Validating image...", { id: toastId });
 
       // Convert file to base64
       const base64String = await new Promise<string>((resolve, reject) => {
@@ -102,6 +107,14 @@ export default function CreateAdvertisementPageClient({
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
+
+      // Simulate conversion phase
+      await new Promise((res) => setTimeout(res, 1000));
+      toast.loading("Converting image...", { id: toastId });
+
+      // Simulate upload preparation
+      await new Promise((res) => setTimeout(res, 1000));
+      toast.loading("Preparing to upload to server...", { id: toastId });
 
       // Upload to Cloudinary
       const result = await uploadImageToCloudinary(base64String);
@@ -115,11 +128,12 @@ export default function CreateAdvertisementPageClient({
       }
 
       setImageUrl(result.url);
-      toast.success("Image uploaded successfully");
+      toast.success("Image uploaded successfully! ✅", { id: toastId });
     } catch (error) {
       console.error("Error uploading image:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to upload image"
+        error instanceof Error ? error.message : "Failed to upload image ❌",
+        { id: toastId }
       );
     } finally {
       setIsUploading(false);
@@ -132,20 +146,25 @@ export default function CreateAdvertisementPageClient({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const toastId = toast.loading("Preparing to upload video...");
     try {
       setIsUploading(true);
 
       // Validate file type
       if (!file.type.startsWith("video/")) {
-        toast.error("Please upload a video file");
+        toast.error("Please upload a video file", { id: toastId });
         return;
       }
 
       // Validate file size (50MB limit)
       if (file.size > 50 * 1024 * 1024) {
-        toast.error("Video size should be less than 50MB");
+        toast.error("Video size should be less than 50MB", { id: toastId });
         return;
       }
+
+      // Simulate validation phase
+      await new Promise((res) => setTimeout(res, 1000));
+      toast.loading("Validating video...", { id: toastId });
 
       // Convert file to base64
       const base64String = await new Promise<string>((resolve, reject) => {
@@ -154,6 +173,14 @@ export default function CreateAdvertisementPageClient({
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
+
+      // Simulate conversion phase
+      await new Promise((res) => setTimeout(res, 1000));
+      toast.loading("Converting video...", { id: toastId });
+
+      // Simulate upload preparation
+      await new Promise((res) => setTimeout(res, 1000));
+      toast.loading("Preparing to upload to server...", { id: toastId });
 
       // Upload to Cloudinary
       const result = await uploadVideoToCloudinary(base64String);
@@ -167,11 +194,12 @@ export default function CreateAdvertisementPageClient({
       }
 
       setVideoUrl(result.url);
-      toast.success("Video uploaded successfully");
+      toast.success("Video uploaded successfully! ✅", { id: toastId });
     } catch (error) {
       console.error("Error uploading video:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to upload video"
+        error instanceof Error ? error.message : "Failed to upload video ❌",
+        { id: toastId }
       );
     } finally {
       setIsUploading(false);

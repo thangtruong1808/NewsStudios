@@ -4,14 +4,14 @@ import { v2 as cloudinary } from "cloudinary";
 
 // Log environment variables for debugging (without exposing sensitive values)
 console.log("Cloudinary environment check:", {
-  hasCloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
+  hasCloudName: !!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   hasApiKey: !!process.env.CLOUDINARY_API_KEY,
   hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
 });
 
 // Configure Cloudinary with your credentials
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "",
   api_key: process.env.CLOUDINARY_API_KEY || "",
   api_secret: process.env.CLOUDINARY_API_SECRET || "",
   secure: true,
@@ -34,7 +34,7 @@ export async function uploadImageToCloudinary(
 }> {
   try {
     // Check if Cloudinary is properly configured
-    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+    if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) {
       console.error("Cloudinary configuration missing: cloud_name");
       throw new Error("Cloudinary cloud_name is not configured");
     }
@@ -144,7 +144,7 @@ export async function deleteImageFromCloudinary(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Check if Cloudinary is properly configured
-    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+    if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) {
       throw new Error("Cloudinary cloud_name is not configured");
     }
 

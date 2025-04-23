@@ -67,16 +67,8 @@ export default async function PhotosPage() {
               return null;
             }
 
-            // Determine if the image_url is a full URL or just a filename
-            let imageUrl = image.image_url;
-
-            // If it's not a full URL (doesn't start with http/https), construct the full URL
-            if (
-              !image.image_url.startsWith("http://") &&
-              !image.image_url.startsWith("https://")
-            ) {
-              imageUrl = `https://srv876-files.hstgr.io/3fd7426401e9c4d8/files/public_html/Images/${image.image_url}`;
-            }
+            // Check if the image URL is from the newshub_photos folder
+            const isNewshubPhoto = image.image_url.includes("newshub_photos");
 
             // Format the updated_at date
             const updatedDate = image.updated_at
@@ -101,7 +93,9 @@ export default async function PhotosPage() {
                 {/* Image Container */}
                 <div className="relative aspect-square overflow-hidden">
                   <Image
-                    src={imageUrl}
+                    src={
+                      isNewshubPhoto ? image.image_url : "/image-not-found.jpeg"
+                    }
                     alt={image.description || `Image ${image.id}`}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -164,10 +158,6 @@ export default async function PhotosPage() {
                       </span>
                     </div>
                   )}
-
-                  {/* <div className="text-xs text-gray-500 truncate">
-                    {new URL(imageUrl).hostname}
-                  </div> */}
                 </div>
               </div>
             );

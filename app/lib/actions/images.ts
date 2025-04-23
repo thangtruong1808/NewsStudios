@@ -46,7 +46,7 @@ export async function uploadImageToServer(formData: FormData) {
 
     // Upload to Cloudinary instead of FTP
     console.log("Uploading image to Cloudinary...");
-    const result = await uploadImageToCloudinary(file, "portfolio");
+    const result = await uploadImageToCloudinary(file, "newshub_photos");
 
     if (!result.success) {
       console.error("Cloudinary upload error:", result.error);
