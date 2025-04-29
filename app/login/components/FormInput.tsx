@@ -31,11 +31,11 @@ export default function FormInput({
   autoComplete,
 }: FormInputProps) {
   return (
-    <div>
+    <div className="space-y-2">
       <label htmlFor={id} className="block text-sm font-medium text-gray-700">
         {label}
       </label>
-      <div className="relative mt-1 rounded-md shadow-sm">
+      <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           {icon}
         </div>
@@ -46,9 +46,12 @@ export default function FormInput({
           autoComplete={autoComplete}
           value={value}
           onChange={onChange}
-          className={`block w-full rounded-md border ${
-            error ? "border-red-300" : "border-gray-300"
-          } pl-10 pr-3 py-2 text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm px-4 py-2`}
+          className={`block w-full rounded-lg border ${
+            error ? "border-red-300" : "border-gray-200"
+          } pl-10 pr-3 py-2.5 text-gray-900 placeholder-gray-400 
+          focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 
+          transition-colors duration-200 ease-in-out
+          ${error ? "bg-red-50" : "bg-white"}`}
           placeholder={placeholder}
         />
         {error && (
@@ -65,7 +68,9 @@ export default function FormInput({
           </div>
         )}
       </div>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className="mt-1 text-sm text-red-600 animate-fade-in">{error}</p>
+      )}
     </div>
   );
 }

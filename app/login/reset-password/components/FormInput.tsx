@@ -12,7 +12,7 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
   ({ label, error, className = "", ...props }, ref) => {
     return (
-      <div className="space-y-1">
+      <div className="space-y-2">
         <label
           htmlFor={props.id}
           className="block text-sm font-medium text-gray-700"
@@ -22,12 +22,18 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
         <input
           {...props}
           ref={ref}
-          className={`appearance-none block w-full px-3 py-2 border ${
-            error ? "border-red-300" : "border-gray-300"
-          } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${className}`}
+          className={`block w-full rounded-lg border ${
+            error ? "border-red-300" : "border-gray-200"
+          } px-3 py-2.5 text-gray-900 placeholder-gray-400 
+          focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 
+          transition-colors duration-200 ease-in-out
+          ${error ? "bg-red-50" : "bg-white"} ${className}`}
         />
         {error && (
-          <p className="mt-1 text-sm text-red-600" id={`${props.id}-error`}>
+          <p
+            className="mt-1 text-sm text-red-600 animate-fade-in"
+            id={`${props.id}-error`}
+          >
             {error}
           </p>
         )}

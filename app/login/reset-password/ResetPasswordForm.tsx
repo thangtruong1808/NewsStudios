@@ -44,46 +44,44 @@ export default function ResetPasswordForm() {
   };
 
   return (
-    <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-      <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-        <FormInput
-          id="email"
-          type="email"
-          label="Email"
-          error={errors.email?.message}
-          {...register("email")}
-          placeholder="your.email@example.com"
-        />
+    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+      <FormInput
+        id="email"
+        type="email"
+        label="Email"
+        error={errors.email?.message}
+        {...register("email")}
+        placeholder="your.email@example.com"
+      />
 
-        <PasswordInput
-          id="password"
-          label="New Password"
-          error={errors.password?.message}
-          {...register("password")}
-          placeholder="••••••••"
-        />
+      <PasswordInput
+        id="password"
+        label="New Password"
+        error={errors.password?.message}
+        {...register("password")}
+        placeholder="••••••••"
+      />
 
-        <PasswordInput
-          id="confirmPassword"
-          label="Confirm New Password"
-          error={errors.confirmPassword?.message}
-          {...register("confirmPassword")}
-          placeholder="••••••••"
-        />
+      <PasswordInput
+        id="confirmPassword"
+        label="Confirm New Password"
+        error={errors.confirmPassword?.message}
+        {...register("confirmPassword")}
+        placeholder="••••••••"
+      />
 
-        <SubmitButton isLoading={isSubmitting}>
-          {isSubmitting ? "Resetting..." : "Reset Password"}
-        </SubmitButton>
+      <SubmitButton isLoading={isSubmitting}>
+        {isSubmitting ? "Resetting..." : "Reset Password"}
+      </SubmitButton>
 
-        <div className="text-center">
-          <Link
-            href="/login"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
-          >
-            Back to Login
-          </Link>
-        </div>
-      </form>
-    </div>
+      <div className="text-center">
+        <Link
+          href="/login"
+          className="font-medium text-indigo-600 hover:text-indigo-500"
+        >
+          Back to Login
+        </Link>
+      </div>
+    </form>
   );
 }
