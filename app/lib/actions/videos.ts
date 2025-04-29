@@ -76,10 +76,10 @@ export async function createVideo(
       [video.article_id, video.video_url, video.description]
     );
     revalidatePath("/dashboard/videos");
-    return { data: result, error: null };
+    return { success: true, error: null };
   } catch (error) {
     console.error("Error creating video:", error);
-    return { data: null, error: "Failed to create video" };
+    return { success: false, error: "Failed to create video" };
   }
 }
 

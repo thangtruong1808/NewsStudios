@@ -1,7 +1,12 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { PlusIcon, TrashIcon, PencilIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  TrashIcon,
+  PencilIcon,
+  ClockIcon,
+} from "@heroicons/react/24/outline";
 import { getImages } from "../../lib/actions/images";
 import { getArticles } from "../../lib/actions/articles";
 import { Article } from "../../lib/definition";
@@ -130,9 +135,12 @@ export default async function PhotosPage() {
                     <span className="text-xs font-medium text-indigo-600">
                       ID: {image.id}
                     </span>
-                    <span className="text-xs text-gray-500">
-                      Updated: {updatedDate}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <ClockIcon className="h-4 w-4 text-gray-400" />
+                      <span className="text-xs text-gray-500">
+                        Updated: {updatedDate}
+                      </span>
+                    </div>
                   </div>
 
                   {image.article_id && (
