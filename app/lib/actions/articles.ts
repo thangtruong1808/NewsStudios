@@ -1,22 +1,30 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { query, transaction, TransactionClient } from "../db/query";
+import { query } from "../db/db";
 import { RowDataPacket } from "mysql2";
 import { Article } from "../definition";
+import mysql from "mysql2/promise";
+import { pool } from "../db/db";
 
 export interface ArticleWithJoins extends Article, RowDataPacket {
   category_name?: string;
+  sub_category_name?: string;
   author_name?: string;
   user_firstname?: string;
   user_lastname?: string;
 }
 
-export async function getArticles() {
-  const { data, error } = await query(`
+export async function getArticles(params?: {
+  subcategoryId?: string;
+  tag?: string;
+  type?: "trending";
+}) {
+  let sqlQuery = `
     SELECT 
       a.*,
       c.name as category_name,
+      sc.name as sub_category_name,
       CONCAT(u.firstname, ' ', u.lastname) as author_name,
       GROUP_CONCAT(t.name) as tag_names,
       GROUP_CONCAT(t.id) as tag_ids,
@@ -26,12 +34,39 @@ export async function getArticles() {
       COALESCE(a.is_trending, false) as is_trending
     FROM Articles a
     LEFT JOIN Categories c ON a.category_id = c.id
+    LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
     LEFT JOIN Users u ON a.user_id = u.id
     LEFT JOIN Article_Tags at ON a.id = at.article_id
     LEFT JOIN Tags t ON at.tag_id = t.id
+  `;
+
+  const conditions = [];
+  const values = [];
+
+  if (params?.subcategoryId) {
+    conditions.push("a.sub_category_id = ?");
+    values.push(params.subcategoryId);
+  }
+
+  if (params?.tag) {
+    conditions.push("t.name = ?");
+    values.push(params.tag);
+  }
+
+  if (params?.type === "trending") {
+    conditions.push("a.is_trending = true");
+  }
+
+  if (conditions.length > 0) {
+    sqlQuery += " WHERE " + conditions.join(" AND ");
+  }
+
+  sqlQuery += `
     GROUP BY a.id, c.name, u.firstname, u.lastname
     ORDER BY a.published_at DESC
-  `);
+  `;
+
+  const { data, error } = await query(sqlQuery, values);
 
   if (error) throw new Error(error);
 
@@ -98,15 +133,18 @@ type CreateArticleData = Omit<Article, "id" | "published_at" | "updated_at"> & {
 };
 
 export async function createArticle(article: Article, tag_ids: number[]) {
-  return transaction(async (trx: TransactionClient) => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
     // Insert article
-    const { data: articleResult, error: articleError } = await query(
+    const [articleResult] = await connection.execute(
       `INSERT INTO Articles (
-          title, content, category_id, user_id, author_id, 
-          sub_category_id, image, video, published_at, updated_at,
-          is_featured, headline_priority, headline_image_url, 
-          headline_video_url, is_trending
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?, ?, ?, ?, ?)`,
+        title, content, category_id, user_id, author_id, 
+        sub_category_id, image, video, published_at, updated_at,
+        is_featured, headline_priority, headline_image_url, 
+        headline_video_url, is_trending
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?, ?, ?, ?, ?)`,
       [
         article.title,
         article.content,
@@ -121,62 +159,48 @@ export async function createArticle(article: Article, tag_ids: number[]) {
         article.headline_image_url || null,
         article.headline_video_url || null,
         article.is_trending || false,
-      ],
-      trx
+      ]
     );
 
-    if (articleError) throw new Error(articleError);
-
-    // Get the inserted article ID
-    const { data: insertedArticle, error: getError } = await query(
-      "SELECT * FROM Articles WHERE id = LAST_INSERT_ID()",
-      [],
-      trx
-    );
-
-    if (getError) throw new Error(getError);
-    const newArticle = insertedArticle?.[0];
+    const newArticleId = (articleResult as any).insertId;
 
     // Insert article tags
     if (tag_ids.length > 0) {
       const placeholders = tag_ids.map(() => "(?, ?)").join(",");
-      const values = tag_ids.flatMap((tagId) => [newArticle.id, tagId]);
+      const values = tag_ids.flatMap((tagId) => [newArticleId, tagId]);
 
-      const { error: tagError } = await query(
+      await connection.execute(
         `INSERT INTO Article_Tags (article_id, tag_id) VALUES ${placeholders}`,
-        values,
-        trx
+        values
       );
-
-      if (tagError) throw new Error(tagError);
     }
 
     // Insert image into Images table if present
     if (article.image) {
-      const { error: imageError } = await query(
+      await connection.execute(
         `INSERT INTO Images (article_id, image_url, created_at) 
          VALUES (?, ?, NOW())`,
-        [newArticle.id, article.image],
-        trx
+        [newArticleId, article.image]
       );
-
-      if (imageError) throw new Error(imageError);
     }
 
     // Insert video into Videos table if present
     if (article.video) {
-      const { error: videoError } = await query(
+      await connection.execute(
         `INSERT INTO Videos (article_id, video_url, created_at) 
          VALUES (?, ?, NOW())`,
-        [newArticle.id, article.video],
-        trx
+        [newArticleId, article.video]
       );
-
-      if (videoError) throw new Error(videoError);
     }
 
-    return newArticle;
-  });
+    await connection.commit();
+    return newArticleId;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 }
 
 export async function updateArticle(
@@ -184,7 +208,10 @@ export async function updateArticle(
   article: Partial<Article>,
   tag_ids?: number[]
 ) {
-  return transaction(async (trx: TransactionClient) => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
     // Filter out non-database fields and undefined values
     const validFields = [
       "title",
@@ -213,137 +240,114 @@ export async function updateArticle(
       .map((key) => `${key} = ?`)
       .join(", ");
 
-    const { error: articleError } = await query(
+    await connection.execute(
       `UPDATE Articles SET ${setClauses}, updated_at = NOW() WHERE id = ?`,
-      [...Object.values(articleData), id],
-      trx
+      [...Object.values(articleData), id]
     );
-
-    if (articleError) throw new Error(articleError);
 
     // Handle image update
     if (article.image) {
-      // Check if an image record already exists for this article
-      const { data: existingImage } = await query(
+      const [existingImage] = await connection.execute(
         "SELECT id FROM Images WHERE article_id = ?",
-        [id],
-        trx
+        [id]
       );
 
-      if (existingImage && existingImage.length > 0) {
-        // Update existing image record
-        const { error: imageError } = await query(
+      if ((existingImage as any[]).length > 0) {
+        await connection.execute(
           "UPDATE Images SET image_url = ?, updated_at = NOW() WHERE article_id = ?",
-          [article.image, id],
-          trx
+          [article.image, id]
         );
-        if (imageError) throw new Error(imageError);
       } else {
-        // Insert new image record
-        const { error: imageError } = await query(
+        await connection.execute(
           "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
-          [id, article.image],
-          trx
+          [id, article.image]
         );
-        if (imageError) throw new Error(imageError);
       }
     }
 
     // Handle video update
     if (article.video) {
-      // Check if a video record already exists for this article
-      const { data: existingVideo } = await query(
+      const [existingVideo] = await connection.execute(
         "SELECT id FROM Videos WHERE article_id = ?",
-        [id],
-        trx
+        [id]
       );
 
-      if (existingVideo && existingVideo.length > 0) {
-        // Update existing video record
-        const { error: videoError } = await query(
+      if ((existingVideo as any[]).length > 0) {
+        await connection.execute(
           "UPDATE Videos SET video_url = ?, updated_at = NOW() WHERE article_id = ?",
-          [article.video, id],
-          trx
+          [article.video, id]
         );
-        if (videoError) throw new Error(videoError);
       } else {
-        // Insert new video record
-        const { error: videoError } = await query(
+        await connection.execute(
           "INSERT INTO Videos (article_id, video_url, created_at) VALUES (?, ?, NOW())",
-          [id, article.video],
-          trx
+          [id, article.video]
         );
-        if (videoError) throw new Error(videoError);
       }
     }
 
     // Update tags if provided
     if (tag_ids !== undefined) {
-      // Delete existing tags
-      await query("DELETE FROM Article_Tags WHERE article_id = ?", [id], trx);
+      await connection.execute(
+        "DELETE FROM Article_Tags WHERE article_id = ?",
+        [id]
+      );
 
-      // Insert new tags
       if (tag_ids.length > 0) {
         const placeholders = tag_ids.map(() => "(?, ?)").join(",");
         const values = tag_ids.flatMap((tagId) => [id, tagId]);
 
-        const { error: tagError } = await query(
+        await connection.execute(
           `INSERT INTO Article_Tags (article_id, tag_id) VALUES ${placeholders}`,
-          values,
-          trx
+          values
         );
-
-        if (tagError) throw new Error(tagError);
       }
     }
 
+    await connection.commit();
+
     // Get the updated article
-    const { data: updatedArticle, error: getError } = await query(
+    const [updatedArticle] = await connection.execute(
       "SELECT * FROM Articles WHERE id = ?",
-      [id],
-      trx
+      [id]
     );
 
-    if (getError) throw new Error(getError);
-
-    return updatedArticle?.[0];
-  });
+    return (updatedArticle as any[])[0];
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 }
 
 export async function deleteArticle(id: number) {
-  return transaction(async (trx: TransactionClient) => {
-    try {
-      // Delete article tags first
-      await query("DELETE FROM Article_Tags WHERE article_id = ?", [id], trx);
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
 
-      // Delete associated images
-      const { error: imageError } = await query(
-        "DELETE FROM Images WHERE article_id = ?",
-        [id],
-        trx
-      );
-      if (imageError) throw new Error(imageError);
+    // Delete article tags first
+    await connection.execute("DELETE FROM Article_Tags WHERE article_id = ?", [
+      id,
+    ]);
 
-      // Delete associated videos
-      const { error: videoError } = await query(
-        "DELETE FROM Videos WHERE article_id = ?",
-        [id],
-        trx
-      );
-      if (videoError) throw new Error(videoError);
+    // Delete associated images
+    await connection.execute("DELETE FROM Images WHERE article_id = ?", [id]);
 
-      // Delete article
-      const { data: result, error } = await query(
-        "DELETE FROM Articles WHERE id = ?",
-        [id],
-        trx
-      );
+    // Delete associated videos
+    await connection.execute("DELETE FROM Videos WHERE article_id = ?", [id]);
 
-      if (error) throw new Error(error);
-      return result?.[0];
-    } catch (error) {
-      console.error("Error deleting article:", error);
-      throw error;
-    }
-  });
+    // Delete article
+    const [result] = await connection.execute(
+      "DELETE FROM Articles WHERE id = ?",
+      [id]
+    );
+
+    await connection.commit();
+    return (result as any).affectedRows > 0;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 }
