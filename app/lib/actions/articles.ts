@@ -70,7 +70,27 @@ export async function getArticleById(id: number) {
   );
 
   if (error) return { data: null, error };
-  return { data: data?.[0], error: null };
+
+  // Transform the data to ensure all required fields are present and properly formatted
+  const article = data?.[0];
+  if (article) {
+    return {
+      data: {
+        ...article,
+        published_at: new Date(article.published_at),
+        created_at: new Date(article.created_at),
+        updated_at: new Date(article.updated_at),
+        is_featured: Boolean(article.is_featured),
+        is_trending: Boolean(article.is_trending),
+        headline_priority: Number(article.headline_priority),
+        tag_names: article.tag_names ? article.tag_names.split(",") : [],
+        tag_ids: article.tag_ids ? article.tag_ids.split(",").map(Number) : [],
+      },
+      error: null,
+    };
+  }
+
+  return { data: null, error: null };
 }
 
 type CreateArticleData = Omit<Article, "id" | "published_at" | "updated_at"> & {
@@ -131,6 +151,30 @@ export async function createArticle(article: Article, tag_ids: number[]) {
       if (tagError) throw new Error(tagError);
     }
 
+    // Insert image into Images table if present
+    if (article.image) {
+      const { error: imageError } = await query(
+        `INSERT INTO Images (article_id, image_url, created_at) 
+         VALUES (?, ?, NOW())`,
+        [newArticle.id, article.image],
+        trx
+      );
+
+      if (imageError) throw new Error(imageError);
+    }
+
+    // Insert video into Videos table if present
+    if (article.video) {
+      const { error: videoError } = await query(
+        `INSERT INTO Videos (article_id, video_url, created_at) 
+         VALUES (?, ?, NOW())`,
+        [newArticle.id, article.video],
+        trx
+      );
+
+      if (videoError) throw new Error(videoError);
+    }
+
     return newArticle;
   });
 }
@@ -177,14 +221,61 @@ export async function updateArticle(
 
     if (articleError) throw new Error(articleError);
 
-    // Get the updated article
-    const { data: updatedArticle, error: getError } = await query(
-      "SELECT * FROM Articles WHERE id = ?",
-      [id],
-      trx
-    );
+    // Handle image update
+    if (article.image) {
+      // Check if an image record already exists for this article
+      const { data: existingImage } = await query(
+        "SELECT id FROM Images WHERE article_id = ?",
+        [id],
+        trx
+      );
 
-    if (getError) throw new Error(getError);
+      if (existingImage && existingImage.length > 0) {
+        // Update existing image record
+        const { error: imageError } = await query(
+          "UPDATE Images SET image_url = ?, updated_at = NOW() WHERE article_id = ?",
+          [article.image, id],
+          trx
+        );
+        if (imageError) throw new Error(imageError);
+      } else {
+        // Insert new image record
+        const { error: imageError } = await query(
+          "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
+          [id, article.image],
+          trx
+        );
+        if (imageError) throw new Error(imageError);
+      }
+    }
+
+    // Handle video update
+    if (article.video) {
+      // Check if a video record already exists for this article
+      const { data: existingVideo } = await query(
+        "SELECT id FROM Videos WHERE article_id = ?",
+        [id],
+        trx
+      );
+
+      if (existingVideo && existingVideo.length > 0) {
+        // Update existing video record
+        const { error: videoError } = await query(
+          "UPDATE Videos SET video_url = ?, updated_at = NOW() WHERE article_id = ?",
+          [article.video, id],
+          trx
+        );
+        if (videoError) throw new Error(videoError);
+      } else {
+        // Insert new video record
+        const { error: videoError } = await query(
+          "INSERT INTO Videos (article_id, video_url, created_at) VALUES (?, ?, NOW())",
+          [id, article.video],
+          trx
+        );
+        if (videoError) throw new Error(videoError);
+      }
+    }
 
     // Update tags if provided
     if (tag_ids !== undefined) {
@@ -206,23 +297,53 @@ export async function updateArticle(
       }
     }
 
+    // Get the updated article
+    const { data: updatedArticle, error: getError } = await query(
+      "SELECT * FROM Articles WHERE id = ?",
+      [id],
+      trx
+    );
+
+    if (getError) throw new Error(getError);
+
     return updatedArticle?.[0];
   });
 }
 
 export async function deleteArticle(id: number) {
   return transaction(async (trx: TransactionClient) => {
-    // Delete article tags first
-    await query("DELETE FROM Article_Tags WHERE article_id = ?", [id], trx);
+    try {
+      // Delete article tags first
+      await query("DELETE FROM Article_Tags WHERE article_id = ?", [id], trx);
 
-    // Delete article
-    const { data: result, error } = await query(
-      "DELETE FROM Articles WHERE id = ?",
-      [id],
-      trx
-    );
+      // Delete associated images
+      const { error: imageError } = await query(
+        "DELETE FROM Images WHERE article_id = ?",
+        [id],
+        trx
+      );
+      if (imageError) throw new Error(imageError);
 
-    if (error) throw new Error(error);
-    return result?.[0];
+      // Delete associated videos
+      const { error: videoError } = await query(
+        "DELETE FROM Videos WHERE article_id = ?",
+        [id],
+        trx
+      );
+      if (videoError) throw new Error(videoError);
+
+      // Delete article
+      const { data: result, error } = await query(
+        "DELETE FROM Articles WHERE id = ?",
+        [id],
+        trx
+      );
+
+      if (error) throw new Error(error);
+      return result?.[0];
+    } catch (error) {
+      console.error("Error deleting article:", error);
+      throw error;
+    }
   });
 }

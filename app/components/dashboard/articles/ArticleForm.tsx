@@ -7,13 +7,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
 import { createArticle, updateArticle } from "../../../lib/actions/articles";
-import { uploadFile } from "../../../lib/actions/upload";
+import { uploadToCloudinary } from "../../../lib/utils/cloudinaryUtils";
 import {
   User,
   Category as CategoryType,
   Author as AuthorType,
   SubCategory,
   Tag,
+  CreateArticleData,
 } from "../../../lib/definition";
 
 // Define types for the form
@@ -46,10 +47,9 @@ const articleSchema = z.object({
   video: z.string().optional(),
   is_featured: z.boolean().default(false),
   headline_priority: z.coerce.number().default(0),
-  headline_image_url: z.string().optional(),
-  headline_video_url: z.string().optional(),
   is_trending: z.boolean().default(false),
-  tag_ids: z.array(z.number()).optional(),
+  // tag_ids: z.array(z.number()).optional(),
+  tag_ids: z.array(z.number()).min(1, "At least one tag is required"),
 });
 
 type ArticleFormData = z.infer<typeof articleSchema>;
@@ -67,8 +67,6 @@ interface ArticleFormProps {
     video?: string | null;
     is_featured: boolean;
     headline_priority: number;
-    headline_image_url?: string | null;
-    headline_video_url?: string | null;
     is_trending: boolean;
     tag_ids: number[];
     created_at: Date;
@@ -81,6 +79,14 @@ interface ArticleFormProps {
   users: User[];
   tags: Tag[];
 }
+
+// Add LoadingSpinner component
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center mt-4">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+    <span className="ml-2 text-sm text-gray-600">Upload is processing ...</span>
+  </div>
+);
 
 export default function ArticleForm({
   article,
@@ -110,19 +116,11 @@ export default function ArticleForm({
   const [videoUrl, setVideoUrl] = useState<string | null>(
     article?.video || null
   );
-  const [headlineImageUrl, setHeadlineImageUrl] = useState<string | null>(
-    article?.headline_image_url || null
-  );
-  const [headlineVideoUrl, setHeadlineVideoUrl] = useState<string | null>(
-    article?.headline_video_url || null
-  );
 
   // Add state for upload progress
   const [uploadProgress, setUploadProgress] = useState<{
     image?: number;
     video?: number;
-    headlineImage?: number;
-    headlineVideo?: number;
   }>({});
 
   const {
@@ -145,8 +143,6 @@ export default function ArticleForm({
       video: article?.video || "",
       is_featured: article?.is_featured || false,
       headline_priority: article?.headline_priority || 0,
-      headline_image_url: article?.headline_image_url || "",
-      headline_video_url: article?.headline_video_url || "",
       is_trending: article?.is_trending || false,
       tag_ids: article?.tag_ids || [],
     },
@@ -166,8 +162,6 @@ export default function ArticleForm({
       setValue("video", article.video || "");
       setValue("is_featured", article.is_featured);
       setValue("headline_priority", article.headline_priority);
-      setValue("headline_image_url", article.headline_image_url || "");
-      setValue("headline_video_url", article.headline_video_url || "");
       setValue("is_trending", article.is_trending);
 
       // Set selected category for subcategory filtering
@@ -176,8 +170,6 @@ export default function ArticleForm({
       // Set image and video URLs
       setImageUrl(article.image || null);
       setVideoUrl(article.video || null);
-      setHeadlineImageUrl(article.headline_image_url || null);
-      setHeadlineVideoUrl(article.headline_video_url || null);
 
       // Set selected tags
       if (article.tag_ids && article.tag_ids.length > 0) {
@@ -218,20 +210,40 @@ export default function ArticleForm({
     setValue("tag_ids", selectedOptions);
   };
 
-  const handleFileUpload = async (
-    file: File,
-    type: "image" | "video" | "headlineImage" | "headlineVideo"
-  ) => {
+  const handleFileUpload = async (file: File, type: "image" | "video") => {
     try {
       setUploadProgress((prev) => ({
         ...prev,
         [type]: 0,
       }));
 
-      const { url, error } = await uploadFile(file);
+      // Validate file type
+      if (type.includes("image") && !file.type.startsWith("image/")) {
+        toast.error("Please select an image file");
+        return;
+      }
+      if (type.includes("video") && !file.type.startsWith("video/")) {
+        toast.error("Please select a video file");
+        return;
+      }
 
-      if (error) {
-        toast.error(`Failed to upload ${type}: ${error}`);
+      // Validate file size based on type
+      if (type === "image" && file.size > 100 * 1024 * 1024) {
+        toast.error("Image file size must be less than 100MB");
+        return;
+      }
+      if (type === "video" && file.size > 500 * 1024 * 1024) {
+        toast.error("Video file size must be less than 500MB");
+        return;
+      }
+
+      const result = await uploadToCloudinary(
+        file,
+        type.includes("video") ? "video" : "image"
+      );
+
+      if (!result.success || !result.url) {
+        toast.error(`Failed to upload ${type}: ${result.error}`);
         return;
       }
 
@@ -242,16 +254,12 @@ export default function ArticleForm({
 
       switch (type) {
         case "image":
-          setImageUrl(url);
+          setImageUrl(result.url);
+          setValue("image", result.url);
           break;
         case "video":
-          setVideoUrl(url);
-          break;
-        case "headlineImage":
-          setHeadlineImageUrl(url);
-          break;
-        case "headlineVideo":
-          setHeadlineVideoUrl(url);
+          setVideoUrl(result.url);
+          setValue("video", result.url);
           break;
       }
 
@@ -287,18 +295,23 @@ export default function ArticleForm({
   const onSubmit = async (data: ArticleFormData) => {
     setIsSubmitting(true);
     try {
-      // Prepare article data
+      // Prepare article data with proper type handling
       const articleData = {
-        ...data,
-        image: imageUrl,
-        video: videoUrl,
-        headline_image_url: headlineImageUrl,
-        headline_video_url: headlineVideoUrl,
-        tag_ids: selectedTags,
-        id: article?.id || 0,
-        created_at: article?.created_at || new Date(),
+        id: article?.id || 0, // Temporary id for new articles
+        title: data.title,
+        content: data.content,
+        category_id: data.category_id,
+        author_id: data.author_id,
+        user_id: data.user_id,
+        sub_category_id: data.sub_category_id,
+        image: imageUrl || undefined,
+        video: videoUrl || undefined,
+        is_featured: data.is_featured,
+        headline_priority: data.headline_priority,
+        is_trending: data.is_trending,
+        created_at: new Date(),
         updated_at: new Date(),
-        published_at: article?.published_at || new Date(),
+        published_at: new Date(),
       };
 
       // Create or update article
@@ -587,10 +600,23 @@ export default function ArticleForm({
               <div className="mt-2">
                 <div className="h-2 w-full bg-gray-200 rounded-full">
                   <div
-                    className="h-2 bg-indigo-600 rounded-full"
+                    className="h-2 bg-indigo-600 rounded-full transition-all duration-300"
                     style={{
                       width: `${uploadProgress.image}%`,
                     }}
+                  />
+                </div>
+                {uploadProgress.image < 100 && <LoadingSpinner />}
+              </div>
+            )}
+            {imageUrl && (
+              <div className="mt-2">
+                <p className="text-sm font-medium text-gray-700">Preview:</p>
+                <div className="mt-1 relative h-48 w-48 overflow-hidden rounded-md">
+                  <img
+                    src={imageUrl}
+                    alt="Preview"
+                    className="h-full w-full object-cover"
                   />
                 </div>
               </div>
@@ -624,36 +650,25 @@ export default function ArticleForm({
               <div className="mt-2">
                 <div className="h-2 w-full bg-gray-200 rounded-full">
                   <div
-                    className="h-2 bg-indigo-600 rounded-full"
+                    className="h-2 bg-indigo-600 rounded-full transition-all duration-300"
                     style={{
                       width: `${uploadProgress.video}%`,
                     }}
                   />
                 </div>
+                {uploadProgress.video < 100 && <LoadingSpinner />}
               </div>
             )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Headline Image URL
-            </label>
-            <input
-              type="text"
-              {...register("headline_image_url")}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Headline Video URL
-            </label>
-            <input
-              type="text"
-              {...register("headline_video_url")}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
-            />
+            {videoUrl && (
+              <div className="mt-2">
+                <p className="text-sm font-medium text-gray-700">Preview:</p>
+                <video
+                  src={videoUrl}
+                  controls
+                  className="mt-1 max-w-md rounded-md"
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -73,7 +73,7 @@ export interface Article {
   category_id: number;
   author_id: number;
   user_id: number;
-  sub_category_id: number;
+  sub_category_id?: number;
   image?: string;
   video?: string;
   is_featured: boolean;
@@ -84,6 +84,12 @@ export interface Article {
   published_at?: Date;
   created_at: Date;
   updated_at: Date;
+  category_name?: string;
+  author_name?: string;
+  user_firstname?: string;
+  user_lastname?: string;
+  tag_names?: string[];
+  tag_ids?: number[];
 }
 
 export type CreateArticleData = Omit<

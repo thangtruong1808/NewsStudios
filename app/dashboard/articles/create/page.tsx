@@ -5,6 +5,15 @@ import { getUsers } from "../../../lib/actions/users";
 import { getTags } from "../../../lib/actions/tags";
 import ArticleForm from "../../../components/dashboard/articles/ArticleForm";
 import { User, Tag } from "../../../lib/definition";
+import { uploadToCloudinary } from "../../../lib/utils/cloudinaryUtils";
+
+// Helper function to add a small delay
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Helper function to clean up any object for safe passing
+function serializeForClient<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
 
 export default async function CreateArticlePage() {
   try {
@@ -35,8 +44,7 @@ export default async function CreateArticlePage() {
       name: string;
     }[];
 
-    const subcategories = (subcategoriesResult.data ??
-      []) as {
+    const subcategories = (subcategoriesResult.data ?? []) as {
       id: number;
       name: string;
       category_id: number;
@@ -47,17 +55,24 @@ export default async function CreateArticlePage() {
 
     const tags = (tagsResult.data ?? []) as Tag[];
 
+    // Serialize data for client component
+    const serializedData = {
+      categories: serializeForClient(categories),
+      authors: serializeForClient(authors),
+      subcategories: serializeForClient(subcategories),
+      users: serializeForClient(users),
+      tags: serializeForClient(tags),
+    };
+
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="mb-8 text-2xl font-bold">
-          Create New Article
-        </h1>
+        <h1 className="mb-8 text-2xl font-bold">Create New Article</h1>
         <ArticleForm
-          categories={categories}
-          authors={authors}
-          subcategories={subcategories}
-          users={users}
-          tags={tags}
+          categories={serializedData.categories}
+          authors={serializedData.authors}
+          subcategories={serializedData.subcategories}
+          users={serializedData.users}
+          tags={serializedData.tags}
         />
       </div>
     );
@@ -73,9 +88,7 @@ export default async function CreateArticlePage() {
               </h3>
               <div className="mt-2 text-sm text-red-700">
                 <p>
-                  {error instanceof Error
-                    ? error.message
-                    : "An error occurred"}
+                  {error instanceof Error ? error.message : "An error occurred"}
                 </p>
               </div>
             </div>
