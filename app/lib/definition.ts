@@ -85,6 +85,7 @@ export interface Article {
   created_at: Date;
   updated_at: Date;
   category_name?: string;
+  sub_category_name?: string;
   author_name?: string;
   user_firstname?: string;
   user_lastname?: string;

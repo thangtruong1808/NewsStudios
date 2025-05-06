@@ -70,11 +70,33 @@ export async function createVideo(
   video: Omit<Video, "id" | "created_at" | "updated_at">
 ) {
   try {
+    console.log("Creating video in database:", video);
+
+    if (!video.article_id) {
+      throw new Error("Article ID is required");
+    }
+
+    if (!video.video_url) {
+      throw new Error("Video URL is required");
+    }
+
+    // Convert undefined to null for SQL
+    const description =
+      video.description === undefined ? null : video.description;
+
     const result = await query(
       `INSERT INTO Videos (article_id, video_url, description)
        VALUES (?, ?, ?)`,
-      [video.article_id, video.video_url, video.description]
+      [video.article_id, video.video_url, description]
     );
+
+    console.log("Database insert result:", result);
+
+    if (result.error) {
+      console.error("Database error:", result.error);
+      return { success: false, error: result.error };
+    }
+
     revalidatePath("/dashboard/videos");
     return { success: true, error: null };
   } catch (error) {

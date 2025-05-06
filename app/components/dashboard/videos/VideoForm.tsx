@@ -40,6 +40,7 @@ export default function VideoForm({ articles }: VideoFormProps) {
   const description = watch("description") || "";
 
   const handleVideoUrlChange = (url: string) => {
+    console.log("Video URL changed:", url);
     setVideoUrl(url);
     setValue("video_url", url);
   };
@@ -47,12 +48,23 @@ export default function VideoForm({ articles }: VideoFormProps) {
   const onSubmit = async (data: VideoFormData) => {
     try {
       setIsSubmitting(true);
+      console.log("Submitting form data:", data);
+
+      if (!data.video_url) {
+        throw new Error("Video URL is required");
+      }
+
+      if (!data.article_id) {
+        throw new Error("Article ID is required");
+      }
 
       const result = await createVideo({
         article_id: data.article_id,
         video_url: data.video_url,
         description: data.description || undefined,
       });
+
+      console.log("Create video result:", result);
 
       if (!result.success) {
         throw new Error(result.error || "Failed to create video");

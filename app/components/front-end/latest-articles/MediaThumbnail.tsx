@@ -1,0 +1,39 @@
+import Image from "next/image";
+import { VideoCameraIcon } from "@heroicons/react/24/outline";
+import { MediaThumbnailProps } from "./types";
+
+export const MediaThumbnail = ({
+  type,
+  item,
+  onClick,
+}: MediaThumbnailProps) => (
+  <div
+    className="relative aspect-square bg-gray-100 rounded-md overflow-hidden group cursor-pointer"
+    onClick={(e) => {
+      e.preventDefault();
+      onClick(item.url);
+    }}
+  >
+    {type === "image" ? (
+      <>
+        <Image
+          src={item.url}
+          alt="Media thumbnail"
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          sizes="(max-width: 768px) 10vw, 7vw"
+        />
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      </>
+    ) : (
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-600">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <VideoCameraIcon className="h-6 w-6 text-white opacity-80 mx-auto mb-1" />
+            <span className="text-xs text-white">Watch</span>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);

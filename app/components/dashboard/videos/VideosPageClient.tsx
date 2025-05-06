@@ -90,7 +90,7 @@ export default function VideosPageClient({
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
-                  ID
+                  Article ID
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   Article
@@ -117,7 +117,7 @@ export default function VideosPageClient({
                 >
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex items-center gap-3">
-                      <p>{video.id}</p>
+                      <p>{video.article_id || "N/A"}</p>
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">

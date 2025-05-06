@@ -64,11 +64,13 @@ export default function PhotoUploadForm({ articles }: PhotoUploadFormProps) {
         formData.append("description", description);
       }
 
-      console.log("Uploading file:", {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        articleId: selectedArticle,
+      console.log("Submitting form with data:", {
+        file: {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        },
+        article_id: selectedArticle,
         description: description,
       });
 

@@ -6,7 +6,7 @@ import LeftSidebar from "./components/front-end/LeftSidebar";
 import RightSidebar from "./components/front-end/RightSidebar";
 import Footer from "./components/front-end/Footer";
 import Articles from "./components/front-end/Articles";
-
+import LatestArticles from "./components/front-end/LatestArticles";
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -22,12 +22,17 @@ export default function Home() {
         <div className="max-w-[1536px] mx-auto px-4 py-8">
           <div className="flex gap-8">
             {/* Left Sidebar */}
-            <div className="w-64 flex-shrink-0">
+            {/* <div className="w-64 flex-shrink-0">
               <LeftSidebar />
-            </div>
+            </div> */}
 
             {/* Main Content */}
             <main className="flex-1 min-w-0">
+              {/* Get LaestArticle */}
+              <div className="">
+                <LatestArticles />
+              </div>
+              {/**/}
               {/* Articles Section */}
               <div className="mb-12 bg-white rounded-lg shadow-sm">
                 <div className="p-6">

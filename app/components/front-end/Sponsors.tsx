@@ -21,7 +21,6 @@ export default function Sponsors() {
           throw new Error(result.error);
         }
         if (result.data) {
-          console.log("Fetched sponsors:", result.data);
           setSponsors(result.data);
           setDisplayedSponsors(result.data);
           // Set initial selected letter based on the first sponsor
@@ -62,11 +61,8 @@ export default function Sponsors() {
     return acc;
   }, {} as Record<string, number>);
 
-  console.log("Letter counts:", letterCounts);
-
   // Sort letters alphabetically
   const firstLetters = Object.keys(letterCounts).sort();
-  console.log("First letters:", firstLetters);
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => {

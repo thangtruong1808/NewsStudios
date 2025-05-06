@@ -32,6 +32,8 @@ export async function uploadImageToServer(formData: FormData) {
       name: file.name,
       type: file.type,
       size: file.size,
+      article_id: article_id,
+      description: description,
     });
 
     // Check if file is valid
@@ -57,7 +59,20 @@ export async function uploadImageToServer(formData: FormData) {
       return { error: "Failed to get URL from Cloudinary upload" };
     }
 
-    console.log("Image uploaded to Cloudinary successfully:", result.url);
+    console.log("Image uploaded to Cloudinary successfully:", {
+      url: result.url,
+      article_id: article_id,
+      description: description,
+    });
+
+    // Log the URL before saving to database
+    console.log("URL before database save:", {
+      originalUrl: result.url,
+      urlType: typeof result.url,
+      urlLength: result.url.length,
+      firstChar: result.url.charAt(0),
+      lastChar: result.url.charAt(result.url.length - 1),
+    });
 
     // Save to database - store the full Cloudinary URL
     const dbResult = await query(
@@ -70,8 +85,17 @@ export async function uploadImageToServer(formData: FormData) {
     );
 
     if (dbResult.error) {
+      console.error("Database error:", dbResult.error);
       return { error: dbResult.error };
     }
+
+    // Log the database result
+    console.log("Database save result:", {
+      success: !dbResult.error,
+      article_id: article_id,
+      image_url: result.url,
+      dbResult: dbResult.data,
+    });
 
     // Return the Cloudinary URL
     return { url: result.url };

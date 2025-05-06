@@ -99,7 +99,7 @@ export default async function VideosPage() {
                 <div className="p-4 space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-medium text-indigo-600">
-                      ID: {video.id}
+                      Article ID: {video.article_id || "N/A"}
                     </span>
                     <div className="flex items-center gap-1">
                       <ClockIcon className="h-4 w-4 text-gray-400" />

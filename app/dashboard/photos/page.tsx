@@ -10,7 +10,10 @@ import {
 import { getImages } from "../../lib/actions/images";
 import { getArticles } from "../../lib/actions/articles";
 import { Article } from "../../lib/definition";
+import DeleteButton from "./DeleteButton";
+import { revalidatePath } from "next/cache";
 
+// Server component
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -120,12 +123,7 @@ export default async function PhotosPage() {
                     >
                       <PencilIcon className="h-4 w-4" />
                     </button>
-                    <button
-                      className="rounded-full bg-white p-2 text-gray-700 shadow-md transition-colors hover:bg-gray-100"
-                      aria-label="Delete image"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
+                    <DeleteButton imageId={image.id} />
                   </div>
                 </div>
 
@@ -133,7 +131,7 @@ export default async function PhotosPage() {
                 <div className="p-4 space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-medium text-indigo-600">
-                      ID: {image.id}
+                      Article ID: {image.article_id || "Not assigned"}
                     </span>
                     <div className="flex items-center gap-1">
                       <ClockIcon className="h-4 w-4 text-gray-400" />
