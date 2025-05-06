@@ -91,11 +91,9 @@ export function getTableColumns(
               <PencilIcon className="h-4 w-4 sm:h-5 sm:w-5" />
             </Link>
             <button
-              onClick={() =>
-                handleDelete(user.id, `${user.firstname} ${user.lastname}`)
-              }
-              disabled={isDeleting}
-              className="text-red-600 hover:text-red-900 disabled:opacity-50"
+              disabled={true}
+              className="text-gray-400 cursor-not-allowed"
+              title="Delete functionality is currently disabled"
             >
               <TrashIcon className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>

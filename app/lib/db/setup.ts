@@ -208,9 +208,9 @@ export async function setupDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS Advertisements (
         id INT(11) PRIMARY KEY AUTO_INCREMENT,
-        sponsor_id INT(11),
-        article_id INT(11),
-        category_id INT(11),
+        sponsor_id INT(11) NOT NULL,
+        article_id INT(11) NULL,
+        category_id INT(11) NULL,
         start_date TIMESTAMP,
         end_date TIMESTAMP,
         ad_type VARCHAR(50),
@@ -220,8 +220,7 @@ export async function setupDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (sponsor_id) REFERENCES Sponsors(id) ON DELETE SET NULL,
-        FOREIGN KEY (article_id) REFERENCES Articles(id) ON DELETE SET NULL,
-        FOREIGN KEY (category_id) REFERENCES Categories(id) ON DELETE SET NULL
+        
       )
     `);
 
@@ -234,3 +233,20 @@ export async function setupDatabase() {
     };
   }
 }
+
+// -- Step 1: Drop existing foreign keys (if they already exist)
+// ALTER TABLE Advertisements DROP FOREIGN KEY Advertisements_ibfk_1;
+// ALTER TABLE Advertisements DROP FOREIGN KEY Advertisements_ibfk_2;
+// ALTER TABLE Advertisements DROP FOREIGN KEY Advertisements_ibfk_3;
+
+// -- Step 2: Modify the columns to allow NULLs
+// ALTER TABLE Advertisements
+//   MODIFY sponsor_id INT(11) NULL,
+//   MODIFY article_id INT(11) NULL,
+//   MODIFY category_id INT(11) NULL;
+
+// -- Step 3: Add foreign key constraints back with ON DELETE SET NULL
+// ALTER TABLE Advertisements
+//   ADD CONSTRAINT fk_sponsor FOREIGN KEY (sponsor_id) REFERENCES Sponsors(id) ON DELETE SET NULL,
+//   ADD CONSTRAINT fk_article FOREIGN KEY (article_id) REFERENCES Articles(id) ON DELETE SET NULL,
+//   ADD CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES Categories(id) ON DELETE SET NULL;

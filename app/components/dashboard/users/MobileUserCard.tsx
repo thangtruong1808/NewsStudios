@@ -39,8 +39,9 @@ export default function MobileUserCard({
             <PencilIcon className="w-5 h-5" />
           </button>
           <button
-            onClick={() => onDelete(user)}
-            className="rounded-md border p-2 hover:bg-gray-100"
+            disabled={true}
+            className="rounded-md border p-2 text-gray-400 cursor-not-allowed"
+            title="Delete functionality is currently disabled"
           >
             <TrashIcon className="w-5 h-5" />
           </button>

@@ -3,8 +3,8 @@ import { z } from "zod";
 export const advertisementSchema = z
   .object({
     sponsor_id: z.number().min(1, "Sponsor is required"),
-    article_id: z.number().min(1, "Article is required"),
-    category_id: z.number().min(1, "Category is required"),
+    article_id: z.number().optional(),
+    category_id: z.number().optional(),
     start_date: z.string().min(1, "Start date is required"),
     end_date: z.string().min(1, "End date is required"),
     ad_type: z.enum(["banner", "video"], {

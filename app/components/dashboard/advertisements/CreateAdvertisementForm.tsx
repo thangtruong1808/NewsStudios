@@ -17,6 +17,8 @@ import {
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { uploadToCloudinary } from "@/app/lib/utils/cloudinaryUtils";
 import { toast } from "react-hot-toast";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
 
 interface CreateAdvertisementFormProps {
   sponsors: Pick<Sponsor, "id" | "name">[];
@@ -24,8 +26,8 @@ interface CreateAdvertisementFormProps {
   categories: Pick<Category, "id" | "name">[];
   onSubmit: (data: {
     sponsor_id: number;
-    article_id: number;
-    category_id: number;
+    article_id?: number;
+    category_id?: number;
     ad_type: "banner" | "video";
     ad_content: string;
     start_date: string;
@@ -108,6 +110,7 @@ export default function CreateAdvertisementForm({
     if (!file) return;
 
     try {
+      setIsImageLoading(true);
       console.log("Starting image upload with file:", {
         name: file.name,
         size: file.size,
@@ -129,6 +132,8 @@ export default function CreateAdvertisementForm({
       toast.error(
         error instanceof Error ? error.message : "Failed to upload image"
       );
+    } finally {
+      setIsImageLoading(false);
     }
   };
 
@@ -139,6 +144,7 @@ export default function CreateAdvertisementForm({
     if (!file) return;
 
     try {
+      setIsVideoLoading(true);
       console.log("Starting video upload with file:", {
         name: file.name,
         size: file.size,
@@ -160,6 +166,8 @@ export default function CreateAdvertisementForm({
       toast.error(
         error instanceof Error ? error.message : "Failed to upload video"
       );
+    } finally {
+      setIsVideoLoading(false);
     }
   };
 
@@ -215,7 +223,7 @@ export default function CreateAdvertisementForm({
               htmlFor="sponsor_id"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Sponsor
+              Sponsor <span className="text-red-500">*</span>
             </label>
             <select
               id="sponsor_id"
@@ -241,25 +249,20 @@ export default function CreateAdvertisementForm({
               htmlFor="article_id"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Article
+              Article (Optional)
             </label>
             <select
               id="article_id"
               {...register("article_id", { valueAsNumber: true })}
               className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <option value="">Select an article</option>
+              <option value="">Select an article (optional)</option>
               {articles.map((article) => (
                 <option key={article.id} value={article.id}>
                   {article.title}
                 </option>
               ))}
             </select>
-            {errors.article_id && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.article_id.message}
-              </p>
-            )}
           </div>
 
           <div>
@@ -267,25 +270,20 @@ export default function CreateAdvertisementForm({
               htmlFor="category_id"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Category
+              Category (Optional)
             </label>
             <select
               id="category_id"
               {...register("category_id", { valueAsNumber: true })}
               className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <option value="">Select a category</option>
+              <option value="">Select a category (optional)</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
                 </option>
               ))}
             </select>
-            {errors.category_id && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.category_id.message}
-              </p>
-            )}
           </div>
 
           <div>
@@ -293,7 +291,7 @@ export default function CreateAdvertisementForm({
               htmlFor="ad_type"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Advertisement Type
+              Advertisement Type <span className="text-red-500">*</span>
             </label>
             <select
               id="ad_type"
@@ -316,7 +314,7 @@ export default function CreateAdvertisementForm({
               htmlFor="start_date"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Start Date
+              Start Date <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -336,7 +334,7 @@ export default function CreateAdvertisementForm({
               htmlFor="end_date"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              End Date
+              End Date <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -356,7 +354,7 @@ export default function CreateAdvertisementForm({
               htmlFor="ad_content"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Advertisement Content
+              Advertisement Content <span className="text-red-500">*</span>
             </label>
             <textarea
               id="ad_content"
@@ -378,7 +376,7 @@ export default function CreateAdvertisementForm({
                   htmlFor="image_file"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Image
+                  Image <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1 flex items-center">
                   <input
@@ -388,6 +386,7 @@ export default function CreateAdvertisementForm({
                     accept="image/*"
                     onChange={handleImageFileChange}
                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                    disabled={isImageLoading}
                   />
                 </div>
                 {errors.image_url && (
@@ -396,12 +395,8 @@ export default function CreateAdvertisementForm({
                     {errors.image_url.message}
                   </div>
                 )}
-                {isImageLoading && (
-                  <div className="mt-2 text-sm text-gray-500">
-                    Loading preview...
-                  </div>
-                )}
-                {previewImage && (
+                {isImageLoading && <LoadingSpinner />}
+                {previewImage && !isImageLoading && (
                   <div className="mt-2">
                     <p className="text-sm font-medium text-gray-700">
                       Preview:
@@ -424,7 +419,7 @@ export default function CreateAdvertisementForm({
                   htmlFor="video_file"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Video
+                  Video <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1 flex items-center">
                   <input
@@ -434,6 +429,7 @@ export default function CreateAdvertisementForm({
                     accept="video/*"
                     onChange={handleVideoFileChange}
                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                    disabled={isVideoLoading}
                   />
                 </div>
                 {errors.video_url && (
@@ -442,12 +438,8 @@ export default function CreateAdvertisementForm({
                     {errors.video_url.message}
                   </div>
                 )}
-                {isVideoLoading && (
-                  <div className="mt-2 text-sm text-gray-500">
-                    Validating video URL...
-                  </div>
-                )}
-                {previewVideo && (
+                {isVideoLoading && <LoadingSpinner />}
+                {previewVideo && !isVideoLoading && (
                   <div className="mt-2">
                     <p className="text-sm font-medium text-gray-700">
                       Preview:

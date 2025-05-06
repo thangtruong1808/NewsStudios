@@ -65,8 +65,9 @@ export default function TableRow({
             Edit
           </button>
           <button
-            onClick={() => onDelete(user)}
-            className="rounded border border-red-500 px-3 py-1 text-red-500 hover:bg-red-100"
+            disabled={true}
+            className="rounded border border-gray-300 px-3 py-1 text-gray-400 cursor-not-allowed"
+            title="Delete functionality is currently disabled"
           >
             Delete
           </button>

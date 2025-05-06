@@ -8,6 +8,7 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { createArticle, updateArticle } from "../../../lib/actions/articles";
 import { uploadToCloudinary } from "../../../lib/utils/cloudinaryUtils";
+import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
 import {
   User,
   Category as CategoryType,
@@ -79,14 +80,6 @@ interface ArticleFormProps {
   users: User[];
   tags: Tag[];
 }
-
-// Add LoadingSpinner component
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center mt-4">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-    <span className="ml-2 text-sm text-gray-600">Upload is processing ...</span>
-  </div>
-);
 
 export default function ArticleForm({
   article,
