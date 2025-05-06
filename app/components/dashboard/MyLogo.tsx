@@ -11,7 +11,7 @@ export default function MyLogo() {
       <div className="flex flex-col items-center justify-center">
         <NewspaperIcon className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 text-white mb-2" />
         <p className="text-[18px] sm:text-[20px] md:text-[22px] text-white">
-          StackedNews
+          DailyTechNews
         </p>
       </div>
     </Link>
