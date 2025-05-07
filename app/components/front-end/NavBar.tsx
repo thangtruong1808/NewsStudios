@@ -78,14 +78,14 @@ export default function NavBar() {
         <div className="flex justify-center items-center h-20">
           {/* Logo Section */}
           <div className="flex flex-col items-center">
-            <NewspaperIcon className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 text-indigo-500" />
+            <NewspaperIcon className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 text-stone-500" />
             <Link
               href="/"
-              className="text-xl font-bold text-indigo-600 mt-1 italic"
+              className="text-2xl font-bold text-stone-500 mt-1 italic"
             >
               <span className="relative inline-flex items-center">
                 <span className="text-3xl">D</span>
-                <span className="pl-1">aily</span>
+                <span>aily</span>
                 <span className="text-3xl">T</span>
                 <span>ech</span>
                 <span className="text-3xl">N</span>
@@ -104,7 +104,7 @@ export default function NavBar() {
               href="/"
               className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                 isActive("/")
-                  ? "border-indigo-500 text-gray-900"
+                  ? "border-stone-500 text-gray-900"
                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
               }`}
             >
@@ -115,7 +115,7 @@ export default function NavBar() {
                 <div key={category.id} className="relative group">
                   <button
                     onClick={() => handleCategoryClick(category.id)}
-                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-base font-medium ${
                       isActive(`/category/${category.id}`)
                         ? "border-indigo-500 text-gray-900"
                         : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getTags } from "@/app/lib/actions/tags";
 import { Tag } from "@/app/lib/definition";
+import { TagIcon } from "@heroicons/react/24/outline";
 
 export default function RightSidebar() {
   const [tags, setTags] = useState<Tag[]>([]);
@@ -30,10 +31,12 @@ export default function RightSidebar() {
   }, []);
 
   return (
-    <div className="w-64 min-h-screen bg-gradient-to-b from-emerald-900 to-emerald-800 p-6 text-white">
+    <div className="w-64 bg-stone-200 text-white p-2 justify-around rounded-lg p-3">
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-semibold mb-3">Trending Tags</h3>
+          <h3 className="text-xl font-bold text-emerald-500 mb-5">
+            Trending Tags
+          </h3>
           {isLoading ? (
             <div className="flex justify-center">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
@@ -43,13 +46,13 @@ export default function RightSidebar() {
           ) : (
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => (
-                <span
+                <button
                   key={tag.id}
-                  className="px-3 py-1 rounded-full text-sm bg-emerald-800/50 hover:bg-emerald-800 transition-colors duration-300"
-                  style={{ borderColor: tag.color || "#10B981" }}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-800 text-zinc-100 rounded-full text-sm font-medium transition-colors duration-200"
                 >
+                  <TagIcon className="h-4 w-4" />
                   {tag.name}
-                </span>
+                </button>
               ))}
             </div>
           )}

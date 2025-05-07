@@ -28,8 +28,8 @@ export const MediaThumbnail = ({
     ) : (
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-600">
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <VideoCameraIcon className="h-6 w-6 text-white opacity-80 mx-auto mb-1" />
+          <div className="flex flex-col items-center justify-center space-y-0 py-8">
+            <VideoCameraIcon className="h-6 w-6 text-white opacity-100" />
             <span className="text-xs text-white">Watch</span>
           </div>
         </div>
