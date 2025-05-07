@@ -3,6 +3,7 @@ import LeftSidebar from "../components/front-end/LeftSidebar";
 import RightSidebar from "../components/front-end/RightSidebar";
 import Footer from "../components/front-end/Footer";
 import Sponsors from "../components/front-end/Sponsors";
+import LatestArticles from "../components/front-end/LatestArticles";
 
 export default function MainLayout({
   children,
@@ -33,6 +34,12 @@ export default function MainLayout({
             {/* Right Sidebar */}
             <div className="hidden lg:block w-72 flex-shrink-0">
               <RightSidebar />
+            </div>
+          </div>
+          {/* LatestArticles Section */}
+          <div className="rounded-lg shadow-sm">
+            <div className="p-6">
+              <LatestArticles />
             </div>
           </div>
         </div>

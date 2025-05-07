@@ -18,12 +18,12 @@ export default function Home() {
         <ArticlesTrending />
       </div>
 
-      {/* LatestArticles Section */}
+      {/* LatestArticles Section
       <div className="rounded-lg shadow-sm">
         <div className="p-6">
           <LatestArticles />
         </div>
-      </div>
+      </div> */}
 
       {/* Advertisements Section */}
       {/* <div className="mb-12 bg-white rounded-lg shadow-sm">
