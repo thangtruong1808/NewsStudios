@@ -1,9 +1,16 @@
 import React from "react";
 import Link from "next/link";
-import { PlusIcon, ClockIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  ClockIcon,
+  PencilIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { getVideos } from "@/app/lib/actions/videos";
 import { getArticles } from "@/app/lib/actions/articles";
-import VideosPageClient from "@/app/components/dashboard/videos/VideosPageClient";
+import { deleteVideo } from "@/app/lib/actions/videos";
+import { toast } from "react-hot-toast";
+import DeleteVideoButton from "@/app/components/dashboard/videos/DeleteVideoButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -132,6 +139,17 @@ export default async function VideosPage() {
                       </span>
                     </div>
                   )}
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-2 mt-4 pt-2 border-t">
+                    <Link
+                      href={`/dashboard/videos/${video.id}/edit`}
+                      className="rounded-md border p-2 hover:bg-gray-100"
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                    </Link>
+                    <DeleteVideoButton videoId={video.id} />
+                  </div>
                 </div>
               </div>
             );

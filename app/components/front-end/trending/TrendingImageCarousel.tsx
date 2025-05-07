@@ -24,7 +24,7 @@ export const TrendingImageCarousel = ({
 
   return (
     <div className="space-y-4 h-full">
-      <div className="relative h-full">
+      <div className="relative h-[300px] md:h-[400px] lg:h-[500px]">
         <div className="overflow-hidden h-full" ref={emblaRef}>
           <div className="flex h-full">
             {articles.map((article) => (
@@ -33,7 +33,7 @@ export const TrendingImageCarousel = ({
                   href={`/article/${article.id}`}
                   className="group block bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 h-full"
                 >
-                  <div className="relative h-full w-full">
+                  <div className="relative w-full h-full">
                     {article.image ? (
                       <div className="relative w-full h-full overflow-hidden bg-gray-100">
                         <Image
@@ -41,12 +41,12 @@ export const TrendingImageCarousel = ({
                           alt={article.title}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="object-cover object-center md:object-contain lg:object-cover group-hover:scale-105 transition-transform duration-300"
                           priority={true}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                         <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <h4 className="text-xl font-semibold text-white line-clamp-2">
+                          <h4 className="text-lg md:text-xl font-semibold text-white line-clamp-2">
                             {article.title}
                           </h4>
                         </div>

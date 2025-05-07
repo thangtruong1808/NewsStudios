@@ -1,8 +1,8 @@
 import Button from "../components/Button";
 import Advertisements from "../components/front-end/Advertisements";
 import Sponsors from "../components/front-end/Sponsors";
-import Articles from "../components/front-end/Articles";
 import LatestArticles from "../components/front-end/LatestArticles";
+import LatestSingleArticle from "../components/front-end/LatestSingleArticle";
 import ArticlesTrending from "../components/front-end/ArticlesTrending";
 
 export default function Home() {
@@ -10,7 +10,7 @@ export default function Home() {
     <>
       {/* Get LatestArticle */}
       <div>
-        <LatestArticles />
+        <LatestSingleArticle />
       </div>
 
       {/* Trending Articles Section */}
@@ -18,12 +18,12 @@ export default function Home() {
         <ArticlesTrending />
       </div>
 
-      {/* Articles Section
+      {/* LatestArticles Section */}
       <div className="rounded-lg shadow-sm">
         <div className="p-6">
-          <Articles />
+          <LatestArticles />
         </div>
-      </div> */}
+      </div>
 
       {/* Advertisements Section */}
       {/* <div className="mb-12 bg-white rounded-lg shadow-sm">

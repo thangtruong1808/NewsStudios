@@ -247,21 +247,39 @@ export async function updateArticle(
 
     // Handle image update
     if (article.image) {
-      const [existingImage] = await connection.execute(
-        "SELECT id FROM Images WHERE article_id = ?",
+      // Get the previous main image URL from Articles table
+      const [previousImage] = await connection.execute(
+        "SELECT image FROM Articles WHERE id = ?",
         [id]
       );
+      const previousImageUrl = (previousImage as any[])[0]?.image;
 
-      if ((existingImage as any[]).length > 0) {
-        await connection.execute(
-          "UPDATE Images SET image_url = ?, updated_at = NOW() WHERE article_id = ?",
-          [article.image, id]
+      // Update the main article image in the Articles table
+      await connection.execute("UPDATE Articles SET image = ? WHERE id = ?", [
+        article.image,
+        id,
+      ]);
+
+      // Always insert the new main image as a new record in the Images table
+      await connection.execute(
+        "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
+        [id, article.image]
+      );
+
+      // If there was a previous main image, ensure it exists in the Images table
+      if (previousImageUrl) {
+        const [existingImage] = await connection.execute(
+          "SELECT id FROM Images WHERE article_id = ? AND image_url = ?",
+          [id, previousImageUrl]
         );
-      } else {
-        await connection.execute(
-          "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
-          [id, article.image]
-        );
+
+        // If the previous main image doesn't exist in the Images table, add it
+        if ((existingImage as any[]).length === 0) {
+          await connection.execute(
+            "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
+            [id, previousImageUrl]
+          );
+        }
       }
     }
 

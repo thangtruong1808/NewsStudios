@@ -6,6 +6,7 @@ import { ImageFormData } from "../validations/imageSchema";
 import { uploadToFTP } from "../utils/ftpUpload";
 import { uploadImageToCloudinary } from "../utils/cloudinaryServerUtils";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
+import { pool } from "../db/db";
 
 interface ImageRow extends RowDataPacket {
   id: number;
@@ -136,13 +137,35 @@ export async function createImage(data: ImageFormData) {
 }
 
 // Function to get all images
-export async function getImages() {
+export async function getImages(articleId?: number) {
   try {
-    const result = await query("SELECT * FROM Images ORDER BY created_at DESC");
+    let sqlQuery = "SELECT * FROM Images";
+    const values: any[] = [];
+
+    if (articleId) {
+      sqlQuery += " WHERE article_id = ?";
+      values.push(articleId);
+    }
+
+    sqlQuery += " ORDER BY created_at DESC";
+
+    console.log("Executing getImages query:", {
+      sqlQuery,
+      values,
+      articleId,
+    });
+
+    const result = await query(sqlQuery, values);
 
     if (result.error) {
+      console.error("Error in getImages:", result.error);
       return { data: [], error: result.error };
     }
+
+    console.log("getImages result:", {
+      count: result.data?.length || 0,
+      data: result.data,
+    });
 
     // Process the images to ensure they have proper URLs
     const images = (result.data as ImageRow[]).map((image) => {
@@ -224,18 +247,49 @@ export async function updateImage(id: number, data: ImageFormData) {
 
 // Function to delete an image
 export async function deleteImage(id: number) {
+  const connection = await pool.getConnection();
   try {
-    const result = await query("DELETE FROM Images WHERE id = ?", [id]);
+    await connection.beginTransaction();
 
-    if (result.error) {
-      return { data: null, error: result.error };
+    // First, get the image details before deleting
+    const [imageResult] = await connection.execute(
+      "SELECT article_id, image_url FROM Images WHERE id = ?",
+      [id]
+    );
+    const image = (imageResult as any[])[0];
+
+    if (!image) {
+      await connection.rollback();
+      return { data: null, error: "Image not found" };
     }
 
+    // Check if this image is used as the main image in any article
+    const [articleResult] = await connection.execute(
+      "SELECT id FROM Articles WHERE image = ?",
+      [image.image_url]
+    );
+    const article = (articleResult as any[])[0];
+
+    // If this image is used as a main image, update the article to remove it
+    if (article) {
+      await connection.execute(
+        "UPDATE Articles SET image = NULL WHERE id = ?",
+        [article.id]
+      );
+    }
+
+    // Now delete the image from the Images table
+    await connection.execute("DELETE FROM Images WHERE id = ?", [id]);
+
+    await connection.commit();
     revalidatePath("/dashboard/photos");
     return { data: { success: true }, error: null };
   } catch (error) {
+    await connection.rollback();
     console.error("Error deleting image:", error);
     return { data: null, error: "Failed to delete image" };
+  } finally {
+    connection.release();
   }
 }
 

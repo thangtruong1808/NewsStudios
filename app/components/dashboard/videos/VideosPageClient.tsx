@@ -6,6 +6,8 @@ import { SearchWrapper } from "../search";
 import { formatDateToLocal } from "@/app/lib/utils";
 import Link from "next/link";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { deleteVideo } from "@/app/lib/actions/videos";
+import { toast } from "react-hot-toast";
 
 interface VideosPageClientProps {
   videos: Video[];
@@ -40,6 +42,23 @@ export default function VideosPageClient({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentVideos = filteredVideos.slice(startIndex, endIndex);
+
+  const handleDelete = async (id: number) => {
+    try {
+      const result = await deleteVideo(id);
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      toast.success("Video deleted successfully");
+      // Refresh the page to update the list
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting video:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete video"
+      );
+    }
+  };
 
   return (
     <div className="mt-6 flow-root">
@@ -78,7 +97,10 @@ export default function VideosPageClient({
                     >
                       <PencilIcon className="w-5" />
                     </Link>
-                    <button className="rounded-md border p-2 hover:bg-gray-100">
+                    <button
+                      onClick={() => handleDelete(video.id)}
+                      className="rounded-md border p-2 hover:bg-gray-100"
+                    >
                       <TrashIcon className="w-5" />
                     </button>
                   </div>
@@ -109,7 +131,7 @@ export default function VideosPageClient({
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white">
+            <tbody>
               {currentVideos.map((video) => (
                 <tr
                   key={video.id}
@@ -141,7 +163,7 @@ export default function VideosPageClient({
                   <td className="whitespace-nowrap px-3 py-3">
                     {formatDateToLocal(video.updated_at)}
                   </td>
-                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                  <td className="whitespace-nowrap px-3 py-3">
                     <div className="flex justify-end gap-3">
                       <Link
                         href={`/dashboard/videos/${video.id}/edit`}
@@ -149,7 +171,10 @@ export default function VideosPageClient({
                       >
                         <PencilIcon className="w-5" />
                       </Link>
-                      <button className="rounded-md border p-2 hover:bg-gray-100">
+                      <button
+                        onClick={() => handleDelete(video.id)}
+                        className="rounded-md border p-2 hover:bg-gray-100"
+                      >
                         <TrashIcon className="w-5" />
                       </button>
                     </div>

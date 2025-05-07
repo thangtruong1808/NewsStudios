@@ -2,9 +2,9 @@
 
 export default function LeftSidebar() {
   return (
-    <div className="w-64 min-h-screen bg-gradient-to-b from-indigo-900 to-indigo-800 p-6 text-white">
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold mb-4">Quick Links</h2>
+    <div className="hidden lg:block w-64 bg-gradient-to-b from-indigo-900 to-indigo-800 p-4 text-white rounded-lg">
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold">Quick Links</h2>
         <nav className="space-y-2">
           <a
             href="#"
@@ -32,7 +32,7 @@ export default function LeftSidebar() {
           </a>
         </nav>
 
-        <div className="pt-6 border-t border-indigo-700">
+        <div className="pt-4 border-t border-indigo-700">
           <h3 className="text-lg font-semibold mb-3">Categories</h3>
           <div className="space-y-2">
             <a

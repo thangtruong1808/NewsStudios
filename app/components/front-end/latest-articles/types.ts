@@ -3,6 +3,8 @@ import { Article } from "@/app/lib/definition";
 export interface MediaItem {
   id: number;
   url: string;
+  description?: string;
+  isMainImage?: boolean;
 }
 
 export interface AdditionalMedia {

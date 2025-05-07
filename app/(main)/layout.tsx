@@ -23,15 +23,15 @@ export default function MainLayout({
         <div className="max-w-[1536px] mx-auto px-4 py-8">
           <div className="flex gap-8">
             {/* Left Sidebar */}
-            <div className="w-64 flex-shrink-0">
+            <div className="hidden lg:block w-64 flex-shrink-0">
               <LeftSidebar />
             </div>
 
             {/* Main Content */}
-            <main className="flex-1 min-w-0">{children}</main>
+            <main className="flex-1 min-w-0 w-full lg:w-auto">{children}</main>
 
             {/* Right Sidebar */}
-            <div className="w-72 flex-shrink-0">
+            <div className="hidden lg:block w-72 flex-shrink-0">
               <RightSidebar />
             </div>
           </div>
