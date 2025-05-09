@@ -15,6 +15,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Button from "@/app/components/Button";
 import PortfolioNotice from "./PortfolioNotice";
+import MyLogo from "../dashboard/MyLogo";
 
 export default function NavBar() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -143,9 +144,10 @@ export default function NavBar() {
       <PortfolioNotice />
       <nav className="bg-white">
         {/* Logo Section */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center items-center">
-            <div className="flex flex-col items-center">
+            <MyLogo />
+            {/* <div className="flex flex-col items-center">
               <NewspaperIcon className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 text-stone-500" />
               <Link
                 href="/"
@@ -160,7 +162,7 @@ export default function NavBar() {
                   <span>ews</span>
                 </span>
               </Link>
-            </div>
+            </div> */}
           </div>
         </div>
 

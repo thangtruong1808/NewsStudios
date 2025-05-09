@@ -1,40 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import clsx from "clsx";
 import { ComponentType } from "react";
+import clsx from "clsx";
 
 interface NavLinkProps {
   href: string;
   icon: ComponentType<{ className?: string }>;
   label: string;
+  isActive?: boolean;
+  isCollapsed?: boolean;
 }
 
-export default function NavLink({ href, icon: Icon, label }: NavLinkProps) {
-  const pathname = usePathname();
-  const isActive = pathname === href;
-
+export default function NavLink({
+  href,
+  icon: Icon,
+  label,
+  isActive,
+  isCollapsed,
+}: NavLinkProps) {
   return (
-    <div className="group relative w-full">
-      <Link
-        href={href}
-        className={clsx(
-          "flex h-12 w-full items-center justify-center text-sm font-medium md:h-10 md:w-full md:flex-none md:justify-start",
-          {
-            "bg-indigo-600 text-white rounded-md": isActive,
-            "text-gray-600 hover:bg-stone-200 rounded-md": !isActive,
-          }
-        )}
-      >
-        <div className="flex items-center justify-center md:justify-start w-full px-2">
-          <Icon className="h-7 w-7 md:h-6 md:w-6" />
-          <span className="hidden md:ml-3 md:block text-sm"> {label}</span>
-        </div>
-      </Link>
-      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 rounded-md bg-gray-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 md:hidden">
-        {label}
-      </div>
-    </div>
+    <Link
+      href={href}
+      className={clsx(
+        "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+        {
+          "text-violet-600": isActive,
+          "text-gray-600 hover:text-violet-600": !isActive,
+          "justify-center": isCollapsed,
+        }
+      )}
+    >
+      <Icon
+        className={clsx("h-5 w-5 transition-colors duration-200", {
+          "text-violet-600": isActive,
+          "text-gray-400 group-hover:text-violet-600": !isActive,
+          "mr-3": !isCollapsed,
+        })}
+      />
+      {!isCollapsed && (
+        <span className="relative">
+          {label}
+          {isActive && (
+            <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full" />
+          )}
+        </span>
+      )}
+    </Link>
   );
 }
