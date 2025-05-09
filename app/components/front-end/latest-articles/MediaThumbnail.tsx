@@ -21,16 +21,16 @@ export const MediaThumbnail = ({
           alt="Media thumbnail"
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 768px) 10vw, 7vw"
+          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
         />
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </>
     ) : (
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-600">
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center justify-center space-y-0 py-8">
+          <div className="flex flex-col items-center justify-center space-y-1">
             <VideoCameraIcon className="h-6 w-6 text-white opacity-100" />
-            <span className="text-xs text-white">Watch</span>
+            <span className="text-base text-white font-medium">Watch</span>
           </div>
         </div>
       </div>

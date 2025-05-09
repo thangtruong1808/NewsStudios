@@ -91,6 +91,17 @@ export interface Article {
   user_lastname?: string;
   tag_names?: string[];
   tag_ids?: number[];
+  views: number;
+  likes: number;
+  comments: Array<{
+    id: number;
+    content: string;
+    created_at: string;
+  }>;
+  tags?: Array<{
+    id: number;
+    name: string;
+  }>;
 }
 
 export type CreateArticleData = Omit<

@@ -32,11 +32,6 @@ export default function LatestSingleArticle() {
     mainImage: string | null
   ) => {
     try {
-      console.log("Fetching media for article:", {
-        articleId,
-        mainImage,
-      });
-
       // Fetch both images and videos for the specific article
       const [imagesResult, videosResult] = await Promise.all([
         getImages(articleId),
@@ -47,8 +42,6 @@ export default function LatestSingleArticle() {
 
       // Handle images
       if (imagesResult.data) {
-        console.log("Raw images from DB:", imagesResult.data);
-
         // Include all images, including the main image
         articleImages = imagesResult.data.map((img) => ({
           id: img.id,
@@ -56,16 +49,6 @@ export default function LatestSingleArticle() {
           description: img.description || undefined,
           isMainImage: img.image_url === mainImage,
         }));
-
-        console.log("Processed images:", {
-          total: imagesResult.data.length,
-          mainImage,
-          images: articleImages.map((img) => ({
-            id: img.id,
-            url: img.url,
-            isMainImage: img.isMainImage,
-          })),
-        });
 
         setAdditionalMedia((prev) => ({ ...prev, images: articleImages }));
       }
@@ -79,12 +62,6 @@ export default function LatestSingleArticle() {
 
         setAdditionalMedia((prev) => ({ ...prev, videos: articleVideos }));
       }
-
-      console.log("Final Additional Media State:", {
-        images: imagesResult.data?.length || 0,
-        videos: videosResult.data?.length || 0,
-        additionalImages: articleImages.length,
-      });
     } catch (error) {
       console.error("Error fetching additional media:", error);
     }

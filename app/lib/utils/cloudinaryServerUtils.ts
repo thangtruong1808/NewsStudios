@@ -2,13 +2,6 @@
 
 import { v2 as cloudinary } from "cloudinary";
 
-// Log environment variables for debugging (without exposing sensitive values)
-console.log("Cloudinary environment check:", {
-  hasCloudName: !!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  hasApiKey: !!process.env.CLOUDINARY_API_KEY,
-  hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
-});
-
 // Configure Cloudinary with your credentials
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "",

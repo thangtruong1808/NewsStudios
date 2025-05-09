@@ -149,23 +149,12 @@ export async function getImages(articleId?: number) {
 
     sqlQuery += " ORDER BY created_at DESC";
 
-    console.log("Executing getImages query:", {
-      sqlQuery,
-      values,
-      articleId,
-    });
-
     const result = await query(sqlQuery, values);
 
     if (result.error) {
       console.error("Error in getImages:", result.error);
       return { data: [], error: result.error };
     }
-
-    console.log("getImages result:", {
-      count: result.data?.length || 0,
-      data: result.data,
-    });
 
     // Process the images to ensure they have proper URLs
     const images = (result.data as ImageRow[]).map((image) => {
