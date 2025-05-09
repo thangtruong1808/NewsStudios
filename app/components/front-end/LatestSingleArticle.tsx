@@ -6,7 +6,6 @@ import { getImages } from "@/app/lib/actions/images";
 import { getVideos } from "@/app/lib/actions/videos";
 import { Article } from "@/app/lib/definition";
 import Link from "next/link";
-import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
 import { ArticleHeader } from "./latest-articles/ArticleHeader";
 import { ArticleMetadata } from "./latest-articles/ArticleMetadata";
 import { ArticleInfo } from "./latest-articles/ArticleInfo";
@@ -15,6 +14,7 @@ import { MainMediaDisplay } from "./latest-articles/MainMediaDisplay";
 import { VideoModal } from "./latest-articles/VideoModal";
 import { AdditionalMedia, MediaItem } from "./latest-articles/types";
 import { ClockIcon } from "@heroicons/react/24/solid";
+import { LatestSingleArticleSkeleton } from "./latest-articles/LatestSingleArticleSkeleton";
 
 export default function LatestSingleArticle() {
   const [article, setArticle] = useState<Article | null>(null);
@@ -142,11 +142,7 @@ export default function LatestSingleArticle() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center p-4">
-        <LoadingSpinner />
-      </div>
-    );
+    return <LatestSingleArticleSkeleton />;
   }
 
   if (error) {

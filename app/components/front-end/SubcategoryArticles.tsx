@@ -5,7 +5,13 @@ import { getArticles } from "@/app/lib/actions/articles";
 import { Article } from "@/app/lib/definition";
 import Link from "next/link";
 import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
-import { PlayCircleIcon } from "@heroicons/react/24/outline";
+import {
+  PlayCircleIcon,
+  TagIcon,
+  CalendarIcon,
+  FolderIcon,
+  BookmarkIcon,
+} from "@heroicons/react/24/outline";
 import Image from "next/image";
 
 type Props = {
@@ -19,7 +25,7 @@ export default function SubcategoryArticles({ type, tag, subcategory }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 8; // Changed to 2 to show one article per column
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -83,60 +89,90 @@ export default function SubcategoryArticles({ type, tag, subcategory }: Props) {
   );
 
   return (
-    <div className="space-y-8">
-      {/* Articles Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="w-full max-w-[1024px] mx-auto mt-10">
+      {/* Articles Grid - 2 columns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {paginatedArticles.map((article) => (
           <Link
             key={article.id}
             href={`/article/${article.id}`}
             className="group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
           >
-            <div className="relative aspect-[16/9] bg-gray-100">
-              {article.image ? (
-                <Image
-                  src={article.image}
-                  alt={article.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-              ) : article.video ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-indigo-600">
-                  <PlayCircleIcon className="h-16 w-16 text-white opacity-80" />
-                </div>
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-indigo-600">
-                  <span className="text-4xl font-bold text-white">
-                    {article.title.charAt(0)}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors duration-300">
-                {article.title}
-              </h3>
-              <p className="mt-2 text-sm text-gray-600 line-clamp-2">
-                {article.content}
-              </p>
-              <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-                <span>
-                  {article.published_at instanceof Date
-                    ? article.published_at.toLocaleDateString()
-                    : new Date(article.published_at || "").toLocaleDateString()}
-                </span>
-                <div className="flex items-center space-x-2">
-                  {article.category_name && (
-                    <span className="px-2 py-1 bg-gray-100 rounded-full">
-                      {article.category_name}
+            <div className="flex flex-col md:flex-row h-full">
+              {/* Photo Section - Side by side on desktop */}
+              <div className="relative w-full md:w-1/2 aspect-[16/9] md:aspect-auto bg-gray-100">
+                {article.image ? (
+                  <Image
+                    src={article.image}
+                    alt={article.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  />
+                ) : article.video ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-indigo-600">
+                    <PlayCircleIcon className="h-16 w-16 text-white opacity-80" />
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-indigo-600">
+                    <span className="text-4xl font-bold text-white">
+                      {article.title.charAt(0)}
                     </span>
-                  )}
-                  {article.sub_category_name && (
-                    <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full">
-                      {article.sub_category_name}
+                  </div>
+                )}
+              </div>
+
+              {/* Content Section - Side by side on desktop */}
+              <div className="flex-1 p-4 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors duration-300">
+                    {article.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-600 line-clamp-3">
+                    {article.content}
+                  </p>
+                  {/* Date Row */}
+                  <div className="mt-3">
+                    <span className="text-xs text-gray-500 whitespace-nowrap flex items-center gap-1">
+                      <CalendarIcon className="h-3.5 w-3.5 text-gray-400" />
+                      {article.published_at instanceof Date
+                        ? article.published_at.toLocaleDateString()
+                        : new Date(
+                            article.published_at || ""
+                          ).toLocaleDateString()}
                     </span>
+                  </div>
+                  {/* Tags Row */}
+                  {article.tag_names && article.tag_names.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {article.tag_names.map((tagName) => (
+                        <Link
+                          key={tagName}
+                          href={`/explore?tag=${encodeURIComponent(tagName)}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-xs font-medium transition-colors duration-200"
+                        >
+                          <TagIcon className="h-3.5 w-3.5 text-gray-500" />
+                          {tagName}
+                        </Link>
+                      ))}
+                    </div>
                   )}
+                  {/* Category and Subcategory Row */}
+                  <div className="mt-2 flex items-center gap-2">
+                    {article.category_name && (
+                      <span className="px-2 py-1 bg-gray-100 rounded-full flex items-center gap-1 text-xs text-gray-700">
+                        <FolderIcon className="h-3.5 w-3.5 text-gray-500" />
+                        {article.category_name}
+                      </span>
+                    )}
+                    {article.sub_category_name && (
+                      <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full flex items-center gap-1 text-xs">
+                        <BookmarkIcon className="h-3.5 w-3.5" />
+                        {article.sub_category_name}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
