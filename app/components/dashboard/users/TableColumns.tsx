@@ -14,17 +14,6 @@ export function getTableColumns(
 ): Column[] {
   return [
     {
-      key: "id",
-      label: "ID",
-      sortable: false,
-      accessor: "id",
-      cell: (value: string | number, index: number, user: User) => (
-        <div className="whitespace-nowrap text-xs font-medium text-gray-900 sm:text-sm">
-          {value}
-        </div>
-      ),
-    },
-    {
       key: "firstname",
       label: "Name",
       sortable: true,
@@ -83,7 +72,7 @@ export function getTableColumns(
       accessor: "id",
       cell: (value: string | number, index: number, user: User) => (
         <div className="whitespace-nowrap text-xs text-gray-500 sm:text-sm">
-          <div className="flex justify-center gap-2 p-3">
+          <div className="flex justify-center gap-4 p-3">
             <Link
               href={`/dashboard/users/${user.id}/edit`}
               className="text-indigo-600 hover:text-indigo-900"
@@ -91,9 +80,11 @@ export function getTableColumns(
               <PencilIcon className="h-4 w-4 sm:h-5 sm:w-5" />
             </Link>
             <button
-              disabled={true}
-              className="text-gray-400 cursor-not-allowed"
-              title="Delete functionality is currently disabled"
+              onClick={() =>
+                handleDelete(user.id, `${user.firstname} ${user.lastname}`)
+              }
+              disabled={isDeleting}
+              className="text-red-600 hover:text-red-900 disabled:opacity-50"
             >
               <TrashIcon className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>

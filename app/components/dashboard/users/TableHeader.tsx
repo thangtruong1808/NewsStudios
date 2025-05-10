@@ -24,16 +24,6 @@ export default function TableHeader({
         </th>
         <th
           scope="col"
-          className="px-4 py-5 font-medium sm:pl-6 border-b border-zinc-300"
-          onClick={() => onSort("id")}
-        >
-          ID
-          {sortField === "id" && (
-            <span>{sortDirection === "asc" ? "↑" : "↓"}</span>
-          )}
-        </th>
-        <th
-          scope="col"
           className="px-3 py-5 font-medium border-b border-zinc-300"
           onClick={() => onSort("firstname")}
         >

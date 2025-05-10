@@ -2,7 +2,6 @@
 
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
-import { useDebouncedCallback } from "use-debounce";
 import { useRef, useEffect } from "react";
 
 interface SearchProps {
@@ -28,12 +27,12 @@ const Search = ({ placeholder, onSearch }: SearchProps) => {
     isFirstRender.current = false;
   }, [currentQuery]);
 
-  const handleSearch = useDebouncedCallback((term: string) => {
+  const handleSearch = (term: string) => {
     if (onSearch) {
       onSearch(term);
     } else {
       const params = new URLSearchParams(searchParams);
-      params.set("page", "1");
+      params.set("page", "1"); // Reset to first page on new search
       if (term) {
         params.set("query", term);
       } else {
@@ -41,7 +40,7 @@ const Search = ({ placeholder, onSearch }: SearchProps) => {
       }
       replace(`${pathname}?${params.toString()}`);
     }
-  }, 300);
+  };
 
   const handleClear = () => {
     if (inputRef.current) {

@@ -2,7 +2,7 @@
 
 import React, { ReactElement } from "react";
 import { Column } from "./types";
-import { Author } from "../../../login/login-definitions";
+import { Author } from "../../../lib/definition";
 import Link from "next/link";
 
 // Helper function to split text into rows of 8 words each
@@ -50,16 +50,6 @@ export function getTableColumns(
       cell: (author: Author, index: number) => (
         <div className="whitespace-nowrap text-xs text-gray-500 sm:text-sm">
           {(currentPage - 1) * itemsPerPage + index + 1}
-        </div>
-      ),
-    },
-    {
-      key: "id",
-      label: "ID",
-      sortable: true,
-      cell: (author: Author) => (
-        <div className="whitespace-nowrap text-xs text-gray-900 sm:text-sm">
-          {author.id}
         </div>
       ),
     },

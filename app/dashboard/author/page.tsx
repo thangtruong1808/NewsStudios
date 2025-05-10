@@ -1,30 +1,53 @@
+import React from "react";
+import Link from "next/link";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import { getAuthors, searchAuthors } from "../../lib/actions/authors";
 import AuthorsTableClient from "../../components/dashboard/authors/AuthorsTableClient";
 import AuthorsSearchWrapper from "../../components/dashboard/authors/AuthorsSearchWrapper";
-import Link from "next/link";
-import { PlusIcon } from "@heroicons/react/24/outline";
-import { Author } from "../../lib/definition";
+import { lusitana } from "../../components/fonts";
 
-export const dynamic = "force-dynamic";
+// Use static rendering by default, but revalidate every 60 seconds
+export const revalidate = 60;
 
-interface AuthorsPageProps {
+interface PageProps {
   searchParams?: Promise<{
     query?: string;
+    page?: string;
   }>;
 }
 
-export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
+export default async function AuthorsPage(props: PageProps) {
   // Await searchParams before accessing its properties
-  const searchParamsResolved = await searchParams;
-  const searchQuery = searchParamsResolved?.query || "";
+  const searchParams = await props.searchParams;
+  const searchQuery = searchParams?.query || "";
+  const currentPage = Number(searchParams?.page) || 1;
 
   // Use searchAuthors if there's a search query, otherwise use getAuthors
   const result = searchQuery
     ? await searchAuthors(searchQuery)
     : await getAuthors();
 
-  const authors = Array.isArray(result.data) ? (result.data as Author[]) : [];
-  const error = result.error;
+  // Handle error case
+  if (result.error) {
+    return (
+      <div className="rounded-md bg-red-50 p-4">
+        <div className="flex">
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">
+              Error loading authors
+            </h3>
+            <div className="mt-2 text-sm text-red-700">
+              <p>{result.error}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle empty data case
+  const authors = result.data || [];
+  const hasAuthors = authors.length > 0;
 
   return (
     <div className="space-y-4">
@@ -43,19 +66,16 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
         <AuthorsSearchWrapper />
       </div>
 
-      {error ? (
-        <div className="rounded-md bg-red-50 p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{error}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {hasAuthors ? (
+        <AuthorsTableClient authors={authors} searchQuery={searchQuery} />
       ) : (
-        <AuthorsTableClient authors={authors} />
+        <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
+          <p className="text-gray-500">
+            {searchQuery
+              ? "No authors found matching your search criteria."
+              : "No authors found. Create your first author to get started."}
+          </p>
+        </div>
       )}
     </div>
   );

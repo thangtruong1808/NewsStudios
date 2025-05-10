@@ -7,9 +7,9 @@ declare global {
 }
 
 import React, { useState, useEffect } from "react";
-import { Author } from "../../../login/login-definitions";
+import { Author } from "../../../lib/definition";
 import { getTableColumns } from "./TableColumns";
-import TableHeader from "./TableHeader";
+import TableHeader from "../shared/TableHeader";
 import TableBody from "./TableBody";
 import Pagination from "./Pagination";
 import { toast } from "react-hot-toast";
@@ -21,13 +21,6 @@ import Link from "next/link";
 interface AuthorsTableClientProps {
   authors: Author[];
   searchQuery?: string;
-}
-
-interface TableHeaderProps {
-  columns: any[];
-  sortField: keyof Author;
-  sortDirection: "asc" | "desc";
-  onSort: (field: keyof Author) => void;
 }
 
 export default function AuthorsTableClient({
@@ -47,11 +40,11 @@ export default function AuthorsTableClient({
     setMounted(true);
   }, []);
 
-  const handleSort = (field: string) => {
+  const handleSort = (field: keyof Author) => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field as keyof Author);
+      setSortField(field);
       setSortDirection("asc");
     }
   };
@@ -99,20 +92,36 @@ export default function AuthorsTableClient({
 
     setIsDeleting(true);
     try {
-      const { success, error } = await deleteAuthor(id);
-      if (error) {
-        toast.error(`Failed to delete author: ${error}`);
-      } else if (success) {
+      const result = await deleteAuthor(id);
+      if (!result.success) {
+        toast.error(
+          <div>
+            <p className="font-bold">Failed to delete author</p>
+            <p className="text-sm">{result.error}</p>
+          </div>,
+          { duration: 5000 }
+        );
+      } else {
         toast.success("Author deleted successfully");
         router.refresh();
       }
     } catch (error) {
-      toast.error("An error occurred while deleting the author");
+      console.error("Error deleting author:", error);
+      toast.error(
+        <div>
+          <p className="font-bold">
+            An error occurred while deleting the author
+          </p>
+          <p className="text-sm">Please try again later</p>
+        </div>,
+        { duration: 5000 }
+      );
     } finally {
       setIsDeleting(false);
     }
   };
 
+  // Get table columns
   const columns = getTableColumns(
     currentPage,
     itemsPerPage,

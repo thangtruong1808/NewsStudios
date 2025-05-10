@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { deleteUser } from "../../../lib/actions/users";
+import TableHeader from "../shared/TableHeader";
 import TableRow from "./TableRow";
-import TableHeader from "./TableHeader";
 import Pagination from "./Pagination";
 
 interface UsersTableClientProps {
@@ -22,20 +22,15 @@ export default function UsersTableClient({
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] =
-    useState<keyof User>("firstname");
-  const [sortDirection, setSortDirection] = useState<
-    "asc" | "desc"
-  >("asc");
+  const [sortField, setSortField] = useState<keyof User>("firstname");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const itemsPerPage = 10;
   const totalPages = Math.ceil(users.length / itemsPerPage);
 
   const handleSort = (field: keyof User) => {
     if (field === sortField) {
-      setSortDirection(
-        sortDirection === "asc" ? "desc" : "asc"
-      );
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
       setSortDirection("asc");
@@ -43,10 +38,78 @@ export default function UsersTableClient({
   };
 
   const handleEdit = (userId: number) => {
-    router.push(
-      `/dashboard/users/${userId}/edit?edit=true`,
-      { scroll: false }
-    );
+    router.push(`/dashboard/users/${userId}/edit?edit=true`, { scroll: false });
+  };
+
+  const handleDelete = async (userData: {
+    id: number;
+    firstname: string;
+    lastname: string;
+  }) => {
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      toast(
+        (t) => (
+          <div className="flex flex-col items-center">
+            <p className="mb-2">
+              Are you sure you want to delete user "{userData.firstname}{" "}
+              {userData.lastname}"?
+            </p>
+            <div className="flex space-x-2">
+              <button
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  resolve(true);
+                }}
+              >
+                Delete
+              </button>
+              <button
+                className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  resolve(false);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ),
+        { duration: 5000 }
+      );
+    });
+
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
+
+    setIsDeleting(true);
+    try {
+      const result = await deleteUser(userData.id);
+      if (!result.success) {
+        toast.error(
+          <div>
+            <p className="font-bold">Failed to delete user</p>
+            <p className="text-sm">{result.error}</p>
+          </div>,
+          { duration: 5000 }
+        );
+      } else {
+        toast.success("User deleted successfully");
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error(
+        <div>
+          <p className="font-bold">An error occurred while deleting the user</p>
+          <p className="text-sm">Please try again later</p>
+        </div>,
+        { duration: 5000 }
+      );
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const sortedUsers = [...users].sort((a, b) => {
@@ -56,10 +119,7 @@ export default function UsersTableClient({
     if (aValue === null || aValue === undefined) return 1;
     if (bValue === null || bValue === undefined) return -1;
 
-    if (
-      typeof aValue === "string" &&
-      typeof bValue === "string"
-    ) {
+    if (typeof aValue === "string" && typeof bValue === "string") {
       return sortDirection === "asc"
         ? aValue.localeCompare(bValue)
         : bValue.localeCompare(aValue);
@@ -75,85 +135,48 @@ export default function UsersTableClient({
     currentPage * itemsPerPage
   );
 
-  const handleDelete = async (
-    id: number,
-    userName: string
-  ) => {
-    const confirmPromise = new Promise<boolean>(
-      (resolve) => {
-        toast(
-          (t) => (
-            <div className="flex flex-col items-center">
-              <p className="mb-2">
-                Are you sure you want to delete user "
-                {userName}"?
-              </p>
-              <div className="flex space-x-2">
-                <button
-                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                  onClick={() => {
-                    toast.dismiss(t.id);
-                    resolve(true);
-                  }}
-                >
-                  Delete
-                </button>
-                <button
-                  className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-                  onClick={() => {
-                    toast.dismiss(t.id);
-                    resolve(false);
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ),
-          { duration: 5000 }
-        );
-      }
-    );
-
-    const isConfirmed = await confirmPromise;
-    if (!isConfirmed) return;
-
-    setIsDeleting(true);
-    try {
-      const { error } = await deleteUser(id);
-      if (error) {
-        toast.error(
-          <div>
-            <p className="font-bold">
-              Failed to delete user
-            </p>
-            <p className="text-sm">{error}</p>
-          </div>,
-          { duration: 5000 }
-        );
-      } else {
-        toast.success("User deleted successfully");
-        router.refresh();
-      }
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      toast.error(
-        <div>
-          <p className="font-bold">
-            An error occurred while deleting the user
-          </p>
-          <p className="text-sm">
-            {error instanceof Error
-              ? error.message
-              : "Unknown error"}
-          </p>
-        </div>,
-        { duration: 5000 }
-      );
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  const columns = [
+    {
+      key: "sequence",
+      label: "#",
+      sortable: false,
+    },
+    {
+      key: "firstname",
+      label: "First Name",
+      sortable: true,
+    },
+    {
+      key: "lastname",
+      label: "Last Name",
+      sortable: true,
+    },
+    {
+      key: "description",
+      label: "Description",
+      sortable: false,
+    },
+    {
+      key: "email",
+      label: "Email",
+      sortable: true,
+    },
+    {
+      key: "role",
+      label: "Role",
+      sortable: true,
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      sortable: false,
+    },
+  ];
 
   return (
     <div className="mt-6 flow-root">
@@ -170,13 +193,10 @@ export default function UsersTableClient({
                     <div>
                       <div className="mb-2 flex items-center">
                         <p className="font-medium text-gray-900">
-                          ID: {user.id} - {user.firstname}{" "}
-                          {user.lastname}
+                          ID: {user.id} - {user.firstname} {user.lastname}
                         </p>
                       </div>
-                      <p className="text-sm text-gray-500">
-                        {user.email}
-                      </p>
+                      <p className="text-sm text-gray-500">{user.email}</p>
                     </div>
                     <div className="flex space-x-2">
                       <button
@@ -187,10 +207,11 @@ export default function UsersTableClient({
                       </button>
                       <button
                         onClick={() =>
-                          handleDelete(
-                            user.id,
-                            `${user.firstname} ${user.lastname}`
-                          )
+                          handleDelete({
+                            id: user.id,
+                            firstname: user.firstname,
+                            lastname: user.lastname,
+                          })
                         }
                         disabled={isDeleting}
                         className="rounded bg-red-500 px-3 py-1 text-white hover:bg-red-600 disabled:opacity-50"
@@ -202,8 +223,9 @@ export default function UsersTableClient({
                 </div>
               ))}
             </div>
-            <table className="hidden min-w-full text-gray-900 md:table ">
+            <table className="hidden min-w-full text-gray-900 md:table">
               <TableHeader
+                columns={columns}
                 sortField={sortField}
                 sortDirection={sortDirection}
                 onSort={handleSort}
@@ -213,16 +235,14 @@ export default function UsersTableClient({
                   <TableRow
                     key={user.id}
                     user={user}
-                    index={
-                      (currentPage - 1) * itemsPerPage +
-                      index
-                    }
+                    index={(currentPage - 1) * itemsPerPage + index}
                     onEdit={(user) => handleEdit(user.id)}
                     onDelete={(user) =>
-                      handleDelete(
-                        user.id,
-                        `${user.firstname} ${user.lastname}`
-                      )
+                      handleDelete({
+                        id: user.id,
+                        firstname: user.firstname,
+                        lastname: user.lastname,
+                      })
                     }
                   />
                 ))}

@@ -257,7 +257,7 @@ export async function deleteUser(id: number) {
     const userCheck = await query("SELECT id FROM Users WHERE id = ?", [id]);
     if (userCheck.error) {
       return {
-        data: null,
+        success: false,
         error: `Database error checking user: ${userCheck.error}`,
       };
     }
@@ -266,7 +266,7 @@ export async function deleteUser(id: number) {
       !userCheck.data ||
       (Array.isArray(userCheck.data) && userCheck.data.length === 0)
     ) {
-      return { data: null, error: "User not found" };
+      return { success: false, error: "User not found" };
     }
 
     // Try to delete the user
@@ -276,20 +276,20 @@ export async function deleteUser(id: number) {
       // Check for foreign key constraint errors
       if (result.error.includes("foreign key constraint")) {
         return {
-          data: null,
+          success: false,
           error:
             "Cannot delete user because they are referenced by other records. Please remove these references first.",
         };
       }
-      return { data: null, error: `Database error: ${result.error}` };
+      return { success: false, error: `Database error: ${result.error}` };
     }
 
     revalidatePath("/dashboard/users");
-    return { data: result, error: null };
+    return { success: true, error: null };
   } catch (error) {
     console.error("Error in deleteUser:", error);
     return {
-      data: null,
+      success: false,
       error: error instanceof Error ? error.message : "Failed to delete user",
     };
   }

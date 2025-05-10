@@ -7,7 +7,11 @@ interface TableRowProps {
   user: User;
   index: number;
   onEdit: (user: User) => void;
-  onDelete: (user: User) => void;
+  onDelete: (userData: {
+    id: number;
+    firstname: string;
+    lastname: string;
+  }) => void;
 }
 
 export default function TableRow({
@@ -21,11 +25,6 @@ export default function TableRow({
       <td className="whitespace-nowrap py-3 pl-6 pr-3">
         <div className="flex items-center gap-3">
           <p>{index + 1}</p>
-        </div>
-      </td>
-      <td className="whitespace-nowrap py-3 pl-6 pr-3">
-        <div className="flex items-center gap-3">
-          <p>{user.id}</p>
         </div>
       </td>
       <td className="whitespace-nowrap px-3 py-3">{user.firstname}</td>
@@ -57,7 +56,7 @@ export default function TableRow({
         </span>
       </td>
       <td className="whitespace-nowrap py-3 pl-6 pr-3">
-        <div className="flex justify-around">
+        <div className="flex justify-center gap-4">
           <button
             onClick={() => onEdit(user)}
             className="rounded border border-blue-500 px-3 py-1 text-blue-500 hover:bg-blue-100"
@@ -65,9 +64,14 @@ export default function TableRow({
             Edit
           </button>
           <button
-            disabled={true}
-            className="rounded border border-gray-300 px-3 py-1 text-gray-400 cursor-not-allowed"
-            title="Delete functionality is currently disabled"
+            onClick={() =>
+              onDelete({
+                id: user.id,
+                firstname: user.firstname,
+                lastname: user.lastname,
+              })
+            }
+            className="rounded border border-red-500 px-3 py-1 text-red-500 hover:bg-red-100"
           >
             Delete
           </button>
