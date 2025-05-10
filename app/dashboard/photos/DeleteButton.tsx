@@ -71,10 +71,10 @@ export default function DeleteButton({ imageId }: DeleteButtonProps) {
   return (
     <button
       onClick={handleDelete}
-      className="rounded-full bg-white p-2 text-gray-700 shadow-md transition-colors hover:bg-gray-100"
-      aria-label="Delete image"
+      className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 min-w-[70px] justify-center"
     >
-      <TrashIcon className="h-4 w-4" />
+      <TrashIcon className="h-3.5 w-3.5" />
+      <span>Delete</span>
     </button>
   );
 }

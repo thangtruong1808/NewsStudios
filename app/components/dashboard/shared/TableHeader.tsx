@@ -33,9 +33,11 @@ export default function TableHeader<T>({
               key={column.key}
               scope="col"
               className={`${
-                column.key === "actions"
-                  ? "relative py-3 pl-6 pr-3 text-center border-b border-zinc-300"
-                  : `px-3 py-5 font-medium ${
+                column.key === "sequence"
+                  ? "px-2 py-3 font-medium border-b border-zinc-300"
+                  : column.key === "actions"
+                  ? "px-3 py-3 font-medium border-b border-zinc-300 text-center"
+                  : `px-3 py-3 font-medium ${
                       column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
                     } border-b border-zinc-300`
               } ${isMobileVisible ? "table-cell" : "hidden md:table-cell"}`}
@@ -46,9 +48,7 @@ export default function TableHeader<T>({
                   column.key === "actions" ? "justify-center" : ""
                 }`}
               >
-                <span className={column.key === "actions" ? "font-medium" : ""}>
-                  {column.label}
-                </span>
+                <span>{column.label}</span>
                 {column.sortable && sortField === column.key && (
                   <span className="ml-1 text-gray-500">
                     {sortDirection === "asc" ? "↑" : "↓"}

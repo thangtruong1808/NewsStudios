@@ -22,10 +22,10 @@ export default function TableRow({
 }: TableRowProps) {
   return (
     <tr className="w-full border-b border-zinc-300 py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg hover:bg-zinc-100 transition-colors">
-      <td className="whitespace-nowrap py-3 pl-6 pr-3">
-        <div className="flex items-center gap-3">
-          <p>{index + 1}</p>
-        </div>
+      <td className="py-3 px-2">
+        <p className="text-left text-xs text-gray-500 sm:text-sm">
+          {index + 1}
+        </p>
       </td>
       <td className="whitespace-nowrap px-3 py-3">{user.firstname}</td>
       <td className="whitespace-nowrap px-3 py-3">{user.lastname}</td>
@@ -55,12 +55,35 @@ export default function TableRow({
           {user.status}
         </span>
       </td>
+      <td className="whitespace-nowrap px-3 py-3">
+        <div className="text-xs text-gray-500 sm:text-sm">
+          {user.created_at
+            ? new Date(user.created_at).toLocaleDateString("en-GB", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              })
+            : "-"}
+        </div>
+      </td>
+      <td className="whitespace-nowrap px-3 py-3">
+        <div className="text-xs text-gray-500 sm:text-sm">
+          {user.updated_at
+            ? new Date(user.updated_at).toLocaleDateString("en-GB", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              })
+            : "-"}
+        </div>
+      </td>
       <td className="whitespace-nowrap py-3 pl-6 pr-3">
         <div className="flex justify-center gap-4">
           <button
             onClick={() => onEdit(user)}
-            className="rounded border border-blue-500 px-3 py-1 text-blue-500 hover:bg-blue-100"
+            className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1.5 text-xs font-medium text-blue-500 hover:bg-blue-100"
           >
+            <PencilIcon className="h-3.5 w-3.5" />
             Edit
           </button>
           <button
@@ -71,8 +94,9 @@ export default function TableRow({
                 lastname: user.lastname,
               })
             }
-            className="rounded border border-red-500 px-3 py-1 text-red-500 hover:bg-red-100"
+            className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100"
           >
+            <TrashIcon className="h-3.5 w-3.5" />
             Delete
           </button>
         </div>

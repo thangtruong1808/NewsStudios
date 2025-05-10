@@ -27,8 +27,12 @@ export default function LayoutDashboard({
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-blue-50">
       {/* Header with Logo */}
-      <div className="flex justify-center items-center p-2">
+      <div className="flex items-center justify-center p-2 space-x-4 bg-zinc-200">
         <MyLogo />
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+          Dashboard <span className="text-gray-400">-</span> Content Management
+          System
+        </h1>
       </div>
 
       {/* Main Content Area */}

@@ -11,15 +11,23 @@ import { getArticles } from "@/app/lib/actions/articles";
 import { deleteVideo } from "@/app/lib/actions/videos";
 import { toast } from "react-hot-toast";
 import DeleteVideoButton from "@/app/components/dashboard/videos/DeleteVideoButton";
+import VideosGridClient from "@/app/components/dashboard/videos/VideosGridClient";
+import { Article } from "@/app/lib/definition";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function VideosPage() {
-  const videosResult = await getVideos();
-  const articlesResult = await getArticles();
-  const articles = Array.isArray(articlesResult) ? articlesResult : [];
+interface ApiResponse<T> {
+  data: T[] | null;
+  error: string | null;
+}
 
+export default async function VideosPage() {
+  // Fetch videos and articles
+  const videosResult = await getVideos();
+  const articles = await getArticles();
+
+  // Handle errors
   if (videosResult.error) {
     return (
       <div className="rounded-md bg-red-50 p-4">
@@ -38,124 +46,31 @@ export default async function VideosPage() {
   }
 
   const videos = videosResult.data || [];
-  const hasVideos = videos.length > 0;
 
   // Create a map of article IDs to titles for quick lookup
-  const articleMap = new Map();
-  articles.forEach((article) => {
-    articleMap.set(article.id, article.title);
-  });
+  const articleMap = new Map(
+    articles.map((article: Article) => [article.id, article.title])
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Videos</h1>
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Videos</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Manage your video content and their associations with articles
+          </p>
+        </div>
         <Link
           href="/dashboard/videos/create"
-          className="flex h-10 items-center rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-violet-700 hover:to-fuchsia-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
         >
-          <span className="hidden md:block">Add Video</span>{" "}
-          <PlusIcon className="h-5 md:ml-4" />
+          <PlusIcon className="h-5 w-5" />
+          <span>Add Video</span>
         </Link>
       </div>
 
-      {!hasVideos ? (
-        <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
-          <p className="text-gray-500">
-            No videos found. Add your first video to get started.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {videos.map((video) => {
-            if (!video.video_url) {
-              console.warn(`Video with ID ${video.id} has no URL, skipping`);
-              return null;
-            }
-
-            // Format the updated_at date
-            const updatedDate = video.updated_at
-              ? new Date(video.updated_at).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })
-              : "N/A";
-
-            // Get article title if article_id exists
-            const articleTitle =
-              video.article_id && articleMap.has(video.article_id)
-                ? articleMap.get(video.article_id)
-                : null;
-
-            return (
-              <div
-                key={video.id}
-                className="group relative overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:shadow-xl"
-              >
-                {/* Video Container */}
-                <div className="relative aspect-video overflow-hidden">
-                  <video
-                    src={video.video_url}
-                    className="w-full h-full object-cover"
-                    controls
-                  />
-                </div>
-
-                {/* Video Details - Always visible below the video */}
-                <div className="p-4 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-indigo-600">
-                      Article ID: {video.article_id || "N/A"}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <ClockIcon className="h-4 w-4 text-gray-400" />
-                      <span className="text-xs text-gray-500">
-                        Updated: {updatedDate}
-                      </span>
-                    </div>
-                  </div>
-
-                  {video.article_id && (
-                    <div className="text-sm">
-                      <span className="text-xs font-medium text-indigo-600">
-                        Article Title:{" "}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {articleTitle
-                          ? articleTitle
-                          : `ID: ${video.article_id}`}
-                      </span>
-                    </div>
-                  )}
-
-                  {video.description && (
-                    <div className="text-sm">
-                      <span className="text-xs font-medium text-indigo-600">
-                        Description:{" "}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {video.description}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex justify-end gap-2 mt-4 pt-2 border-t">
-                    <Link
-                      href={`/dashboard/videos/${video.id}/edit`}
-                      className="rounded-md border p-2 hover:bg-gray-100"
-                    >
-                      <PencilIcon className="h-5 w-5" />
-                    </Link>
-                    <DeleteVideoButton videoId={video.id} />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <VideosGridClient videos={videos} articleMap={articleMap} />
     </div>
   );
 }

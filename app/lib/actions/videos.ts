@@ -105,10 +105,10 @@ export async function updateVideo(id: number, video: Partial<Video>) {
       [video.article_id, video.video_url, video.description, id]
     );
     revalidatePath("/dashboard/videos");
-    return { data: result, error: null };
+    return { success: true, error: null };
   } catch (error) {
     console.error("Error updating video:", error);
-    return { data: null, error: "Failed to update video" };
+    return { success: false, error: "Failed to update video" };
   }
 }
 

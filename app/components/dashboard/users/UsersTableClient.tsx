@@ -172,6 +172,16 @@ export default function UsersTableClient({
       sortable: true,
     },
     {
+      key: "created_at",
+      label: "Created At",
+      sortable: true,
+    },
+    {
+      key: "updated_at",
+      label: "Updated At",
+      sortable: true,
+    },
+    {
       key: "actions",
       label: "Actions",
       sortable: false,

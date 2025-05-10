@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { createArticle, updateArticle } from "../../../lib/actions/articles";
 import { uploadToCloudinary } from "../../../lib/utils/cloudinaryUtils";
 import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
+import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import {
   User,
   Category as CategoryType,
@@ -200,7 +201,9 @@ export default function ArticleForm({
       parseInt(option.value)
     );
     setSelectedTags(selectedOptions);
-    setValue("tag_ids", selectedOptions);
+    setValue("tag_ids", selectedOptions, {
+      shouldValidate: true,
+    });
   };
 
   const handleFileUpload = async (file: File, type: "image" | "video") => {
@@ -282,7 +285,9 @@ export default function ArticleForm({
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const categoryId = e.target.value;
     setSelectedCategory(categoryId);
-    setValue("category_id", parseInt(categoryId));
+    setValue("category_id", categoryId ? parseInt(categoryId) : 0, {
+      shouldValidate: true,
+    });
   };
 
   const onSubmit = async (data: ArticleFormData) => {
@@ -342,6 +347,11 @@ export default function ArticleForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Required Fields Note */}
+      <p className="text-sm text-gray-500">
+        Fields marked with an asterisk (*) are required
+      </p>
+
       {/* Tab Navigation */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
@@ -397,7 +407,7 @@ export default function ArticleForm({
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Title
+              Title <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -414,7 +424,7 @@ export default function ArticleForm({
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Category
+                Category <span className="text-red-500">*</span>
               </label>
               <select
                 {...register("category_id")}
@@ -467,7 +477,7 @@ export default function ArticleForm({
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Author
+                Author <span className="text-red-500">*</span>
               </label>
               <select
                 {...register("author_id")}
@@ -489,7 +499,7 @@ export default function ArticleForm({
 
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                User
+                User <span className="text-red-500">*</span>
               </label>
               <select
                 {...register("user_id")}
@@ -515,7 +525,7 @@ export default function ArticleForm({
               htmlFor="tag_ids"
               className="block text-sm font-medium text-gray-700"
             >
-              Tags
+              Tags <span className="text-red-500">*</span>
             </label>
             <select
               id="tag_ids"
@@ -547,7 +557,7 @@ export default function ArticleForm({
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Content
+              Content <span className="text-red-500">*</span>
             </label>
             <textarea
               {...register("content")}
@@ -710,22 +720,24 @@ export default function ArticleForm({
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-300"
         >
+          <XMarkIcon className="h-4 w-4" />
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-md bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-300 disabled:opacity-50"
         >
-          {isSubmitting
-            ? article?.id
-              ? "Updating..."
-              : "Creating..."
-            : article?.id
-            ? "Update Article"
-            : "Create Article"}
+          {isSubmitting ? (
+            "Processing..."
+          ) : (
+            <>
+              <CheckIcon className="h-4 w-4" />
+              Submit
+            </>
+          )}
         </button>
       </div>
     </form>

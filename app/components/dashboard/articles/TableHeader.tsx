@@ -1,10 +1,7 @@
 "use client";
 
 import { Article } from "../../../lib/definition";
-import {
-  ChevronUpIcon,
-  ChevronDownIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 
 interface TableHeaderProps {
   sortField: keyof Article;
@@ -23,11 +20,6 @@ export function TableHeader({
       label: "#",
       sortable: false,
     },
-    {
-      key: "id" as keyof Article,
-      label: "ID",
-      sortable: false,
-    },
     { key: "title" as keyof Article, label: "Title" },
     { key: "content" as keyof Article, label: "Content" },
     {
@@ -40,6 +32,10 @@ export function TableHeader({
       label: "Published",
     },
     {
+      key: "updated_at" as keyof Article,
+      label: "Updated",
+    },
+    {
       key: "is_featured" as keyof Article,
       label: "Featured",
     },
@@ -50,29 +46,43 @@ export function TableHeader({
   ];
 
   return (
-    <thead>
-      <tr className="border-b border-gray-200 bg-gray-50 text-left text-sm font-semibold text-gray-900">
+    <thead className="rounded-lg text-left text-sm font-normal bg-zinc-200">
+      <tr>
         {columns.map((column) => (
           <th
             key={column.key}
-            className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
-            onClick={() =>
-              column.sortable !== false &&
-              onSort(column.key)
-            }
+            className={`${
+              column.key === ("sequence" as keyof Article)
+                ? "px-2 py-3 font-medium border-b border-zinc-300"
+                : column.key === ("actions" as keyof Article)
+                ? "px-3 py-3 font-medium border-b border-zinc-300 text-center"
+                : column.key === ("title" as keyof Article)
+                ? "px-3 py-3 font-medium border-b border-zinc-300 w-[200px]"
+                : `px-3 py-3 font-medium ${
+                    column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
+                  } border-b border-zinc-300`
+            }`}
+            onClick={() => column.sortable !== false && onSort(column.key)}
           >
-            <div className="flex items-center gap-1">
-              {column.label}
-              {sortField === column.key &&
-                (sortDirection === "asc" ? (
-                  <ChevronUpIcon className="h-4 w-4" />
-                ) : (
-                  <ChevronDownIcon className="h-4 w-4" />
-                ))}
+            <div
+              className={`group inline-flex items-center ${
+                column.key === ("actions" as keyof Article)
+                  ? "justify-center"
+                  : ""
+              }`}
+            >
+              <span>{column.label}</span>
+              {column.sortable && sortField === column.key && (
+                <span className="ml-1 text-gray-500">
+                  {sortDirection === "asc" ? "↑" : "↓"}
+                </span>
+              )}
             </div>
           </th>
         ))}
-        <th className="px-4 py-3 text-right">Actions</th>
+        <th className="px-3 py-3 font-medium border-b border-zinc-300 text-center">
+          <span>Actions</span>
+        </th>
       </tr>
     </thead>
   );

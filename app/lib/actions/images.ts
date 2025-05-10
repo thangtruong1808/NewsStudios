@@ -137,7 +137,11 @@ export async function createImage(data: ImageFormData) {
 }
 
 // Function to get all images
-export async function getImages(articleId?: number) {
+export async function getImages(
+  articleId?: number,
+  page: number = 1,
+  itemsPerPage: number = 12
+) {
   try {
     let sqlQuery = "SELECT * FROM Images";
     const values: any[] = [];
@@ -147,7 +151,13 @@ export async function getImages(articleId?: number) {
       values.push(articleId);
     }
 
-    sqlQuery += " ORDER BY created_at DESC";
+    // Add pagination
+    const offset = (page - 1) * itemsPerPage;
+    sqlQuery += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+    values.push(itemsPerPage, offset);
+
+    console.log("SQL Query:", sqlQuery);
+    console.log("Query Values:", values);
 
     const result = await query(sqlQuery, values);
 
@@ -155,6 +165,18 @@ export async function getImages(articleId?: number) {
       console.error("Error in getImages:", result.error);
       return { data: [], error: result.error };
     }
+
+    // Get total count for pagination
+    const countQuery =
+      "SELECT COUNT(*) as total FROM Images" +
+      (articleId ? " WHERE article_id = ?" : "");
+    const countResult = await query(countQuery, articleId ? [articleId] : []);
+    const totalItems = countResult.data?.[0]?.total || 0;
+
+    console.log("Count Result:", {
+      totalItems,
+      countData: countResult.data,
+    });
 
     // Process the images to ensure they have proper URLs
     const images = (result.data as ImageRow[]).map((image) => {
@@ -175,7 +197,20 @@ export async function getImages(articleId?: number) {
       };
     });
 
-    return { data: images, error: null };
+    const paginationData = {
+      totalItems,
+      totalPages: Math.ceil(totalItems / itemsPerPage),
+      currentPage: page,
+      itemsPerPage,
+    };
+
+    console.log("Pagination Data:", paginationData);
+
+    return {
+      data: images,
+      error: null,
+      pagination: paginationData,
+    };
   } catch (error) {
     console.error("Error fetching images:", error);
     return { data: [], error: "Failed to fetch images" };

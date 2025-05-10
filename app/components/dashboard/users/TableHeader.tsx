@@ -18,13 +18,13 @@ export default function TableHeader({
       <tr>
         <th
           scope="col"
-          className="px-4 py-5 font-medium sm:pl-6 border-b border-zinc-300"
+          className="px-2 py-3 font-medium border-b border-zinc-300"
         >
           #
         </th>
         <th
           scope="col"
-          className="px-3 py-5 font-medium border-b border-zinc-300"
+          className="px-3 py-3 font-medium border-b border-zinc-300"
           onClick={() => onSort("firstname")}
         >
           First Name{" "}
@@ -34,7 +34,7 @@ export default function TableHeader({
         </th>
         <th
           scope="col"
-          className="px-3 py-5 font-medium border-b border-zinc-300"
+          className="px-3 py-3 font-medium border-b border-zinc-300"
           onClick={() => onSort("lastname")}
         >
           Last Name{" "}
@@ -44,7 +44,7 @@ export default function TableHeader({
         </th>
         <th
           scope="col"
-          className="px-3 py-5 font-medium border-b border-zinc-300"
+          className="px-3 py-3 font-medium border-b border-zinc-300"
           onClick={() => onSort("description")}
         >
           Description{" "}
@@ -54,7 +54,7 @@ export default function TableHeader({
         </th>
         <th
           scope="col"
-          className="px-3 py-5 font-medium border-b border-zinc-300"
+          className="px-3 py-3 font-medium border-b border-zinc-300"
           onClick={() => onSort("email")}
         >
           Email{" "}
@@ -64,7 +64,7 @@ export default function TableHeader({
         </th>
         <th
           scope="col"
-          className="px-3 py-5 font-medium border-b border-zinc-300"
+          className="px-3 py-3 font-medium border-b border-zinc-300"
           onClick={() => onSort("role")}
         >
           Role{" "}
@@ -74,7 +74,7 @@ export default function TableHeader({
         </th>
         <th
           scope="col"
-          className="px-3 py-5 font-medium border-b border-zinc-300"
+          className="px-3 py-3 font-medium border-b border-zinc-300"
           onClick={() => onSort("status")}
         >
           Status{" "}
@@ -84,9 +84,9 @@ export default function TableHeader({
         </th>
         <th
           scope="col"
-          className="relative py-3 pl-6 pr-3 border-b border-zinc-300 text-center"
+          className="px-3 py-3 font-medium border-b border-zinc-300 text-center"
         >
-          <span className="font-medium">Actions</span>
+          <span>Actions</span>
         </th>
       </tr>
     </thead>

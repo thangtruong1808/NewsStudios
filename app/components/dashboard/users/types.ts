@@ -5,7 +5,7 @@ export interface Column {
   key: string;
   label: string;
   sortable: boolean;
-  accessor: keyof User;
+  accessor?: keyof User;
   cell: (value: string | number, index: number, user: User) => ReactNode;
 }
 

@@ -15,6 +15,7 @@ import {
 } from "../../../lib/actions/categories";
 import { Category } from "../../../lib/definition";
 import toast from "react-hot-toast";
+import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 interface CategoryFormProps {
   categoryId?: string;
@@ -52,16 +53,26 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
           if (error) {
             setError(error);
             toast.error(error);
-          } else if (data) {
-            setCategory(data as Category);
-            reset({
-              name: data.name,
-              description: data.description || "",
-            });
+            router.push("/dashboard/categories");
+            return;
           }
+
+          if (!data) {
+            setError("Category not found");
+            toast.error("Category not found");
+            router.push("/dashboard/categories");
+            return;
+          }
+
+          setCategory(data as Category);
+          reset({
+            name: data.name,
+            description: data.description || "",
+          });
         } catch (err) {
           setError("Failed to fetch category");
           toast.error("Failed to fetch category");
+          router.push("/dashboard/categories");
         } finally {
           setIsLoading(false);
         }
@@ -69,7 +80,7 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
     };
 
     fetchCategory();
-  }, [categoryId, reset]);
+  }, [categoryId, reset, router]);
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
@@ -160,17 +171,28 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
             </p>
           )}
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-300"
+          >
+            <XMarkIcon className="h-4 w-4" />
+            Cancel
+          </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-md bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-300 disabled:opacity-50"
           >
-            {isSubmitting
-              ? "Saving..."
-              : categoryId
-              ? "Update Category"
-              : "Create Category"}
+            {isSubmitting ? (
+              "Processing..."
+            ) : (
+              <>
+                <CheckIcon className="h-4 w-4" />
+                Submit
+              </>
+            )}
           </button>
         </div>
       </form>

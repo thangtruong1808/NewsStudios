@@ -17,14 +17,11 @@ interface PageProps {
   }>;
 }
 
-export default async function ArticlesPage(
-  props: PageProps
-) {
+export default async function ArticlesPage(props: PageProps) {
   // Await searchParams before accessing its properties
   const searchParams = await props.searchParams;
   const searchQuery = searchParams?.query || "";
-  const currentPage =
-    Number(searchParams?.page) || 1;
+  const currentPage = Number(searchParams?.page) || 1;
 
   let articles: Article[] = [];
   let error: string | null = null;
@@ -32,10 +29,7 @@ export default async function ArticlesPage(
   try {
     articles = await getArticles();
   } catch (err) {
-    error =
-      err instanceof Error
-        ? err.message
-        : "Failed to load articles";
+    error = err instanceof Error ? err.message : "Failed to load articles";
   }
 
   // Handle error case
@@ -61,17 +55,13 @@ export default async function ArticlesPage(
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
-        <h1
-          className={`${lusitana.className} text-2xl`}
-        >
-          Articles List
-        </h1>
+      <div className="flex items-center justify-between mb-2 h-12">
+        <h1 className={`${lusitana.className} text-2xl`}>Articles List</h1>
         <Link
           href="/dashboard/articles/create"
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+          className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:from-violet-700 hover:to-fuchsia-700"
         >
-          <PlusIcon className="h-5 w-5" />
+          <PlusIcon className="h-6 w-6" />
           Add Article
         </Link>
       </div>
@@ -81,10 +71,7 @@ export default async function ArticlesPage(
       </div>
 
       {hasArticles ? (
-        <ArticlesTableClient
-          articles={articles}
-          searchQuery={searchQuery}
-        />
+        <ArticlesTableClient articles={articles} searchQuery={searchQuery} />
       ) : (
         <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
           <p className="text-gray-500">

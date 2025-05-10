@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import CategoryForm from "@/components/dashboard/categories/CategoryForm";
+import CategoryForm from "../../../../components/dashboard/categories/CategoryForm";
 
 export default function EditCategoryPage() {
   const params = useParams();

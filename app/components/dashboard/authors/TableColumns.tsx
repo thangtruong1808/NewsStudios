@@ -4,6 +4,7 @@ import React, { ReactElement } from "react";
 import { Column } from "./types";
 import { Author } from "../../../lib/definition";
 import Link from "next/link";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 // Helper function to split text into rows of 8 words each
 const splitTextIntoRows = (
@@ -115,15 +116,17 @@ export function getTableColumns(
         <div className="flex justify-center gap-2">
           <Link
             href={`/dashboard/author/${author.id}/edit`}
-            className="rounded border border-blue-500 px-3 py-1 text-blue-500 hover:bg-blue-50"
+            className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1.5 text-xs font-medium text-blue-500 hover:bg-blue-100"
           >
+            <PencilIcon className="h-3.5 w-3.5" />
             Edit
           </Link>
           <button
             onClick={() => onDelete(author.id, author.name)}
             disabled={isDeleting}
-            className="rounded border border-red-500 px-3 py-1 text-red-500 hover:bg-red-50 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 disabled:opacity-50"
           >
+            <TrashIcon className="h-3.5 w-3.5" />
             Delete
           </button>
         </div>

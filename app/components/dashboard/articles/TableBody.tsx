@@ -23,10 +23,10 @@ export function TableBody({
     if (!date) return "Not published";
     try {
       const dateObj = typeof date === "string" ? new Date(date) : date;
-      return dateObj.toLocaleDateString("en-US", {
+      return dateObj.toLocaleDateString("en-GB", {
         year: "numeric",
-        month: "short",
-        day: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       });
     } catch (error) {
       console.error("Error formatting date:", error);
@@ -107,29 +107,35 @@ export function TableBody({
           key={article.id}
           className="border-b border-gray-200 hover:bg-gray-50"
         >
-          <td className="px-4 py-3">
+          <td className="px-2 py-3 text-sm text-gray-500">
             {(currentPage - 1) * itemsPerPage + index + 1}
           </td>
-          <td className="px-4 py-3">{article.id}</td>
-          <td className="px-4 py-3">
+          <td className="px-3 py-3 text-sm text-gray-500 max-w-[300px]">
             <Link
               href={`/dashboard/articles/${article.id}`}
-              className="text-blue-600 hover:text-blue-800"
+              className="text-blue-600 hover:text-blue-800 line-clamp-2"
             >
               {article.title}
             </Link>
           </td>
-          <td className="px-4 py-3">
-            <div className="max-w-xs truncate">{article.content}</div>
+          <td className="px-3 py-3 text-sm text-gray-500 max-w-[400px]">
+            <div className="line-clamp-3 whitespace-pre-wrap">
+              {article.content}
+            </div>
           </td>
-          <td className="px-4 py-3">
+          <td className="px-3 py-3 text-sm text-gray-500">
             {article.category_name || "Unknown Category"}
           </td>
-          <td className="px-4 py-3">
+          <td className="px-3 py-3 text-sm text-gray-500">
             {article.author_name || "Unknown Author"}
           </td>
-          <td className="px-4 py-3">{formatDate(article.published_at)}</td>
-          <td className="px-4 py-3">
+          <td className="px-3 py-3 text-sm text-gray-500">
+            {formatDate(article.published_at)}
+          </td>
+          <td className="px-3 py-3 text-sm text-gray-500">
+            {formatDate(article.updated_at)}
+          </td>
+          <td className="px-3 py-3 text-sm text-gray-500">
             {article.is_featured ? (
               <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                 Yes
@@ -140,7 +146,7 @@ export function TableBody({
               </span>
             )}
           </td>
-          <td className="px-4 py-3">
+          <td className="px-3 py-3 text-sm text-gray-500">
             {article.is_trending ? (
               <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                 Yes
@@ -151,18 +157,20 @@ export function TableBody({
               </span>
             )}
           </td>
-          <td className="px-4 py-3 text-right">
-            <div className="flex justify-end gap-2">
+          <td className="px-3 py-3 text-sm text-gray-500 text-center">
+            <div className="flex justify-center gap-2">
               <Link
                 href={`/dashboard/articles/${article.id}/edit`}
-                className="rounded border border-blue-500 px-3 py-1 text-blue-500 hover:bg-blue-100"
+                className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1.5 text-xs font-medium text-blue-500 hover:bg-blue-100"
               >
+                <PencilIcon className="h-3.5 w-3.5" />
                 Edit
               </Link>
               <button
                 onClick={() => confirmDelete(article.id, article.title)}
-                className="rounded border border-red-500 px-3 py-1 text-red-500 hover:bg-red-100"
+                className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100"
               >
+                <TrashIcon className="h-3.5 w-3.5" />
                 Delete
               </button>
             </div>

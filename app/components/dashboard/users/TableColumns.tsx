@@ -14,6 +14,16 @@ export function getTableColumns(
 ): Column[] {
   return [
     {
+      key: "sequence",
+      label: "#",
+      sortable: false,
+      cell: (value: string | number, index: number) => (
+        <div className="text-left text-xs text-gray-500 sm:text-sm px-2">
+          {(currentPage - 1) * itemsPerPage + index + 1}
+        </div>
+      ),
+    },
+    {
       key: "firstname",
       label: "Name",
       sortable: true,

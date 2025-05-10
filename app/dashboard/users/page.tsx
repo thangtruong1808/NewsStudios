@@ -51,14 +51,14 @@ export default async function UsersPage(props: PageProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl font-semibold text-gray-900">Users List</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Users</h1>
         <Link
           href="/dashboard/users/create"
-          className="flex h-10 items-center rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+          className="inline-flex items-center gap-1 rounded-md border border-transparent bg-gradient-to-r from-violet-600 to-fuchsia-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:from-violet-700 hover:to-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
         >
-          <span className="hidden md:block">Create User</span>{" "}
-          <PlusIcon className="h-5 md:ml-4" />
+          <PlusIcon className="h-4 w-4" />
+          <span>Create User</span>
         </Link>
       </div>
 
