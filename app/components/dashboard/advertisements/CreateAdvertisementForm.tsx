@@ -14,7 +14,11 @@ import {
   advertisementSchema,
   AdvertisementFormData,
 } from "@/app/lib/validations/advertisementSchema";
-import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationCircleIcon,
+  XMarkIcon,
+  CheckIcon,
+} from "@heroicons/react/24/outline";
 import { uploadToCloudinary } from "@/app/lib/utils/cloudinaryUtils";
 import { toast } from "react-hot-toast";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
@@ -34,12 +38,14 @@ interface CreateAdvertisementFormProps {
     end_date: string;
     image_url: string | null;
     video_url: string | null;
-  }) => Promise<void>;
-  onImageFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
-  onVideoFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
-  isUploading: boolean;
-  imageUrl: string | null;
-  videoUrl: string | null;
+  }) => Promise<{ success: boolean; error?: string }>;
+  onImageFileChange?: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  onVideoFileChange?: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  isUploading?: boolean;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+  defaultValues?: Partial<AdvertisementFormData>;
+  isEditMode?: boolean;
 }
 
 export default function CreateAdvertisementForm({
@@ -49,19 +55,35 @@ export default function CreateAdvertisementForm({
   onSubmit,
   onImageFileChange,
   onVideoFileChange,
-  isUploading,
-  imageUrl,
-  videoUrl,
+  isUploading = false,
+  imageUrl = null,
+  videoUrl = null,
+  defaultValues,
+  isEditMode = false,
 }: CreateAdvertisementFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string>("");
-  const [previewVideo, setPreviewVideo] = useState<string>("");
+  const [previewImage, setPreviewImage] = useState<string>(
+    imageUrl || defaultValues?.image_url || ""
+  );
+  const [previewVideo, setPreviewVideo] = useState<string>(
+    videoUrl || defaultValues?.video_url || ""
+  );
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+
+  // Update preview states when props change
+  useEffect(() => {
+    if (imageUrl) {
+      setPreviewImage(imageUrl);
+    }
+    if (videoUrl) {
+      setPreviewVideo(videoUrl);
+    }
+  }, [imageUrl, videoUrl]);
 
   const {
     register,
@@ -71,7 +93,7 @@ export default function CreateAdvertisementForm({
     formState: { errors },
   } = useForm<AdvertisementFormData>({
     resolver: zodResolver(advertisementSchema),
-    defaultValues: {
+    defaultValues: defaultValues || {
       sponsor_id: 0,
       article_id: 0,
       category_id: 0,
@@ -88,14 +110,34 @@ export default function CreateAdvertisementForm({
 
   const handleFormSubmit = async (data: AdvertisementFormData) => {
     try {
-      await onSubmit({
+      setIsSubmitting(true);
+      const result = await onSubmit({
         ...data,
+        article_id: data.article_id || undefined,
+        category_id: data.category_id || undefined,
         image_url: data.image_url || null,
         video_url: data.video_url || null,
       });
+
+      if (result.success) {
+        toast.success(
+          isEditMode
+            ? "Advertisement updated successfully!"
+            : "Advertisement created successfully!"
+        );
+        router.push("/dashboard/advertisements");
+      } else {
+        toast.error(
+          result.error ||
+            (isEditMode
+              ? "Failed to update advertisement"
+              : "Failed to create advertisement")
+        );
+      }
     } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("Failed to create advertisement");
+      toast.error(error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -187,9 +229,7 @@ export default function CreateAdvertisementForm({
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-800">
         <h2 className="text-xl font-semibold text-white">
-          {previewImage || previewVideo
-            ? "Edit Advertisement"
-            : "Create New Advertisement"}
+          {isEditMode ? "Edit Advertisement" : "Create New Advertisement"}
         </h2>
       </div>
 
@@ -476,16 +516,27 @@ export default function CreateAdvertisementForm({
           <button
             type="button"
             onClick={handleCancel}
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-zinc-200 hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
+            <XMarkIcon className="h-4 w-4" />
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting || isUploading}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            className="inline-flex items-center gap-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-gray-700 bg-zinc-200 hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            {isSubmitting ? "Saving..." : "Create Advertisement"}
+            {isSubmitting ? (
+              <>
+                <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                <CheckIcon className="h-4 w-4" />
+                Submit
+              </>
+            )}
           </button>
         </div>
       </form>

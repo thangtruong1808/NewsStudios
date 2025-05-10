@@ -53,6 +53,7 @@ export async function setupDatabase() {
         id INT(11) PRIMARY KEY AUTO_INCREMENT,
         name VARCHAR(255) NOT NULL,
         description TEXT,
+        bio TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
@@ -182,12 +183,19 @@ export async function setupDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS Images (
         id INT(11) PRIMARY KEY AUTO_INCREMENT,
-        article_id INT(11) NOT NULL,
         image_url VARCHAR(255) NOT NULL,
+        article_id INT(11) NULL,
         description TEXT,
+        type ENUM('banner', 'video', 'thumbnail', 'gallery') NOT NULL,
+        entity_type ENUM('advertisement', 'article', 'author', 'category') NOT NULL,
+        entity_id INT(11) NOT NULL,
+        is_featured BOOLEAN DEFAULT FALSE,
+        display_order INT(11) DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (article_id) REFERENCES Articles(id) ON DELETE CASCADE
+        INDEX idx_entity (entity_type, entity_id),
+        INDEX idx_type (type),
+        INDEX idx_article (article_id)
       )
     `);
 
@@ -211,16 +219,17 @@ export async function setupDatabase() {
         sponsor_id INT(11) NOT NULL,
         article_id INT(11) NULL,
         category_id INT(11) NULL,
-        start_date TIMESTAMP,
-        end_date TIMESTAMP,
-        ad_type VARCHAR(50),
-        ad_content TEXT,
+        ad_type ENUM('banner', 'video') NOT NULL,
+        ad_content TEXT NOT NULL,
+        start_date TIMESTAMP NOT NULL,
+        end_date TIMESTAMP NOT NULL,
         image_url VARCHAR(255),
         video_url VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (sponsor_id) REFERENCES Sponsors(id) ON DELETE SET NULL,
-        
+        FOREIGN KEY (sponsor_id) REFERENCES Sponsors(id) ON DELETE CASCADE,
+        FOREIGN KEY (article_id) REFERENCES Articles(id) ON DELETE SET NULL,
+        FOREIGN KEY (category_id) REFERENCES Categories(id) ON DELETE SET NULL
       )
     `);
 

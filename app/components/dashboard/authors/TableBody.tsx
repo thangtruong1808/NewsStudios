@@ -1,6 +1,6 @@
 "use client";
 
-import { Author } from "../../../login/login-definitions";
+import { Author } from "../../../lib/definition";
 import { Column } from "./types";
 
 interface TableBodyProps {
@@ -32,9 +32,11 @@ export default function TableBody({
             return (
               <td
                 key={`${author.id}-${column.key}`}
-                className={`whitespace-nowrap px-3 py-4 text-sm ${
-                  isActionsColumn ? "" : "text-left"
-                } ${isMobileVisible ? "table-cell" : "hidden md:table-cell"}`}
+                className={`whitespace-nowrap ${
+                  column.key === "sequence" ? "px-2 py-2" : "px-3 py-4"
+                } text-sm ${isActionsColumn ? "" : "text-left"} ${
+                  isMobileVisible ? "table-cell" : "hidden md:table-cell"
+                }`}
               >
                 {column.cell(author, (currentPage - 1) * itemsPerPage + index)}
               </td>

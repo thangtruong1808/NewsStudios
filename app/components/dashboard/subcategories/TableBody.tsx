@@ -1,14 +1,11 @@
 "use client";
 
-import { Subcategory } from "../../../login/login-definitions";
+import { Column } from "./types";
+import { SubCategory } from "../../../lib/definition";
 
 interface TableBodyProps {
-  subcategories: Subcategory[];
-  columns: {
-    header: string;
-    accessorKey: keyof Subcategory;
-    cell?: (props: any) => React.ReactNode;
-  }[];
+  subcategories: SubCategory[];
+  columns: Column[];
   currentPage: number;
   itemsPerPage: number;
 }
@@ -20,31 +17,35 @@ export default function TableBody({
   itemsPerPage,
 }: TableBodyProps) {
   return (
-    <tbody className="bg-white divide-y divide-zinc-300">
+    <tbody className="divide-y divide-gray-200 bg-white">
       {subcategories.map((subcategory, index) => (
         <tr
           key={subcategory.id}
-          className={`hover:bg-zinc-50 transition-colors ${
-            index === 0
-              ? "rounded-t-lg"
-              : index === subcategories.length - 1
-              ? "rounded-b-lg"
-              : ""
-          }`}
+          className="hover:bg-gray-100 transition-colors duration-150"
         >
-          {columns.map((column) => (
-            <td
-              key={`${subcategory.id}-${column.header}`}
-              className="px-3 py-4 text-sm text-zinc-600 font-medium text-left"
-            >
-              {column.cell
-                ? column.cell({
-                    getValue: () => subcategory[column.accessorKey],
-                    row: { original: subcategory, index },
-                  })
-                : subcategory[column.accessorKey]?.toString() || ""}
-            </td>
-          ))}
+          {columns.map((column) => {
+            const isActionsColumn = column.key === "actions";
+            const isSequenceColumn = column.key === "sequence";
+            const isMobileVisible = ["id", "name", "actions"].includes(
+              column.key
+            );
+
+            return (
+              <td
+                key={`${subcategory.id}-${column.key}`}
+                className={`whitespace-nowrap ${
+                  isSequenceColumn ? "px-2 py-2" : "px-3 py-3"
+                } text-xs ${isActionsColumn ? "text-center" : ""} ${
+                  isMobileVisible ? "table-cell" : "hidden md:table-cell"
+                }`}
+              >
+                {column.cell(
+                  subcategory,
+                  (currentPage - 1) * itemsPerPage + index
+                )}
+              </td>
+            );
+          })}
         </tr>
       ))}
     </tbody>

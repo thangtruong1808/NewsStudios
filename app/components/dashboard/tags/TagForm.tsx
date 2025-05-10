@@ -9,7 +9,7 @@ import {
   type TagFormData,
 } from "../../../lib/validations/tagSchema";
 import { createTag, updateTag } from "../../../lib/actions/tags";
-import { Tag } from "../../../login/login-definitions";
+import { Tag } from "../../../lib/definition";
 import toast from "react-hot-toast";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
@@ -63,6 +63,7 @@ export default function TagForm({ tag }: TagFormProps) {
           toast.error(error);
         } else {
           toast.success("Tag updated successfully");
+          router.refresh();
           router.push("/dashboard/tags");
         }
       } else {
@@ -72,6 +73,7 @@ export default function TagForm({ tag }: TagFormProps) {
           toast.error(error);
         } else {
           toast.success("Tag created successfully");
+          router.refresh();
           router.push("/dashboard/tags");
         }
       }

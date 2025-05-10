@@ -1,10 +1,10 @@
 import { Sponsor } from "../../../lib/definition";
 import Link from "next/link";
-import DeleteSponsorButton from "./DeleteSponsorButton";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 interface Column {
   header: string;
-  accessorKey: keyof Sponsor | "sequence";
+  accessorKey: keyof Sponsor | "sequence" | "actions";
   cell: (info: {
     getValue: () => any;
     row: { original: Sponsor; index: number };
@@ -19,14 +19,9 @@ export function getTableColumns(
 ): Column[] {
   return [
     {
-      header: "No",
+      header: "#",
       accessorKey: "sequence",
       cell: (info) => (currentPage - 1) * itemsPerPage + info.row.index + 1,
-    },
-    {
-      header: "ID",
-      accessorKey: "id",
-      cell: (info) => <div>{info.getValue()}</div>,
     },
     {
       header: "Name",
@@ -75,24 +70,53 @@ export function getTableColumns(
       },
     },
     {
+      header: "Created At",
+      accessorKey: "created_at",
+      cell: (info) => (
+        <div>
+          {new Date(info.getValue()).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+        </div>
+      ),
+    },
+    {
+      header: "Updated At",
+      accessorKey: "updated_at",
+      cell: (info) => (
+        <div>
+          {new Date(info.getValue()).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+        </div>
+      ),
+    },
+    {
       header: "Actions",
-      accessorKey: "id",
+      accessorKey: "actions",
       cell: (info) => {
         const sponsor = info.row.original;
         return (
-          <div className="flex items-center space-x-2">
+          <div className="flex justify-center items-center gap-4">
             <Link
               href={`/dashboard/sponsor/${sponsor.id}/edit`}
-              className="rounded-md border border-blue-500 px-3 py-1 text-blue-500 hover:bg-blue-50"
+              className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1.5 text-xs font-medium text-blue-500 hover:bg-blue-100"
             >
+              <PencilIcon className="h-3.5 w-3.5" />
               Edit
             </Link>
-            <DeleteSponsorButton
-              id={sponsor.id}
-              name={sponsor.name}
-              onDelete={handleDelete}
-              isDeleting={isDeleting}
-            />
+            <button
+              onClick={() => handleDelete(sponsor.id, sponsor.name)}
+              disabled={isDeleting}
+              className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 disabled:opacity-50"
+            >
+              <TrashIcon className="h-3.5 w-3.5" />
+              Delete
+            </button>
           </div>
         );
       },

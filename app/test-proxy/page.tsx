@@ -8,6 +8,7 @@ export default function TestProxyPage() {
   const [proxyUrl, setProxyUrl] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<string>("");
 
   const handleTest = async () => {
     if (!imageUrl) return;
@@ -30,10 +31,12 @@ export default function TestProxyPage() {
       }
 
       // If we get here, the proxy worked
-      console.log("Proxy test successful");
+      setResult("Proxy test successful");
+      setError("");
     } catch (err) {
       console.error("Proxy test failed:", err);
       setError(err instanceof Error ? err.message : String(err));
+      setResult("");
     } finally {
       setLoading(false);
     }
@@ -118,6 +121,8 @@ export default function TestProxyPage() {
           </div>
         )}
       </div>
+
+      {result && <p className="mt-4 text-green-600">{result}</p>}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Column } from "./types";
-import { Category } from "../../../login/login-definitions";
+import { Category } from "../../../lib/definition";
 
 interface TableBodyProps {
   categories: Category[];
@@ -21,10 +21,11 @@ export default function TableBody({
       {categories.map((category, index) => (
         <tr
           key={category.id}
-          className="w-full border-b border-zinc-300 py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg hover:bg-zinc-100 transition-colors"
+          className="hover:bg-gray-100 transition-colors duration-150"
         >
           {columns.map((column) => {
             const isActionsColumn = column.key === "actions";
+            const isSequenceColumn = column.key === "sequence";
             const isMobileVisible = ["id", "name", "actions"].includes(
               column.key
             );
@@ -32,9 +33,11 @@ export default function TableBody({
             return (
               <td
                 key={`${category.id}-${column.key}`}
-                className={`whitespace-nowrap px-3 py-4 text-sm ${
-                  isActionsColumn ? "" : "text-left"
-                } ${isMobileVisible ? "table-cell" : "hidden md:table-cell"}`}
+                className={`whitespace-nowrap ${
+                  isSequenceColumn ? "px-2 py-2" : "px-3 py-3"
+                } text-xs ${isActionsColumn ? "text-center" : ""} ${
+                  isMobileVisible ? "table-cell" : "hidden md:table-cell"
+                }`}
               >
                 {column.cell(
                   category,

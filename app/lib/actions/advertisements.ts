@@ -111,19 +111,48 @@ export async function deleteAdvertisement(id: number) {
   try {
     // Use transaction to ensure data consistency
     const result = await transaction(async (connection) => {
-      const [rows] = await connection.execute(
+      // First, get the advertisement to find its image_url and video_url
+      const [advertisement] = await connection.execute(
+        "SELECT image_url, video_url, ad_type FROM Advertisements WHERE id = ?",
+        [id]
+      );
+
+      const ad = (advertisement as any[])[0];
+
+      // Delete the advertisement
+      const [deleteResult] = await connection.execute(
         "DELETE FROM Advertisements WHERE id = ?",
         [id]
       );
 
-      return rows;
+      // If the advertisement had an image, delete it from Images table
+      if (ad?.image_url) {
+        await connection.execute("DELETE FROM Images WHERE image_url = ?", [
+          ad.image_url,
+        ]);
+      }
+
+      // If the advertisement had a video, delete it from Videos table
+      if (ad?.video_url && ad?.ad_type === "video") {
+        await connection.execute("DELETE FROM Videos WHERE video_url = ?", [
+          ad.video_url,
+        ]);
+      }
+
+      return deleteResult;
     });
 
     revalidatePath("/dashboard/advertisements");
-    return { data: result, error: null };
+    return { success: true, error: null };
   } catch (error) {
     console.error("Error deleting advertisement:", error);
-    return { data: null, error: "Failed to delete advertisement" };
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to delete advertisement",
+    };
   }
 }
 
@@ -325,33 +354,12 @@ export async function createAdvertisement(data: {
   video_url: string | null;
 }) {
   try {
-    // Validate required fields
-    if (
-      !data.sponsor_id ||
-      !data.ad_type ||
-      !data.start_date ||
-      !data.end_date ||
-      !data.ad_content
-    ) {
-      throw new Error("Missing required fields");
-    }
+    console.log("Starting advertisement creation with data:", data);
 
     const result = await transaction(async (connection) => {
-      const [rows] = await connection.execute(
-        `INSERT INTO Advertisements (
-          sponsor_id,
-          article_id,
-          category_id,
-          ad_type,
-          ad_content,
-          start_date,
-          end_date,
-          image_url,
-          video_url,
-          created_at,
-          updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-        [
+      try {
+        // 1. Create the advertisement
+        console.log("Executing advertisement insert with values:", [
           data.sponsor_id,
           data.article_id || null,
           data.category_id || null,
@@ -361,15 +369,137 @@ export async function createAdvertisement(data: {
           data.end_date,
           data.image_url,
           data.video_url,
-        ]
-      );
-      return rows;
+        ]);
+
+        const [adResult] = await connection.execute(
+          `INSERT INTO Advertisements (
+            sponsor_id, article_id, category_id, ad_type, 
+            ad_content, start_date, end_date, image_url, video_url,
+            created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+          [
+            data.sponsor_id,
+            data.article_id || null,
+            data.category_id || null,
+            data.ad_type,
+            data.ad_content,
+            data.start_date,
+            data.end_date,
+            data.image_url,
+            data.video_url,
+          ]
+        );
+
+        const advertisementId = (adResult as any).insertId;
+        console.log("Created advertisement with ID:", advertisementId);
+
+        // 2. If there's an image, create a record in Images table
+        if (data.image_url) {
+          console.log("Starting image insertion process...");
+          console.log("Image data:", {
+            image_url: data.image_url,
+            article_id: data.article_id || null,
+            description: data.ad_content,
+            type: "banner",
+            entity_type: "advertisement",
+            entity_id: advertisementId,
+            is_featured: true,
+            display_order: 0,
+          });
+
+          try {
+            const [imageResult] = await connection.execute(
+              `INSERT INTO Images (
+                image_url, article_id, description, type, entity_type, entity_id, is_featured, display_order, created_at, updated_at
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+              [
+                data.image_url,
+                data.article_id || null,
+                data.ad_content,
+                "banner",
+                "advertisement",
+                advertisementId,
+                true,
+                0,
+              ]
+            );
+            console.log("Image record created successfully:", {
+              result: imageResult,
+              insertId: (imageResult as any).insertId,
+            });
+          } catch (imageError) {
+            console.error("Error creating image record:", {
+              error: imageError,
+              errorMessage:
+                imageError instanceof Error
+                  ? imageError.message
+                  : "Unknown error",
+              sqlState: (imageError as any).sqlState,
+              sqlMessage: (imageError as any).sqlMessage,
+            });
+            // Don't throw the error, just log it
+          }
+        } else {
+          console.log("No image URL provided, skipping image insertion");
+        }
+
+        // 3. If there's a video, create a record in Videos table
+        if (data.video_url && data.ad_type === "video") {
+          console.log("Starting video insertion process...");
+          console.log("Video data:", {
+            video_url: data.video_url,
+            article_id: data.article_id || null,
+            description: data.ad_content,
+          });
+
+          try {
+            const [videoResult] = await connection.execute(
+              `INSERT INTO Videos (
+                video_url, article_id, description, created_at, updated_at
+              ) VALUES (?, ?, ?, NOW(), NOW())`,
+              [data.video_url, data.article_id || null, data.ad_content]
+            );
+            console.log("Video record created successfully:", {
+              result: videoResult,
+              insertId: (videoResult as any).insertId,
+            });
+          } catch (videoError) {
+            console.error("Error creating video record:", {
+              error: videoError,
+              errorMessage:
+                videoError instanceof Error
+                  ? videoError.message
+                  : "Unknown error",
+              sqlState: (videoError as any).sqlState,
+              sqlMessage: (videoError as any).sqlMessage,
+            });
+            // Don't throw the error, just log it
+          }
+        } else {
+          console.log(
+            "No video URL provided or not a video advertisement, skipping video insertion"
+          );
+        }
+
+        return { success: true, id: advertisementId };
+      } catch (error) {
+        console.error("Error in transaction:", error);
+        throw error; // Re-throw to be caught by outer try-catch
+      }
     });
 
-    return { success: true, id: (result as any).insertId };
+    revalidatePath("/dashboard/advertisements");
+    return result;
   } catch (error) {
     console.error("Error creating advertisement:", error);
-    throw new Error("Failed to create advertisement");
+    // Return only serializable data
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to create advertisement",
+    };
   }
 }
 
@@ -404,9 +534,15 @@ export async function updateAdvertisement(
     });
 
     revalidatePath("/dashboard/advertisements");
-    return { data: result, error: null };
+    return { success: true, error: null };
   } catch (error) {
     console.error("Error updating advertisement:", error);
-    return { data: null, error: "Failed to update advertisement" };
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update advertisement",
+    };
   }
 }

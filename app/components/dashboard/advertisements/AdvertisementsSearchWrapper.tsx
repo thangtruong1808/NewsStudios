@@ -21,7 +21,7 @@ export default function AdvertisementsSearchWrapper() {
 
   return (
     <SearchWrapper
-      placeholder="Search advertisements..."
+      placeholder="Search by sponsor, article, category, type, or content..."
       onSearch={handleSearch}
     />
   );

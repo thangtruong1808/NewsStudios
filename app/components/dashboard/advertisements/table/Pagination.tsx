@@ -8,12 +8,16 @@ import {
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
+  itemsPerPage: number;
+  totalItems: number;
   onPageChange: (page: number) => void;
 }
 
 export default function Pagination({
   currentPage,
   totalPages,
+  itemsPerPage,
+  totalItems,
   onPageChange,
 }: PaginationProps) {
   const getPageNumbers = () => {
@@ -47,11 +51,14 @@ export default function Pagination({
         <div>
           <p className="text-xs sm:text-sm text-gray-700">
             Showing{" "}
-            <span className="font-medium">{(currentPage - 1) * 10 + 1}</span> to{" "}
             <span className="font-medium">
-              {Math.min(currentPage * 10, totalPages * 10)}
+              {(currentPage - 1) * itemsPerPage + 1}
             </span>{" "}
-            of <span className="font-medium">{totalPages * 10}</span> results
+            to{" "}
+            <span className="font-medium">
+              {Math.min(currentPage * itemsPerPage, totalItems)}
+            </span>{" "}
+            of <span className="font-medium">{totalItems}</span> results
           </p>
         </div>
         <div className="flex justify-center">
@@ -109,7 +116,7 @@ export default function Pagination({
             </button>
           </nav>
         </div>
-        <div className="text-sm text-gray-700">
+        <div>
           Page <span className="font-medium">{currentPage}</span> of{" "}
           <span className="font-medium">{totalPages}</span>
         </div>

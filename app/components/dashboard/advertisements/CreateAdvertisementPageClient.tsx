@@ -30,8 +30,8 @@ export default function CreateAdvertisementPageClient({
 
   const handleSubmit = async (data: {
     sponsor_id: number;
-    article_id: number;
-    category_id: number;
+    article_id?: number;
+    category_id?: number;
     ad_type: "banner" | "video";
     ad_content: string;
     start_date: string;
@@ -45,8 +45,8 @@ export default function CreateAdvertisementPageClient({
       // Ensure all data is serializable
       const serializableData = {
         sponsor_id: Number(data.sponsor_id),
-        article_id: Number(data.article_id),
-        category_id: Number(data.category_id),
+        article_id: data.article_id ? Number(data.article_id) : undefined,
+        category_id: data.category_id ? Number(data.category_id) : undefined,
         ad_type: data.ad_type,
         ad_content: data.ad_content,
         start_date: new Date(data.start_date).toISOString(),
@@ -55,20 +55,20 @@ export default function CreateAdvertisementPageClient({
         video_url: data.video_url || null,
       };
 
-      console.log("Data being sent to server:", serializableData);
-
       const result = await createAdvertisement(serializableData);
-      console.log("Server response:", result);
 
-      if (result.error) {
-        throw new Error(result.error);
+      if (!result.success) {
+        const errorMessage =
+          "error" in result ? result.error : "Failed to create advertisement";
+        return { success: false, error: errorMessage };
       }
 
-      toast.success("Advertisement created successfully!");
       router.push("/dashboard/advertisements");
+      return { success: true };
     } catch (error) {
-      console.error("Error creating advertisement:", error);
-      toast.error(error instanceof Error ? error.message : "An error occurred");
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred";
+      return { success: false, error: errorMessage };
     } finally {
       setIsSubmitting(false);
     }
@@ -130,7 +130,6 @@ export default function CreateAdvertisementPageClient({
       setImageUrl(result.url);
       toast.success("Image uploaded successfully! ✅", { id: toastId });
     } catch (error) {
-      console.error("Error uploading image:", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to upload image ❌",
         { id: toastId }
@@ -196,7 +195,6 @@ export default function CreateAdvertisementPageClient({
       setVideoUrl(result.url);
       toast.success("Video uploaded successfully! ✅", { id: toastId });
     } catch (error) {
-      console.error("Error uploading video:", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to upload video ❌",
         { id: toastId }
@@ -208,12 +206,6 @@ export default function CreateAdvertisementPageClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Create New Advertisement
-        </h1>
-      </div>
-
       <div className="px-4 py-5 sm:p-6">
         <CreateAdvertisementForm
           sponsors={sponsors}

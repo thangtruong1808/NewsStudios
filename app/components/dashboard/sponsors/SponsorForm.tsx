@@ -11,6 +11,7 @@ import { createSponsor, updateSponsor } from "../../../lib/actions/sponsors";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Sponsor } from "../../../lib/definition";
+import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 interface SponsorFormProps {
   sponsor?: Sponsor;
@@ -67,6 +68,8 @@ export default function SponsorForm({ sponsor }: SponsorFormProps) {
         }
 
         toast.success("Sponsor updated successfully");
+        router.refresh();
+        await new Promise((resolve) => setTimeout(resolve, 100));
         router.push("/dashboard/sponsor");
       } else {
         const { error } = await createSponsor(data);
@@ -77,6 +80,8 @@ export default function SponsorForm({ sponsor }: SponsorFormProps) {
         }
 
         toast.success("Sponsor created successfully");
+        router.refresh();
+        await new Promise((resolve) => setTimeout(resolve, 100));
         router.push("/dashboard/sponsor");
       }
     } catch (error) {
@@ -230,19 +235,32 @@ export default function SponsorForm({ sponsor }: SponsorFormProps) {
         </div>
       </div>
 
-      <div className="flex justify-end mt-4">
+      <div className="flex justify-end gap-4 mt-4">
+        <button
+          type="button"
+          onClick={() => router.push("/dashboard/sponsor")}
+          className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-zinc-200 py-2 px-4 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
+        >
+          <XMarkIcon className="h-4 w-4" />
+          Cancel
+        </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-md border border-transparent bg-zinc-200 py-2 px-4 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:opacity-50"
         >
-          {isSubmitting
-            ? isEditMode
-              ? "Updating..."
-              : "Creating..."
-            : isEditMode
-            ? "Update Sponsor"
-            : "Create Sponsor"}
+          {isSubmitting ? (
+            isEditMode ? (
+              "Updating..."
+            ) : (
+              "Creating..."
+            )
+          ) : (
+            <>
+              <CheckIcon className="h-4 w-4" />
+              Submit
+            </>
+          )}
         </button>
       </div>
     </form>

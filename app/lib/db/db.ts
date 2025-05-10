@@ -20,23 +20,19 @@ const dbConfig = {
 };
 
 // Create the connection pool
-export const pool = mysql.createPool(dbConfig);
+const pool = mysql.createPool(dbConfig);
 
-// Test the connection and log status
+// Test the connection
 pool
   .getConnection()
   .then((connection) => {
-    console.log("Successfully connected to the database");
     connection.release();
   })
-  .catch((error) => {
-    console.error("Error connecting to the database:", error);
-    if (error.code === "ECONNREFUSED") {
-      console.error(
-        "Connection refused. Please check if MySQL server is running and accessible."
-      );
-    }
+  .catch((err) => {
+    throw new Error(`Failed to connect to database: ${err.message}`);
   });
+
+export default pool;
 
 // Query function with improved error handling
 export async function query<T = any>(

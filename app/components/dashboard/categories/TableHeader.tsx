@@ -1,6 +1,8 @@
 "use client";
 
 import { Column } from "./types";
+import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { Category } from "../../../lib/definition";
 
 interface TableHeaderProps {
   columns: Column[];
@@ -29,7 +31,9 @@ export function TableHeader({
               className={`${
                 column.key === "actions"
                   ? "relative py-2 pl-4 pr-2 text-center border-b border-zinc-300"
-                  : `px-2 py-2 text-left text-xs font-medium text-gray-900 sm:text-sm ${
+                  : column.key === "sequence"
+                  ? "px-2 py-3 text-left text-xs font-medium text-gray-900 sm:text-sm border-b border-zinc-300"
+                  : `px-3 py-3 text-left text-xs font-medium text-gray-900 sm:text-sm ${
                       column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
                     } border-b border-zinc-300`
               } ${isMobileVisible ? "table-cell" : "hidden md:table-cell"}`}
@@ -45,7 +49,11 @@ export function TableHeader({
                 </span>
                 {column.sortable && sortField === column.key && (
                   <span className="ml-1 text-gray-500">
-                    {sortDirection === "asc" ? "↑" : "↓"}
+                    {sortDirection === "asc" ? (
+                      <ChevronUpIcon className="h-4 w-4" aria-hidden="true" />
+                    ) : (
+                      <ChevronDownIcon className="h-4 w-4" aria-hidden="true" />
+                    )}
                   </span>
                 )}
               </div>

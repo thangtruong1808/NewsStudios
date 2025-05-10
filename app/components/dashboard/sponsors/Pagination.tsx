@@ -1,4 +1,9 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "@heroicons/react/24/outline";
 
 interface PaginationProps {
   currentPage: number;
@@ -67,8 +72,8 @@ export default function Pagination({
 
   return (
     <div className="flex items-center justify-between border-t border-gray-200 bg-white px-2 py-2 sm:px-4 sm:py-3">
-      <div className="flex flex-1 items-center justify-between">
-        <div className="hidden sm:block">
+      <div className="flex flex-1 items-center justify-around w-full">
+        <div>
           <p className="text-xs sm:text-sm text-gray-700">
             Showing{" "}
             <span className="font-medium">
@@ -81,7 +86,7 @@ export default function Pagination({
             of <span className="font-medium">{totalItems}</span> results
           </p>
         </div>
-        <div className="flex w-full sm:w-auto justify-center">
+        <div>
           <nav
             className="isolate inline-flex -space-x-px rounded-md shadow-sm"
             aria-label="Pagination"
@@ -92,12 +97,8 @@ export default function Pagination({
               className="relative inline-flex items-center rounded-l-md px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
               <span className="sr-only">First</span>
-              <ChevronLeftIcon
+              <ChevronDoubleLeftIcon
                 className="h-3 w-3 sm:h-5 sm:w-5"
-                aria-hidden="true"
-              />
-              <ChevronLeftIcon
-                className="h-3 w-3 sm:h-5 sm:w-5 -ml-0.5 sm:-ml-1"
                 aria-hidden="true"
               />
             </button>
@@ -154,18 +155,14 @@ export default function Pagination({
               className="relative inline-flex items-center rounded-r-md px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
               <span className="sr-only">Last</span>
-              <ChevronRightIcon
+              <ChevronDoubleRightIcon
                 className="h-3 w-3 sm:h-5 sm:w-5"
-                aria-hidden="true"
-              />
-              <ChevronRightIcon
-                className="h-3 w-3 sm:h-5 sm:w-5 -ml-0.5 sm:-ml-1"
                 aria-hidden="true"
               />
             </button>
           </nav>
         </div>
-        <div className="hidden sm:block">
+        <div>
           <p className="text-xs sm:text-sm text-gray-700">
             Page <span className="font-medium">{currentPage}</span> of{" "}
             <span className="font-medium">{totalPages}</span>

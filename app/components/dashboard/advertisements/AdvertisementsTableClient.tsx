@@ -39,7 +39,8 @@ export default function AdvertisementsTableClient({
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(advertisements.length / itemsPerPage);
+  const totalItems = advertisements.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handleSort = (field: string) => {
     if (field === sortField) {
@@ -51,20 +52,32 @@ export default function AdvertisementsTableClient({
   };
 
   const handleDelete = async (id: number) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this advertisement?"
-    );
-
-    if (confirmed) {
-      const { error } = await deleteAdvertisement(id);
-
-      if (error) {
-        toast.error("Failed to delete advertisement");
-      } else {
-        toast.success("Advertisement deleted successfully");
-        router.refresh();
+    const deletePromise = new Promise(async (resolve, reject) => {
+      try {
+        const { success, error } = await deleteAdvertisement(id);
+        if (!success) {
+          reject(new Error(error || "Failed to delete advertisement"));
+        } else {
+          resolve(true);
+        }
+      } catch (error) {
+        reject(
+          error instanceof Error
+            ? error
+            : new Error("An unexpected error occurred")
+        );
       }
-    }
+    });
+
+    toast
+      .promise(deletePromise, {
+        loading: "Deleting advertisement...",
+        success: "Advertisement deleted successfully!",
+        error: (err) => `Failed to delete advertisement: ${err.message}`,
+      })
+      .then(() => {
+        router.refresh();
+      });
   };
 
   const sortedAdvertisements = [...advertisements].sort((a, b) => {
@@ -131,6 +144,8 @@ export default function AdvertisementsTableClient({
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={totalItems}
             onPageChange={setCurrentPage}
           />
         </div>

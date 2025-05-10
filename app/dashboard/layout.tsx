@@ -30,8 +30,7 @@ export default function LayoutDashboard({
       <div className="flex items-center justify-center p-2 space-x-4 bg-zinc-200">
         <MyLogo />
         <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-          Dashboard <span className="text-gray-400">-</span> Content Management
-          System
+          Content Management System
         </h1>
       </div>
 

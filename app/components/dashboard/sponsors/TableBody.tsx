@@ -1,7 +1,7 @@
-import { Sponsor } from "../../../login/login-definitions";
+import { Sponsor } from "../../../lib/definition";
 
 interface Column {
-  accessorKey: keyof Sponsor | "sequence";
+  accessorKey: keyof Sponsor | "sequence" | "actions";
   cell: (info: {
     getValue: () => any;
     row: { original: Sponsor; index: number };
@@ -22,20 +22,35 @@ export default function TableBody({
   itemsPerPage,
 }: TableBodyProps) {
   return (
-    <tbody className="bg-white divide-y divide-gray-200">
-      {sponsors.map((sponsor, rowIndex) => (
-        <tr key={sponsor.id} className="hover:bg-gray-50">
-          {columns.map((column, colIndex) => (
-            <td
-              key={colIndex}
-              className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-            >
-              {column.cell({
-                getValue: () => sponsor[column.accessorKey as keyof Sponsor],
-                row: { original: sponsor, index: rowIndex },
-              })}
-            </td>
-          ))}
+    <tbody className="divide-y divide-gray-200 bg-white">
+      {sponsors.map((sponsor, index) => (
+        <tr
+          key={sponsor.id}
+          className="hover:bg-gray-100 transition-colors duration-150"
+        >
+          {columns.map((column, colIndex) => {
+            const isActionsColumn = column.accessorKey === "actions";
+            const isSequenceColumn = column.accessorKey === "sequence";
+            const isMobileVisible = ["id", "name", "actions"].includes(
+              column.accessorKey
+            );
+
+            return (
+              <td
+                key={colIndex}
+                className={`whitespace-nowrap ${
+                  isSequenceColumn ? "px-2 py-2" : "px-3 py-3"
+                } text-xs ${isActionsColumn ? "text-center" : ""} ${
+                  isMobileVisible ? "table-cell" : "hidden md:table-cell"
+                }`}
+              >
+                {column.cell({
+                  getValue: () => sponsor[column.accessorKey as keyof Sponsor],
+                  row: { original: sponsor, index },
+                })}
+              </td>
+            );
+          })}
         </tr>
       ))}
     </tbody>

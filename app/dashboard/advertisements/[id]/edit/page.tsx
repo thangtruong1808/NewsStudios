@@ -7,7 +7,12 @@ import {
 } from "@/app/lib/actions/advertisements";
 import CreateAdvertisementForm from "@/app/components/dashboard/advertisements/CreateAdvertisementForm";
 import { AdvertisementFormData } from "@/app/lib/validations/advertisementSchema";
-import { Sponsor, Article, Category } from "@/app/lib/definition";
+import {
+  Sponsor,
+  Article,
+  Category,
+  Advertisement,
+} from "@/app/lib/definition";
 import { notFound } from "next/navigation";
 
 interface PageProps {
@@ -64,8 +69,12 @@ export default async function EditAdvertisementPage({ params }: PageProps) {
       article_id: advertisement.article_id,
       category_id: advertisement.category_id,
       ad_type: advertisement.ad_type as "banner" | "video",
-      start_date: advertisement.start_date,
-      end_date: advertisement.end_date,
+      start_date: advertisement.start_date
+        ? new Date(advertisement.start_date).toISOString().split("T")[0]
+        : "",
+      end_date: advertisement.end_date
+        ? new Date(advertisement.end_date).toISOString().split("T")[0]
+        : "",
       ad_content: advertisement.ad_content,
       image_url: advertisement.image_url || "",
       video_url: advertisement.video_url || "",
@@ -83,12 +92,30 @@ export default async function EditAdvertisementPage({ params }: PageProps) {
             categories={categoriesResult.data || []}
             onSubmit={async (data) => {
               "use server";
-              const result = await updateAdvertisement(id, data);
-              if (result.error) {
-                throw new Error(result.error);
+              const updateData: Partial<Advertisement> = {
+                sponsor_id: data.sponsor_id,
+                article_id: data.article_id,
+                category_id: data.category_id,
+                ad_type: data.ad_type,
+                ad_content: data.ad_content,
+                start_date: data.start_date,
+                end_date: data.end_date,
+                image_url: data.image_url || undefined,
+                video_url: data.video_url || undefined,
+              };
+
+              const result = await updateAdvertisement(id, updateData);
+              if (!result.success) {
+                throw new Error(
+                  result.error || "Failed to update advertisement"
+                );
               }
+              return { success: true };
             }}
             defaultValues={defaultValues}
+            isEditMode={true}
+            imageUrl={advertisement.image_url}
+            videoUrl={advertisement.video_url}
           />
         </div>
       </div>

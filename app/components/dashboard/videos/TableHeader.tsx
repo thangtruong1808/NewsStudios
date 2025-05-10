@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Video } from "../../../type/Video";
+import { Video } from "../../../lib/definition";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 
 interface TableHeaderProps {

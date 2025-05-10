@@ -1,6 +1,7 @@
 import { Advertisement } from "@/app/lib/definition";
 import { format } from "date-fns";
 import Link from "next/link";
+import { toast } from "react-hot-toast";
 
 interface MobileViewProps {
   advertisements: Advertisement[];
@@ -11,6 +12,41 @@ export default function MobileView({
   advertisements,
   onDelete,
 }: MobileViewProps) {
+  const handleDelete = (id: number) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p className="font-medium">Delete Advertisement</p>
+          <p className="text-sm text-gray-600">
+            Are you sure you want to delete this advertisement? This action
+            cannot be undone.
+          </p>
+          <div className="flex justify-end gap-2 mt-2">
+            <button
+              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-3 py-1 text-sm text-red-600 hover:text-red-800 font-medium"
+              onClick={() => {
+                toast.dismiss(t.id);
+                onDelete(id);
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: 5000,
+        position: "top-center",
+      }
+    );
+  };
+
   return (
     <div className="space-y-4 sm:hidden">
       {advertisements.map((ad, index) => (
@@ -44,15 +80,7 @@ export default function MobileView({
                 Edit
               </Link>
               <button
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Are you sure you want to delete this advertisement?"
-                    )
-                  ) {
-                    onDelete(ad.id);
-                  }
-                }}
+                onClick={() => handleDelete(ad.id)}
                 className="rounded border border-red-500 px-3 py-1 text-red-500 hover:bg-red-50"
               >
                 Delete

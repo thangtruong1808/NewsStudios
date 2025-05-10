@@ -4,6 +4,9 @@ import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
 import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
+import path from "path";
+import { uploadFileViaFTP } from "./ftpUpload";
 
 // Base path for uploads on the server - using absolute path for Hostinger
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "public/Images";
@@ -68,6 +71,37 @@ export async function testFileUpload(): Promise<{
       filePath: null,
       url: null,
       error,
+    };
+  }
+}
+
+export async function testUpload() {
+  try {
+    // Create test directory if it doesn't exist
+    if (!fs.existsSync(UPLOAD_DIR)) {
+      fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    }
+
+    // Create a test file
+    const filePath = path.join(UPLOAD_DIR, "test.txt");
+    fs.writeFileSync(filePath, "This is a test file");
+
+    // Create a File object from the test file
+    const fileContent = fs.readFileSync(filePath);
+    const file = new File([fileContent], "test.txt", { type: "text/plain" });
+
+    // Upload the file
+    const result = await uploadFileViaFTP(file, "test.txt");
+
+    if (result.error) {
+      throw new Error(result.error);
+    }
+
+    return { success: true, url: result.url };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
     };
   }
 }
