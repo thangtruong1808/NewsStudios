@@ -9,18 +9,18 @@ export default function TableBody({
   itemsPerPage,
 }: TableBodyProps) {
   return (
-    <tbody className="bg-white divide-y divide-gray-200">
+    <tbody className="bg-white">
       {tags.map((tag, index) => (
         <tr
           key={tag.id}
-          className={`${
-            index % 2 === 0 ? "bg-white" : "bg-gray-50"
-          } hover:bg-gray-100 transition-colors duration-150`}
+          className="w-full border-b border-zinc-300 px-3 py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg hover:bg-zinc-100 transition-colors"
         >
           {columns.map((column) => (
             <td
               key={column.key}
-              className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+              className={`whitespace-nowrap px-3 py-3 ${
+                column.key === "actions" ? "text-center" : ""
+              }`}
             >
               {column.cell(tag, index, currentPage, itemsPerPage)}
             </td>

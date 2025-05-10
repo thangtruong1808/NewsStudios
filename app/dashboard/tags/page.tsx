@@ -1,20 +1,29 @@
-import { getTags } from "../../lib/actions/tags";
+import { getTags, searchTags } from "../../lib/actions/tags";
 import TagsTableClient from "../../components/dashboard/tags/TagsTableClient";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { Tag } from "../../lib/definition";
-import { SearchWrapper } from "../../components/dashboard/search";
+import TagsSearchWrapper from "../../components/dashboard/tags/TagsSearchWrapper";
 
 // Use force-dynamic to ensure fresh data
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
-export default async function TagsPage() {
+interface PageProps {
+  searchParams?: {
+    query?: string;
+  };
+}
+
+export default async function TagsPage({ searchParams }: PageProps) {
   let tags: Tag[] = [];
   let error = null;
 
   try {
-    const result = await getTags();
+    const searchQuery = searchParams?.query || "";
+    const result = searchQuery
+      ? await searchTags(searchQuery)
+      : await getTags();
+
     if (result.error) {
       error = result.error;
     } else if (result.data) {
@@ -28,19 +37,19 @@ export default async function TagsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex w-full items-center justify-between">
-        <h1 className="text-2xl">Tags</h1>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
-        <SearchWrapper placeholder="Search Tags..." />
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Tags</h1>
         <Link
           href="/dashboard/tags/create"
-          className="flex h-10 items-center rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+          className="inline-flex items-center gap-1 rounded-md border border-transparent bg-gradient-to-r from-violet-600 to-fuchsia-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:from-violet-700 hover:to-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
         >
-          <span className="hidden md:block">Add Tag</span>
-          <PlusIcon className="h-5 md:ml-4" />
+          <PlusIcon className="h-4 w-4" />
+          <span>Add Tag</span>
         </Link>
+      </div>
+
+      <div className="mt-4">
+        <TagsSearchWrapper />
       </div>
 
       {error ? (

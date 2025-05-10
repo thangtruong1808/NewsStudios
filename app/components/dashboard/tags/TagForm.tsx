@@ -11,6 +11,7 @@ import {
 import { createTag, updateTag } from "../../../lib/actions/tags";
 import { Tag } from "../../../login/login-definitions";
 import toast from "react-hot-toast";
+import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 interface TagFormProps {
   tag?: Tag;
@@ -168,16 +169,24 @@ export default function TagForm({ tag }: TagFormProps) {
           <button
             type="button"
             onClick={() => router.push("/dashboard/tags")}
-            className="flex-1 py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="flex-1 inline-flex items-center justify-center gap-1 rounded-md border border-zinc-300 bg-zinc-200 py-2 px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
           >
+            <XMarkIcon className="h-4 w-4" />
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 inline-flex items-center justify-center gap-1 rounded-md border border-transparent bg-zinc-200 py-2 px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? "Processing..." : tag ? "Update Tag" : "Create Tag"}
+            {isSubmitting ? (
+              "Processing..."
+            ) : (
+              <>
+                <CheckIcon className="h-4 w-4" />
+                Submit
+              </>
+            )}
           </button>
         </div>
       </form>

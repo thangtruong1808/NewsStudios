@@ -16,6 +16,7 @@ import {
 import { getCategories } from "../../../lib/actions/categories";
 import { Category } from "../../../lib/definition";
 import toast from "react-hot-toast";
+import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 interface SubCategoryFormProps {
   subcategoryId?: string;
@@ -196,17 +197,24 @@ export default function SubCategoryForm({
           )}
         </div>
         <div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-          >
-            {isSubmitting
-              ? "Saving..."
-              : subcategoryId
-              ? "Update Subcategory"
-              : "Create Subcategory"}
-          </button>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/subcategories")}
+              className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-zinc-200 py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              <XMarkIcon className="h-4 w-4 mr-2" />
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex items-center justify-center rounded-md border border-transparent bg-zinc-200 py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+            >
+              <CheckIcon className="h-4 w-4 mr-2" />
+              {isSubmitting ? "Saving..." : "Submit"}
+            </button>
+          </div>
         </div>
       </form>
     </div>

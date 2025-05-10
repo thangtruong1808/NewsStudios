@@ -10,7 +10,7 @@ import {
 import { createAuthor, updateAuthor } from "../../../lib/actions/authors";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { Author } from "../../../login/login-definitions";
+import { Author } from "../../../lib/definition";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 interface AuthorFormProps {
