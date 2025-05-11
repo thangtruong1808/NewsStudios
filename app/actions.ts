@@ -2,14 +2,16 @@
 
 import { signIn } from "../auth";
 import { AuthError } from "next-auth";
+import { getUserByEmail } from "./lib/actions/users";
 
 export async function authenticate(
   prevState: string | undefined,
   formData: FormData
 ) {
   try {
+    const email = formData.get("email") as string;
     const result = await signIn("credentials", {
-      email: formData.get("email"),
+      email,
       password: formData.get("password"),
       redirect: false,
     });
@@ -18,7 +20,16 @@ export async function authenticate(
       return "Invalid credentials.";
     }
 
-    return null;
+    // Get user data to return role
+    const user = await getUserByEmail(email);
+    if (!user) {
+      return "User not found.";
+    }
+
+    return {
+      success: true,
+      role: user.role,
+    };
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {

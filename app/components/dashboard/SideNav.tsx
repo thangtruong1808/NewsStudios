@@ -10,7 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
 import clsx from "clsx";
-import { useSession } from "next-auth/react";
+import { useUser } from "../../context/UserContext";
 
 interface SideNavProps {
   onCollapse: (collapsed: boolean) => void;
@@ -18,12 +18,12 @@ interface SideNavProps {
 
 export default function SideNav({ onCollapse }: SideNavProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { data: session, status } = useSession();
+  const { user } = useUser();
 
+  // Log user context in SideNav
   useEffect(() => {
-    console.log("SideNav - Session Status:", status);
-    console.log("SideNav - Session Data:", session);
-  }, [session, status]);
+    console.log("SideNav - Current user context:", user);
+  }, [user]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -48,11 +48,6 @@ export default function SideNav({ onCollapse }: SideNavProps) {
     onCollapse(newState);
   };
 
-  const displayName =
-    session?.user?.firstname && session?.user?.lastname
-      ? `${session.user.firstname} ${session.user.lastname}`
-      : session?.user?.email || "Guest User";
-
   return (
     <div
       className={clsx(
@@ -76,32 +71,18 @@ export default function SideNav({ onCollapse }: SideNavProps) {
       <div className="p-4 border-b border-gray-100 bg-white/90 backdrop-blur-sm">
         <div
           className={clsx(
-            "flex items-center space-x-3",
+            "flex flex-col items-center space-y-3",
             isCollapsed && "justify-center"
           )}
         >
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-sm">
-            {session?.user?.user_image ? (
-              <img
-                src={session.user.user_image}
-                alt={displayName}
-                className="h-full w-full rounded-full object-cover"
-              />
-            ) : (
-              <UserCircleIcon className="h-6 w-6 text-white" />
-            )}
+          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-sm">
+            <UserCircleIcon className="h-10 w-10 text-white" />
           </div>
-          {!isCollapsed && (
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                {status === "loading" ? "Loading..." : displayName}
-              </p>
-              <p className="text-xs text-gray-500">
-                {status === "loading"
-                  ? "Loading..."
-                  : session?.user?.role
-                  ? session.user.role
-                  : "Not signed in"}
+          {!isCollapsed && user && (
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-900">{user.email}</p>
+              <p className="text-xs text-gray-500 capitalize mt-1">
+                {user.role}
               </p>
             </div>
           )}

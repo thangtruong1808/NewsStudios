@@ -11,6 +11,7 @@ import ErrorMessage from "./components/ErrorMessage";
 import SubmitButton from "./components/SubmitButton";
 import PasswordToggle from "./components/PasswordToggle";
 import { LoginFormData, FormErrors, validateForm } from "./utils/validation";
+import { useUser } from "../context/UserContext";
 
 export default function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
@@ -24,6 +25,7 @@ export default function LoginForm() {
     password: "",
   });
   const router = useRouter();
+  const { setUser } = useUser();
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,13 +58,30 @@ export default function LoginForm() {
 
     try {
       const result = await authenticate(undefined, formDataObj);
-      if (result) {
+
+      if (typeof result === "string") {
         setErrorMessage(result);
-      } else {
+        return;
+      }
+
+      if (result.success) {
+        // Set user context with email and role from the response
+        const userData = {
+          email: formData.email,
+          role: result.role,
+        };
+
+        console.log("Setting user context with data:", userData);
+        setUser(userData);
+
         toast.success("Logged in successfully!");
         router.push("/dashboard");
+        router.refresh();
+      } else {
+        setErrorMessage("Authentication failed");
       }
     } catch (error) {
+      console.error("Login error:", error);
       setErrorMessage("An unexpected error occurred.");
     } finally {
       setIsPending(false);

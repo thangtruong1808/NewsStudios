@@ -11,6 +11,9 @@ import TableRow from "./TableRow";
 import Pagination from "./Pagination";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
+// Bind the server action
+const deleteUserAction = deleteUser;
+
 interface UsersTableClientProps {
   users: User[];
   searchQuery?: string;
@@ -86,7 +89,7 @@ export default function UsersTableClient({
 
     setIsDeleting(true);
     try {
-      const result = await deleteUser(userData.id);
+      const result = await deleteUserAction(userData.id);
       if (!result.success) {
         toast.error(
           <div>
