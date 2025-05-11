@@ -13,7 +13,7 @@ export default function SignOutButton({ isCollapsed }: SignOutButtonProps) {
     <button
       onClick={() => signOutAction()}
       className={clsx(
-        "flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors",
+        "flex w-full items-center rounded-lg px-3 py-3 text-sm font-medium text-gray-600 hover:text-violet-600 transition-colors hover:bg-gradient-to-r hover:from-violet-500/10 hover:to-fuchsia-500/10",
         isCollapsed && "justify-center"
       )}
     >

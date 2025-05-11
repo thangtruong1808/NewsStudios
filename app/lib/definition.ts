@@ -55,6 +55,7 @@ export interface SubCategory {
   description?: string;
   created_at: Date;
   updated_at: Date;
+  category_name?: string;
 }
 
 export interface Author {

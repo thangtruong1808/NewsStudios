@@ -23,7 +23,7 @@ export default function NavLink({
     <Link
       href={href}
       className={clsx(
-        "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+        "flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200",
         {
           "text-violet-600": isActive,
           "text-gray-600 hover:text-violet-600": !isActive,

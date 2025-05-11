@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import clsx from "clsx";
 import MyLogo from "../components/dashboard/MyLogo";
 import { NewspaperIcon } from "@heroicons/react/24/outline";
+import { fontClasses } from "../components/fonts";
 
 // Remove experimental_ppr flag as it might be causing issues
 // export const experimental_ppr = true;
@@ -27,11 +28,26 @@ export default function LayoutDashboard({
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-blue-50">
       {/* Header with Logo */}
-      <div className="flex flex-col lg:flex-row items-center justify-center p-4 space-y-3 lg:space-y-0 lg:space-x-4 bg-zinc-200">
-        <MyLogo />
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-          Content Management System
-        </h1>
+      <div className="flex flex-col lg:flex-row bg-zinc-200">
+        {/* Logo div - matches sidebar width */}
+        <div
+          className={clsx(
+            "transition-all duration-300 ease-in-out border-r border-zinc-200 h-[88px] lg:h-auto",
+            isSideNavCollapsed ? "w-32" : "w-64",
+            fontClasses.robotoMono
+          )}
+        >
+          <div className="p-4">
+            <MyLogo />
+          </div>
+        </div>
+
+        {/* Title div - matches main content width */}
+        <div className="flex-1 flex items-center justify-center py-4 lg:py-0">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+            Content Management System
+          </h1>
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -40,7 +56,8 @@ export default function LayoutDashboard({
         <aside
           className={clsx(
             "transition-all duration-300 ease-in-out border-r border-gray-100",
-            isSideNavCollapsed ? "w-32" : "w-64"
+            isSideNavCollapsed ? "w-32" : "w-64",
+            fontClasses.robotoMono
           )}
         >
           <SideNav onCollapse={setIsSideNavCollapsed} />
@@ -48,7 +65,10 @@ export default function LayoutDashboard({
 
         {/* Main Content */}
         <main
-          className={clsx("flex-1 overflow-y-auto transition-all duration-300")}
+          className={clsx(
+            "flex-1 overflow-y-auto transition-all duration-300",
+            fontClasses.poppins
+          )}
         >
           <div className="px-6 py-4">{children}</div>
         </main>

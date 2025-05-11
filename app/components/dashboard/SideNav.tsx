@@ -51,14 +51,14 @@ export default function SideNav({ onCollapse }: SideNavProps) {
   return (
     <div
       className={clsx(
-        "flex h-full flex-col bg-gradient-to-br from-white via-gray-50 to-gray-100/80 shadow-sm transition-all duration-300 relative",
+        "flex h-full flex-col bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 shadow-lg transition-all duration-300 relative",
         isCollapsed ? "w-32" : "w-64"
       )}
     >
       {/* Toggle Button */}
       <button
         onClick={handleToggle}
-        className="absolute -right-3 top-6 bg-white rounded-full p-1.5 shadow-md border border-gray-100 hover:bg-gray-50 transition-colors z-10 hidden lg:block"
+        className="absolute -right-3 top-6 bg-white rounded-full p-1.5 shadow-lg border border-zinc-200 hover:bg-zinc-100 transition-all duration-200 z-10 hidden lg:block hover:scale-105"
       >
         {isCollapsed ? (
           <ChevronRightIcon className="h-4 w-4 text-gray-600" />
@@ -68,14 +68,14 @@ export default function SideNav({ onCollapse }: SideNavProps) {
       </button>
 
       {/* User Profile Section */}
-      <div className="p-4 border-b border-gray-100 bg-white/90 backdrop-blur-sm">
+      <div className="p-4 border-b border-violet-100 bg-gradient-to-br from-violet-50/90 via-purple-50/90 to-fuchsia-50/90 backdrop-blur-sm">
         <div
           className={clsx(
             "flex flex-col items-center space-y-3",
             isCollapsed && "justify-center"
           )}
         >
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-sm">
+          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-md ring-2 ring-white/50">
             <UserCircleIcon className="h-10 w-10 text-white" />
           </div>
           {!isCollapsed && user && (
@@ -90,14 +90,14 @@ export default function SideNav({ onCollapse }: SideNavProps) {
       </div>
 
       {/* Navigation Links */}
-      <div className="flex-1 overflow-y-auto bg-gradient-to-b from-white/50 via-gray-50/30 to-gray-100/30">
+      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-violet-50/90 via-purple-50/90 to-fuchsia-50/90 backdrop-blur-sm">
         <div className={clsx("py-4", isCollapsed ? "px-2" : "px-3")}>
           <NavLinks isCollapsed={isCollapsed} />
         </div>
       </div>
 
       {/* Sign Out Section */}
-      <div className="border-t border-gray-100 p-4 bg-white/90 backdrop-blur-sm">
+      <div className="border-t border-violet-100 p-4 bg-gradient-to-br from-violet-50/90 via-purple-50/90 to-fuchsia-50/90 backdrop-blur-sm">
         <SignOutButton isCollapsed={isCollapsed} />
       </div>
     </div>

@@ -53,7 +53,7 @@ function StatCard({
 export default function DashboardPage() {
   return (
     <Suspense fallback={<Loading />}>
-      <div className="space-y-6 px-6">
+      <div className="">
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white">
           <h1 className="text-3xl font-bold">Welcome back!</h1>

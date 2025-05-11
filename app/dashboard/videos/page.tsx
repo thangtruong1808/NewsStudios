@@ -53,17 +53,17 @@ export default async function VideosPage() {
   );
 
   return (
-    <div className="p-4 md:p-6">
+    <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Videos</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Videos List</h1>
           <p className="mt-1 text-sm text-gray-500">
             Manage your video content and their associations with articles
           </p>
         </div>
         <Link
           href="/dashboard/videos/create"
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-violet-700 hover:to-fuchsia-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-violet-700 hover:to-fuchsia-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 justify-center items-center"
         >
           <PlusIcon className="h-5 w-5" />
           <span>Add Video</span>

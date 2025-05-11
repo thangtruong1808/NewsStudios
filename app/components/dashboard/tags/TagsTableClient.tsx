@@ -10,6 +10,7 @@ import { toast } from "react-hot-toast";
 import { deleteTag } from "../../../lib/actions/tags";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 interface TagsTableClientProps {
   tags: Tag[];
@@ -126,33 +127,97 @@ export default function TagsTableClient({ tags = [] }: TagsTableClientProps) {
       <div className="overflow-x-auto">
         <div className="inline-block min-w-full align-middle">
           <div className="overflow-hidden rounded-md bg-gray-50">
+            {/* Mobile View */}
             <div className="md:hidden">
-              {paginatedTags.map((tag) => (
+              {paginatedTags.map((tag, index) => (
                 <div
                   key={tag.id}
-                  className="mb-2 w-full rounded-md bg-white p-4"
+                  className="mb-4 w-full rounded-md bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:bg-zinc-200/50"
                 >
-                  <div className="flex items-center justify-between border-b pb-4">
-                    <div>
-                      <div className="mb-2 flex items-center">
-                        <p className="font-medium text-gray-900">
-                          ID: {tag.id} - {tag.name}
+                  {/* Header with Sequence and Name */}
+                  <div className="border-b border-gray-100 pb-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-base font-medium text-gray-500">
+                        #{(currentPage - 1) * itemsPerPage + index + 1}
+                      </span>
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {tag.name}
+                      </h3>
+                    </div>
+                  </div>
+                  {/* Tag Details */}
+                  <div className="mt-3 space-y-3">
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-base font-medium text-gray-500">
+                          Description
+                        </span>
+                        <p className="mt-1 text-base text-gray-900">
+                          {tag.description || "-"}
                         </p>
                       </div>
-                      <p className="text-sm text-gray-500">{tag.description}</p>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1 flex items-center">
+                        <span className="text-base font-medium text-gray-500">
+                          Color
+                        </span>
+                        <span className="ml-2 flex items-center">
+                          <span
+                            className="inline-block h-4 w-4 rounded-full mr-2"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          <span className="text-base text-gray-900">
+                            {tag.color || "-"}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-base font-medium text-gray-500">
+                          Created
+                        </span>
+                        <p className="mt-1 text-base text-gray-900">
+                          {new Date(tag.created_at).toLocaleDateString(
+                            "en-GB",
+                            {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            }
+                          )}
+                        </p>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-base font-medium text-gray-500">
+                          Updated
+                        </span>
+                        <p className="mt-1 text-base text-gray-900">
+                          {new Date(tag.updated_at).toLocaleDateString(
+                            "en-GB",
+                            {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            }
+                          )}
+                        </p>
+                      </div>
                     </div>
+                  </div>
+                  {/* Action Buttons */}
+                  <div className="mt-4 flex justify-around border-t border-gray-100 pt-3">
                     <div className="flex space-x-2">
                       <Link
                         href={`/dashboard/tags/${tag.id}/edit`}
-                        className="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+                        className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
                       >
+                        <PencilIcon className="h-4 w-4" />
                         Edit
                       </Link>
                       <button
                         onClick={() => handleDelete(tag.id, tag.name)}
                         disabled={isDeleting}
-                        className="rounded bg-red-500 px-3 py-1 text-white hover:bg-red-600 disabled:opacity-50"
+                        className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
                       >
+                        <TrashIcon className="h-4 w-4" />
                         Delete
                       </button>
                     </div>
@@ -160,7 +225,99 @@ export default function TagsTableClient({ tags = [] }: TagsTableClientProps) {
                 </div>
               ))}
             </div>
-            <table className="hidden min-w-full text-gray-900 md:table">
+            {/* Tablet/Medium Desktop View (1024px - 1440px) */}
+            <div className="hidden md:block 2xl:hidden">
+              {paginatedTags.map((tag, index) => (
+                <div
+                  key={tag.id}
+                  className="mb-4 w-full rounded-md bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:bg-zinc-200/50"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-base font-medium text-gray-500">
+                          #{(currentPage - 1) * itemsPerPage + index + 1}
+                        </span>
+                        <h3 className="text-base font-medium text-gray-900">
+                          {tag.name}
+                        </h3>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Link
+                          href={`/dashboard/tags/${tag.id}/edit`}
+                          className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                          Edit
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(tag.id, tag.name)}
+                          disabled={isDeleting}
+                          className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-base text-gray-500">
+                          Description:
+                        </span>
+                        <span className="ml-2 text-base text-gray-900">
+                          {tag.description || "-"}
+                        </span>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1 flex items-center">
+                        <span className="text-base text-gray-500">Color:</span>
+                        <span className="ml-2 flex items-center">
+                          <span
+                            className="inline-block h-4 w-4 rounded-full mr-2"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          <span className="text-base text-gray-900">
+                            {tag.color || "-"}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-base text-gray-500">
+                          Created:
+                        </span>
+                        <span className="ml-2 text-base text-gray-900">
+                          {new Date(tag.created_at).toLocaleDateString(
+                            "en-GB",
+                            {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            }
+                          )}
+                        </span>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-base text-gray-500">
+                          Updated:
+                        </span>
+                        <span className="ml-2 text-base text-gray-900">
+                          {new Date(tag.updated_at).toLocaleDateString(
+                            "en-GB",
+                            {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            }
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Large Desktop View (1440px and above) */}
+            <table className="hidden 2xl:table min-w-full text-gray-900">
               <TableHeader
                 columns={columns}
                 sortField={sortField}
