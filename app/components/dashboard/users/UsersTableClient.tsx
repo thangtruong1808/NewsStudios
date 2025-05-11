@@ -9,6 +9,7 @@ import { deleteUser } from "../../../lib/actions/users";
 import TableHeader from "../shared/TableHeader";
 import TableRow from "./TableRow";
 import Pagination from "./Pagination";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 interface UsersTableClientProps {
   users: User[];
@@ -193,26 +194,95 @@ export default function UsersTableClient({
       <div className="overflow-x-auto">
         <div className="inline-block min-w-full align-middle">
           <div className="overflow-hidden rounded-md bg-gray-50">
+            {/* Mobile View */}
             <div className="md:hidden">
-              {paginatedUsers.map((user) => (
+              {paginatedUsers.map((user, index) => (
                 <div
                   key={user.id}
-                  className="mb-2 w-full rounded-md bg-white p-4"
+                  className="mb-4 w-full rounded-md bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:bg-zinc-200/50"
                 >
-                  <div className="flex items-center justify-between border-b pb-4">
-                    <div>
-                      <div className="mb-2 flex items-center">
-                        <p className="font-medium text-gray-900">
-                          ID: {user.id} - {user.firstname} {user.lastname}
+                  {/* Header with ID and Name */}
+                  <div className="border-b border-gray-100 pb-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-500">
+                        #{(currentPage - 1) * itemsPerPage + index + 1}
+                      </span>
+                      <h3 className="text-base font-medium text-gray-900">
+                        {user.firstname} {user.lastname}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* User Details */}
+                  <div className="mt-3 space-y-3">
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-xs font-medium text-gray-500">
+                          Email
+                        </span>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {user.email}
                         </p>
                       </div>
-                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-xs font-medium text-gray-500">
+                          Role
+                        </span>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {user.role}
+                        </p>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-xs font-medium text-gray-500">
+                          Status
+                        </span>
+                        <div className="mt-1">
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                              user.status === "active"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {user.status}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-xs font-medium text-gray-500">
+                          Description
+                        </span>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {user.description || "-"}
+                        </p>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-xs font-medium text-gray-500">
+                          Created
+                        </span>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-xs font-medium text-gray-500">
+                          Updated
+                        </span>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {new Date(user.updated_at).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-4 flex justify-around border-t border-gray-100 pt-3">
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleEdit(user.id)}
-                        className="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
+                        className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
                       >
+                        <PencilIcon className="h-4 w-4" />
                         Edit
                       </button>
                       <button
@@ -224,8 +294,9 @@ export default function UsersTableClient({
                           })
                         }
                         disabled={isDeleting}
-                        className="rounded bg-red-500 px-3 py-1 text-white hover:bg-red-600 disabled:opacity-50"
+                        className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
                       >
+                        <TrashIcon className="h-4 w-4" />
                         Delete
                       </button>
                     </div>
@@ -233,7 +304,83 @@ export default function UsersTableClient({
                 </div>
               ))}
             </div>
-            <table className="hidden min-w-full text-gray-900 md:table">
+
+            {/* Tablet/Medium Desktop View (1024px - 1440px) */}
+            <div className="hidden md:block 2xl:hidden">
+              {paginatedUsers.map((user, index) => (
+                <div
+                  key={user.id}
+                  className="mb-4 w-full rounded-md bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:bg-zinc-200/50"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-gray-500">
+                          #{(currentPage - 1) * itemsPerPage + index + 1}
+                        </span>
+                        <h3 className="text-sm font-medium text-gray-900">
+                          {user.firstname} {user.lastname}
+                        </h3>
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleEdit(user.id)}
+                          className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1.5 text-xs font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+                        >
+                          <PencilIcon className="h-3.5 w-3.5" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDelete({
+                              id: user.id,
+                              firstname: user.firstname,
+                              lastname: user.lastname,
+                            })
+                          }
+                          disabled={isDeleting}
+                          className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+                        >
+                          <TrashIcon className="h-3.5 w-3.5" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-gray-500">Email:</span>
+                        <span className="ml-2 text-gray-900">{user.email}</span>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-gray-500">Role:</span>
+                        <span className="ml-2 text-gray-900">{user.role}</span>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-gray-500">Status:</span>
+                        <span
+                          className={`ml-2 inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                            user.status === "active"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {user.status}
+                        </span>
+                      </div>
+                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
+                        <span className="text-gray-500">Created:</span>
+                        <span className="ml-2 text-gray-900">
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Large Desktop View (1440px and above) */}
+            <table className="hidden 2xl:table min-w-full text-gray-900">
               <TableHeader
                 columns={columns}
                 sortField={sortField}

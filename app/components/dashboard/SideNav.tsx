@@ -8,7 +8,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import clsx from "clsx";
 
 interface SideNavProps {
@@ -17,6 +17,23 @@ interface SideNavProps {
 
 export default function SideNav({ onCollapse }: SideNavProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const shouldCollapse = window.innerWidth < 1024;
+      setIsCollapsed(shouldCollapse);
+      onCollapse(shouldCollapse);
+    };
+
+    // Initial check
+    handleResize();
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", handleResize);
+  }, [onCollapse]);
 
   const handleToggle = () => {
     const newState = !isCollapsed;

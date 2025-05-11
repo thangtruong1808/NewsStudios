@@ -1,5 +1,5 @@
 import mysql from "mysql2/promise";
-import { pool } from "./db";
+import pool from "./db";
 
 // Define types for database clients
 export type QueryClient = mysql.Pool | mysql.PoolConnection;

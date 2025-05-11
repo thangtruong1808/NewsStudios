@@ -4,7 +4,7 @@ import SideNav from "../components/dashboard/SideNav";
 import { Toaster } from "react-hot-toast";
 import { auth } from "../../auth";
 import { redirect } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import clsx from "clsx";
 import MyLogo from "../components/dashboard/MyLogo";
 import { NewspaperIcon } from "@heroicons/react/24/outline";
@@ -40,14 +40,16 @@ export default function LayoutDashboard({
         <aside
           className={clsx(
             "transition-all duration-300 ease-in-out border-r border-gray-100",
-            isSideNavCollapsed ? "w-20" : "w-64"
+            isSideNavCollapsed ? "w-32" : "w-64"
           )}
         >
           <SideNav onCollapse={setIsSideNavCollapsed} />
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main
+          className={clsx("flex-1 overflow-y-auto transition-all duration-300")}
+        >
           <div className="px-6 py-4">{children}</div>
         </main>
       </div>

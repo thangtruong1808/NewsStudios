@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
+import { RowDataPacket } from "mysql2";
 import { Video } from "../definition";
+import mysql from "mysql2/promise";
+import pool from "../db/db";
 import { uploadToFTP } from "../utils/ftp";
-import { pool } from "../db/db";
 
 export async function getVideos(articleId?: number) {
   try {

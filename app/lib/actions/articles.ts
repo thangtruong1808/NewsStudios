@@ -5,7 +5,7 @@ import { query } from "../db/db";
 import { RowDataPacket } from "mysql2";
 import { Article } from "../definition";
 import mysql from "mysql2/promise";
-import { pool } from "../db/db";
+import pool from "../db/db";
 
 export interface ArticleWithJoins extends Article, RowDataPacket {
   category_name?: string;

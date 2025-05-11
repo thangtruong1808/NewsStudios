@@ -54,17 +54,19 @@ const linkGroups = [
       { name: "Tags", href: "/dashboard/tags", icon: TagIcon },
     ],
   },
-  {
-    name: "Business",
-    links: [
-      { name: "Sponsors", href: "/dashboard/sponsor", icon: AcademicCapIcon },
-      {
-        name: "Advertisements",
-        href: "/dashboard/advertisements",
-        icon: BanknotesIcon,
-      },
-    ],
-  },
+
+  // Planning do it later
+  // {
+  //   name: "Business",
+  //   links: [
+  //     { name: "Sponsors", href: "/dashboard/sponsor", icon: AcademicCapIcon },
+  //     {
+  //       name: "Advertisements",
+  //       href: "/dashboard/advertisements",
+  //       icon: BanknotesIcon,
+  //     },
+  //   ],
+  // },
 ];
 
 export default function NavLinks({ isCollapsed }: NavLinksProps) {
