@@ -28,7 +28,7 @@ export default function SideNav({ onCollapse }: SideNavProps) {
     <div
       className={clsx(
         "flex h-full flex-col bg-gradient-to-br from-white via-gray-50 to-gray-100/80 shadow-sm transition-all duration-300 relative",
-        isCollapsed ? "w-20" : "w-64"
+        isCollapsed ? "w-32" : "w-64"
       )}
     >
       {/* Toggle Button */}

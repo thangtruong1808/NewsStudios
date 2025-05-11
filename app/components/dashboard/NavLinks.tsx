@@ -13,10 +13,12 @@ import {
   TagIcon,
   CloudIcon,
   FolderOpenIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import NavLink from "./NavLink";
+import { useState } from "react";
 
 interface NavLinksProps {
   isCollapsed?: boolean;
@@ -63,27 +65,48 @@ const linkGroups = [
       },
     ],
   },
-  {
-    name: "Tools",
-    links: [
-      { name: "Test Upload", href: "/dashboard/test-upload", icon: CloudIcon },
-    ],
-  },
 ];
 
 export default function NavLinks({ isCollapsed }: NavLinksProps) {
   const pathname = usePathname();
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
+    Object.fromEntries(linkGroups.map((group) => [group.name, true]))
+  );
+
+  const toggleGroup = (groupName: string) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [groupName]: !prev[groupName],
+    }));
+  };
 
   return (
     <div className="space-y-6">
       {linkGroups.map((group) => (
         <div key={group.name}>
           {!isCollapsed && (
-            <h3 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              {group.name}
-            </h3>
+            <button
+              onClick={() => toggleGroup(group.name)}
+              className="w-full px-3 py-2 flex items-center justify-between text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-300 transition-colors"
+            >
+              <span>{group.name}</span>
+              <ChevronDownIcon
+                className={clsx(
+                  "w-4 h-4 transition-transform duration-200",
+                  expandedGroups[group.name] ? "transform rotate-180" : ""
+                )}
+              />
+            </button>
           )}
-          <div className={clsx("mt-2 space-y-1", isCollapsed && "mt-1")}>
+          <div
+            className={clsx(
+              "mt-2 space-y-1 overflow-hidden transition-all duration-200",
+              isCollapsed ? "mt-1" : "",
+              !expandedGroups[group.name] && !isCollapsed
+                ? "max-h-0"
+                : "max-h-[500px]"
+            )}
+          >
             {group.links.map((link) => {
               const LinkIcon = link.icon;
               const isActive = pathname === link.href;
@@ -93,8 +116,9 @@ export default function NavLinks({ isCollapsed }: NavLinksProps) {
                   key={link.name}
                   className={clsx(
                     "rounded-lg transition-all duration-200",
-                    isActive &&
-                      "bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10"
+                    isActive
+                      ? "bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10"
+                      : "hover:bg-gradient-to-r hover:from-violet-500/10 hover:to-fuchsia-500/10"
                   )}
                 >
                   <NavLink
