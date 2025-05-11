@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
 import clsx from "clsx";
+import { useSession } from "next-auth/react";
 
 interface SideNavProps {
   onCollapse: (collapsed: boolean) => void;
@@ -17,6 +18,12 @@ interface SideNavProps {
 
 export default function SideNav({ onCollapse }: SideNavProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    console.log("SideNav - Session Status:", status);
+    console.log("SideNav - Session Data:", session);
+  }, [session, status]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -41,6 +48,11 @@ export default function SideNav({ onCollapse }: SideNavProps) {
     onCollapse(newState);
   };
 
+  const displayName =
+    session?.user?.firstname && session?.user?.lastname
+      ? `${session.user.firstname} ${session.user.lastname}`
+      : session?.user?.email || "Guest User";
+
   return (
     <div
       className={clsx(
@@ -51,7 +63,7 @@ export default function SideNav({ onCollapse }: SideNavProps) {
       {/* Toggle Button */}
       <button
         onClick={handleToggle}
-        className="absolute -right-3 top-6 bg-white rounded-full p-1.5 shadow-md border border-gray-100 hover:bg-gray-50 transition-colors z-10"
+        className="absolute -right-3 top-6 bg-white rounded-full p-1.5 shadow-md border border-gray-100 hover:bg-gray-50 transition-colors z-10 hidden lg:block"
       >
         {isCollapsed ? (
           <ChevronRightIcon className="h-4 w-4 text-gray-600" />
@@ -69,12 +81,28 @@ export default function SideNav({ onCollapse }: SideNavProps) {
           )}
         >
           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-sm">
-            <UserCircleIcon className="h-6 w-6 text-white" />
+            {session?.user?.user_image ? (
+              <img
+                src={session.user.user_image}
+                alt={displayName}
+                className="h-full w-full rounded-full object-cover"
+              />
+            ) : (
+              <UserCircleIcon className="h-6 w-6 text-white" />
+            )}
           </div>
           {!isCollapsed && (
             <div>
-              <p className="text-sm font-medium text-gray-900">Admin User</p>
-              <p className="text-xs text-gray-500">Administrator</p>
+              <p className="text-sm font-medium text-gray-900">
+                {status === "loading" ? "Loading..." : displayName}
+              </p>
+              <p className="text-xs text-gray-500">
+                {status === "loading"
+                  ? "Loading..."
+                  : session?.user?.role
+                  ? session.user.role
+                  : "Not signed in"}
+              </p>
             </div>
           )}
         </div>
