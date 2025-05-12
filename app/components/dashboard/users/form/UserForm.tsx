@@ -17,6 +17,7 @@ import UserFormActions from "./UserFormActions";
 import UserFormLoading from "./UserFormLoading";
 import UserFormError from "./UserFormError";
 import { useUser } from "../../../../context/UserContext";
+import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 interface UserFormProps {
   userId?: string;
@@ -229,19 +230,51 @@ export default function UserForm({ userId }: UserFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <UserFormFields
-        register={register}
-        errors={errors}
-        isEditMode={isEditMode}
-        control={control}
-      />
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="px-6 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600">
+        <h2 className="text-xl font-semibold text-white">
+          {isEditMode ? "Edit User" : "Create New User"}
+        </h2>
+      </div>
 
-      <UserFormActions
-        isLoading={isLoading}
-        isSubmitting={isSubmitting}
-        isEditMode={isEditMode}
-      />
-    </form>
+      <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        {/* Required Fields Note */}
+        <p className="text-sm text-gray-500">
+          Fields marked with an asterisk (*) are required
+        </p>
+
+        <UserFormFields
+          register={register}
+          errors={errors}
+          isEditMode={isEditMode}
+          control={control}
+        />
+
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/users")}
+            className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
+          >
+            <XMarkIcon className="h-4 w-4" />
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center gap-1 rounded-md border border-transparent bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500 disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              "Processing..."
+            ) : (
+              <>
+                <CheckIcon className="h-4 w-4" />
+                {isEditMode ? "Update" : "Submit"}
+              </>
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

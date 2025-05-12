@@ -123,15 +123,11 @@ export interface ArticleWithJoins extends Article {
 
 export interface Image {
   id: number;
-  url: string;
-  alt_text?: string;
-  type: "banner" | "video" | "thumbnail" | "gallery";
-  entity_type: "advertisement" | "article" | "author" | "category";
-  entity_id: number;
-  is_featured: boolean;
-  display_order: number;
-  created_at: Date;
-  updated_at: Date;
+  article_id: number | null;
+  image_url: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Video {

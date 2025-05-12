@@ -12,13 +12,8 @@ export default function CreateVideoPageClient({
   articles,
 }: CreateVideoPageClientProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)]">
-      <div className="w-full max-w-3xl p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
-          Create New Video
-        </h1>
-        <VideoForm articles={articles} />
-      </div>
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      <VideoForm articles={articles} />
     </div>
   );
 }

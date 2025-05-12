@@ -25,15 +25,16 @@ export default function RelatedArticles({
         setIsLoading(true);
         setError(null);
         const articles = await getArticles();
+        const articleData = articles.data || [];
 
-        if (!articles || articles.length === 0) {
+        if (!articleData || articleData.length === 0) {
           setRelatedArticles([]);
           return;
         }
 
         // Get 4 random articles excluding the current one
-        const filteredArticles = articles
-          .filter((article) => article.id !== currentArticleId)
+        const filteredArticles = articleData
+          .filter((article: Article) => article.id !== currentArticleId)
           .sort(() => Math.random() - 0.5)
           .slice(0, 4);
 

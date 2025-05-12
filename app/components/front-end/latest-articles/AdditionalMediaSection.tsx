@@ -13,7 +13,7 @@ export const AdditionalMediaSection = ({
       <h3 className="text-sm font-semibold text-gray-700 mb-2">
         Additional Media
       </h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
         {media.images.map((image) => (
           <MediaThumbnail
             key={`image-${image.id}`}

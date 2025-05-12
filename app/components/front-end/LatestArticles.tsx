@@ -21,9 +21,11 @@ export default function LatestArticles() {
     const fetchArticles = async () => {
       try {
         const result = await getArticles();
-        if (result) {
-          // Group articles by subcategory and category
-          const groupedArticles = result.reduce((acc, article) => {
+        const articleData = result.data || [];
+
+        // Group articles by subcategory and category
+        const groupedArticles = articleData.reduce(
+          (acc: Record<string, Article[]>, article: Article) => {
             const key =
               article.sub_category_name ||
               article.category_name ||
@@ -33,33 +35,20 @@ export default function LatestArticles() {
             }
             acc[key].push(article);
             return acc;
-          }, {} as Record<string, Article[]>);
+          },
+          {} as Record<string, Article[]>
+        );
 
-          // Sort each group by priority and published date
-          const sortedGroups = (
-            Object.values(groupedArticles) as Article[][]
-          ).map((group) =>
-            group.sort((a, b) => {
-              // First sort by headline_priority
-              if (a.headline_priority !== b.headline_priority) {
-                return (b.headline_priority || 0) - (a.headline_priority || 0);
-              }
-              // Then by published date
-              const dateA = a.published_at
-                ? new Date(a.published_at).getTime()
-                : 0;
-              const dateB = b.published_at
-                ? new Date(b.published_at).getTime()
-                : 0;
-              return dateB - dateA;
-            })
-          );
-
-          // Take the first article from each group
-          const prioritizedArticles = sortedGroups.map((group) => group[0]);
-
-          // Sort the final list by published date
-          const finalArticles = prioritizedArticles.sort((a, b) => {
+        // Sort each group by priority and published date
+        const sortedGroups = (
+          Object.values(groupedArticles) as Article[][]
+        ).map((group) =>
+          group.sort((a, b) => {
+            // First sort by headline_priority
+            if (a.headline_priority !== b.headline_priority) {
+              return (b.headline_priority || 0) - (a.headline_priority || 0);
+            }
+            // Then by published date
             const dateA = a.published_at
               ? new Date(a.published_at).getTime()
               : 0;
@@ -67,11 +56,21 @@ export default function LatestArticles() {
               ? new Date(b.published_at).getTime()
               : 0;
             return dateB - dateA;
-          });
+          })
+        );
 
-          setArticles(finalArticles);
-          setDisplayedArticles(finalArticles.slice(0, articlesPerPage));
-        }
+        // Take the first article from each group
+        const prioritizedArticles = sortedGroups.map((group) => group[0]);
+
+        // Sort the final list by published date
+        const finalArticles = prioritizedArticles.sort((a, b) => {
+          const dateA = a.published_at ? new Date(a.published_at).getTime() : 0;
+          const dateB = b.published_at ? new Date(b.published_at).getTime() : 0;
+          return dateB - dateA;
+        });
+
+        setArticles(finalArticles);
+        setDisplayedArticles(finalArticles.slice(0, articlesPerPage));
       } catch (error) {
         setError(
           error instanceof Error ? error.message : "Failed to fetch articles"

@@ -9,10 +9,11 @@ function serializeForClient<T>(obj: T): T {
 
 export default async function CreateVideoPage() {
   try {
-    const articles = await getArticles();
-
-    // Format the data to ensure proper serialization
-    const serializedArticles = serializeForClient(articles);
+    const result = await getArticles();
+    if (result.error) {
+      throw new Error(result.error);
+    }
+    const serializedArticles = serializeForClient(result.data);
 
     return <CreateVideoPageClient articles={serializedArticles} />;
   } catch (error) {

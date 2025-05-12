@@ -111,7 +111,11 @@ export default function NavLinks({ isCollapsed }: NavLinksProps) {
           >
             {group.links.map((link) => {
               const LinkIcon = link.icon;
-              const isActive = pathname === link.href;
+              const isActive =
+                link.name === "Home"
+                  ? pathname === link.href
+                  : pathname === link.href ||
+                    pathname.startsWith(`${link.href}/`);
 
               return (
                 <div

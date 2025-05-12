@@ -8,7 +8,7 @@ import { VideoFormData, videoSchema } from "@/app/lib/validations/videoSchema";
 import { Article, Video } from "@/app/lib/definition";
 import { createVideo, updateVideo } from "@/app/lib/actions/videos";
 import VideoUpload from "./VideoUpload";
-import { ArticleSelect } from "./ArticleSelect";
+import ArticleSelect from "./ArticleSelect";
 import { DescriptionField } from "./DescriptionField";
 import { toast } from "react-hot-toast";
 import {
@@ -112,7 +112,7 @@ export default function VideoForm({ articles, video }: VideoFormProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-800">
+      <div className="px-6 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600">
         <h2 className="text-xl font-semibold text-white">
           {video ? "Edit Video" : "Upload New Video"}
         </h2>
@@ -122,8 +122,8 @@ export default function VideoForm({ articles, video }: VideoFormProps) {
         <div className="grid grid-cols-1 gap-6">
           <ArticleSelect
             articles={articles}
-            value={articleId}
-            onChange={(value) => setValue("article_id", value)}
+            selectedArticleId={articleId || null}
+            onArticleChange={(value) => setValue("article_id", value || 0)}
             error={errors.article_id?.message}
           />
 
@@ -134,7 +134,7 @@ export default function VideoForm({ articles, video }: VideoFormProps) {
 
           <DescriptionField
             value={description}
-            onChange={(value) => setValue("description", value)}
+            onChange={(value: string) => setValue("description", value)}
             error={errors.description?.message}
           />
         </div>

@@ -108,20 +108,20 @@ export default function PhotosGridClient({
               ? articleMap.get(image.article_id)
               : null;
 
-          // Debug logs for article title
-          console.log("Article Title Debug:", {
-            imageId: image.id,
-            articleId: image.article_id,
-            articleTitle,
-            hasInMap: image.article_id
-              ? articleMap.has(image.article_id)
-              : false,
-            mapValue: image.article_id
-              ? articleMap.get(image.article_id)
-              : null,
-            articleMapSize: articleMap.size,
-            articleMapEntries: Array.from(articleMap.entries()),
-          });
+          // // Debug logs for article title
+          // console.log("Article Title Debug:", {
+          //   imageId: image.id,
+          //   articleId: image.article_id,
+          //   articleTitle,
+          //   hasInMap: image.article_id
+          //     ? articleMap.has(image.article_id)
+          //     : false,
+          //   mapValue: image.article_id
+          //     ? articleMap.get(image.article_id)
+          //     : null,
+          //   articleMapSize: articleMap.size,
+          //   articleMapEntries: Array.from(articleMap.entries()),
+          // });
 
           return (
             <div
@@ -129,7 +129,7 @@ export default function PhotosGridClient({
               className="group relative overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:shadow-xl"
             >
               {/* Image Container */}
-              <div className="relative aspect-square overflow-hidden">
+              <div className="relative w-full h-[150px] overflow-hidden">
                 {isNewshubPhoto ? (
                   <Image
                     src={image.image_url}

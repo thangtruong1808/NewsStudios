@@ -22,16 +22,20 @@ export function TableBody({
   const router = useRouter();
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this article?")) {
-      return;
-    }
+    const toastId = toast.loading("Deleting article...");
 
     try {
       await deleteArticle(id);
-      toast.success("Article deleted successfully");
+      toast.success("Article deleted successfully", {
+        id: toastId,
+        duration: 3000, // Auto-dismiss after 3 seconds
+      });
       router.refresh();
     } catch (error) {
-      toast.error("Failed to delete article");
+      toast.error("Failed to delete article", {
+        id: toastId,
+        duration: 4000, // Keep error message a bit longer
+      });
     }
   };
 
@@ -57,12 +61,7 @@ export function TableBody({
             {(currentPage - 1) * itemsPerPage + index + 1}
           </td>
           <td className="px-3 py-3 text-sm text-gray-500 max-w-[300px]">
-            <Link
-              href={`/dashboard/articles/${article.id}`}
-              className="text-blue-600 hover:text-blue-800 line-clamp-2"
-            >
-              {article.title}
-            </Link>
+            <div className="line-clamp-2">{article.title}</div>
           </td>
           <td className="px-3 py-3 text-sm text-gray-500 max-w-[400px]">
             <div className="line-clamp-3 whitespace-pre-wrap">
@@ -113,7 +112,57 @@ export function TableBody({
                 Edit
               </Link>
               <button
-                onClick={() => handleDelete(article.id)}
+                onClick={() => {
+                  toast(
+                    (t) => (
+                      <div className="flex flex-col gap-3 p-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-shrink-0">
+                            <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                              <TrashIcon className="h-5 w-5 text-red-600" />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">
+                              Delete Article
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              Are you sure you want to delete this article? This
+                              action cannot be undone.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 justify-end mt-2">
+                          <button
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
+                            onClick={() => toast.dismiss(t.id)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+                            onClick={() => {
+                              toast.dismiss(t.id);
+                              handleDelete(article.id);
+                            }}
+                          >
+                            Delete Article
+                          </button>
+                        </div>
+                      </div>
+                    ),
+                    {
+                      duration: 6000,
+                      style: {
+                        minWidth: "400px",
+                        background: "white",
+                        boxShadow:
+                          "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                        borderRadius: "0.5rem",
+                      },
+                    }
+                  );
+                }}
                 className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
               >
                 <TrashIcon className="h-4 w-4" />

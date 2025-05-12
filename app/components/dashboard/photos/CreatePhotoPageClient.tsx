@@ -34,17 +34,8 @@ export default function CreatePhotoPageClient({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Upload New Photo
-        </h1>
-      </div>
-      <div className="bg-white shadow sm:rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <PhotoUploadForm articles={articles} />
-        </div>
-      </div>
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      <PhotoUploadForm articles={articles} />
     </div>
   );
 }

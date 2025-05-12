@@ -15,16 +15,17 @@ export default function GetLeftSidebar() {
     const fetchArticleCounts = async () => {
       try {
         const articles = await getArticles();
+        const articleData = articles.data || [];
 
         // Count articles by type
-        const featured = articles.filter(
-          (article) => article.is_featured
+        const featured = articleData.filter(
+          (article: Article) => article.is_featured
         ).length;
-        const headlines = articles.filter(
-          (article) => article.is_headline
+        const headlines = articleData.filter(
+          (article: Article) => article.headline_priority > 0
         ).length;
-        const trending = articles.filter(
-          (article) => article.is_trending
+        const trending = articleData.filter(
+          (article: Article) => article.is_trending
         ).length;
 
         setFeaturedCount(featured);

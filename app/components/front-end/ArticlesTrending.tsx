@@ -20,24 +20,20 @@ export default function ArticlesTrending() {
   const fetchTrendingArticles = useCallback(async (page: number) => {
     try {
       const result = await getArticles();
-      if (result) {
-        const allTrendingArticles = result.filter(
-          (article) => article.is_trending
-        );
-        setTrendingImages(allTrendingArticles);
+      const articles = result.data || [];
+      const allTrendingArticles = articles.filter(
+        (article: Article) => article.is_trending
+      );
+      setTrendingImages(allTrendingArticles);
 
-        const total = Math.max(
-          1,
-          allTrendingArticles.length - displayCount + 1
-        );
-        setTotalPages(total);
+      const total = Math.max(1, allTrendingArticles.length - displayCount + 1);
+      setTotalPages(total);
 
-        const startIndex = page - 1;
-        const endIndex = startIndex + displayCount;
-        const displayArticles = allTrendingArticles.slice(startIndex, endIndex);
+      const startIndex = page - 1;
+      const endIndex = startIndex + displayCount;
+      const displayArticles = allTrendingArticles.slice(startIndex, endIndex);
 
-        setTrendingArticles(displayArticles);
-      }
+      setTrendingArticles(displayArticles);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "Failed to fetch articles"

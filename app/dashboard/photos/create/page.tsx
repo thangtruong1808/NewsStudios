@@ -7,7 +7,11 @@ export default async function CreatePhotoPage() {
   let error: string | null = null;
 
   try {
-    articles = await getArticles();
+    const result = await getArticles();
+    if (result.error) {
+      throw new Error(result.error);
+    }
+    articles = result.data;
   } catch (err) {
     console.error("Error fetching articles:", err);
     error = err instanceof Error ? err.message : "Failed to fetch articles";

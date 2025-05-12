@@ -195,11 +195,11 @@ export default function SingleArticle({
         </div>
 
         {/* Media Section with Two Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           {/* Main Image Column */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-3">
             {selectedImage && (
-              <div className="relative aspect-video rounded-xl overflow-hidden">
+              <div className="relative aspect-[16/9] rounded-xl overflow-hidden max-h-[400px]">
                 <Image
                   src={selectedImage}
                   alt={article.title}

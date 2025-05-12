@@ -122,7 +122,7 @@ export default function UserFormFields({
   };
 
   return (
-    <>
+    <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="md:col-span-2">
           <label
@@ -151,33 +151,31 @@ export default function UserFormFields({
                 </div>
               )}
             </div>
-            <div className="flex-1">
-              <input
-                type="file"
-                id="user_image"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-              />
-              {isUploading && (
-                <div className="mt-2">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div
-                      className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    ></div>
-                  </div>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Uploading: {uploadProgress}%
-                  </p>
+            <input
+              type="file"
+              id="user_image"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            />
+            {isUploading && (
+              <div className="mt-2">
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
                 </div>
-              )}
-              {errors.user_image && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.user_image.message}
+                <p className="mt-1 text-sm text-gray-500">
+                  Uploading: {uploadProgress}%
                 </p>
-              )}
-            </div>
+              </div>
+            )}
+            {errors.user_image && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.user_image.message}
+              </p>
+            )}
           </div>
         </div>
 
@@ -186,13 +184,13 @@ export default function UserFormFields({
             htmlFor="firstname"
             className="block text-sm font-medium text-gray-700"
           >
-            First Name <span className="text-red-500 ml-1"> *</span>
+            First Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             id="firstname"
             {...register("firstname")}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
           />
           {errors.firstname && (
             <p className="mt-1 text-sm text-red-600">
@@ -206,13 +204,13 @@ export default function UserFormFields({
             htmlFor="lastname"
             className="block text-sm font-medium text-gray-700"
           >
-            Last Name<span className="text-red-500 ml-1"> *</span>
+            Last Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             id="lastname"
             {...register("lastname")}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
           />
           {errors.lastname && (
             <p className="mt-1 text-sm text-red-600">
@@ -226,20 +224,20 @@ export default function UserFormFields({
             htmlFor="email"
             className="block text-sm font-medium text-gray-700"
           >
-            Email Address <span className="text-red-500 ml-1"> *</span>
+            Email Address <span className="text-red-500">*</span>
           </label>
           <input
             type="email"
             id="email"
             {...register("email")}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
           />
           {errors.email && (
             <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
           )}
         </div>
 
-        <div className="relative">
+        <div>
           <label
             htmlFor="password"
             className="block text-sm font-medium text-gray-700"
@@ -250,29 +248,31 @@ export default function UserFormFields({
                 (leave blank to keep current)
               </span>
             ) : (
-              <span className="text-red-500 ml-1"> *</span>
+              <span className="text-red-500">*</span>
             )}
           </label>
-          <input
-            type={showPassword ? "text" : "password"}
-            id="password"
-            {...register("password")}
-            placeholder={
-              isEditMode ? "Enter new password to change" : "Password"
-            }
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-          />
-          <button
-            type="button"
-            onClick={togglePasswordVisibility}
-            className="absolute right-3 top-9 text-gray-400 hover:text-gray-500 focus:outline-none"
-          >
-            {showPassword ? (
-              <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
-            ) : (
-              <EyeIcon className="h-5 w-5" aria-hidden="true" />
-            )}
-          </button>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              {...register("password")}
+              placeholder={
+                isEditMode ? "Enter new password to change" : "Password"
+              }
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-3 top-9 text-gray-400 hover:text-gray-500 focus:outline-none"
+            >
+              {showPassword ? (
+                <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <EyeIcon className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+          </div>
           {errors.password && (
             <p className="mt-1 text-sm text-red-600">
               {errors.password.message}
@@ -285,12 +285,12 @@ export default function UserFormFields({
             htmlFor="role"
             className="block text-sm font-medium text-gray-700"
           >
-            Role <span className="text-red-500 ml-1"> *</span>
+            Role <span className="text-red-500">*</span>
           </label>
           <select
             id="role"
             {...register("role")}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
           >
             <option value="admin">Admin</option>
             <option value="editor">Editor</option>
@@ -306,12 +306,12 @@ export default function UserFormFields({
             htmlFor="status"
             className="block text-sm font-medium text-gray-700"
           >
-            Status <span className="text-red-500 ml-1"> *</span>
+            Status <span className="text-red-500">*</span>
           </label>
           <select
             id="status"
             {...register("status")}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -322,19 +322,19 @@ export default function UserFormFields({
         </div>
       </div>
 
-      <div className="mt-6">
+      <div>
         <label
           htmlFor="description"
           className="block text-sm font-medium text-gray-700"
         >
-          Description{" "}
-          <span className="text-sm text-gray-400 ml-1"> (optional)</span>
+          Description <span className="text-sm text-gray-400">(optional)</span>
         </label>
         <textarea
           id="description"
           rows={3}
           {...register("description")}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+          placeholder="Enter a description for this user"
         />
         {errors.description && (
           <p className="mt-1 text-sm text-red-600">
@@ -342,6 +342,6 @@ export default function UserFormFields({
           </p>
         )}
       </div>
-    </>
+    </div>
   );
 }

@@ -66,7 +66,6 @@ export default async function CreateArticlePage() {
 
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="mb-8 text-2xl font-bold">Create New Article</h1>
         <ArticleForm
           categories={serializedData.categories}
           authors={serializedData.authors}

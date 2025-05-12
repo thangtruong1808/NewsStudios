@@ -26,13 +26,13 @@ export default function LayoutDashboard({
   const [isSideNavCollapsed, setIsSideNavCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header with Logo */}
-      <div className="flex flex-col lg:flex-row bg-zinc-200">
+      <div className="flex flex-col lg:flex-row bg-gray-50 border-b border-gray-200">
         {/* Logo div - matches sidebar width */}
         <div
           className={clsx(
-            "transition-all duration-300 ease-in-out border-r border-zinc-200 h-[88px] lg:h-auto",
+            "transition-all duration-300 ease-in-out border-r border-gray-50 h-[88px] lg:h-auto",
             isSideNavCollapsed ? "w-32" : "w-64",
             fontClasses.robotoMono
           )}
@@ -56,7 +56,7 @@ export default function LayoutDashboard({
         <aside
           className={clsx(
             "transition-all duration-300 ease-in-out border-r border-gray-100",
-            isSideNavCollapsed ? "w-32" : "w-64",
+            isSideNavCollapsed ? "w-36" : "w-72",
             fontClasses.robotoMono
           )}
         >

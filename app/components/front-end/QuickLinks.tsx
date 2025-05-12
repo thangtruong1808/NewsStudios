@@ -5,7 +5,7 @@ import { StarIcon, NewspaperIcon, FireIcon } from "@heroicons/react/24/outline";
 import GetLeftSidebar from "./trending/GetLeftSidebar";
 import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
 
-export default function LeftSidebar() {
+export default function QuickLinks() {
   const { featuredCount, headlinesCount, trendingCount, isLoading, error } =
     GetLeftSidebar();
 

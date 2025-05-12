@@ -6,17 +6,19 @@ import { Article } from "@/app/lib/definition";
 
 interface ArticleSelectProps {
   articles: Pick<Article, "id" | "title">[];
-  value: number;
-  onChange: (value: number) => void;
+  selectedArticleId: number | null;
+  onArticleChange: (articleId: number | null) => void;
   error?: string;
 }
 
-export function ArticleSelect({
-  articles,
-  value,
-  onChange,
+export default function ArticleSelect({
+  articles = [],
+  selectedArticleId,
+  onArticleChange,
   error,
 }: ArticleSelectProps) {
+  const articleList = Array.isArray(articles) ? articles : [];
+
   return (
     <div>
       <label
@@ -27,12 +29,14 @@ export function ArticleSelect({
       </label>
       <select
         id="article_id"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        value={selectedArticleId || ""}
+        onChange={(e) =>
+          onArticleChange(e.target.value ? Number(e.target.value) : null)
+        }
+        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
       >
         <option value="">Select an article</option>
-        {articles.map((article) => (
+        {articleList.map((article) => (
           <option key={article.id} value={article.id}>
             {article.title}
           </option>

@@ -1,5 +1,5 @@
 import NavBar from "../components/front-end/NavBar";
-import LeftSidebar from "../components/front-end/LeftSidebar";
+import QuickLinks from "../components/front-end/QuickLinks";
 import RightSidebar from "../components/front-end/RightSidebar";
 import Footer from "../components/front-end/Footer";
 import Sponsors from "../components/front-end/Sponsors";
@@ -23,16 +23,12 @@ export default function MainLayout({
       <div className="flex-1">
         <div className="max-w-[1536px] mx-auto px-4 py-8">
           <div className="flex gap-8">
-            {/* Left Sidebar */}
-            <div className="hidden lg:block w-64 flex-shrink-0">
-              <LeftSidebar />
-            </div>
-
             {/* Main Content */}
             <main className="flex-1 min-w-0 w-full lg:w-auto">{children}</main>
 
             {/* Right Sidebar */}
-            <div className="hidden lg:block w-72 flex-shrink-0">
+            <div className="hidden lg:block w-72 flex-shrink-0 py-2">
+              <QuickLinks />
               <RightSidebar />
             </div>
           </div>

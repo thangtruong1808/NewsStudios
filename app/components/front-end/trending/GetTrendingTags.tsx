@@ -17,28 +17,28 @@ export default function GetTrendingTags() {
     const fetchTrendingTags = async () => {
       try {
         const articles = await getArticles();
-        if (articles) {
-          // Count tag occurrences
-          const tagCounts = articles.reduce(
-            (acc: { [key: string]: number }, article) => {
-              if (article.tag_names && Array.isArray(article.tag_names)) {
-                article.tag_names.forEach((tag: string) => {
-                  acc[tag] = (acc[tag] || 0) + 1;
-                });
-              }
-              return acc;
-            },
-            {}
-          );
+        const articleData = articles.data || [];
 
-          // Convert to array and sort by count
-          const sortedTags = Object.entries(tagCounts)
-            .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 10); // Get top 10 trending tags
+        // Count tag occurrences
+        const tagCounts = articleData.reduce(
+          (acc: { [key: string]: number }, article: Article) => {
+            if (article.tag_names && Array.isArray(article.tag_names)) {
+              article.tag_names.forEach((tag: string) => {
+                acc[tag] = (acc[tag] || 0) + 1;
+              });
+            }
+            return acc;
+          },
+          {}
+        );
 
-          setTrendingTags(sortedTags);
-        }
+        // Convert to array and sort by count
+        const sortedTags = Object.entries(tagCounts)
+          .map(([name, count]) => ({ name, count: count as number }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 10); // Get top 10 trending tags
+
+        setTrendingTags(sortedTags);
       } catch (error) {
         setError(
           error instanceof Error

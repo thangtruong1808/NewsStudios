@@ -71,8 +71,8 @@ export default function LatestSingleArticle() {
     const fetchLatestArticle = async () => {
       try {
         const result = await getArticles();
-        if (result && result.length > 0) {
-          const latestArticle = [...result].sort(
+        if (result.data && result.data.length > 0) {
+          const latestArticle = [...result.data].sort(
             (a, b) =>
               new Date(b.published_at).getTime() -
               new Date(a.published_at).getTime()
