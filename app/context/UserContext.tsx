@@ -3,8 +3,16 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
 interface User {
+  id: number;
+  firstname: string;
+  lastname: string;
   email: string;
-  role: string;
+  role: "admin" | "user" | "editor";
+  status: "active" | "inactive";
+  description?: string;
+  user_image?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface UserContextType {

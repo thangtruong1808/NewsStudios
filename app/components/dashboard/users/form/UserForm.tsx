@@ -16,6 +16,7 @@ import UserFormFields from "./UserFormFields";
 import UserFormActions from "./UserFormActions";
 import UserFormLoading from "./UserFormLoading";
 import UserFormError from "./UserFormError";
+import { useUser } from "../../../../context/UserContext";
 
 interface UserFormProps {
   userId?: string;
@@ -27,11 +28,14 @@ export default function UserForm({ userId }: UserFormProps) {
   const [isLoading, setIsLoading] = useState(!!userId);
   const [userData, setUserData] = useState<User | undefined>(undefined);
   const isEditMode = !!userId;
+  const { user: currentUser, setUser } = useUser();
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
@@ -43,6 +47,7 @@ export default function UserForm({ userId }: UserFormProps) {
       role: "user",
       status: "active",
       description: "",
+      user_image: "",
     },
   });
 
@@ -52,6 +57,7 @@ export default function UserForm({ userId }: UserFormProps) {
       if (userId) {
         try {
           setIsLoading(true);
+          console.log("Fetching user with ID:", userId);
           const { data: user, error } = await getUserById(parseInt(userId));
 
           if (error) {
@@ -61,16 +67,53 @@ export default function UserForm({ userId }: UserFormProps) {
           }
 
           if (user) {
-            console.log("User data loaded:", user);
-            reset({
+            // Ensure we have all the user data including user_image
+            const userData: User = {
+              id: user.id,
               firstname: user.firstname,
               lastname: user.lastname,
               email: user.email,
-              password: user.password || "",
+              password: user.password,
               role: user.role,
               status: user.status,
               description: user.description || "",
-            });
+              user_image: user.user_image || "",
+              created_at: user.created_at,
+              updated_at: user.updated_at,
+            };
+
+            console.log("User data loaded:", userData);
+            setUserData(userData);
+
+            // Log the user_image value specifically
+            console.log("User image URL from database:", userData.user_image);
+
+            // Set form values
+            const formData: UserFormValues = {
+              firstname: userData.firstname,
+              lastname: userData.lastname,
+              email: userData.email,
+              password: "", // Don't set password for security
+              role: userData.role,
+              status: userData.status,
+              description: userData.description || "",
+              user_image: userData.user_image || "", // Ensure user_image is never undefined
+            };
+
+            console.log("Setting form data:", formData);
+
+            // Reset the form with all values including user_image
+            await reset(formData);
+
+            // Double-check that user_image is set correctly
+            if (userData.user_image) {
+              console.log("Verifying user_image value:", userData.user_image);
+              setValue("user_image", userData.user_image, {
+                shouldValidate: true,
+                shouldDirty: true,
+                shouldTouch: true,
+              });
+            }
           } else {
             setError("User not found");
           }
@@ -84,24 +127,53 @@ export default function UserForm({ userId }: UserFormProps) {
     };
 
     fetchUser();
-  }, [userId, reset]);
+  }, [userId, reset, setValue]);
+
+  // Log form state changes
+  useEffect(() => {
+    if (userData) {
+      console.log("UserForm - Current user data:", {
+        ...userData,
+        user_image: userData.user_image || "No image set",
+      });
+      console.log("UserForm - Current form values:", register);
+    }
+  }, [userData, register]);
 
   const onSubmit = async (data: UserFormValues) => {
     try {
       setIsLoading(true);
       setError(null);
+      console.log("UserForm - Submitting form data:", data);
 
       if (userId) {
+        console.log("UserForm - Updating user:", userId);
         const updateData = { ...data };
+        // Remove password if it's empty
         if (!updateData.password) {
           delete updateData.password;
         }
 
         try {
           const result = await updateUser(parseInt(userId), updateData);
+          console.log("UserForm - Update result:", result);
           if (result.success) {
+            // If we're updating the current user, update the context
+            if (currentUser && currentUser.id === parseInt(userId)) {
+              const updatedUser = {
+                ...currentUser,
+                ...updateData,
+                user_image: updateData.user_image || currentUser.user_image,
+              };
+              console.log("Updating user context with:", updatedUser);
+              setUser(updatedUser);
+            }
+
             toast.success("User updated successfully");
             router.push("/dashboard/users");
+            router.refresh();
+          } else {
+            toast.error(result.error || "Failed to update user");
           }
         } catch (error) {
           console.error("Error updating user:", error);
@@ -111,6 +183,8 @@ export default function UserForm({ userId }: UserFormProps) {
           return;
         }
       } else {
+        console.log("UserForm - Creating new user");
+        // Only require password for new users
         if (!data.password) {
           setError("Password is required for new users");
           return;
@@ -120,9 +194,13 @@ export default function UserForm({ userId }: UserFormProps) {
           const result = await createUser(
             data as Omit<UserFormValues, "password"> & { password: string }
           );
+          console.log("UserForm - Create result:", result);
           if (result.success) {
             toast.success("User created successfully");
             router.push("/dashboard/users");
+            router.refresh();
+          } else {
+            toast.error(result.error || "Failed to create user");
           }
         } catch (error) {
           console.error("Error creating user:", error);
@@ -156,6 +234,7 @@ export default function UserForm({ userId }: UserFormProps) {
         register={register}
         errors={errors}
         isEditMode={isEditMode}
+        control={control}
       />
 
       <UserFormActions

@@ -6,7 +6,6 @@ import { ImageFormData } from "../validations/imageSchema";
 import { uploadToFTP } from "../utils/ftpUpload";
 import { uploadImageToCloudinary } from "../utils/cloudinaryServerUtils";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
-import { pool } from "../db/db";
 import { Image } from "../definition";
 
 interface ImageRow extends RowDataPacket {
@@ -393,5 +392,26 @@ export async function getAllImages(type?: string) {
   } catch (error) {
     console.error("Error fetching all images:", error);
     return { data: null, error: "Failed to fetch images" };
+  }
+}
+
+export async function searchImages(searchQuery: string) {
+  try {
+    const result = await query(
+      `SELECT i.*, a.title as article_title 
+       FROM Images i
+       LEFT JOIN Articles a ON i.article_id = a.id
+       WHERE a.title LIKE ?
+       ORDER BY i.created_at DESC`,
+      [`%${searchQuery}%`]
+    );
+
+    if (result.error) {
+      return { data: [], error: result.error };
+    }
+
+    return { data: result.data as Image[], error: null };
+  } catch (error) {
+    return { data: [], error: "Failed to search images" };
   }
 }

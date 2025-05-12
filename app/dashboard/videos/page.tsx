@@ -6,12 +6,13 @@ import {
   PencilIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { getVideos } from "@/app/lib/actions/videos";
+import { getVideos, searchVideos } from "@/app/lib/actions/videos";
 import { getArticles } from "@/app/lib/actions/articles";
 import { deleteVideo } from "@/app/lib/actions/videos";
 import { toast } from "react-hot-toast";
 import DeleteVideoButton from "@/app/components/dashboard/videos/DeleteVideoButton";
 import VideosGridClient from "@/app/components/dashboard/videos/VideosGridClient";
+import VideosSearchWrapper from "@/app/components/dashboard/videos/VideosSearchWrapper";
 import { Article } from "@/app/lib/definition";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +23,22 @@ interface ApiResponse<T> {
   error: string | null;
 }
 
-export default async function VideosPage() {
-  // Fetch videos and articles
-  const videosResult = await getVideos();
-  const articles = await getArticles();
+interface PageProps {
+  searchParams?: {
+    query?: string;
+    page?: string;
+  };
+}
+
+export default async function VideosPage({ searchParams }: PageProps) {
+  const searchQuery = searchParams?.query || "";
+  const currentPage = Number(searchParams?.page) || 1;
+
+  // Use searchVideos if there's a search query, otherwise use getVideos
+  const [videosResult, articlesResult] = await Promise.all([
+    searchQuery ? searchVideos(searchQuery) : getVideos(),
+    getArticles(),
+  ]);
 
   // Handle errors
   if (videosResult.error) {
@@ -45,11 +58,32 @@ export default async function VideosPage() {
     );
   }
 
+  if (articlesResult.error) {
+    return (
+      <div className="rounded-md bg-red-50 p-4">
+        <div className="flex">
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">
+              Error loading articles
+            </h3>
+            <div className="mt-2 text-sm text-red-700">
+              <p>{articlesResult.error}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const videos = videosResult.data || [];
+  const hasVideos = videos.length > 0;
 
   // Create a map of article IDs to titles for quick lookup
   const articleMap = new Map(
-    articles.map((article: Article) => [article.id, article.title])
+    (articlesResult.data || []).map((article: Article) => [
+      article.id,
+      article.title,
+    ])
   );
 
   return (
@@ -70,7 +104,25 @@ export default async function VideosPage() {
         </Link>
       </div>
 
-      <VideosGridClient videos={videos} articleMap={articleMap} />
+      <div className="mb-6">
+        <VideosSearchWrapper />
+      </div>
+
+      {hasVideos ? (
+        <VideosGridClient
+          videos={videos}
+          articleMap={articleMap}
+          searchQuery={searchQuery}
+        />
+      ) : (
+        <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
+          <p className="text-gray-500">
+            {searchQuery
+              ? "No videos found matching your search criteria."
+              : "No videos found. Add your first video to get started."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

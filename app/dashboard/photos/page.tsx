@@ -1,9 +1,10 @@
 import React from "react";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { getImages } from "../../lib/actions/images";
+import { getImages, searchImages } from "../../lib/actions/images";
 import { getArticles } from "../../lib/actions/articles";
 import PhotosGridClient from "../../components/dashboard/photos/PhotosGridClient";
+import PhotosSearchWrapper from "../../components/dashboard/photos/PhotosSearchWrapper";
 import { Article } from "@/app/lib/definition";
 
 // Use static rendering by default, but revalidate every 60 seconds
@@ -11,6 +12,7 @@ export const revalidate = 60;
 
 interface PageProps {
   searchParams?: {
+    query?: string;
     page?: string;
   };
 }
@@ -27,23 +29,17 @@ interface ApiResponse<T> {
 }
 
 export default async function PhotosPage({ searchParams }: PageProps) {
+  const searchQuery = searchParams?.query || "";
   const currentPage = Number(searchParams?.page) || 1;
   const itemsPerPage = 12;
 
-  // Fetch images and articles
+  // Use searchImages if there's a search query, otherwise use getImages
   const [imagesResult, articlesResult] = (await Promise.all([
-    getImages(undefined, currentPage, itemsPerPage),
+    searchQuery
+      ? searchImages(searchQuery)
+      : getImages(undefined, currentPage, itemsPerPage),
     getArticles(),
   ])) as [ApiResponse<any>, ApiResponse<Article>];
-
-  // Debug logs
-  console.log("Images Result:", {
-    totalItems: imagesResult.pagination?.totalItems,
-    currentPage: imagesResult.pagination?.currentPage,
-    totalPages: imagesResult.pagination?.totalPages,
-    itemsPerPage: imagesResult.pagination?.itemsPerPage,
-    imagesCount: imagesResult.data?.length,
-  });
 
   // Handle errors
   if (imagesResult.error) {
@@ -90,6 +86,7 @@ export default async function PhotosPage({ searchParams }: PageProps) {
 
   // Get the images data
   const images = imagesResult.data || [];
+  const hasImages = images.length > 0;
 
   return (
     <div className="">
@@ -112,17 +109,24 @@ export default async function PhotosPage({ searchParams }: PageProps) {
         </Link>
       </div>
 
-      {images.length > 0 ? (
+      <div className="mb-6">
+        <PhotosSearchWrapper />
+      </div>
+
+      {hasImages ? (
         <PhotosGridClient
           images={images}
           articleMap={articleMap}
           initialPage={currentPage}
           totalItems={imagesResult.pagination?.totalItems || 0}
+          searchQuery={searchQuery}
         />
       ) : (
         <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
           <p className="text-gray-500">
-            No photos found. Add your first photo to get started.
+            {searchQuery
+              ? "No photos found matching your search criteria."
+              : "No photos found. Add your first photo to get started."}
           </p>
         </div>
       )}

@@ -20,6 +20,7 @@ export interface UserFormData {
   role: "admin" | "user" | "editor";
   status: "active" | "inactive";
   description?: string;
+  user_image?: string;
 }
 
 export interface LoginFormData {

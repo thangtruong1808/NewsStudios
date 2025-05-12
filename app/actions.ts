@@ -20,7 +20,7 @@ export async function authenticate(
       return "Invalid credentials.";
     }
 
-    // Get user data to return role
+    // Get complete user data
     const user = await getUserByEmail(email);
     if (!user) {
       return "User not found.";
@@ -28,7 +28,18 @@ export async function authenticate(
 
     return {
       success: true,
-      role: user.role,
+      user: {
+        id: user.id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        description: user.description,
+        user_image: user.user_image,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+      },
     };
   } catch (error) {
     if (error instanceof AuthError) {

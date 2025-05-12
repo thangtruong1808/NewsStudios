@@ -15,6 +15,7 @@ interface Image {
   description: string | null;
   created_at: Date;
   updated_at: Date;
+  article_title?: string;
 }
 
 interface PhotosGridClientProps {
@@ -22,6 +23,7 @@ interface PhotosGridClientProps {
   articleMap: Map<number, string>;
   initialPage: number;
   totalItems: number;
+  searchQuery?: string;
 }
 
 export default function PhotosGridClient({
@@ -29,6 +31,7 @@ export default function PhotosGridClient({
   articleMap,
   initialPage,
   totalItems,
+  searchQuery = "",
 }: PhotosGridClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,6 +46,7 @@ export default function PhotosGridClient({
     initialPage,
     currentPage,
     totalPages,
+    searchQuery,
   });
 
   // Update current page when URL changes
@@ -57,14 +61,24 @@ export default function PhotosGridClient({
     if (images.length === 1 && currentPage > 1) {
       const newPage = currentPage - 1;
       setCurrentPage(newPage);
-      router.push(`/dashboard/photos?page=${newPage}`);
+      const params = new URLSearchParams(searchParams);
+      params.set("page", newPage.toString());
+      if (searchQuery) {
+        params.set("query", searchQuery);
+      }
+      router.push(`/dashboard/photos?${params.toString()}`);
     }
   };
 
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    router.push(`/dashboard/photos?page=${page}`);
+    const params = new URLSearchParams(searchParams);
+    params.set("page", page.toString());
+    if (searchQuery) {
+      params.set("query", searchQuery);
+    }
+    router.push(`/dashboard/photos?${params.toString()}`);
   };
 
   return (
@@ -93,6 +107,21 @@ export default function PhotosGridClient({
             image.article_id && articleMap.has(image.article_id)
               ? articleMap.get(image.article_id)
               : null;
+
+          // Debug logs for article title
+          console.log("Article Title Debug:", {
+            imageId: image.id,
+            articleId: image.article_id,
+            articleTitle,
+            hasInMap: image.article_id
+              ? articleMap.has(image.article_id)
+              : false,
+            mapValue: image.article_id
+              ? articleMap.get(image.article_id)
+              : null,
+            articleMapSize: articleMap.size,
+            articleMapEntries: Array.from(articleMap.entries()),
+          });
 
           return (
             <div
@@ -142,8 +171,8 @@ export default function PhotosGridClient({
                     <span className="text-xs font-medium text-indigo-600">
                       Article Title:{" "}
                     </span>
-                    <span className="text-xs text-gray-500">
-                      {articleTitle ? articleTitle : `ID: ${image.article_id}`}
+                    <span className="text-xs text-gray-500 line-clamp-1">
+                      {articleTitle}
                     </span>
                   </div>
                 )}

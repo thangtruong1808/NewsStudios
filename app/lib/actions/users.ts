@@ -45,16 +45,17 @@ export async function getUserById(id: number) {
     const userData = rows[0];
     console.log(`User data found:`, userData);
 
-    // Return all user fields including password
+    // Return all user fields including password and user_image
     const user = {
       id: userData.id,
       firstname: userData.firstname,
       lastname: userData.lastname,
       email: userData.email,
-      password: userData.password, // Include the password field
+      password: userData.password,
       role: userData.role,
       status: userData.status,
       description: userData.description,
+      user_image: userData.user_image || "",
       created_at: userData.created_at,
       updated_at: userData.updated_at,
     };
@@ -87,8 +88,8 @@ export async function createUser(userData: UserFormData) {
       : null;
 
     const result = await query(
-      `INSERT INTO Users (firstname, lastname, email, password, role, status, description)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO Users (firstname, lastname, email, password, role, status, description, user_image)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userData.firstname,
         userData.lastname,
@@ -97,6 +98,7 @@ export async function createUser(userData: UserFormData) {
         userData.role,
         userData.status,
         userData.description || null,
+        userData.user_image || null,
       ]
     );
 
@@ -113,6 +115,7 @@ export async function createUser(userData: UserFormData) {
         role: userData.role,
         status: userData.status,
         description: userData.description,
+        user_image: userData.user_image,
       },
       error: null,
     };
@@ -146,7 +149,7 @@ export async function updateUser(
       // Update without password
       const result = await query(
         `UPDATE Users 
-         SET firstname = ?, lastname = ?, email = ?, role = ?, status = ?, description = ?
+         SET firstname = ?, lastname = ?, email = ?, role = ?, status = ?, description = ?, user_image = ?
          WHERE id = ?`,
         [
           userData.firstname,
@@ -155,6 +158,7 @@ export async function updateUser(
           userData.role,
           userData.status,
           userData.description || null,
+          userData.user_image || null,
           id,
         ]
       );
@@ -180,7 +184,7 @@ export async function updateUser(
       // Update without password
       const result = await query(
         `UPDATE Users 
-         SET firstname = ?, lastname = ?, email = ?, role = ?, status = ?, description = ?
+         SET firstname = ?, lastname = ?, email = ?, role = ?, status = ?, description = ?, user_image = ?
          WHERE id = ?`,
         [
           userData.firstname,
@@ -189,6 +193,7 @@ export async function updateUser(
           userData.role,
           userData.status,
           userData.description || null,
+          userData.user_image || null,
           id,
         ]
       );
@@ -213,7 +218,7 @@ export async function updateUser(
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     const result = await query(
       `UPDATE Users 
-       SET firstname = ?, lastname = ?, email = ?, password = ?, role = ?, status = ?, description = ?
+       SET firstname = ?, lastname = ?, email = ?, password = ?, role = ?, status = ?, description = ?, user_image = ?
        WHERE id = ?`,
       [
         userData.firstname,
@@ -223,6 +228,7 @@ export async function updateUser(
         userData.role,
         userData.status,
         userData.description || null,
+        userData.user_image || null,
         id,
       ]
     );

@@ -65,14 +65,9 @@ export default function LoginForm() {
       }
 
       if (result.success) {
-        // Set user context with email and role from the response
-        const userData = {
-          email: formData.email,
-          role: result.role,
-        };
-
-        console.log("Setting user context with data:", userData);
-        setUser(userData);
+        // Set complete user data in context
+        console.log("Setting user context with data:", result.user);
+        setUser(result.user);
 
         toast.success("Logged in successfully!");
         router.push("/dashboard");

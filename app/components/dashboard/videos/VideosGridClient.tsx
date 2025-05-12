@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ClockIcon, PencilIcon } from "@heroicons/react/24/outline";
 import DeleteVideoButton from "./DeleteVideoButton";
@@ -18,16 +18,25 @@ interface Video {
 interface VideosGridClientProps {
   videos: Video[];
   articleMap: Map<number, string>;
+  searchQuery?: string;
 }
 
 export default function VideosGridClient({
   videos,
   articleMap,
+  searchQuery = "",
 }: VideosGridClientProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [localVideos, setLocalVideos] = useState(videos);
   const itemsPerPage = 6; // Show 8 videos per page
   const totalPages = Math.ceil(localVideos.length / itemsPerPage);
+
+  // Update localVideos when videos prop changes (including search updates)
+  useEffect(() => {
+    setLocalVideos(videos);
+    // Reset to first page when search changes
+    setCurrentPage(1);
+  }, [videos]);
 
   // Calculate the current page's videos
   const startIndex = (currentPage - 1) * itemsPerPage;

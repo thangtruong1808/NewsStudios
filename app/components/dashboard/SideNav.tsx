@@ -11,6 +11,7 @@ import {
 import { useState, useEffect } from "react";
 import clsx from "clsx";
 import { useUser } from "../../context/UserContext";
+import Image from "next/image";
 
 interface SideNavProps {
   onCollapse: (collapsed: boolean) => void;
@@ -20,9 +21,17 @@ export default function SideNav({ onCollapse }: SideNavProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { user } = useUser();
 
-  // Log user context in SideNav
+  // Log user context and user_image in SideNav
   useEffect(() => {
     console.log("SideNav - Current user context:", user);
+    console.log("SideNav - User image URL:", user?.user_image);
+    console.log("SideNav - Has user image:", !!user?.user_image);
+
+    if (user?.user_image) {
+      console.log("Rendering user image:", user.user_image);
+    } else {
+      console.log("No user image found, using default icon");
+    }
   }, [user]);
 
   useEffect(() => {
@@ -75,8 +84,18 @@ export default function SideNav({ onCollapse }: SideNavProps) {
             isCollapsed && "justify-center"
           )}
         >
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-md ring-2 ring-white/50">
-            <UserCircleIcon className="h-10 w-10 text-white" />
+          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-md ring-2 ring-white/50 overflow-hidden">
+            {user?.user_image ? (
+              <Image
+                src={user.user_image}
+                alt={`${user.firstname} ${user.lastname}`}
+                width={64}
+                height={64}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <UserCircleIcon className="h-10 w-10 text-white" />
+            )}
           </div>
           {!isCollapsed && user && (
             <div className="text-center">

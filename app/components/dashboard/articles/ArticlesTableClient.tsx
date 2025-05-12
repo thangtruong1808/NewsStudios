@@ -168,7 +168,7 @@ export function ArticlesTableClient({
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleEdit(article.id)}
-                        className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-500 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
                       >
                         <PencilIcon className="h-4 w-4" />
                         Edit
@@ -176,7 +176,7 @@ export function ArticlesTableClient({
                       <button
                         onClick={() => handleDelete(article.id)}
                         disabled={isDeleting}
-                        className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:hover:bg-red-50 disabled:hover:text-red-500"
                       >
                         <TrashIcon className="h-4 w-4" />
                         Delete
@@ -207,7 +207,7 @@ export function ArticlesTableClient({
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleEdit(article.id)}
-                          className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+                          className="inline-flex items-center gap-1.5 rounded-md border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-500 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md"
                         >
                           <PencilIcon className="h-4 w-4" />
                           Edit
@@ -215,7 +215,7 @@ export function ArticlesTableClient({
                         <button
                           onClick={() => handleDelete(article.id)}
                           disabled={isDeleting}
-                          className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-md border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:hover:bg-red-50 disabled:hover:text-red-500"
                         >
                           <TrashIcon className="h-4 w-4" />
                           Delete

@@ -23,17 +23,10 @@ export default async function ArticlesPage(props: PageProps) {
   const searchQuery = searchParams?.query || "";
   const currentPage = Number(searchParams?.page) || 1;
 
-  let articles: Article[] = [];
-  let error: string | null = null;
-
-  try {
-    articles = await getArticles();
-  } catch (err) {
-    error = err instanceof Error ? err.message : "Failed to load articles";
-  }
+  const articlesResult = await getArticles();
 
   // Handle error case
-  if (error) {
+  if (articlesResult.error) {
     return (
       <div className="rounded-md bg-red-50 p-4">
         <div className="flex">
@@ -42,7 +35,7 @@ export default async function ArticlesPage(props: PageProps) {
               Error loading articles
             </h3>
             <div className="mt-2 text-sm text-red-700">
-              <p>{error}</p>
+              <p>{articlesResult.error}</p>
             </div>
           </div>
         </div>
@@ -51,6 +44,7 @@ export default async function ArticlesPage(props: PageProps) {
   }
 
   // Handle empty data case and ensure proper typing
+  const articles = articlesResult.data || [];
   const hasArticles = articles.length > 0;
 
   return (

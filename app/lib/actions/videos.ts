@@ -190,3 +190,24 @@ export async function uploadVideoToServer(
     return { error: "Failed to upload video" };
   }
 }
+
+export async function searchVideos(searchQuery: string) {
+  try {
+    const result = await query(
+      `SELECT v.*, a.title as article_title 
+       FROM Videos v
+       LEFT JOIN Articles a ON v.article_id = a.id
+       WHERE a.title LIKE ?
+       ORDER BY v.created_at DESC`,
+      [`%${searchQuery}%`]
+    );
+
+    if (result.error) {
+      return { data: [], error: result.error };
+    }
+
+    return { data: result.data as Video[], error: null };
+  } catch (error) {
+    return { data: [], error: "Failed to search videos" };
+  }
+}

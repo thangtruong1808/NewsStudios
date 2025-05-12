@@ -107,14 +107,16 @@ export function TableBody({
             <div className="flex justify-end gap-2">
               <Link
                 href={`/dashboard/articles/${article.id}/edit`}
-                className="rounded border border-blue-500 px-3 py-1 text-blue-500 hover:bg-blue-100"
+                className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
               >
+                <PencilIcon className="h-4 w-4" />
                 Edit
               </Link>
               <button
                 onClick={() => handleDelete(article.id)}
-                className="rounded border border-red-500 px-3 py-1 text-red-500 hover:bg-red-100"
+                className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
               >
+                <TrashIcon className="h-4 w-4" />
                 Delete
               </button>
             </div>

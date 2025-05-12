@@ -22,16 +22,27 @@ export async function getArticles(params?: {
 }) {
   let sqlQuery = `
     SELECT 
-      a.*,
+      a.id,
+      a.title,
+      a.content,
+      a.category_id,
+      a.user_id,
+      a.author_id,
+      a.sub_category_id,
+      a.image,
+      a.video,
+      a.published_at,
+      a.is_featured,
+      a.headline_priority,
+      a.headline_image_url,
+      a.headline_video_url,
+      a.is_trending,
+      a.updated_at,
       c.name as category_name,
       sc.name as sub_category_name,
       CONCAT(u.firstname, ' ', u.lastname) as author_name,
       GROUP_CONCAT(t.name) as tag_names,
-      GROUP_CONCAT(t.id) as tag_ids,
-      COALESCE(a.published_at, NOW()) as published_at,
-      COALESCE(a.is_featured, false) as is_featured,
-      COALESCE(a.headline_priority, 0) as headline_priority,
-      COALESCE(a.is_trending, false) as is_trending
+      GROUP_CONCAT(t.id) as tag_ids
     FROM Articles a
     LEFT JOIN Categories c ON a.category_id = c.id
     LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
@@ -66,22 +77,40 @@ export async function getArticles(params?: {
     ORDER BY a.published_at DESC
   `;
 
-  const { data, error } = await query(sqlQuery, values);
+  try {
+    const { data, error } = await query(sqlQuery, values);
 
-  if (error) throw new Error(error);
+    if (error) {
+      console.error("Error in getArticles:", error);
+      return { data: [], error };
+    }
 
-  // Transform the data to ensure all required fields are present
-  return (data || []).map((article: any) => ({
-    ...article,
-    published_at: new Date(article.published_at),
-    created_at: new Date(article.created_at),
-    updated_at: new Date(article.updated_at),
-    is_featured: Boolean(article.is_featured),
-    is_trending: Boolean(article.is_trending),
-    headline_priority: Number(article.headline_priority),
-    tag_names: article.tag_names ? article.tag_names.split(",") : [],
-    tag_ids: article.tag_ids ? article.tag_ids.split(",").map(Number) : [],
-  }));
+    // Ensure data is an array
+    const articlesData = Array.isArray(data) ? data : [];
+
+    // Transform the data to ensure all required fields are present
+    const articles = articlesData.map((article: any) => ({
+      ...article,
+      published_at: new Date(article.published_at),
+      updated_at: new Date(article.updated_at),
+      is_featured: Boolean(article.is_featured),
+      is_trending: Boolean(article.is_trending),
+      headline_priority: Number(article.headline_priority),
+      tag_names: article.tag_names ? article.tag_names.split(",") : [],
+      tag_ids: article.tag_ids ? article.tag_ids.split(",").map(Number) : [],
+    }));
+
+    console.log("getArticles result:", {
+      articlesCount: articles.length,
+      firstArticle: articles[0],
+      isArray: Array.isArray(articles),
+    });
+
+    return { data: articles, error: null };
+  } catch (error) {
+    console.error("Error in getArticles:", error);
+    return { data: [], error: "Failed to fetch articles" };
+  }
 }
 
 export async function getArticleById(id: number) {
@@ -113,7 +142,6 @@ export async function getArticleById(id: number) {
       data: {
         ...article,
         published_at: new Date(article.published_at),
-        created_at: new Date(article.created_at),
         updated_at: new Date(article.updated_at),
         is_featured: Boolean(article.is_featured),
         is_trending: Boolean(article.is_trending),
