@@ -27,7 +27,7 @@ export default function MainLayout({
             <main className="flex-1 min-w-0 w-full lg:w-auto">{children}</main>
 
             {/* Right Sidebar */}
-            <div className="hidden lg:block w-72 flex-shrink-0 py-2">
+            <div className="hidden lg:block w-72 flex-shrink-0">
               <QuickLinks />
               <RightSidebar />
             </div>

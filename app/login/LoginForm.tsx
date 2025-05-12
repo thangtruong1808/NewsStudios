@@ -84,55 +84,109 @@ export default function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl mx-auto mb-3">
-      <FormInput
-        id="email"
-        name="email"
-        type="email"
-        label="Email"
-        value={formData.email}
-        onChange={handleChange}
-        error={formErrors.email}
-        placeholder="Enter your email"
-        icon={
-          <AtSymbolIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-        }
-        autoComplete="email"
-      />
-
-      <FormInput
-        id="password"
-        name="password"
-        type={showPassword ? "text" : "password"}
-        label="Password"
-        value={formData.password}
-        onChange={handleChange}
-        error={formErrors.password}
-        placeholder="Enter your password"
-        icon={<KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />}
-        rightElement={
-          <PasswordToggle
-            showPassword={showPassword}
-            togglePassword={() => setShowPassword(!showPassword)}
+    <div className="w-full max-w-md mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <FormInput
+            id="email"
+            name="email"
+            type="email"
+            label="Email Address"
+            value={formData.email}
+            onChange={handleChange}
+            error={formErrors.email}
+            placeholder="you@example.com"
+            icon={
+              <AtSymbolIcon
+                className="h-5 w-5 text-gray-400"
+                aria-hidden="true"
+              />
+            }
+            autoComplete="email"
           />
-        }
-        autoComplete="current-password"
-      />
 
-      <ErrorMessage message={errorMessage} />
-
-      <div className="flex items-center justify-between">
-        <div className="text-sm">
-          <Link
-            href="/login/reset-password"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
-          >
-            Forgot your password?
-          </Link>
+          <FormInput
+            id="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            label="Password"
+            value={formData.password}
+            onChange={handleChange}
+            error={formErrors.password}
+            placeholder="Enter your password"
+            icon={
+              <KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            }
+            rightElement={
+              <PasswordToggle
+                showPassword={showPassword}
+                togglePassword={() => setShowPassword(!showPassword)}
+              />
+            }
+            autoComplete="current-password"
+          />
         </div>
-      </div>
 
-      <SubmitButton isPending={isPending} />
-    </form>
+        <ErrorMessage message={errorMessage} />
+
+        <div className="flex justify-end">
+          {/* Remember me Section */}
+          {/* <div className="flex items-center">
+            <input
+              id="remember-me"
+              name="remember-me"
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <label
+              htmlFor="remember-me"
+              className="ml-2 block text-sm text-gray-700"
+            >
+              Remember me
+            </label>
+          </div> */}
+
+          <div className="text-sm">
+            <Link
+              href="/login/reset-password"
+              className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200"
+            >
+              Forgot your password?
+            </Link>
+          </div>
+        </div>
+
+        <div className="">
+          <SubmitButton isPending={isPending} />
+        </div>
+        <div className="flex flex-col items-start py-4">
+          <p>
+            <label
+              className="block text-gray-500 font-small mb-2"
+              htmlFor="username"
+            >
+              Username:<span className="px-3">user@nextmail.com</span>
+            </label>
+          </p>
+          <p>
+            <label
+              className="block text-gray-500 font-small mb-2"
+              htmlFor="password"
+            >
+              Password:<span className="px-3">25Thang!@</span>
+            </label>
+          </p>
+        </div>
+        {/* <div className="text-center text-sm text-gray-600">
+          Don't have an account?{" "}
+          <Link
+            href="/register"
+            className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200"
+          >
+            Sign up
+          </Link>
+        </div> */}
+      </form>
+    </div>
   );
 }

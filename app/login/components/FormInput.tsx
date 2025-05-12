@@ -31,12 +31,12 @@ export default function FormInput({
   autoComplete,
 }: FormInputProps) {
   return (
-    <div className="space-y-2 w-full max-w-4xl">
+    <div className="space-y-2">
       <label htmlFor={id} className="block text-sm font-medium text-gray-700">
         {label}
       </label>
-      <div className="relative w-full">
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           {icon}
         </div>
         <input
@@ -47,15 +47,18 @@ export default function FormInput({
           value={value}
           onChange={onChange}
           className={`block w-full rounded-lg border ${
-            error ? "border-red-300" : "border-gray-200"
-          } pl-12 pr-4 py-2.5 text-gray-900 placeholder-gray-400 
+            error ? "border-red-300" : "border-gray-300"
+          } pl-10 pr-4 py-2.5 text-gray-900 placeholder-gray-400 
           focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 
-          transition-colors duration-200 ease-in-out
-          ${error ? "bg-red-50" : "bg-white"}`}
+          transition-all duration-200 ease-in-out
+          ${error ? "bg-red-50" : "bg-white"}
+          hover:border-gray-400`}
           placeholder={placeholder}
+          aria-invalid={error ? "true" : "false"}
+          aria-describedby={error ? `${id}-error` : undefined}
         />
         {error && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
             <ExclamationCircleIcon
               className="h-5 w-5 text-red-500"
               aria-hidden="true"
@@ -63,13 +66,19 @@ export default function FormInput({
           </div>
         )}
         {rightElement && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
             {rightElement}
           </div>
         )}
       </div>
       {error && (
-        <p className="mt-1 text-sm text-red-600 animate-fade-in">{error}</p>
+        <p
+          className="mt-1 text-sm text-red-600 animate-fade-in"
+          id={`${id}-error`}
+          role="alert"
+        >
+          {error}
+        </p>
       )}
     </div>
   );

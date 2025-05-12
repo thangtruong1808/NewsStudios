@@ -55,7 +55,7 @@ export default function DashboardPage() {
     <Suspense fallback={<Loading />}>
       <div className="">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white">
+        <div className="bg-gradient-to-r from-zinc-600 to-indigo-200 rounded-xl p-6 text-white">
           <h1 className="text-3xl font-bold">Welcome back!</h1>
           <p className="mt-2 text-blue-100">
             Here's what's happening with your content today.
