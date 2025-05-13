@@ -46,7 +46,7 @@ export default function LayoutDashboard({
         <div
           className={clsx(
             "transition-all duration-300 ease-in-out border-r border-gray-50 h-[88px] lg:h-auto",
-            isSideNavCollapsed ? "w-32" : "w-64",
+            isSideNavCollapsed ? "w-36" : "w-72",
             fontClasses.robotoMono
           )}
         >

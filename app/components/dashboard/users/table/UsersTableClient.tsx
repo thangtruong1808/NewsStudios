@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { User } from "../../../../lib/definition";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
@@ -11,6 +11,7 @@ import TabletView from "./views/TabletView";
 import DesktopView from "./views/DesktopView";
 import { TableProps } from "../types/index";
 import { format } from "date-fns";
+import { useSession } from "next-auth/react";
 
 // Bind the server action
 const deleteUserAction = deleteUser;
@@ -24,13 +25,20 @@ export default function UsersTableClient({
   searchQuery = "",
 }: TableProps) {
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<keyof User>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [localUsers, setLocalUsers] = useState(users);
+
+  // Update local users when props change
+  useEffect(() => {
+    setLocalUsers(users);
+  }, [users]);
 
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const totalPages = Math.ceil(localUsers.length / itemsPerPage);
 
   /**
    * Handles sorting of table data
@@ -60,7 +68,10 @@ export default function UsersTableClient({
       setIsDeleting(true);
       const success = await deleteUser(userId);
       if (success) {
+        // Update the session to reflect the changes
+        await updateSession();
         toast.success("User deleted successfully");
+        // Force a refresh of the page data
         router.refresh();
       } else {
         toast.error("Failed to delete user");
@@ -73,7 +84,7 @@ export default function UsersTableClient({
   };
 
   // Filter users based on search query
-  const filteredUsers = users.filter((user) =>
+  const filteredUsers = localUsers.filter((user) =>
     Object.values(user).some(
       (value) =>
         value &&

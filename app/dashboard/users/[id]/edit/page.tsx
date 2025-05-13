@@ -42,12 +42,14 @@ export default function EditUserPage() {
 
   if (error) {
     return (
-      <div className="rounded-md bg-red-50 p-4">
-        <div className="flex">
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">Error</h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{error}</p>
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="rounded-md bg-red-50 p-4">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -56,8 +58,12 @@ export default function EditUserPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <UserForm user={user} />
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-4">
+          <UserForm user={user} isEditMode={true} />
+        </div>
+      </div>
     </div>
   );
 }

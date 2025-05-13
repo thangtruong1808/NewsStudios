@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import { useSession } from "next-auth/react";
 import { useUser } from "../context/UserContext";
 import { Suspense } from "react";
 import LoginForm from "./LoginForm";
@@ -10,30 +12,34 @@ import { NewspaperIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
   const { setUser, user } = useUser();
 
-  // Log initial user state
-  console.log("Initial user context state:", user);
+  console.log("Login Page - Session Status:", status);
+  console.log("Login Page - Session Data:", session);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
     setIsLoading(true);
 
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
     try {
+      console.log("Attempting login with:", { email });
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
 
+      console.log("Login Result:", result);
+
       if (result?.error) {
-        setError("Invalid email or password");
+        toast.error("Invalid credentials");
         return;
       }
 
@@ -49,11 +55,12 @@ export default function LoginPage() {
       // Log user context after setting
       console.log("User context after setting:", userData);
 
+      toast.success("Logged in successfully");
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
       console.error("Login error:", error);
-      setError("An error occurred. Please try again.");
+      toast.error("An error occurred during login");
     } finally {
       setIsLoading(false);
     }

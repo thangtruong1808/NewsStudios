@@ -1,104 +1,108 @@
 "use client";
 
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
-/**
- * Props for the Pagination component
- */
-interface PaginationProps {
-  totalItems: number;
-  itemsPerPage: number;
+interface TablePaginationProps {
   currentPage: number;
   totalPages: number;
+  itemsPerPage: number;
+  totalItems: number;
   onPageChange: (page: number) => void;
 }
 
-/**
- * Pagination component for table navigation
- * Displays page numbers and navigation controls
- */
-export default function Pagination({
-  totalItems,
-  itemsPerPage,
+export default function TablePagination({
   currentPage,
   totalPages,
+  itemsPerPage,
+  totalItems,
   onPageChange,
-}: PaginationProps) {
+}: TablePaginationProps) {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
-  const handleFirstPage = () => {
-    onPageChange(1);
-  };
-
-  const handlePrevious = () => {
-    if (currentPage > 1) {
-      onPageChange(currentPage - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentPage < totalPages) {
-      onPageChange(currentPage + 1);
-    }
-  };
-
-  const handleLastPage = () => {
-    onPageChange(totalPages);
-  };
-
-  const generatePageNumbers = () => {
+  // Generate page numbers to display
+  const getPageNumbers = () => {
     const pageNumbers = [];
     const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total is less than max visible
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Always show first page
+      pageNumbers.push(1);
 
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(i);
+      // Calculate start and end of visible pages
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+
+      // Adjust if we're near the beginning
+      if (currentPage <= 2) {
+        endPage = 4;
+      }
+
+      // Adjust if we're near the end
+      if (currentPage >= totalPages - 1) {
+        startPage = totalPages - 3;
+      }
+
+      // Add ellipsis if needed
+      if (startPage > 2) {
+        pageNumbers.push("...");
+      }
+
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+
+      // Add ellipsis if needed
+      if (endPage < totalPages - 1) {
+        pageNumbers.push("...");
+      }
+
+      // Always show last page
+      pageNumbers.push(totalPages);
     }
 
     return pageNumbers;
   };
 
-  if (totalPages <= 1) return null;
-
   return (
     <div className="flex items-center justify-between border-t border-gray-200 bg-white px-2 py-2 sm:px-4 sm:py-3">
-      <div className="flex flex-1 items-center justify-around w-full">
-        <div>
+      <div className="flex flex-1 items-center justify-between">
+        <div className="hidden sm:block">
           <p className="text-xs sm:text-sm text-gray-700">
             Showing <span className="font-medium">{startItem}</span> to{" "}
             <span className="font-medium">{endItem}</span> of{" "}
             <span className="font-medium">{totalItems}</span> results
           </p>
         </div>
-        <div className="flex justify-center">
+        <div>
           <nav
             className="isolate inline-flex -space-x-px rounded-md shadow-sm"
             aria-label="Pagination"
           >
             <button
-              onClick={handleFirstPage}
+              onClick={() => onPageChange(1)}
               disabled={currentPage === 1}
               className="relative inline-flex items-center rounded-l-md px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
               <span className="sr-only">First</span>
               <ChevronDoubleLeftIcon
-                className="h-3 w-3 sm:h-5 sm:w-5"
+                className="h-3 w-3 sm:h-5 sm:w-5 -ml-0.5 sm:-ml-1"
                 aria-hidden="true"
               />
             </button>
             <button
-              onClick={handlePrevious}
+              onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
               className="relative inline-flex items-center px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
@@ -108,21 +112,32 @@ export default function Pagination({
                 aria-hidden="true"
               />
             </button>
-            {generatePageNumbers().map((page) => (
-              <button
-                key={page}
-                onClick={() => onPageChange(page)}
-                className={`relative inline-flex items-center px-2 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold ${
-                  page === currentPage
-                    ? "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                    : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+
+            {getPageNumbers().map((page, index) =>
+              typeof page === "number" ? (
+                <button
+                  key={`page-${page}`}
+                  onClick={() => onPageChange(page)}
+                  className={`relative inline-flex items-center px-2 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold ${
+                    page === currentPage
+                      ? "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                      : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                  }`}
+                >
+                  {page}
+                </button>
+              ) : (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="relative inline-flex items-center px-2 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300"
+                >
+                  ...
+                </span>
+              )
+            )}
+
             <button
-              onClick={handleNext}
+              onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               className="relative inline-flex items-center px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >
@@ -133,7 +148,7 @@ export default function Pagination({
               />
             </button>
             <button
-              onClick={handleLastPage}
+              onClick={() => onPageChange(totalPages)}
               disabled={currentPage === totalPages}
               className="relative inline-flex items-center rounded-r-md px-1.5 py-1.5 sm:px-2 sm:py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
             >

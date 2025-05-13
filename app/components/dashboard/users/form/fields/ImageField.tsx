@@ -36,7 +36,7 @@ export default function ImageField({
 
       // Validate file size (limit to 500MB)
       if (file.size > 500 * 1024 * 1024) {
-        toast.error("Image file size must be less than 500MB");
+        toast.error("Image file size must be less than 5MB");
         setImagePreview(null);
         return;
       }
@@ -94,6 +94,10 @@ export default function ImageField({
               src={userImage}
               alt="Preview"
               className="h-full w-full object-cover"
+              onError={(e) => {
+                console.error("Error loading image:", userImage);
+                (e.target as HTMLImageElement).src = "/placeholder-image.jpg";
+              }}
             />
           </div>
         </div>

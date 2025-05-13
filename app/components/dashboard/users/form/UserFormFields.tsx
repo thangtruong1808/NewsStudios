@@ -20,12 +20,14 @@ import {
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { uploadToCloudinary } from "../../../../lib/utils/cloudinaryUtils";
 import toast from "react-hot-toast";
+import { useSession } from "next-auth/react";
 
 interface UserFormFieldsProps {
   register: UseFormRegister<UserFormValues>;
   errors: FieldErrors<UserFormValues>;
   isEditMode: boolean;
   control: Control<UserFormValues>;
+  userId?: number;
 }
 
 export default function UserFormFields({
@@ -33,7 +35,9 @@ export default function UserFormFields({
   errors,
   isEditMode,
   control,
+  userId,
 }: UserFormFieldsProps) {
+  const { update: updateSession } = useSession();
   const [showPassword, setShowPassword] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -45,29 +49,12 @@ export default function UserFormFields({
     name: "user_image",
   });
 
-  // Log initial mount and userImage changes
-  useEffect(() => {
-    console.log("UserFormFields - Component mounted");
-    console.log("UserFormFields - Initial userImage value:", userImage);
-  }, []);
-
   // Update image preview when user_image changes
   useEffect(() => {
-    console.log("UserFormFields - user_image field changed:", userImage);
     if (userImage) {
-      console.log("UserFormFields - Setting image preview to:", userImage);
       setImagePreview(userImage);
     }
   }, [userImage]);
-
-  // Log form state changes
-  useEffect(() => {
-    console.log("UserFormFields - Current image preview:", imagePreview);
-  }, [imagePreview]);
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -80,7 +67,6 @@ export default function UserFormFields({
       // Create a preview URL for immediate display
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
-      console.log("UserFormFields - Created preview URL:", previewUrl);
 
       // Validate file type
       if (!file.type.startsWith("image/")) {
@@ -97,9 +83,7 @@ export default function UserFormFields({
       }
 
       // Upload to Cloudinary
-      console.log("UserFormFields - Uploading to Cloudinary...");
       const result = await uploadToCloudinary(file, "image");
-      console.log("UserFormFields - Cloudinary upload result:", result);
 
       if (!result.success || !result.url) {
         toast.error(`Failed to upload image: ${result.error}`);
@@ -109,7 +93,6 @@ export default function UserFormFields({
 
       // Update the form value
       const { onChange } = register("user_image");
-      console.log("UserFormFields - Updating form with image URL:", result.url);
       onChange({
         target: {
           name: "user_image",
@@ -119,6 +102,12 @@ export default function UserFormFields({
 
       // Update preview with the Cloudinary URL
       setImagePreview(result.url);
+
+      // Update session if this is the current user's profile
+      if (isEditMode && userId) {
+        await updateSession();
+      }
+
       toast.success("Image uploaded successfully");
     } catch (error) {
       console.error("Error uploading image:", error);

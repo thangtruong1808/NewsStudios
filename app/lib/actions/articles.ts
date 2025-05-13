@@ -16,10 +16,22 @@ export interface ArticleWithJoins extends Article, RowDataPacket {
 }
 
 export async function getArticles(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortField?: string;
+  sortDirection?: "asc" | "desc";
   subcategoryId?: string;
   tag?: string;
   type?: "trending";
 }) {
+  const page = params?.page || 1;
+  const limit = params?.limit || 10;
+  const offset = (page - 1) * limit;
+  const search = params?.search || "";
+  const sortField = params?.sortField || "published_at";
+  const sortDirection = params?.sortDirection || "desc";
+
   let sqlQuery = `
     SELECT 
       a.id,
@@ -54,6 +66,11 @@ export async function getArticles(params?: {
   const conditions = [];
   const values = [];
 
+  if (search) {
+    conditions.push("(a.title LIKE ? OR a.content LIKE ?)");
+    values.push(`%${search}%`, `%${search}%`);
+  }
+
   if (params?.subcategoryId) {
     conditions.push("a.sub_category_id = ?");
     values.push(params.subcategoryId);
@@ -72,17 +89,35 @@ export async function getArticles(params?: {
     sqlQuery += " WHERE " + conditions.join(" AND ");
   }
 
-  sqlQuery += `
-    GROUP BY a.id, c.name, u.firstname, u.lastname
-    ORDER BY a.published_at DESC
+  // Get total count for pagination
+  const countQuery = `
+    SELECT COUNT(DISTINCT a.id) as total
+    FROM Articles a
+    LEFT JOIN Categories c ON a.category_id = c.id
+    LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
+    LEFT JOIN Users u ON a.user_id = u.id
+    LEFT JOIN Article_Tags at ON a.id = at.article_id
+    LEFT JOIN Tags t ON at.tag_id = t.id
+    ${conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : ""}
   `;
+  const { data: countData } = await query(countQuery, values);
+  const totalItems = countData?.[0]?.total || 0;
+
+  // Add sorting and pagination
+  sqlQuery += `
+    GROUP BY a.id, c.name, sc.name, u.firstname, u.lastname
+    ORDER BY a.${sortField} ${sortDirection}
+    LIMIT ? OFFSET ?
+  `;
+
+  values.push(limit, offset);
 
   try {
     const { data, error } = await query(sqlQuery, values);
 
     if (error) {
       console.error("Error in getArticles:", error);
-      return { data: [], error };
+      return { data: [], error, totalItems: 0, totalPages: 0 };
     }
 
     // Ensure data is an array
@@ -100,16 +135,25 @@ export async function getArticles(params?: {
       tag_ids: article.tag_ids ? article.tag_ids.split(",").map(Number) : [],
     }));
 
-    console.log("getArticles result:", {
-      articlesCount: articles.length,
-      firstArticle: articles[0],
-      isArray: Array.isArray(articles),
-    });
+    // Ensure totalItems and totalPages are at least 1 when there's data
+    const finalTotalItems = articles.length > 0 ? totalItems : 0;
+    const finalTotalPages =
+      articles.length > 0 ? Math.max(1, Math.ceil(finalTotalItems / limit)) : 0;
 
-    return { data: articles, error: null };
+    return {
+      data: articles,
+      error: null,
+      totalItems: finalTotalItems,
+      totalPages: finalTotalPages,
+    };
   } catch (error) {
     console.error("Error in getArticles:", error);
-    return { data: [], error: "Failed to fetch articles" };
+    return {
+      data: [],
+      error: "Failed to fetch articles",
+      totalItems: 0,
+      totalPages: 0,
+    };
   }
 }
 

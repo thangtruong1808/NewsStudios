@@ -2,40 +2,29 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UserFormValues, userSchema } from "./userSchema";
-import UserFormFields from "./UserFormFields";
-import UserFormActions from "./UserFormActions";
-import { useState } from "react";
+import { UserFormValues, createUserSchema, editUserSchema } from "./userSchema";
+import { User } from "../../../../lib/definition";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 import { createUser, updateUser } from "../../../../lib/actions/users";
-import toast from "react-hot-toast";
+import UserFormFields from "./UserFormFields";
+import { useSession } from "next-auth/react";
 
 interface UserFormProps {
-  user?: {
-    id: number;
-    firstname: string;
-    lastname: string;
-    email: string;
-    password?: string;
-    role: "user" | "admin" | "editor";
-    status: "active" | "inactive";
-    user_image?: string;
-    description?: string;
-  };
+  user?: User;
+  isEditMode?: boolean;
 }
 
-export default function UserForm({ user }: UserFormProps) {
+export default function UserForm({ user, isEditMode = false }: UserFormProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
+  const { data: session, update: updateSession } = useSession();
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     control,
   } = useForm<UserFormValues>({
-    resolver: zodResolver(userSchema),
+    resolver: zodResolver(isEditMode ? editUserSchema : createUserSchema),
     defaultValues: {
       firstname: user?.firstname || "",
       lastname: user?.lastname || "",
@@ -43,30 +32,49 @@ export default function UserForm({ user }: UserFormProps) {
       password: "",
       role: user?.role || "user",
       status: user?.status || "active",
-      user_image: user?.user_image || "",
       description: user?.description || "",
+      user_image: user?.user_image || "",
     },
   });
 
+  console.log("UserForm - Current Session:", session);
+  console.log("UserForm - Editing User:", user);
+
   const onSubmit = async (data: UserFormValues) => {
-    setIsSubmitting(true);
     try {
-      if (user?.id) {
-        await updateUser(user.id, data);
-        toast.success("User updated successfully");
+      console.log("Submitting form data:", data);
+
+      if (isEditMode && user) {
+        console.log("Updating existing user:", user.id);
+        const success = await updateUser(user.id, data);
+        if (success) {
+          console.log("User updated successfully, updating session");
+          // Update the session to reflect the changes
+          await updateSession();
+          console.log("Session updated");
+          toast.success("User updated successfully");
+          router.push("/dashboard/users");
+          router.refresh();
+        } else {
+          console.log("Failed to update user");
+          toast.error("Failed to update user");
+        }
       } else {
-        await createUser(data);
-        toast.success("User created successfully");
+        console.log("Creating new user");
+        const success = await createUser(data);
+        if (success) {
+          console.log("User created successfully");
+          toast.success("User created successfully");
+          router.push("/dashboard/users");
+          router.refresh();
+        } else {
+          console.log("Failed to create user");
+          toast.error("Failed to create user");
+        }
       }
-      router.push("/dashboard/users");
-      router.refresh();
     } catch (error) {
-      console.error("Error submitting user:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to submit user"
-      );
-    } finally {
-      setIsSubmitting(false);
+      console.error("Error submitting form:", error);
+      toast.error("An error occurred while submitting the form");
     }
   };
 
@@ -74,25 +82,45 @@ export default function UserForm({ user }: UserFormProps) {
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="px-6 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600">
         <h2 className="text-xl font-semibold text-white">
-          {user
-            ? `Edit User: ${user.firstname} ${user.lastname}`
+          {isEditMode
+            ? `Edit User: ${user?.firstname} ${user?.lastname}`
             : "Create New User"}
         </h2>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        <p className="text-sm text-gray-500">
+          Fields marked with an asterisk (*) are required
+        </p>
+
         <UserFormFields
           register={register}
           errors={errors}
-          isEditMode={!!user}
+          isEditMode={isEditMode}
           control={control}
+          userId={user?.id}
         />
 
-        <UserFormActions
-          isSubmitting={isSubmitting}
-          isEditMode={!!user}
-          isLoading={isLoading}
-        />
+        <div className="flex justify-end space-x-4">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting
+              ? "Saving..."
+              : isEditMode
+              ? "Update User"
+              : "Create User"}
+          </button>
+        </div>
       </form>
     </div>
   );

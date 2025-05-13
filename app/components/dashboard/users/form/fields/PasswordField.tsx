@@ -41,17 +41,23 @@ export default function PasswordField({
           id="password"
           {...register("password")}
           placeholder={isEditMode ? "Enter new password to change" : "Password"}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2 pr-10"
         />
         <button
           type="button"
           onClick={togglePasswordVisibility}
-          className="absolute right-3 top-9 text-gray-400 hover:text-gray-500 focus:outline-none"
+          className="absolute inset-y-0 right-0 flex items-center pr-3 mt-1"
         >
           {showPassword ? (
-            <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
+            <EyeSlashIcon
+              className="h-5 w-5 text-gray-400 hover:text-gray-500"
+              aria-hidden="true"
+            />
           ) : (
-            <EyeIcon className="h-5 w-5" aria-hidden="true" />
+            <EyeIcon
+              className="h-5 w-5 text-gray-400 hover:text-gray-500"
+              aria-hidden="true"
+            />
           )}
         </button>
       </div>

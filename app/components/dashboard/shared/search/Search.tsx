@@ -2,11 +2,32 @@
 
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 
 interface SearchProps {
   placeholder: string;
   onSearch?: (term: string) => void;
+}
+
+// Custom hook for debouncing
+function useDebounce<T extends (...args: any[]) => any>(
+  callback: T,
+  delay: number
+): T {
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  return useCallback(
+    ((...args: Parameters<T>) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    }) as T,
+    [callback, delay]
+  );
 }
 
 const Search = ({ placeholder, onSearch }: SearchProps) => {
@@ -27,26 +48,35 @@ const Search = ({ placeholder, onSearch }: SearchProps) => {
     isFirstRender.current = false;
   }, [currentQuery]);
 
-  const handleSearch = (term: string) => {
+  const updateSearchParams = (term: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1"); // Reset to first page on new search
+    if (term) {
+      params.set("query", term);
+    } else {
+      params.delete("query");
+    }
+    replace(`${pathname}?${params.toString()}`);
+  };
+
+  // Create debounced search function with 300ms delay
+  const debouncedSearch = useDebounce((term: string) => {
     if (onSearch) {
       onSearch(term);
     } else {
-      const params = new URLSearchParams(searchParams);
-      params.set("page", "1"); // Reset to first page on new search
-      if (term) {
-        params.set("query", term);
-      } else {
-        params.delete("query");
-      }
-      replace(`${pathname}?${params.toString()}`);
+      updateSearchParams(term);
     }
+  }, 300);
+
+  const handleSearch = (term: string) => {
+    debouncedSearch(term);
   };
 
   const handleClear = () => {
     if (inputRef.current) {
       inputRef.current.value = "";
     }
-    handleSearch("");
+    updateSearchParams(""); // Clear immediately without debounce
   };
 
   return (

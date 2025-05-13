@@ -8,10 +8,11 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import clsx from "clsx";
 import { useUser } from "../../context/UserContext";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 interface SideNavProps {
   onCollapse: (collapsed: boolean) => void;
@@ -19,43 +20,42 @@ interface SideNavProps {
 
 export default function SideNav({ onCollapse }: SideNavProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user } = useUser();
+  const { user, isLoading } = useUser();
+  const pathname = usePathname();
 
-  // Log user context and user_image in SideNav
-  useEffect(() => {
-    console.log("SideNav - Current user context:", user);
-    console.log("SideNav - User image URL:", user?.user_image);
-    console.log("SideNav - Has user image:", !!user?.user_image);
-
-    if (user?.user_image) {
-      console.log("Rendering user image:", user.user_image);
-    } else {
-      console.log("No user image found, using default icon");
-    }
-  }, [user]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const shouldCollapse = window.innerWidth < 1024;
-      setIsCollapsed(shouldCollapse);
-      onCollapse(shouldCollapse);
-    };
-
-    // Initial check
-    handleResize();
-
-    // Add event listener
-    window.addEventListener("resize", handleResize);
-
-    // Cleanup
-    return () => window.removeEventListener("resize", handleResize);
+  // Handle window resize
+  const handleResize = useCallback(() => {
+    const shouldCollapse = window.innerWidth < 1024;
+    setIsCollapsed(shouldCollapse);
+    onCollapse(shouldCollapse);
   }, [onCollapse]);
+
+  // Set up resize listener
+  useEffect(() => {
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [handleResize]);
 
   const handleToggle = () => {
     const newState = !isCollapsed;
     setIsCollapsed(newState);
     onCollapse(newState);
   };
+
+  // Memoize user display name to prevent unnecessary recalculations
+  const userDisplayName = useMemo(() => {
+    if (!user) return "";
+    if (user.firstname && user.lastname) {
+      return `${user.firstname} ${user.lastname}`;
+    }
+    return user.email || "";
+  }, [user?.firstname, user?.lastname, user?.email]);
+
+  // Memoize user role to prevent unnecessary recalculations
+  const userRole = useMemo(() => {
+    return user?.role || "";
+  }, [user?.role]);
 
   return (
     <div
@@ -77,7 +77,7 @@ export default function SideNav({ onCollapse }: SideNavProps) {
       </button>
 
       {/* User Profile Section */}
-      <div className="p-4 border-b border-violet-100 bg-gray-50 backdrop-blur-sm">
+      <div className="flex-none p-4 border-b border-violet-100 bg-gray-50 backdrop-blur-sm">
         <div
           className={clsx(
             "flex flex-col items-center space-y-3",
@@ -85,23 +85,26 @@ export default function SideNav({ onCollapse }: SideNavProps) {
           )}
         >
           <div className="h-16 w-16 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-md ring-2 ring-white/50 overflow-hidden">
-            {user?.user_image ? (
+            {!isLoading && user?.user_image ? (
               <Image
                 src={user.user_image}
-                alt={`${user.firstname} ${user.lastname}`}
+                alt={userDisplayName}
                 width={64}
                 height={64}
                 className="h-full w-full object-cover"
+                priority
               />
             ) : (
               <UserCircleIcon className="h-10 w-10 text-white" />
             )}
           </div>
-          {!isCollapsed && user && (
+          {!isCollapsed && !isLoading && user && (
             <div className="text-center">
-              <p className="text-sm font-medium text-gray-900">{user.email}</p>
+              <p className="text-sm font-medium text-gray-900">
+                {userDisplayName}
+              </p>
               <p className="text-xs text-gray-500 capitalize mt-1">
-                {user.role}
+                {userRole}
               </p>
             </div>
           )}
@@ -109,15 +112,17 @@ export default function SideNav({ onCollapse }: SideNavProps) {
       </div>
 
       {/* Navigation Links */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 backdrop-blur-sm">
+      <div className="flex-1 min-h-0 overflow-y-auto bg-gray-50 backdrop-blur-sm">
         <div className={clsx("py-4", isCollapsed ? "px-2" : "px-3")}>
           <NavLinks isCollapsed={isCollapsed} />
         </div>
       </div>
 
-      {/* Sign Out Section */}
-      <div className="border-t border-violet-100 p-4 bg-gray-50 backdrop-blur-sm">
-        <SignOutButton isCollapsed={isCollapsed} />
+      {/* Sign Out Button at the bottom */}
+      <div className="flex-none border-t border-violet-100 bg-gray-50 backdrop-blur-sm">
+        <div className={clsx("p-4", isCollapsed ? "px-2" : "px-3")}>
+          <SignOutButton isCollapsed={isCollapsed} />
+        </div>
       </div>
     </div>
   );
