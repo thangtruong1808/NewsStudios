@@ -6,7 +6,7 @@ import {
   Control,
   useWatch,
 } from "react-hook-form";
-import { ArticleFormData } from "../articleSchema";
+import { ArticleFormData } from "@/app/components/dashboard/articles/form/articleSchema";
 
 interface BasicFieldsProps {
   register: UseFormRegister<ArticleFormData>;

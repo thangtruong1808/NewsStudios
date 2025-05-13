@@ -4,11 +4,8 @@ import { getSubcategories } from "../../../../lib/actions/subcategories";
 import { getUsers } from "../../../../lib/actions/users";
 import { getTags } from "../../../../lib/actions/tags";
 import { getArticleById } from "../../../../lib/actions/articles";
-import ArticleForm from "../../../../components/dashboard/articles/ArticleForm";
-import {
-  User,
-  Tag,
-} from "../../../../lib/definition";
+import ArticleForm from "@/app/components/dashboard/articles/form/ArticleForm";
+import { User, Tag } from "../../../../lib/definition";
 import { notFound } from "next/navigation";
 
 interface EditArticlePageProps {
@@ -39,45 +36,35 @@ export default async function EditArticlePage({
     ]);
 
     // Check if article exists
-    if (
-      articleResult.error ||
-      !articleResult.data
-    ) {
+    if (articleResult.error || !articleResult.data) {
       notFound();
     }
 
     // Extract data and ensure it's an array with proper type checking
-    const categories = (categoriesResult.data ??
-      []) as {
-      id: number;
-      name: string;
-      description?: string;
-    }[];
+    const categories = (categoriesResult.data ?? []).map((cat) => ({
+      ...cat,
+      created_at: new Date(cat.created_at),
+      updated_at: new Date(cat.updated_at),
+    }));
 
-    const authors = (authorsResult.data ??
-      []) as {
-      id: number;
-      name: string;
-    }[];
+    const authors = (authorsResult.data ?? []).map((auth) => ({
+      ...auth,
+      created_at: auth.created_at,
+      updated_at: auth.updated_at,
+    }));
 
-    const subcategories =
-      (subcategoriesResult.data ?? []) as {
-        id: number;
-        name: string;
-        category_id: number;
-        description?: string;
-      }[];
+    const subcategories = (subcategoriesResult.data ?? []).map((sub) => ({
+      ...sub,
+      created_at: new Date(sub.created_at),
+      updated_at: new Date(sub.updated_at),
+    }));
 
-    const users = (usersResult.data ??
-      []) as User[];
+    const users = (usersResult.data ?? []) as User[];
 
     const tags = (tagsResult.data ?? []) as Tag[];
 
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="mb-8 text-2xl font-bold">
-          Edit Article
-        </h1>
         <ArticleForm
           article={articleResult.data}
           categories={categories}
@@ -89,10 +76,7 @@ export default async function EditArticlePage({
       </div>
     );
   } catch (error) {
-    console.error(
-      "Error loading form data:",
-      error
-    );
+    console.error("Error loading form data:", error);
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="rounded-md bg-red-50 p-4">
@@ -103,9 +87,7 @@ export default async function EditArticlePage({
               </h3>
               <div className="mt-2 text-sm text-red-700">
                 <p>
-                  {error instanceof Error
-                    ? error.message
-                    : "An error occurred"}
+                  {error instanceof Error ? error.message : "An error occurred"}
                 </p>
               </div>
             </div>

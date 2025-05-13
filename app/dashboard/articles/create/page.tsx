@@ -3,7 +3,7 @@ import { getAuthors } from "../../../lib/actions/authors";
 import { getSubcategories } from "../../../lib/actions/subcategories";
 import { getUsers } from "../../../lib/actions/users";
 import { getTags } from "../../../lib/actions/tags";
-import ArticleForm from "../../../components/dashboard/articles/ArticleForm";
+import ArticleForm from "../../../components/dashboard/articles/form/ArticleForm";
 import { User, Tag } from "../../../lib/definition";
 import { uploadToCloudinary } from "../../../lib/utils/cloudinaryUtils";
 
@@ -33,23 +33,23 @@ export default async function CreateArticlePage() {
     ]);
 
     // Extract data and ensure it's an array with proper type checking
-    const categories = (categoriesResult.data ?? []) as {
-      id: number;
-      name: string;
-      description?: string;
-    }[];
+    const categories = (categoriesResult.data ?? []).map((cat) => ({
+      ...cat,
+      created_at: new Date(cat.created_at),
+      updated_at: new Date(cat.updated_at),
+    }));
 
-    const authors = (authorsResult.data ?? []) as {
-      id: number;
-      name: string;
-    }[];
+    const authors = (authorsResult.data ?? []).map((auth) => ({
+      ...auth,
+      created_at: auth.created_at,
+      updated_at: auth.updated_at,
+    }));
 
-    const subcategories = (subcategoriesResult.data ?? []) as {
-      id: number;
-      name: string;
-      category_id: number;
-      description?: string;
-    }[];
+    const subcategories = (subcategoriesResult.data ?? []).map((sub) => ({
+      ...sub,
+      created_at: new Date(sub.created_at),
+      updated_at: new Date(sub.updated_at),
+    }));
 
     const users = (usersResult.data ?? []) as User[];
 
