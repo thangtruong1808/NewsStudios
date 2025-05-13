@@ -2,7 +2,7 @@
 
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
-import { SearchWrapper } from "../search";
+import { SearchWrapper } from "../../../dashboard/search";
 
 export default function UsersSearchWrapper() {
   const searchParams = useSearchParams();

@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { useState, useEffect } from "react";
 import clsx from "clsx";
 import MyLogo from "../components/dashboard/MyLogo";
-import { NewspaperIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { fontClasses } from "../components/fonts";
 
 // Remove experimental_ppr flag as it might be causing issues
@@ -24,6 +24,19 @@ export default function LayoutDashboard({
   children: React.ReactNode;
 }) {
   const [isSideNavCollapsed, setIsSideNavCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu when screen size changes to sm or larger
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 640) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -52,16 +65,41 @@ export default function LayoutDashboard({
 
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="fixed bottom-4 right-4 z-50 sm:hidden bg-violet-600 text-white p-3 rounded-full shadow-lg hover:bg-violet-700 transition-colors"
+        >
+          {isMobileMenuOpen ? (
+            <XMarkIcon className="h-6 w-6" />
+          ) : (
+            <Bars3Icon className="h-6 w-6" />
+          )}
+        </button>
+
         {/* Side Navigation */}
         <aside
           className={clsx(
             "transition-all duration-300 ease-in-out border-r border-gray-100",
+            "fixed sm:relative inset-y-0 left-0 z-40",
+            "transform transition-transform duration-300",
+            isMobileMenuOpen
+              ? "translate-x-0"
+              : "-translate-x-full sm:translate-x-0",
             isSideNavCollapsed ? "w-36" : "w-72",
             fontClasses.robotoMono
           )}
         >
           <SideNav onCollapse={setIsSideNavCollapsed} />
         </aside>
+
+        {/* Overlay for mobile menu */}
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-30 sm:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
 
         {/* Main Content */}
         <main

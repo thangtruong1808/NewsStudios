@@ -1,4 +1,4 @@
-import { User } from "../../../login/login-definitions";
+import { User } from "../../../../lib/definition";
 import { ReactNode } from "react";
 
 export interface Column {
@@ -43,5 +43,26 @@ export interface DeleteUserButtonProps {
   userId: number;
   userName: string;
   onDelete: (id: number, userName: string) => Promise<void>;
+  isDeleting: boolean;
+}
+
+export interface TableProps {
+  users: User[];
+  searchQuery?: string;
+}
+
+export interface TableActionsProps {
+  user: User;
+  onEdit: (id: number) => void;
+  onDelete: (id: number) => void;
+  isDeleting: boolean;
+}
+
+export interface TableViewProps {
+  users: User[];
+  currentPage: number;
+  itemsPerPage: number;
+  onEdit: (id: number) => void;
+  onDelete: (id: number) => void;
   isDeleting: boolean;
 }

@@ -2,8 +2,8 @@ import React from "react";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { getUsers, searchUsers } from "../../lib/actions/users";
-import UsersTableClient from "../../components/dashboard/users/UsersTableClient";
-import UsersSearchWrapper from "../../components/dashboard/users/UsersSearchWrapper";
+import UsersTableClient from "../../components/dashboard/users/table/UsersTableClient";
+import UsersSearchWrapper from "../../components/dashboard/users/search/UsersSearchWrapper";
 import { lusitana } from "../../components/fonts";
 
 // Use static rendering by default, but revalidate every 60 seconds
