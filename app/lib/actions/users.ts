@@ -11,15 +11,48 @@ interface QueryResult {
   error: string | null;
 }
 
-export async function getUsers() {
+export async function getUsers(params?: {
+  page?: number;
+  limit?: number;
+  sortField?: string;
+  sortDirection?: "asc" | "desc";
+}) {
   try {
-    const result = await query("SELECT * FROM Users ORDER BY created_at DESC");
+    const page = params?.page || 1;
+    const limit = params?.limit || 10;
+    const offset = (page - 1) * limit;
+    const sortField = params?.sortField || "created_at";
+    const sortDirection = params?.sortDirection || "desc";
+
+    // Get total count for pagination
+    const countResult = await query("SELECT COUNT(*) as total FROM Users");
+    const totalItems = countResult.data?.[0]?.total || 0;
+
+    const sqlQuery = `
+      SELECT * FROM Users 
+      ORDER BY ${sortField} ${sortDirection}
+      LIMIT ? OFFSET ?
+    `;
+
+    const result = await query(sqlQuery, [limit, offset]);
     if (result.error) {
-      return { data: [], error: result.error };
+      return { data: [], error: result.error, totalItems: 0, totalPages: 0 };
     }
-    return { data: result.data as User[], error: null };
+
+    const totalPages = Math.ceil(totalItems / limit);
+    return {
+      data: result.data as User[],
+      error: null,
+      totalItems,
+      totalPages,
+    };
   } catch (error) {
-    return { data: [], error: "Failed to fetch users" };
+    return {
+      data: [],
+      error: "Failed to fetch users",
+      totalItems: 0,
+      totalPages: 0,
+    };
   }
 }
 
@@ -301,33 +334,80 @@ export async function deleteUser(id: number) {
   }
 }
 
-export async function searchUsers(searchQuery: string) {
+export async function searchUsers(
+  searchQuery: string,
+  params?: {
+    page?: number;
+    limit?: number;
+    sortField?: string;
+    sortDirection?: "asc" | "desc";
+  }
+) {
   try {
     if (!searchQuery.trim()) {
-      return getUsers();
+      return getUsers(params);
     }
+
+    const page = params?.page || 1;
+    const limit = params?.limit || 10;
+    const offset = (page - 1) * limit;
+    const sortField = params?.sortField || "created_at";
+    const sortDirection = params?.sortDirection || "desc";
+
+    // Get total count for pagination
+    const countQuery = `
+      SELECT COUNT(*) as total FROM Users 
+      WHERE firstname LIKE ? 
+      OR lastname LIKE ? 
+      OR email LIKE ?
+    `;
+    const searchPattern = `%${searchQuery}%`;
+    const countResult = await query(countQuery, [
+      searchPattern,
+      searchPattern,
+      searchPattern,
+    ]);
+    const totalItems = countResult.data?.[0]?.total || 0;
 
     const sqlQuery = `
       SELECT * FROM Users 
       WHERE firstname LIKE ? 
       OR lastname LIKE ? 
       OR email LIKE ?
-      ORDER BY created_at DESC
+      ORDER BY ${sortField} ${sortDirection}
+      LIMIT ? OFFSET ?
     `;
 
-    const searchPattern = `%${searchQuery}%`;
     const result = await query(sqlQuery, [
       searchPattern,
       searchPattern,
       searchPattern,
+      limit,
+      offset,
     ]);
 
     if (result.error) {
-      return { data: [], error: result.error };
+      return {
+        data: [],
+        error: result.error,
+        totalItems: 0,
+        totalPages: 0,
+      };
     }
 
-    return { data: result.data as User[], error: null };
+    const totalPages = Math.ceil(totalItems / limit);
+    return {
+      data: result.data as User[],
+      error: null,
+      totalItems,
+      totalPages,
+    };
   } catch (error) {
-    return { data: [], error: "Failed to search users" };
+    return {
+      data: [],
+      error: "Failed to search users",
+      totalItems: 0,
+      totalPages: 0,
+    };
   }
 }

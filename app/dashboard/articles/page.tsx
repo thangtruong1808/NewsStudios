@@ -46,7 +46,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
   const [isSorting, setIsSorting] = useState(false);
 
   const currentPage = Number(searchParams.page) || 1;
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
   const searchQuery = searchParams.query || "";
   const sortField = (searchParams.sortField as keyof Article) || "published_at";
   const sortDirection = searchParams.sortDirection || "desc";
@@ -321,7 +321,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
         </div>
       </div>
 
-      <div className="mt-8 flow-root">
+      <div className="flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
             <Table

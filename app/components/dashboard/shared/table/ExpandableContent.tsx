@@ -11,7 +11,7 @@ interface ExpandableContentProps {
 
 export default function ExpandableContent({
   content,
-  maxWords = 20,
+  maxWords = 10,
   className = "",
 }: ExpandableContentProps) {
   const [isExpanded, setIsExpanded] = useState(false);
