@@ -1,4 +1,4 @@
-import UserForm from "../../../components/dashboard/users/UserForm";
+import UserForm from "../../../components/dashboard/users/form/UserForm";
 
 export default function CreateUserPage() {
   return (

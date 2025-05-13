@@ -56,7 +56,12 @@ export default function LayoutDashboard({
         </div>
 
         {/* Title div - matches main content width */}
-        <div className="flex-1 flex items-center justify-center py-4 lg:py-0">
+        <div
+          className={clsx(
+            "flex-1 flex items-center justify-center py-4 lg:py-0",
+            fontClasses.robotoMono
+          )}
+        >
           <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
             Content Management System
           </h1>

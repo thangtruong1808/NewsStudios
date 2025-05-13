@@ -1,27 +1,63 @@
 "use client";
 
 import { notFound, useParams } from "next/navigation";
-import UserForm from "../../../../components/dashboard/users/UserForm";
+import UserForm from "../../../../components/dashboard/users/form/UserForm";
+import { getUserById } from "../../../../lib/actions/users";
+import { useEffect, useState } from "react";
+import UserFormLoading from "../../../../components/dashboard/users/form/UserFormLoading";
 
 export default function EditUserPage() {
-  // Get the ID parameter from the URL
   const params = useParams();
-  const userId = params.id;
-  console.log("EditUserPage - User ID from params:", userId);
+  const userId = params.id as string;
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Validate and parse the ID parameter
-  const id = Number(userId);
-  if (isNaN(id) || id <= 0) {
-    console.error("Invalid user ID:", userId);
-    notFound();
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data, error } = await getUserById(parseInt(userId));
+        if (error) {
+          setError(error);
+          return;
+        }
+        if (data) {
+          setUser(data);
+        } else {
+          setError("User not found");
+        }
+      } catch (err) {
+        setError("Failed to fetch user data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [userId]);
+
+  if (isLoading) {
+    return <UserFormLoading />;
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-md bg-red-50 p-4">
+        <div className="flex">
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">Error</h3>
+            <div className="mt-2 text-sm text-red-700">
+              <p>{error}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex w-full items-center justify-between">
-        <h1 className="text-2xl">Edit User</h1>
-      </div>
-      <UserForm userId={id.toString()} />
+      <UserForm user={user} />
     </div>
   );
 }

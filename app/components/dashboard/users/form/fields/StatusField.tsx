@@ -1,0 +1,33 @@
+"use client";
+
+import { UseFormRegister, FieldErrors } from "react-hook-form";
+import { UserFormValues } from "../userSchema";
+
+interface StatusFieldProps {
+  register: UseFormRegister<UserFormValues>;
+  errors: FieldErrors<UserFormValues>;
+}
+
+export default function StatusField({ register, errors }: StatusFieldProps) {
+  return (
+    <div>
+      <label
+        htmlFor="status"
+        className="block text-sm font-medium text-gray-700"
+      >
+        Status <span className="text-red-500">*</span>
+      </label>
+      <select
+        id="status"
+        {...register("status")}
+        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+      >
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      {errors.status && (
+        <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
+      )}
+    </div>
+  );
+}

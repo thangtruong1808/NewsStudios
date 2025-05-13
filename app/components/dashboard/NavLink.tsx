@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ComponentType } from "react";
 import clsx from "clsx";
+import { fontClasses } from "../fonts";
 
 interface NavLinkProps {
   href: string;
@@ -24,6 +25,7 @@ export default function NavLink({
       href={href}
       className={clsx(
         "flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200",
+        fontClasses.robotoMono,
         {
           "text-violet-600": isActive,
           "text-gray-600 hover:text-violet-600": !isActive,
