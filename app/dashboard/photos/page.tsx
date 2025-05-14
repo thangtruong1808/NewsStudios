@@ -1,26 +1,27 @@
-import React from "react";
-import Link from "next/link";
-import { PlusIcon } from "@heroicons/react/24/outline";
-import { getImages, searchImages } from "../../lib/actions/images";
-import { getArticles } from "../../lib/actions/articles";
-import PhotosGridClient from "../../components/dashboard/photos/PhotosGridClient";
-import PhotosSearchWrapper from "../../components/dashboard/photos/PhotosSearchWrapper";
-import { Article } from "@/app/lib/definition";
+"use client";
 
-// Use static rendering by default, but revalidate every 60 seconds
-export const revalidate = 60;
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getImages, searchImages } from "@/app/lib/actions/images";
+import { toast } from "react-hot-toast";
+import PhotosHeader from "@/app/components/dashboard/photos/header";
+import PhotosSearch from "@/app/components/dashboard/photos/search";
+import PhotosGrid from "@/app/components/dashboard/shared/grid/PhotosGrid";
+import { Image } from "@/app/lib/definition";
 
-interface PageProps {
-  searchParams?: {
-    query?: string;
-    page?: string;
-  };
+interface ImageRow {
+  id: number;
+  article_id: number | null;
+  image_url: string;
+  description: string | null;
+  created_at: Date;
+  updated_at: Date;
 }
 
-interface ApiResponse<T> {
-  data?: T[];
-  error?: string;
-  pagination?: {
+interface PaginatedResult {
+  data: ImageRow[];
+  error: string | null;
+  pagination: {
     totalItems: number;
     totalPages: number;
     currentPage: number;
@@ -28,108 +29,162 @@ interface ApiResponse<T> {
   };
 }
 
-export default async function PhotosPage({ searchParams }: PageProps) {
-  const searchQuery = searchParams?.query || "";
-  const currentPage = Number(searchParams?.page) || 1;
-  const itemsPerPage = 12;
+// Use static rendering by default, but revalidate every 60 seconds
+export const revalidate = 60;
 
-  // Use searchImages if there's a search query, otherwise use getImages
-  const [imagesResult, articlesResult] = (await Promise.all([
-    searchQuery
-      ? searchImages(searchQuery)
-      : getImages(undefined, currentPage, itemsPerPage),
-    getArticles(),
-  ])) as [ApiResponse<any>, ApiResponse<Article>];
+export default function PhotosPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [photos, setPhotos] = useState<Image[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [totalItems, setTotalItems] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hasMore, setHasMore] = useState(true);
 
-  // Handle errors
-  if (imagesResult.error) {
-    return (
-      <div className="rounded-md bg-red-50 p-4">
-        <div className="flex">
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
-              Error loading images
-            </h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{imagesResult.error}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const convertImageRowToImage = (row: ImageRow): Image => ({
+    ...row,
+    created_at: row.created_at.toISOString(),
+    updated_at: row.updated_at.toISOString(),
+  });
 
-  if (articlesResult.error) {
-    return (
-      <div className="rounded-md bg-red-50 p-4">
-        <div className="flex">
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
-              Error loading articles
-            </h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{articlesResult.error}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      setIsLoading(true);
+      try {
+        const result = searchQuery
+          ? await searchImages(searchQuery)
+          : await getImages(undefined, currentPage, itemsPerPage);
 
-  // Create a map of article IDs to titles for quick lookup
-  const articleMap = new Map(
-    articlesResult.data?.map((article: Article) => [
-      article.id,
-      article.title,
-    ]) || []
-  );
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
 
-  // Get the images data
-  const images = imagesResult.data || [];
-  const hasImages = images.length > 0;
+        const paginatedResult = result as PaginatedResult;
+        const convertedPhotos = paginatedResult.data.map(
+          convertImageRowToImage
+        );
+
+        if (currentPage === 1) {
+          setPhotos(convertedPhotos);
+        } else {
+          setPhotos((prev) => [...prev, ...convertedPhotos]);
+        }
+
+        setTotalItems(paginatedResult.pagination.totalItems);
+        setHasMore(
+          paginatedResult.pagination.totalItems > currentPage * itemsPerPage
+        );
+      } catch (error) {
+        console.error("Error fetching photos:", error);
+        toast.error("Failed to fetch photos");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPhotos();
+  }, [currentPage, itemsPerPage, searchQuery]);
+
+  const handleSearch = (term: string) => {
+    setSearchQuery(term);
+    setCurrentPage(1);
+    setPhotos([]);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setCurrentPage(1);
+    setPhotos([]);
+  };
+
+  const handleLoadMore = () => {
+    setCurrentPage((prev) => prev + 1);
+  };
+
+  const handleEdit = (photo: Image) => {
+    router.push(`/dashboard/photos/${photo.id}/edit`);
+  };
+
+  const handleDelete = async (photo: Image) => {
+    if (!confirm("Are you sure you want to delete this photo?")) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/photos/${photo.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete photo");
+      }
+
+      toast.success("Photo deleted successfully");
+      setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+      setTotalItems((prev) => prev - 1);
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+      toast.error("Failed to delete photo");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
-    <div className="">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Photos List</h1>
-          {/* Description for PhotosPage */}
-          <p className="mt-1 text-sm text-gray-500">
-            Manage, organize, and associate photos with your articles to enhance
-            visual content and improve user engagement.
-          </p>
-        </div>
-
-        <Link
-          href="/dashboard/photos/create"
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-violet-700 hover:to-fuchsia-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 justify-center items-center"
-        >
-          <PlusIcon className="h-4 w-4" />
-          <span>Add Photo</span>
-        </Link>
+    <div className="px-4 sm:px-6 lg:px-8">
+      <PhotosHeader />
+      <PhotosSearch onSearch={handleSearch} />
+      <div className="mt-4">
+        <p className="text-sm text-gray-500 mb-4">Total Photos: {totalItems}</p>
+        {photos.length === 0 && !isLoading ? (
+          <div className="text-center py-12">
+            <div className="text-gray-500 mb-2">
+              <svg
+                className="mx-auto h-12 w-12"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">
+              No Photos Found
+            </h3>
+            <p className="text-gray-500">
+              {searchQuery
+                ? "No photos match your search criteria."
+                : "It seems the photos are not available. They might have been accidentally deleted from the storage."}
+            </p>
+          </div>
+        ) : (
+          <PhotosGrid
+            photos={photos}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            isLoading={isLoading}
+          />
+        )}
+        {hasMore && !isLoading && photos.length > 0 && (
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={handleLoadMore}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Load More
+            </button>
+          </div>
+        )}
       </div>
-
-      <div className="mb-6">
-        <PhotosSearchWrapper />
-      </div>
-
-      {hasImages ? (
-        <PhotosGridClient
-          images={images}
-          articleMap={articleMap}
-          initialPage={currentPage}
-          totalItems={imagesResult.pagination?.totalItems || 0}
-          searchQuery={searchQuery}
-        />
-      ) : (
-        <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
-          <p className="text-gray-500">
-            {searchQuery
-              ? "No photos found matching your search criteria."
-              : "No photos found. Add your first photo to get started."}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { getImageById } from "@/app/lib/actions/images";
 import { getArticles } from "@/app/lib/actions/articles";
-import PhotoUploadForm from "@/app/components/dashboard/photos/PhotoUploadForm";
+import PhotoUploadForm from "@/app/components/dashboard/photos/form/PhotoUploadForm";
 import { notFound } from "next/navigation";
 
 interface EditPhotoPageProps {
@@ -28,7 +28,10 @@ export default async function EditPhotoPage({ params }: EditPhotoPageProps) {
       <div className="max-w-3xl mx-auto">
         <PhotoUploadForm
           articles={articlesResult.data || []}
-          image={imageResult.data}
+          image={{
+            ...imageResult.data,
+            description: imageResult.data.description || null,
+          }}
         />
       </div>
     </div>

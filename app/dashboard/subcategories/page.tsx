@@ -10,6 +10,7 @@ import { SubCategory } from "@/app/lib/definition";
 import SubcategoriesTable from "@/app/components/dashboard/subcategories/table/SubcategoriesTable";
 import SubcategoriesSearch from "@/app/components/dashboard/subcategories/search/SubcategoriesSearch";
 import { PlusIcon } from "@heroicons/react/24/outline";
+import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
 
 export default function SubcategoriesPage() {
   // Router and URL parameters
@@ -27,6 +28,35 @@ export default function SubcategoriesPage() {
   const [sortField, setSortField] = useState<keyof SubCategory>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Table column definitions
+  const columns = [
+    {
+      field: "name",
+      label: "Name",
+      sortable: true,
+    },
+    {
+      field: "description",
+      label: "Description",
+      sortable: true,
+    },
+    {
+      field: "category_id",
+      label: "Category",
+      sortable: true,
+    },
+    {
+      field: "created_at",
+      label: "Created At",
+      sortable: true,
+    },
+    {
+      field: "updated_at",
+      label: "Updated At",
+      sortable: true,
+    },
+  ];
 
   // Extract URL parameters
   const searchQuery = searchParams.get("search") || "";
@@ -109,6 +139,40 @@ export default function SubcategoriesPage() {
     params.set("page", "1");
     router.push(`/dashboard/subcategories?${params.toString()}`);
   };
+
+  if (isLoading && !isSearching) {
+    return (
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="sm:flex sm:items-center">
+          <div className="sm:flex-auto">
+            <h1 className="text-base font-semibold leading-6 text-gray-900">
+              Subcategories
+            </h1>
+            <p className="mt-2 text-sm text-gray-700">
+              A list of all subcategories in your account including their name,
+              description, and associated category.
+            </p>
+          </div>
+          <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/subcategories/create")}
+              className="block rounded-md bg-violet-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-violet-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+            >
+              <PlusIcon className="h-5 w-5 inline-block mr-1" />
+              Add Subcategory
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <SubcategoriesSearch onSearch={handleSearch} />
+        </div>
+
+        <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">

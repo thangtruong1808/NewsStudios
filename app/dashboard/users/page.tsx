@@ -8,7 +8,7 @@ import UsersTable from "../../components/dashboard/users/UsersTable";
 import { SearchWrapper } from "../../components/dashboard/shared/search";
 import { useRouter, useSearchParams } from "next/navigation";
 import { User } from "@/app/lib/definition";
-import UsersTableSkeleton from "../../components/dashboard/users/table/UsersTableSkeleton";
+import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
 
 // Use static rendering by default, but revalidate every 60 seconds
 export const revalidate = 60;
@@ -27,6 +27,45 @@ export default function UsersPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [totalItems, setTotalItems] = React.useState(0);
+
+  // Table column definitions
+  const columns = [
+    {
+      field: "firstname",
+      label: "First Name",
+      sortable: true,
+    },
+    {
+      field: "lastname",
+      label: "Last Name",
+      sortable: true,
+    },
+    {
+      field: "email",
+      label: "Email",
+      sortable: true,
+    },
+    {
+      field: "role",
+      label: "Role",
+      sortable: true,
+    },
+    {
+      field: "status",
+      label: "Status",
+      sortable: true,
+    },
+    {
+      field: "created_at",
+      label: "Created At",
+      sortable: true,
+    },
+    {
+      field: "updated_at",
+      label: "Updated At",
+      sortable: true,
+    },
+  ];
 
   React.useEffect(() => {
     const fetchUsers = async () => {
@@ -121,7 +160,7 @@ export default function UsersPage() {
         </Link>
       </div>
 
-      <div className="mt-4">
+      <div className="my-6">
         <SearchWrapper
           placeholder="Search users by name, email, or role..."
           onSearch={(term) => {
@@ -138,7 +177,7 @@ export default function UsersPage() {
       </div>
 
       {isLoading ? (
-        <UsersTableSkeleton />
+        <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
       ) : hasUsers ? (
         <UsersTable
           users={users}

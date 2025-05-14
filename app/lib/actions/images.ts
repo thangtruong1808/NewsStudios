@@ -77,11 +77,22 @@ export async function uploadImageToServer(formData: FormData) {
 
     // Save to database - store the full Cloudinary URL
     const dbResult = await query(
-      "INSERT INTO Images (article_id, image_url, description, created_at) VALUES (?, ?, ?, NOW())",
+      `INSERT INTO Images (
+        article_id, 
+        image_url, 
+        description, 
+        type,
+        entity_type,
+        entity_id,
+        created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, NOW())`,
       [
         article_id ? parseInt(article_id.toString(), 10) : null,
         result.url, // Store the full Cloudinary URL
         description || null,
+        "gallery", // Default type for uploaded images
+        "article", // Default entity type
+        article_id ? parseInt(article_id.toString(), 10) : 0, // Use article_id as entity_id if available
       ]
     );
 
@@ -155,82 +166,152 @@ export async function createImage(data: {
 
 // Function to get all images
 export async function getImages(
-  articleId?: number,
   page: number = 1,
-  itemsPerPage: number = 12
+  limit: number = 12,
+  searchQuery: string = ""
 ) {
   try {
-    let sqlQuery = "SELECT * FROM Images";
-    const values: any[] = [];
+    // First check if there are any images
+    const countResult = await query("SELECT COUNT(*) as total FROM Images");
+    console.log("Total images in database:", countResult.data?.[0]?.total);
 
-    if (articleId) {
-      sqlQuery += " WHERE article_id = ?";
-      values.push(articleId);
+    if (!countResult.data?.[0]?.total) {
+      return {
+        data: [],
+        error: null,
+        pagination: {
+          total: 0,
+          totalPages: 0,
+          currentPage: page,
+          itemsPerPage: limit,
+        },
+      };
+    }
+
+    // Build the query with search
+    let queryStr = `
+      SELECT 
+        i.id,
+        i.article_id,
+        i.image_url,
+        i.description,
+        i.type,
+        i.entity_type,
+        i.entity_id,
+        i.is_featured,
+        i.display_order,
+        i.created_at,
+        i.updated_at,
+        a.title as article_title,
+        a.slug as article_slug
+      FROM Images i
+      LEFT JOIN Articles a ON i.article_id = a.id
+      WHERE 1=1
+    `;
+    const queryParams: any[] = [];
+
+    if (searchQuery) {
+      queryStr += ` AND (
+        i.description LIKE ? OR
+        a.title LIKE ?
+      )`;
+      queryParams.push(`%${searchQuery}%`, `%${searchQuery}%`);
     }
 
     // Add pagination
-    const offset = (page - 1) * itemsPerPage;
-    sqlQuery += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
-    values.push(itemsPerPage, offset);
+    const offset = (page - 1) * limit;
+    queryStr += ` ORDER BY i.created_at DESC LIMIT ? OFFSET ?`;
+    queryParams.push(limit, offset);
 
-    console.log("SQL Query:", sqlQuery);
-    console.log("Query Values:", values);
+    console.log("Executing query:", {
+      query: queryStr,
+      params: queryParams,
+    });
 
-    const result = await query(sqlQuery, values);
+    const result = await query(queryStr, queryParams);
+    console.log("Query result:", {
+      success: !result.error,
+      dataLength: result.data?.length,
+      firstItem: result.data?.[0],
+    });
 
     if (result.error) {
-      console.error("Error in getImages:", result.error);
-      return { data: [], error: result.error };
+      console.error("Database error:", result.error);
+      return {
+        data: [],
+        error: result.error,
+        pagination: {
+          total: 0,
+          totalPages: 0,
+          currentPage: page,
+          itemsPerPage: limit,
+        },
+      };
     }
 
     // Get total count for pagination
-    const countQuery =
-      "SELECT COUNT(*) as total FROM Images" +
-      (articleId ? " WHERE article_id = ?" : "");
-    const countResult = await query(countQuery, articleId ? [articleId] : []);
-    const totalItems = countResult.data?.[0]?.total || 0;
+    const totalResult = await query(
+      `SELECT COUNT(*) as total FROM Images i
+       LEFT JOIN Articles a ON i.article_id = a.id
+       WHERE 1=1 ${
+         searchQuery ? "AND (i.description LIKE ? OR a.title LIKE ?)" : ""
+       }`,
+      searchQuery ? [`%${searchQuery}%`, `%${searchQuery}%`] : []
+    );
 
-    console.log("Count Result:", {
-      totalItems,
-      countData: countResult.data,
-    });
+    const total = totalResult.data?.[0]?.total || 0;
+    console.log("Total count for pagination:", total);
 
-    // Process the images to ensure they have proper URLs
-    const images = (result.data as ImageRow[]).map((image) => {
-      // If the image_url is already a full URL (including Cloudinary URLs), use it as is
-      if (
-        image.image_url.startsWith("http://") ||
-        image.image_url.startsWith("https://")
-      ) {
-        return image;
+    // Process images to ensure they have proper URLs
+    const processedImages = result.data?.map((img: any) => {
+      // Ensure image_url is a full URL
+      if (img.image_url && !img.image_url.startsWith("http")) {
+        img.image_url = `${process.env.NEXT_PUBLIC_API_URL}${img.image_url}`;
       }
-
-      // For backward compatibility with old records that only store filenames
-      // This will be phased out as we migrate to Cloudinary
-      const fullUrl = `https://srv876-files.hstgr.io/3fd7426401e9c4d8/files/public_html/Images/${image.image_url}`;
       return {
-        ...image,
-        image_url: fullUrl,
+        id: img.id,
+        article_id: img.article_id,
+        image_url: img.image_url,
+        description: img.description,
+        type: img.type,
+        entity_type: img.entity_type,
+        entity_id: img.entity_id,
+        is_featured: img.is_featured,
+        display_order: img.display_order,
+        created_at: img.created_at,
+        updated_at: img.updated_at,
+        article_title: img.article_title,
+        article_slug: img.article_slug,
       };
     });
 
-    const paginationData = {
-      totalItems,
-      totalPages: Math.ceil(totalItems / itemsPerPage),
-      currentPage: page,
-      itemsPerPage,
-    };
-
-    console.log("Pagination Data:", paginationData);
+    console.log("Processed images:", {
+      count: processedImages?.length,
+      firstImage: processedImages?.[0],
+    });
 
     return {
-      data: images,
+      data: processedImages || [],
       error: null,
-      pagination: paginationData,
+      pagination: {
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        itemsPerPage: limit,
+      },
     };
   } catch (error) {
-    console.error("Error fetching images:", error);
-    return { data: [], error: "Failed to fetch images" };
+    console.error("Error in getImages:", error);
+    return {
+      data: [],
+      error: error instanceof Error ? error.message : "Failed to fetch images",
+      pagination: {
+        total: 0,
+        totalPages: 0,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
+    };
   }
 }
 
@@ -272,17 +353,21 @@ export async function updateImage(id: number, data: Partial<Image>) {
     const result = await transaction(async (connection) => {
       const [rows] = await connection.execute(
         `UPDATE Images 
-         SET url = ?,
-             alt_text = ?,
+         SET image_url = ?,
+             description = ?,
              type = ?,
+             entity_type = ?,
+             entity_id = ?,
              is_featured = ?,
              display_order = ?,
              updated_at = NOW()
          WHERE id = ?`,
         [
-          data.url,
-          data.alt_text,
+          data.image_url,
+          data.description,
           data.type,
+          data.entity_type,
+          data.entity_id,
           data.is_featured,
           data.display_order,
           id,
@@ -398,7 +483,20 @@ export async function getAllImages(type?: string) {
 export async function searchImages(searchQuery: string) {
   try {
     const result = await query(
-      `SELECT i.*, a.title as article_title 
+      `SELECT 
+        i.id,
+        i.article_id,
+        i.image_url,
+        i.description,
+        i.type,
+        i.entity_type,
+        i.entity_id,
+        i.is_featured,
+        i.display_order,
+        i.created_at,
+        i.updated_at,
+        a.title as article_title,
+        a.slug as article_slug
        FROM Images i
        LEFT JOIN Articles a ON i.article_id = a.id
        WHERE a.title LIKE ?
@@ -410,8 +508,49 @@ export async function searchImages(searchQuery: string) {
       return { data: [], error: result.error };
     }
 
-    return { data: result.data as Image[], error: null };
+    // Process images to ensure they have proper URLs
+    const processedImages = result.data?.map((img: any) => {
+      // Ensure image_url is a full URL
+      if (img.image_url && !img.image_url.startsWith("http")) {
+        img.image_url = `${process.env.NEXT_PUBLIC_API_URL}${img.image_url}`;
+      }
+      return {
+        id: img.id,
+        article_id: img.article_id,
+        image_url: img.image_url,
+        description: img.description,
+        type: img.type,
+        entity_type: img.entity_type,
+        entity_id: img.entity_id,
+        is_featured: img.is_featured,
+        display_order: img.display_order,
+        created_at: img.created_at,
+        updated_at: img.updated_at,
+        article_title: img.article_title,
+        article_slug: img.article_slug,
+      };
+    });
+
+    return {
+      data: processedImages || [],
+      error: null,
+      pagination: {
+        total: processedImages?.length || 0,
+        totalPages: 1,
+        currentPage: 1,
+        itemsPerPage: processedImages?.length || 0,
+      },
+    };
   } catch (error) {
-    return { data: [], error: "Failed to search images" };
+    return {
+      data: [],
+      error: "Failed to search images",
+      pagination: {
+        total: 0,
+        totalPages: 0,
+        currentPage: 1,
+        itemsPerPage: 0,
+      },
+    };
   }
 }

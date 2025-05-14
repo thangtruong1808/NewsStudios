@@ -7,6 +7,7 @@ import { getCategories } from "@/app/lib/actions/categories";
 import CategoriesTable from "@/app/components/dashboard/categories/table/CategoriesTable";
 import CategoriesSearch from "@/app/components/dashboard/categories/search/CategoriesSearch";
 import CategoriesHeader from "@/app/components/dashboard/categories/header/CategoriesHeader";
+import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
 
 interface CategoriesPageProps {
   searchParams: {
@@ -34,6 +35,30 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
   const searchQuery = searchParams.query || "";
   const sortField = (searchParams.sortField as keyof Category) || "created_at";
   const sortDirection = searchParams.sortDirection || "desc";
+
+  // Table column definitions
+  const columns = [
+    {
+      field: "name",
+      label: "Name",
+      sortable: true,
+    },
+    {
+      field: "description",
+      label: "Description",
+      sortable: true,
+    },
+    {
+      field: "created_at",
+      label: "Created At",
+      sortable: true,
+    },
+    {
+      field: "updated_at",
+      label: "Updated At",
+      sortable: true,
+    },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -128,15 +153,11 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
   if (isLoading && !isSearching && !isSorting) {
     return (
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded"></div>
-            ))}
-          </div>
+        <CategoriesHeader />
+        <div className="my-6">
+          <CategoriesSearch onSearch={handleSearch} />
         </div>
+        <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
       </div>
     );
   }
@@ -145,12 +166,11 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
     <div className="px-4 sm:px-6 lg:px-8">
       <CategoriesHeader />
 
-      {/* Search Bar */}
-      <div className="mt-4">
+      <div className="my-6">
         <CategoriesSearch onSearch={handleSearch} />
       </div>
 
-      <div className="flow-root mt-6">
+      <div className="flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
             <CategoriesTable

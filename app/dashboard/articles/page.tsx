@@ -9,8 +9,10 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { SearchWrapper } from "@/app/components/dashboard/shared/search";
 import { useSearchParams } from "next/navigation";
-import ArticlesTableSkeleton from "@/app/components/dashboard/articles/table/ArticlesTableSkeleton";
+import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
+import EntriesSelector from "@/app/components/dashboard/shared/table/EntriesSelector";
 
+// Props interface for the Articles page component
 interface ArticlesPageProps {
   searchParams: {
     page?: string;
@@ -18,6 +20,7 @@ interface ArticlesPageProps {
     sortField?: string;
     sortDirection?: "asc" | "desc";
     query?: string;
+    limit?: string;
   };
 }
 
@@ -38,6 +41,8 @@ interface PaginationProps {
 
 export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
   const router = useRouter();
+
+  // State management for articles and UI controls
   const [isDeleting, setIsDeleting] = useState(false);
   const [articles, setArticles] = useState<Article[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,12 +51,14 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [isSorting, setIsSorting] = useState(false);
 
+  // URL parameters with defaults
   const currentPage = Number(searchParams.page) || 1;
-  const itemsPerPage = 5;
+  const itemsPerPage = Number(searchParams.limit) || 5;
   const searchQuery = searchParams.query || "";
   const sortField = (searchParams.sortField as keyof Article) || "published_at";
   const sortDirection = searchParams.sortDirection || "desc";
 
+  // Fetch articles data when dependencies change
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -81,6 +88,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
     fetchData();
   }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
 
+  // Table column definitions with custom renderers
   const columns: Column<Article & { sequence?: number; actions?: never }>[] = [
     {
       field: "sequence",
@@ -219,6 +227,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
     },
   ];
 
+  // Event handlers for table interactions
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
@@ -273,6 +282,14 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
     router.push(`/dashboard/articles?${params.toString()}`);
   };
 
+  const handleItemsPerPageChange = (limit: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1"); // Reset to first page when changing items per page
+    params.set("limit", limit.toString());
+    router.push(`/dashboard/articles?${params.toString()}`);
+  };
+
+  // Loading state with skeleton UI
   if (isLoading && !isSearching && !isSorting) {
     return (
       <div className="px-4 sm:px-6 lg:px-8">
@@ -297,7 +314,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
           </div>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-8">
           <div className="w-full">
             <SearchWrapper
               placeholder="Search articles by title, content, or category..."
@@ -306,11 +323,12 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
           </div>
         </div>
 
-        <ArticlesTableSkeleton />
+        <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
       </div>
     );
   }
 
+  // Main render with full table functionality
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
@@ -334,8 +352,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="mt-4">
+      <div className="my-6">
         <div className="w-full">
           <SearchWrapper
             placeholder="Search articles by title, content, or category..."
@@ -363,6 +380,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
               isDeleting={isDeleting}
               searchQuery={searchQuery}
               isLoading={isSearching || isSorting}
+              onItemsPerPageChange={handleItemsPerPageChange}
             />
           </div>
         </div>

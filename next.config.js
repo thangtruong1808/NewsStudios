@@ -1,14 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["srv876-files.hstgr.io"],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "srv876-files.hstgr.io",
-        pathname: "/3fd7426401e9c4d8/files/public_html/**",
-      },
-    ],
     minimumCacheTTL: 60,
     unoptimized: process.env.NODE_ENV === "development",
   },

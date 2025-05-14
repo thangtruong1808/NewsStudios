@@ -1,5 +1,5 @@
 import { getArticles } from "../../../lib/actions/articles";
-import CreatePhotoPageClient from "../../../components/dashboard/photos/CreatePhotoPageClient";
+import CreatePhotoPageClient from "@/app/components/dashboard/photos/CreatePhotoPageClient";
 import { Article } from "../../../lib/definition";
 
 export default async function CreatePhotoPage() {

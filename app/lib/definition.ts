@@ -126,8 +126,15 @@ export interface Image {
   article_id: number | null;
   image_url: string;
   description: string | null;
+  type: "banner" | "video" | "thumbnail" | "gallery";
+  entity_type: "advertisement" | "article" | "author" | "category";
+  entity_id: number;
+  is_featured: boolean;
+  display_order: number;
   created_at: string;
   updated_at: string;
+  article_title?: string;
+  article_slug?: string;
 }
 
 export interface Video {
