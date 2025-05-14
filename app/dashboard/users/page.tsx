@@ -1,197 +1,156 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
+import Link from "next/link";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import { getUsers, searchUsers } from "../../lib/actions/users";
-import { SearchWrapper } from "../../components/dashboard/shared/search";
-import { User } from "../../lib/definition";
-import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
-import { deleteUser } from "../../lib/actions/users";
-import { useSession } from "next-auth/react";
-import UsersHeader from "../../components/dashboard/users/UsersHeader";
 import UsersTable from "../../components/dashboard/users/UsersTable";
+import { SearchWrapper } from "../../components/dashboard/shared/search";
+import { useRouter, useSearchParams } from "next/navigation";
+import { User } from "@/app/lib/definition";
+import UsersTableSkeleton from "../../components/dashboard/users/table/UsersTableSkeleton";
 
 // Use static rendering by default, but revalidate every 60 seconds
 export const revalidate = 60;
 
-interface PageProps {
-  searchParams?: {
-    query?: string;
-    page?: string;
-    sortField?: string;
-    sortDirection?: "asc" | "desc";
-    limit?: string;
-  };
-}
-
-export default function UsersPage({ searchParams }: PageProps) {
+export default function UsersPage() {
   const router = useRouter();
-  const { update: updateSession } = useSession();
-  const [users, setUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSearching, setIsSearching] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("query") || "";
+  const currentPage = Number(searchParams.get("page")) || 1;
+  const itemsPerPage = Number(searchParams.get("limit")) || 10;
+  const sortField =
+    (searchParams.get("sortField") as keyof User) || "created_at";
+  const sortDirection =
+    (searchParams.get("sortDirection") as "asc" | "desc") || "desc";
+  const [users, setUsers] = React.useState<User[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [totalItems, setTotalItems] = React.useState(0);
 
-  const searchQuery = searchParams?.query || "";
-  const currentPage = Number(searchParams?.page) || 1;
-  const itemsPerPage = Number(searchParams?.limit) || 5; // Default to 5 if not specified
-  const sortField = (searchParams?.sortField as keyof User) || "created_at";
-  const sortDirection = searchParams?.sortDirection || "desc";
+  React.useEffect(() => {
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      const result = searchQuery
+        ? await searchUsers(searchQuery, {
+            page: currentPage,
+            limit: itemsPerPage,
+            sortField,
+            sortDirection,
+          })
+        : await getUsers({
+            page: currentPage,
+            limit: itemsPerPage,
+            sortField,
+            sortDirection,
+          });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (!isSearching) {
-          setIsLoading(true);
-        }
-        const result = searchQuery
-          ? await searchUsers(searchQuery, {
-              page: currentPage,
-              limit: itemsPerPage,
-              sortField,
-              sortDirection,
-            })
-          : await getUsers({
-              page: currentPage,
-              limit: itemsPerPage,
-              sortField,
-              sortDirection,
-            });
-
-        if (result.error) {
-          setError(result.error);
-          return;
-        }
-
+      if (!result.error) {
         setUsers(result.data || []);
-        setTotalItems(result.totalItems || 0);
-        setTotalPages(result.totalPages || 1);
-      } catch (error) {
-        setError("Failed to fetch users");
-        console.error("Error fetching users:", error);
-      } finally {
-        setIsLoading(false);
-        setIsSearching(false);
+        if ("totalItems" in result) {
+          setTotalItems(result.totalItems);
+        }
       }
+      setIsLoading(false);
     };
 
-    fetchData();
-  }, [searchQuery, currentPage, sortField, sortDirection, itemsPerPage]);
+    fetchUsers();
+  }, [searchQuery, currentPage, itemsPerPage, sortField, sortDirection]);
 
   const handleSort = (field: keyof User) => {
+    const params = new URLSearchParams(searchParams);
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
-    const params = new URLSearchParams(searchParams);
     params.set("sortField", field as string);
     params.set("sortDirection", newDirection);
-    router.push(`/dashboard/users?${params.toString()}`);
+    router.push(`?${params.toString()}`);
   };
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
-    router.push(`/dashboard/users?${params.toString()}`);
-  };
-
-  const handleItemsPerPageChange = (limit: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("limit", limit.toString());
-    params.set("page", "1"); // Reset to first page when changing items per page
-    router.push(`/dashboard/users?${params.toString()}`);
+    router.push(`?${params.toString()}`);
   };
 
   const handleEdit = (user: User) => {
-    router.push(`/dashboard/users/${user.id}/edit?edit=true`, {
-      scroll: false,
-    });
+    router.push(`/dashboard/users/${user.id}/edit`);
   };
 
   const handleDelete = async (user: User) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
+      setIsDeleting(true);
       try {
-        setIsDeleting(true);
-        const success = await deleteUser(user.id);
-        if (success) {
-          await updateSession();
-          toast.success("User deleted successfully");
-          router.refresh();
-        } else {
-          toast.error("Failed to delete user");
-        }
+        // Add delete logic here
+        router.refresh();
       } catch (error) {
-        toast.error("Failed to delete user");
+        console.error("Error deleting user:", error);
       } finally {
         setIsDeleting(false);
       }
     }
   };
 
-  const handleSearch = (term: string) => {
-    setIsSearching(true);
+  const handleItemsPerPageChange = (limit: number) => {
     const params = new URLSearchParams(searchParams);
+    params.set("limit", limit.toString());
     params.set("page", "1");
-    if (term) {
-      params.set("query", term);
-    } else {
-      params.delete("query");
-    }
-    router.push(`/dashboard/users?${params.toString()}`);
+    router.push(`?${params.toString()}`);
   };
 
-  if (error) {
-    return (
-      <div className="rounded-md bg-red-50 p-4">
-        <div className="flex">
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
-              Error loading users
-            </h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{error}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const hasUsers = users.length > 0;
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <UsersHeader />
+    <div className="">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Users List</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Manage, organize, and assign users to articles for better content
+            attribution and collaboration.
+          </p>
+        </div>
+
+        <Link
+          href="/dashboard/users/create"
+          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-violet-700 hover:to-fuchsia-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 justify-center items-center"
+        >
+          <PlusIcon className="h-5 mr-2" />
+          <span>Create User</span>
+        </Link>
+      </div>
 
       <div className="mt-4">
         <SearchWrapper
           placeholder="Search users by name, email, or role..."
-          onSearch={handleSearch}
+          onSearch={(term) => {
+            const params = new URLSearchParams(searchParams);
+            if (term) {
+              params.set("query", term);
+            } else {
+              params.delete("query");
+            }
+            params.set("page", "1");
+            router.push(`?${params.toString()}`);
+          }}
         />
       </div>
 
-      {isLoading && !isSearching ? (
-        <div className="mt-8 animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
+      {isLoading ? (
+        <UsersTableSkeleton />
       ) : hasUsers ? (
         <UsersTable
           users={users}
+          searchQuery={searchQuery}
           currentPage={currentPage}
           totalPages={totalPages}
           itemsPerPage={itemsPerPage}
           totalItems={totalItems}
           sortField={sortField}
           sortDirection={sortDirection}
-          searchQuery={searchQuery}
           isDeleting={isDeleting}
-          isLoading={isSearching}
+          isLoading={isLoading}
           onSort={handleSort}
           onPageChange={handlePageChange}
           onEdit={handleEdit}

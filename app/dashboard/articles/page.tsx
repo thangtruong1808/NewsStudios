@@ -9,6 +9,7 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { SearchWrapper } from "@/app/components/dashboard/shared/search";
 import { useSearchParams } from "next/navigation";
+import ArticlesTableSkeleton from "@/app/components/dashboard/articles/table/ArticlesTableSkeleton";
 
 interface ArticlesPageProps {
   searchParams: {
@@ -275,15 +276,37 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
   if (isLoading && !isSearching && !isSorting) {
     return (
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded"></div>
-            ))}
+        <div className="sm:flex sm:items-center">
+          <div className="sm:flex-auto">
+            <h1 className="text-base font-semibold leading-6 text-gray-900">
+              Articles
+            </h1>
+            <p className="mt-2 text-sm text-gray-700">
+              A list of all articles in your account including their title,
+              content, and status.
+            </p>
+          </div>
+          <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/articles/create")}
+              className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              Add article
+            </button>
           </div>
         </div>
+
+        <div className="mt-4">
+          <div className="w-full">
+            <SearchWrapper
+              placeholder="Search articles by title, content, or category..."
+              onSearch={handleSearch}
+            />
+          </div>
+        </div>
+
+        <ArticlesTableSkeleton />
       </div>
     );
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { UseFormRegister, FieldErrors } from "react-hook-form";
-import { TagFormValues } from "../../types";
+import { TagFormValues } from "./types";
 import { NameField, DescriptionField, ColorField } from "./fields";
 
 interface TagFormFieldsProps {
