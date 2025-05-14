@@ -1,6 +1,13 @@
 "use client";
 
-import { TableProps } from "../TableTypes";
+import { ViewProps } from "../TableTypes";
+import TableHeader from "../TableHeader";
+import TableRow from "../TableRow";
+
+interface DesktopViewProps<T extends { id: number }> extends ViewProps<T> {
+  currentPage?: number;
+  itemsPerPage?: number;
+}
 
 /**
  * DesktopView component for displaying table data in a traditional table format
@@ -9,67 +16,61 @@ import { TableProps } from "../TableTypes";
 export default function DesktopView<T extends { id: number }>({
   data,
   columns,
-  currentPage = 1,
-  itemsPerPage = 10,
   onEdit,
   onDelete,
   isDeleting,
-}: TableProps<T>) {
+  isLoading,
+  searchQuery,
+  currentPage = 1,
+  itemsPerPage = 10,
+}: DesktopViewProps<T>) {
   return (
-    <div className="hidden md:block">
-      <div className="inline-block min-w-full align-middle">
-        <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-300">
-            <thead className="bg-gray-50">
-              <tr>
-                {/* Sequence column */}
-                <th
-                  scope="col"
-                  className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
-                >
-                  #
-                </th>
-
-                {/* Dynamic column headers */}
-                {columns.map((column) => (
-                  <th
-                    key={String(column.field)}
-                    scope="col"
-                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+    <div className="hidden lg:block">
+      <table className="min-w-full divide-y divide-gray-300">
+        <TableHeader columns={columns} />
+        <tbody className="divide-y divide-gray-200 bg-white">
+          {isLoading ? (
+            // Show loading state for table rows
+            [...Array(5)].map((_, index) => (
+              <tr key={index} className="animate-pulse">
+                {columns.map((column, colIndex) => (
+                  <td
+                    key={colIndex}
+                    className="whitespace-nowrap px-3 py-4 text-sm text-gray-500"
                   >
-                    {column.label}
-                  </th>
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  </td>
                 ))}
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {data.map((item, index) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  {/* Sequence number cell */}
-                  <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                    {(currentPage - 1) * itemsPerPage + index + 1}
-                  </td>
-
-                  {/* Dynamic data cells */}
-                  {columns.map((column) => (
-                    <td
-                      key={String(column.field)}
-                      className="whitespace-nowrap px-3 py-4 text-sm text-gray-500"
-                    >
-                      {column.render
-                        ? column.render(
-                            item[column.field as keyof T] as string,
-                            item
-                          )
-                        : String(item[column.field as keyof T])}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            ))
+          ) : data.length === 0 ? (
+            <tr>
+              <td
+                colSpan={columns.length}
+                className="px-3 py-4 text-sm text-gray-500 text-center"
+              >
+                {searchQuery
+                  ? "No items found matching your search criteria."
+                  : "No items found."}
+              </td>
+            </tr>
+          ) : (
+            data.map((item, index) => (
+              <TableRow
+                key={item.id}
+                item={item}
+                columns={columns}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                isDeleting={isDeleting}
+                index={index}
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+              />
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -6,16 +6,79 @@ import { query } from "../db/db";
 import { CategoryFormData } from "../validations/categorySchema";
 import { Category } from "../definition";
 
-export async function getCategories() {
+interface GetCategoriesParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortField?: string;
+  sortDirection?: "asc" | "desc";
+}
+
+interface GetCategoriesResult {
+  data: Category[] | null;
+  error: string | null;
+  totalItems: number;
+  totalPages: number;
+}
+
+export async function getCategories({
+  page = 1,
+  limit = 10,
+  search = "",
+  sortField = "created_at",
+  sortDirection = "desc",
+}: GetCategoriesParams = {}): Promise<GetCategoriesResult> {
   try {
-    const result = await query("SELECT * FROM Categories ORDER BY name");
-    if (result.error) {
-      return { data: null, error: result.error };
+    const offset = (page - 1) * limit;
+    const searchCondition = search
+      ? `WHERE name LIKE ? OR description LIKE ?`
+      : "";
+    const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
+    const orderBy = `ORDER BY ${sortField} ${sortDirection}`;
+
+    // Get total count for pagination
+    const countQuery = `
+      SELECT COUNT(*) as count
+      FROM categories 
+      ${searchCondition}
+    `;
+    const countResult = await query(countQuery, searchParams);
+    if (countResult.error || !countResult.data) {
+      throw new Error(countResult.error || "Failed to get count");
     }
-    return { data: result.data as Category[], error: null };
+    const totalItems = parseInt(countResult.data[0].count);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    // Get paginated data
+    const dataQuery = `
+      SELECT * 
+      FROM categories 
+      ${searchCondition}
+      ${orderBy}
+      LIMIT ? 
+      OFFSET ?
+    `;
+
+    const result = await query(dataQuery, [...searchParams, limit, offset]);
+
+    if (result.error || !result.data) {
+      throw new Error(result.error || "Failed to fetch data");
+    }
+
+    return {
+      data: result.data as Category[],
+      error: null,
+      totalItems,
+      totalPages,
+    };
   } catch (error) {
-    console.error("Error fetching categories:", error);
-    return { data: null, error: "Failed to fetch categories" };
+    console.error("Database Error:", error);
+    return {
+      data: null,
+      error: "Failed to fetch categories.",
+      totalItems: 0,
+      totalPages: 0,
+    };
   }
 }
 

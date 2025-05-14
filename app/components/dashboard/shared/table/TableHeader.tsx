@@ -18,32 +18,29 @@ export default function TableHeader<T>({
   return (
     <thead className="bg-gray-50">
       <tr>
-        {columns.map((column, index) => {
-          // Skip rendering if it's the actions column and we're not in the last column
-          if (column.field === "actions" && index !== columns.length - 1) {
-            return null;
-          }
-
-          return (
-            <th
-              key={index}
-              scope="col"
-              className={`px-3 py-3.5 text-left text-sm font-semibold text-gray-900 ${
-                column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
+        {columns.map((column) => (
+          <th
+            key={String(column.field)}
+            scope="col"
+            className={`px-3 py-3.5 text-sm font-semibold text-gray-900 ${
+              column.field === "actions" ? "text-left" : "text-left"
+            }`}
+            onClick={() => onSort?.(column.field as keyof T)}
+          >
+            <div
+              className={`group inline-flex items-center gap-1 ${
+                column.field === "actions" ? "text-left" : ""
               }`}
-              onClick={() => column.sortable && onSort?.(column.field)}
             >
-              <div className="group inline-flex items-center gap-2">
-                {column.label}
-                {column.sortable && sortField === column.field && (
-                  <span className="text-gray-400">
-                    {sortDirection === "asc" ? "↑" : "↓"}
-                  </span>
-                )}
-              </div>
-            </th>
-          );
-        })}
+              {column.label}
+              {sortField === column.field && (
+                <span className="ml-1">
+                  {sortDirection === "asc" ? "↑" : "↓"}
+                </span>
+              )}
+            </div>
+          </th>
+        ))}
       </tr>
     </thead>
   );

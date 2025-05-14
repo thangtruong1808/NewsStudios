@@ -78,13 +78,6 @@ export default function TablePagination({
   return (
     <div className="flex items-center justify-between border-t border-gray-200 bg-white px-2 py-2 sm:px-4 sm:py-3">
       <div className="flex flex-1 items-center justify-between">
-        <div className="hidden sm:block">
-          <p className="text-xs sm:text-sm text-gray-700">
-            Showing <span className="font-medium">{startItem}</span> to{" "}
-            <span className="font-medium">{endItem}</span> of{" "}
-            <span className="font-medium">{totalItems}</span> results
-          </p>
-        </div>
         <div>
           <nav
             className="isolate inline-flex -space-x-px rounded-md shadow-sm"
@@ -160,18 +153,6 @@ export default function TablePagination({
             </button>
           </nav>
         </div>
-        <div className="hidden sm:block">
-          <p className="text-xs sm:text-sm text-gray-700">
-            Page <span className="font-medium">{currentPage}</span> of{" "}
-            <span className="font-medium">{totalPages}</span>
-          </p>
-        </div>
-      </div>
-      <div className="sm:hidden">
-        <p className="text-xs text-gray-700">
-          Page <span className="font-medium">{currentPage}</span> of{" "}
-          <span className="font-medium">{totalPages}</span>
-        </p>
       </div>
     </div>
   );

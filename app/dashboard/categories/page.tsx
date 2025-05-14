@@ -1,80 +1,169 @@
-import { Suspense } from "react";
-import Link from "next/link";
-import { Category } from "../../lib/definition";
-import CategoriesTableClient from "../../components/dashboard/categories/CategoriesTableClient";
-import CategoriesSearchWrapper from "../../components/dashboard/categories/CategoriesSearchWrapper";
-import { ErrorMessage } from "../../components/ErrorMessage";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
-import { getCategories, searchCategories } from "../../lib/actions/categories";
-import { PlusIcon } from "lucide-react";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Category } from "@/app/lib/definition";
+import { getCategories } from "@/app/lib/actions/categories";
+import CategoriesTable from "@/app/components/dashboard/categories/table/CategoriesTable";
+import CategoriesSearch from "@/app/components/dashboard/categories/search/CategoriesSearch";
+import CategoriesHeader from "@/app/components/dashboard/categories/header/CategoriesHeader";
 
 interface CategoriesPageProps {
-  searchParams?: Promise<{
+  searchParams: {
+    page?: string;
+    search?: string;
+    sortField?: string;
+    sortDirection?: "asc" | "desc";
     query?: string;
-  }>;
+  };
 }
 
-export default async function CategoriesPage({
-  searchParams,
-}: CategoriesPageProps) {
-  // Await searchParams before accessing its properties
-  const searchParamsResolved = await searchParams;
-  const query = searchParamsResolved?.query || "";
+export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSorting, setIsSorting] = useState(false);
 
-  try {
-    // Use searchCategories if there's a search query, otherwise use getCategories
-    const result = query
-      ? await searchCategories(query)
-      : await getCategories();
+  const currentPage = Number(searchParams.page) || 1;
+  const itemsPerPage = 5;
+  const searchQuery = searchParams.query || "";
+  const sortField = (searchParams.sortField as keyof Category) || "created_at";
+  const sortDirection = searchParams.sortDirection || "desc";
 
-    if (result.error) {
-      return <ErrorMessage error={new Error(result.error)} />;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!isSearching && !isSorting) {
+          setIsLoading(true);
+        }
+        const { data, totalItems, totalPages } = await getCategories({
+          page: currentPage,
+          limit: itemsPerPage,
+          search: searchQuery,
+          sortField: sortField as string,
+          sortDirection,
+        });
+
+        setCategories(data || []);
+        setTotalPages(totalPages);
+        setTotalItems(totalItems);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+        setIsSearching(false);
+        setIsSorting(false);
+      }
+    };
+
+    fetchData();
+  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
+
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", page.toString());
+    router.push(`/dashboard/categories?${params.toString()}`);
+  };
+
+  const handleSort = (field: keyof Category) => {
+    setIsSorting(true);
+    const newDirection =
+      field === sortField && sortDirection === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(searchParams);
+    params.set("sortField", field as string);
+    params.set("sortDirection", newDirection);
+    router.push(`/dashboard/categories?${params.toString()}`);
+  };
+
+  const handleEdit = (category: Category) => {
+    router.push(`/dashboard/categories/${category.id}/edit`);
+  };
+
+  const handleDelete = async (category: Category) => {
+    if (window.confirm("Are you sure you want to delete this category?")) {
+      setIsDeleting(true);
+      try {
+        const response = await fetch(`/api/categories/${category.id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete category");
+        }
+
+        router.refresh();
+      } catch (error) {
+        console.error("Error deleting category:", error);
+        alert("Failed to delete category. Please try again.");
+      } finally {
+        setIsDeleting(false);
+      }
     }
+  };
 
-    const categories = result.data || [];
+  const handleSearch = (term: string) => {
+    setIsSearching(true);
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+    if (term) {
+      params.set("query", term);
+    } else {
+      params.delete("query");
+    }
+    router.push(`/dashboard/categories?${params.toString()}`);
+  };
 
+  if (isLoading && !isSearching && !isSorting) {
     return (
-      <div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">
-              Categories List
-            </h1>
-            {/* Description for CategoriesPage */}
-            <p className="mt-1 text-sm text-gray-500">
-              Manage, organize, and assign categories to articles for better
-              content organization and navigation.
-            </p>
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-16 bg-gray-200 rounded"></div>
+            ))}
           </div>
-          <Link
-            href="/dashboard/categories/create"
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-violet-700 hover:to-fuchsia-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 justify-center items-center"
-          >
-            <PlusIcon className="h-5 mr-2" />
-            <span>Create Category</span>
-          </Link>
         </div>
-
-        <div className="mt-4">
-          <CategoriesSearchWrapper />
-        </div>
-
-        <Suspense fallback={<LoadingSpinner />}>
-          {categories.length > 0 ? (
-            <CategoriesTableClient categories={categories} />
-          ) : (
-            <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
-              <p className="text-gray-500">
-                {query
-                  ? "No categories found matching your search criteria."
-                  : "No categories found. Create your first category to get started."}
-              </p>
-            </div>
-          )}
-        </Suspense>
       </div>
     );
-  } catch (error) {
-    return <ErrorMessage error={error as Error} />;
   }
+
+  return (
+    <div className="px-4 sm:px-6 lg:px-8">
+      <CategoriesHeader />
+
+      {/* Search Bar */}
+      <div className="mt-4">
+        <CategoriesSearch onSearch={handleSearch} />
+      </div>
+
+      <div className="flow-root">
+        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+            <CategoriesTable
+              categories={categories}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              itemsPerPage={itemsPerPage}
+              totalItems={totalItems}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              onPageChange={handlePageChange}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              isDeleting={isDeleting}
+              searchQuery={searchQuery}
+              isLoading={isSearching || isSorting}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
