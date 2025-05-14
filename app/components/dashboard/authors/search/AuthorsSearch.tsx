@@ -2,28 +2,33 @@
 
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
-import Search from "../search/Search";
+import { SearchWrapper } from "@/app/components/dashboard/shared/search";
 
-export default function AuthorsSearchWrapper() {
+export default function AuthorsSearch() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
 
+  // Get current search value from URL
+  const currentSearch = searchParams.get("query") || "";
+
+  // Handle search with debounce to prevent too many requests
   const handleSearch = useDebouncedCallback((term: string) => {
     const params = new URLSearchParams(searchParams);
-    params.set("page", "1"); // Reset to first page on new search
     if (term) {
       params.set("query", term);
     } else {
       params.delete("query");
     }
+    params.set("page", "1");
     replace(`${pathname}?${params.toString()}`);
   }, 300);
 
   return (
-    <Search
-      placeholder="Search authors by name, description, or bio"
+    <SearchWrapper
+      placeholder="Search authors by name, email, or bio..."
       onSearch={handleSearch}
+      defaultValue={currentSearch}
     />
   );
 }

@@ -1,52 +1,87 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { getAuthors, searchAuthors } from "../../lib/actions/authors";
-import AuthorsTableClient from "../../components/dashboard/authors/AuthorsTableClient";
-import AuthorsSearchWrapper from "../../components/dashboard/authors/AuthorsSearchWrapper";
+import AuthorsTableClient from "../../components/dashboard/authors/table/AuthorsTable";
+import AuthorsSearchWrapper from "../../components/dashboard/authors/search/AuthorsSearch";
 import { lusitana } from "../../components/fonts";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Author } from "@/app/lib/definition";
 
-// Use static rendering by default, but revalidate every 60 seconds
-export const revalidate = 60;
+// Remove revalidate since we're using client component
+// export const revalidate = 60;
 
-interface PageProps {
-  searchParams?: Promise<{
-    query?: string;
-    page?: string;
-  }>;
-}
+export default function AuthorsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("query") || "";
+  const currentPage = Number(searchParams.get("page")) || 1;
+  const itemsPerPage = Number(searchParams.get("limit")) || 10;
+  const [authors, setAuthors] = React.useState<Author[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [totalItems, setTotalItems] = React.useState(0);
 
-export default async function AuthorsPage(props: PageProps) {
-  // Await searchParams before accessing its properties
-  const searchParams = await props.searchParams;
-  const searchQuery = searchParams?.query || "";
-  const currentPage = Number(searchParams?.page) || 1;
+  React.useEffect(() => {
+    const fetchAuthors = async () => {
+      setIsLoading(true);
+      const result = searchQuery
+        ? await searchAuthors(searchQuery, currentPage, itemsPerPage)
+        : await getAuthors(currentPage, itemsPerPage);
 
-  // Use searchAuthors if there's a search query, otherwise use getAuthors
-  const result = searchQuery
-    ? await searchAuthors(searchQuery)
-    : await getAuthors();
+      if (!result.error) {
+        setAuthors(result.data || []);
+        if ("total" in result && typeof result.total === "number") {
+          setTotalItems(result.total);
+        }
+      }
+      setIsLoading(false);
+    };
 
-  // Handle error case
-  if (result.error) {
-    return (
-      <div className="rounded-md bg-red-50 p-4">
-        <div className="flex">
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
-              Error loading authors
-            </h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{result.error}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    fetchAuthors();
+  }, [searchQuery, currentPage, itemsPerPage]);
 
-  // Handle empty data case
-  const authors = result.data || [];
+  const handleSort = (field: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("sortField", field);
+    router.push(`?${params.toString()}`);
+  };
+
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", page.toString());
+    router.push(`?${params.toString()}`);
+  };
+
+  const handleEdit = (author: any) => {
+    router.push(`/dashboard/author/${author.id}/edit`);
+  };
+
+  const handleDelete = async (author: any) => {
+    if (window.confirm("Are you sure you want to delete this author?")) {
+      setIsDeleting(true);
+      try {
+        // Add delete logic here
+        router.refresh();
+      } catch (error) {
+        console.error("Error deleting author:", error);
+      } finally {
+        setIsDeleting(false);
+      }
+    }
+  };
+
+  const handleItemsPerPageChange = (limit: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("limit", limit.toString());
+    params.set("page", "1");
+    router.push(`?${params.toString()}`);
+  };
+
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
   const hasAuthors = authors.length > 0;
 
   return (
@@ -75,7 +110,23 @@ export default async function AuthorsPage(props: PageProps) {
       </div>
 
       {hasAuthors ? (
-        <AuthorsTableClient authors={authors} searchQuery={searchQuery} />
+        <AuthorsTableClient
+          authors={authors}
+          searchQuery={searchQuery}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          totalItems={totalItems}
+          sortField="name"
+          sortDirection="asc"
+          isDeleting={isDeleting}
+          isLoading={isLoading}
+          onSort={handleSort}
+          onPageChange={handlePageChange}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onItemsPerPageChange={handleItemsPerPageChange}
+        />
       ) : (
         <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
           <p className="text-gray-500">

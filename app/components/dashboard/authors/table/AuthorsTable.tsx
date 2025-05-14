@@ -1,31 +1,31 @@
 "use client";
 
-import Table from "@/app/components/dashboard/shared/table/Table";
-import type { Column } from "@/app/components/dashboard/shared/table/TableTypes";
-import { SubCategory } from "@/app/lib/definition";
+import { Table } from "@/app/components/dashboard/shared/table";
+import { Author } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { Column } from "@/app/components/dashboard/shared/table/TableTypes";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 
-interface SubcategoriesTableProps {
-  subcategories: SubCategory[];
+interface AuthorsTableProps {
+  authors: Author[];
   currentPage: number;
   totalPages: number;
   itemsPerPage: number;
   totalItems: number;
-  sortField: keyof SubCategory;
+  sortField: keyof (Author & { sequence?: number });
   sortDirection: "asc" | "desc";
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: (field: keyof SubCategory) => void;
+  onSort: (field: keyof (Author & { sequence?: number })) => void;
   onPageChange: (page: number) => void;
-  onEdit: (subcategory: SubCategory) => void;
-  onDelete: (subcategory: SubCategory) => void;
+  onEdit: (author: Author) => void;
+  onDelete: (author: Author) => void;
   onItemsPerPageChange: (limit: number) => void;
 }
 
-export default function SubcategoriesTable({
-  subcategories,
+export default function AuthorsTable({
+  authors,
   currentPage,
   totalPages,
   itemsPerPage,
@@ -40,10 +40,9 @@ export default function SubcategoriesTable({
   onEdit,
   onDelete,
   onItemsPerPageChange,
-}: SubcategoriesTableProps) {
-  const columns: Column<
-    SubCategory & { sequence?: number; actions?: never }
-  >[] = [
+}: AuthorsTableProps) {
+  // Define table columns with sorting and rendering options
+  const columns: Column<Author & { sequence?: number; actions?: never }>[] = [
     {
       field: "sequence",
       label: "#",
@@ -58,7 +57,7 @@ export default function SubcategoriesTable({
       field: "description",
       label: "Description",
       sortable: true,
-      render: (value: string) => (
+      render: (value) => (
         <div className="w-64">
           <ExpandableContent
             content={value || "No description"}
@@ -68,64 +67,61 @@ export default function SubcategoriesTable({
       ),
     },
     {
-      field: "category_name",
-      label: "Category",
+      field: "bio",
+      label: "Bio",
       sortable: true,
+      render: (value) => (
+        <div className="w-64">
+          <ExpandableContent content={value || "No bio"} maxWords={20} />
+        </div>
+      ),
     },
     {
       field: "created_at",
       label: "Created At",
       sortable: true,
-      render: (value: string) => (
-        <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
-            {new Date(value).toLocaleDateString()}
-          </span>
-        </div>
-      ),
+      render: (value) => new Date(value).toLocaleDateString(),
     },
     {
       field: "updated_at",
       label: "Updated At",
       sortable: true,
-      render: (value: string) => (
-        <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
-            {new Date(value).toLocaleDateString()}
-          </span>
-        </div>
-      ),
+      render: (value) => new Date(value).toLocaleDateString(),
     },
     {
       field: "actions",
       label: "Actions",
       sortable: false,
-      render: (_: unknown, subcategory: SubCategory) => (
-        <div className="flex justify-start items-start space-x-2">
+      render: (_, author) => (
+        <div className="flex space-x-2">
           <button
-            onClick={() => onEdit(subcategory)}
-            className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+            onClick={() => onEdit(author)}
+            className="text-blue-600 hover:text-blue-800"
           >
-            <PencilIcon className="h-4 w-4" />
-            Edit
+            <PencilIcon className="h-5 w-5" />
           </button>
           <button
-            onClick={() => onDelete(subcategory)}
+            onClick={() => onDelete(author)}
             disabled={isDeleting}
-            className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+            className="text-red-600 hover:text-red-800 disabled:opacity-50"
           >
-            <TrashIcon className="h-4 w-4" />
-            Delete
+            <TrashIcon className="h-5 w-5" />
           </button>
         </div>
       ),
     },
   ];
 
+  // Add sequence numbers to authors
+  const authorsWithSequence = authors.map((author, index) => ({
+    ...author,
+    sequence: (currentPage - 1) * itemsPerPage + index + 1,
+  }));
+
   return (
     <div className="mt-8">
       <Table
-        data={subcategories}
+        data={authorsWithSequence}
         columns={columns}
         currentPage={currentPage}
         totalPages={totalPages}
@@ -138,9 +134,9 @@ export default function SubcategoriesTable({
         onEdit={onEdit}
         onDelete={onDelete}
         isDeleting={isDeleting}
+        onItemsPerPageChange={onItemsPerPageChange}
         searchQuery={searchQuery}
         isLoading={isLoading}
-        onItemsPerPageChange={onItemsPerPageChange}
       />
     </div>
   );

@@ -50,13 +50,27 @@ export async function getAuthorById(
   }
 }
 
-export async function getAuthors() {
+export async function getAuthors(page = 1, limit = 10) {
   try {
-    const result = await query("SELECT * FROM Authors ORDER BY name");
+    // Get total count
+    const countResult = await query("SELECT COUNT(*) as total FROM Authors");
+    if (countResult.error) {
+      return { data: [], error: countResult.error };
+    }
+
+    // Get paginated data
+    const result = await query(
+      "SELECT * FROM Authors ORDER BY name LIMIT ? OFFSET ?",
+      [limit, (page - 1) * limit]
+    );
+
     if (result.error) {
       return { data: [], error: result.error };
     }
+
     const authors = result.data as AuthorRow[];
+    const total = (countResult.data[0] as { total: number }).total;
+
     return {
       data: authors.map((author) => ({
         id: author.id,
@@ -66,6 +80,7 @@ export async function getAuthors() {
         created_at: author.created_at.toISOString(),
         updated_at: author.updated_at.toISOString(),
       })),
+      total,
       error: null,
     };
   } catch (error) {
@@ -142,15 +157,32 @@ export async function deleteAuthor(id: number) {
   }
 }
 
-export async function searchAuthors(searchQuery: string) {
+export async function searchAuthors(searchQuery: string, page = 1, limit = 10) {
   try {
     if (!searchQuery.trim()) {
-      return getAuthors();
+      return getAuthors(page, limit);
     }
 
-    const result = await query(
-      "SELECT * FROM Authors WHERE name LIKE ? OR description LIKE ? OR bio LIKE ? ORDER BY name",
+    // Get total count for search results
+    const countResult = await query(
+      "SELECT COUNT(*) as total FROM Authors WHERE name LIKE ? OR description LIKE ? OR bio LIKE ?",
       [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
+    );
+
+    if (countResult.error) {
+      return { data: [], error: countResult.error };
+    }
+
+    // Get paginated search results
+    const result = await query(
+      "SELECT * FROM Authors WHERE name LIKE ? OR description LIKE ? OR bio LIKE ? ORDER BY name LIMIT ? OFFSET ?",
+      [
+        `%${searchQuery}%`,
+        `%${searchQuery}%`,
+        `%${searchQuery}%`,
+        limit,
+        (page - 1) * limit,
+      ]
     );
 
     if (result.error) {
@@ -158,6 +190,8 @@ export async function searchAuthors(searchQuery: string) {
     }
 
     const authors = result.data as AuthorRow[];
+    const total = (countResult.data[0] as { total: number }).total;
+
     return {
       data: authors.map((author) => ({
         id: author.id,
@@ -167,6 +201,7 @@ export async function searchAuthors(searchQuery: string) {
         created_at: author.created_at.toISOString(),
         updated_at: author.updated_at.toISOString(),
       })),
+      total,
       error: null,
     };
   } catch (error) {
