@@ -3,6 +3,7 @@
 import { Table, Column } from "@/app/components/dashboard/shared/table";
 import { Category } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 
 interface CategoriesTableProps {
   categories: Category[];
@@ -19,6 +20,7 @@ interface CategoriesTableProps {
   isDeleting: boolean;
   searchQuery: string;
   isLoading: boolean;
+  onItemsPerPageChange?: (limit: number) => void;
 }
 
 export default function CategoriesTable({
@@ -36,6 +38,7 @@ export default function CategoriesTable({
   isDeleting,
   searchQuery,
   isLoading,
+  onItemsPerPageChange,
 }: CategoriesTableProps) {
   const columns: Column<Category & { sequence?: number; actions?: never }>[] = [
     {
@@ -52,6 +55,14 @@ export default function CategoriesTable({
       field: "description",
       label: "Description",
       sortable: true,
+      render: (value) => (
+        <div className="w-64">
+          <ExpandableContent
+            content={value || "No description"}
+            maxWords={12}
+          />
+        </div>
+      ),
     },
     {
       field: "created_at",
@@ -115,6 +126,7 @@ export default function CategoriesTable({
       sortDirection={sortDirection}
       onSort={onSort}
       onPageChange={onPageChange}
+      onItemsPerPageChange={onItemsPerPageChange}
       onEdit={onEdit}
       onDelete={onDelete}
       isDeleting={isDeleting}

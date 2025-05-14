@@ -21,6 +21,9 @@ export default function Table<T extends { id: number }>({
   totalPages,
   totalItems,
   onItemsPerPageChange,
+  sortField,
+  sortDirection,
+  onSort,
 }: TableProps<T>) {
   return (
     <div className="space-y-4">
@@ -44,6 +47,9 @@ export default function Table<T extends { id: number }>({
         searchQuery={searchQuery}
         currentPage={currentPage}
         itemsPerPage={itemsPerPage}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={onSort}
       />
 
       {/* Tablet View (sm to lg) */}

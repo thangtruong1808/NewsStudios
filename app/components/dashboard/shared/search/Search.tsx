@@ -7,6 +7,7 @@ import { useRef, useEffect, useCallback } from "react";
 interface SearchProps {
   placeholder: string;
   onSearch?: (term: string) => void;
+  defaultValue?: string;
 }
 
 // Custom hook for debouncing
@@ -30,7 +31,7 @@ function useDebounce<T extends (...args: any[]) => any>(
   );
 }
 
-const Search = ({ placeholder, onSearch }: SearchProps) => {
+const Search = ({ placeholder, onSearch, defaultValue = "" }: SearchProps) => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -38,7 +39,7 @@ const Search = ({ placeholder, onSearch }: SearchProps) => {
   const isFirstRender = useRef(true);
 
   // Get the current search query from the URL
-  const currentQuery = searchParams.get("query")?.toString() || "";
+  const currentQuery = searchParams.get("search")?.toString() || defaultValue;
 
   // Update the input value when the URL parameters change
   useEffect(() => {
@@ -52,9 +53,9 @@ const Search = ({ placeholder, onSearch }: SearchProps) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", "1"); // Reset to first page on new search
     if (term) {
-      params.set("query", term);
+      params.set("search", term);
     } else {
-      params.delete("query");
+      params.delete("search");
     }
     replace(`${pathname}?${params.toString()}`);
   };
@@ -76,7 +77,11 @@ const Search = ({ placeholder, onSearch }: SearchProps) => {
     if (inputRef.current) {
       inputRef.current.value = "";
     }
-    updateSearchParams(""); // Clear immediately without debounce
+    if (onSearch) {
+      onSearch(""); // Call onSearch with empty string to trigger data refresh
+    } else {
+      updateSearchParams(""); // Clear immediately without debounce
+    }
   };
 
   return (

@@ -7,6 +7,9 @@ import TableRow from "../TableRow";
 interface DesktopViewProps<T extends { id: number }> extends ViewProps<T> {
   currentPage?: number;
   itemsPerPage?: number;
+  sortField?: keyof T;
+  sortDirection?: "asc" | "desc";
+  onSort?: (field: keyof T) => void;
 }
 
 /**
@@ -23,11 +26,19 @@ export default function DesktopView<T extends { id: number }>({
   searchQuery,
   currentPage = 1,
   itemsPerPage = 10,
+  sortField,
+  sortDirection,
+  onSort,
 }: DesktopViewProps<T>) {
   return (
     <div className="hidden lg:block">
       <table className="min-w-full divide-y divide-gray-300">
-        <TableHeader columns={columns} />
+        <TableHeader
+          columns={columns}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSort={onSort}
+        />
         <tbody className="divide-y divide-gray-200 bg-white">
           {isLoading ? (
             // Show loading state for table rows

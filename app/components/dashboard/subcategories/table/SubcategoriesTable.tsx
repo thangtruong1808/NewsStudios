@@ -1,31 +1,30 @@
 "use client";
 
-import { Table, Column } from "../../dashboard/shared/table";
-import { User } from "../../../lib/definition";
+import { Table, Column } from "@/app/components/dashboard/shared/table";
+import { SubCategory } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 
-interface UsersTableProps {
-  users: User[];
+interface SubcategoriesTableProps {
+  subcategories: SubCategory[];
   currentPage: number;
   totalPages: number;
   itemsPerPage: number;
   totalItems: number;
-  sortField: keyof User;
+  sortField: keyof SubCategory;
   sortDirection: "asc" | "desc";
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: (field: keyof User) => void;
+  onSort: (field: keyof SubCategory) => void;
   onPageChange: (page: number) => void;
-  onEdit: (user: User) => void;
-  onDelete: (user: User) => void;
+  onEdit: (subcategory: SubCategory) => void;
+  onDelete: (subcategory: SubCategory) => void;
   onItemsPerPageChange: (limit: number) => void;
 }
 
-export default function UsersTable({
-  users,
+export default function SubcategoriesTable({
+  subcategories,
   currentPage,
   totalPages,
   itemsPerPage,
@@ -40,51 +39,18 @@ export default function UsersTable({
   onEdit,
   onDelete,
   onItemsPerPageChange,
-}: UsersTableProps) {
-  const columns: Column<User & { sequence?: number; actions?: never }>[] = [
+}: SubcategoriesTableProps) {
+  const columns: Column<
+    SubCategory & { sequence?: number; actions?: never }
+  >[] = [
     {
       field: "sequence",
       label: "#",
       sortable: false,
     },
     {
-      field: "user_image",
-      label: "Image",
-      sortable: false,
-      render: (value: string, user: User) => (
-        <div className="w-10 h-10 relative rounded-full overflow-hidden">
-          {value ? (
-            <Image
-              src={value}
-              alt="User"
-              fill
-              className="object-cover"
-              sizes="(max-width: 40px) 100vw, 40px"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-r from-violet-600 to-fuchsia-600 flex items-center justify-center">
-              <span className="text-white text-sm font-medium">
-                {user.firstname?.[0]?.toUpperCase()}
-                {user.lastname?.[0]?.toUpperCase()}
-              </span>
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      field: "firstname",
-      label: "First Name",
-      sortable: true,
-    },
-    {
-      field: "lastname",
-      label: "Last Name",
-      sortable: true,
-    },
-    {
-      field: "email",
-      label: "Email",
+      field: "name",
+      label: "Name",
       sortable: true,
     },
     {
@@ -95,31 +61,15 @@ export default function UsersTable({
         <div className="w-64">
           <ExpandableContent
             content={value || "No description"}
-            maxWords={12}
+            maxWords={20}
           />
         </div>
       ),
     },
     {
-      field: "role",
-      label: "Role",
+      field: "category_name",
+      label: "Category",
       sortable: true,
-    },
-    {
-      field: "status",
-      label: "Status",
-      sortable: true,
-      render: (value: string) => (
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            value === "active"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {value}
-        </span>
-      ),
     },
     {
       field: "created_at",
@@ -149,17 +99,17 @@ export default function UsersTable({
       field: "actions",
       label: "Actions",
       sortable: false,
-      render: (_: unknown, user: User) => (
+      render: (_: unknown, subcategory: SubCategory) => (
         <div className="flex justify-start items-start space-x-2">
           <button
-            onClick={() => onEdit(user)}
+            onClick={() => onEdit(subcategory)}
             className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
           >
             <PencilIcon className="h-4 w-4" />
             Edit
           </button>
           <button
-            onClick={() => onDelete(user)}
+            onClick={() => onDelete(subcategory)}
             disabled={isDeleting}
             className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
           >
@@ -174,7 +124,7 @@ export default function UsersTable({
   return (
     <div className="mt-8">
       <Table
-        data={users}
+        data={subcategories}
         columns={columns}
         currentPage={currentPage}
         totalPages={totalPages}

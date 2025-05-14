@@ -7,24 +7,25 @@ import { useForm } from "react-hook-form";
 import {
   subcategorySchema,
   type SubcategoryFormData,
-} from "../../../lib/validations/subcategorySchema";
+} from "./subcategorySchema";
 import {
   createSubcategory,
   updateSubcategory,
   getSubcategoryById,
-} from "../../../lib/actions/subcategories";
-import { getCategories } from "../../../lib/actions/categories";
-import { Category } from "../../../lib/definition";
+} from "@/app/lib/actions/subcategories";
+import { getCategories } from "@/app/lib/actions/categories";
+import { Category } from "@/app/lib/definition";
 import toast from "react-hot-toast";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { NameField, DescriptionField, CategoryField } from "./fields";
 
-interface SubCategoryFormProps {
+interface SubcategoryFormProps {
   subcategoryId?: string;
 }
 
-export default function SubCategoryForm({
+export default function SubcategoryForm({
   subcategoryId,
-}: SubCategoryFormProps) {
+}: SubcategoryFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +41,7 @@ export default function SubCategoryForm({
     resolver: zodResolver(subcategorySchema),
   });
 
+  // Fetch categories on component mount
   useEffect(() => {
     const fetchCategories = async () => {
       const result = await getCategories();
@@ -50,6 +52,7 @@ export default function SubCategoryForm({
     fetchCategories();
   }, []);
 
+  // Fetch subcategory data if in edit mode
   useEffect(() => {
     const fetchSubcategory = async () => {
       if (subcategoryId) {
@@ -82,6 +85,7 @@ export default function SubCategoryForm({
     fetchSubcategory();
   }, [subcategoryId, reset]);
 
+  // Handle form submission
   const onSubmit = async (data: SubcategoryFormData) => {
     try {
       setIsSubmitting(true);
@@ -148,70 +152,13 @@ export default function SubCategoryForm({
         )}
 
         <div className="grid grid-cols-1 gap-6">
-          <div>
-            <label
-              htmlFor="category_id"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Category <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="category_id"
-              {...register("category_id", { valueAsNumber: true })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
-            >
-              <option value="">Select a category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {errors.category_id && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.category_id.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="name"
-              {...register("name")}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
-            />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="description"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Description{" "}
-              <span className="text-sm text-gray-400">(optional)</span>
-            </label>
-            <textarea
-              id="description"
-              {...register("description")}
-              rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
-            />
-            {errors.description && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.description.message}
-              </p>
-            )}
-          </div>
+          <CategoryField
+            register={register}
+            errors={errors}
+            categories={categories}
+          />
+          <NameField register={register} errors={errors} />
+          <DescriptionField register={register} errors={errors} />
         </div>
 
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">

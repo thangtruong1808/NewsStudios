@@ -39,7 +39,7 @@ export async function getCategories({
     // Get total count for pagination
     const countQuery = `
       SELECT COUNT(*) as count
-      FROM categories 
+      FROM Categories 
       ${searchCondition}
     `;
     const countResult = await query(countQuery, searchParams);
@@ -52,7 +52,7 @@ export async function getCategories({
     // Get paginated data
     const dataQuery = `
       SELECT * 
-      FROM categories 
+      FROM Categories 
       ${searchCondition}
       ${orderBy}
       LIMIT ? 

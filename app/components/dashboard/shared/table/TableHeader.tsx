@@ -24,8 +24,14 @@ export default function TableHeader<T>({
             scope="col"
             className={`px-3 py-3.5 text-sm font-semibold text-gray-900 ${
               column.field === "actions" ? "text-left" : "text-left"
+            } ${
+              column.sortable !== false
+                ? "cursor-pointer hover:bg-gray-100"
+                : ""
             }`}
-            onClick={() => onSort?.(column.field as keyof T)}
+            onClick={() =>
+              column.sortable !== false && onSort?.(column.field as keyof T)
+            }
           >
             <div
               className={`group inline-flex items-center gap-1 ${
@@ -34,7 +40,7 @@ export default function TableHeader<T>({
             >
               {column.label}
               {sortField === column.field && (
-                <span className="ml-1">
+                <span className="ml-1 text-blue-500">
                   {sortDirection === "asc" ? "↑" : "↓"}
                 </span>
               )}

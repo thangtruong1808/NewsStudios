@@ -15,6 +15,7 @@ interface CategoriesPageProps {
     sortField?: string;
     sortDirection?: "asc" | "desc";
     query?: string;
+    limit?: string;
   };
 }
 
@@ -29,7 +30,7 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
   const [isSorting, setIsSorting] = useState(false);
 
   const currentPage = Number(searchParams.page) || 1;
-  const itemsPerPage = 5;
+  const itemsPerPage = Number(searchParams.limit) || 5;
   const searchQuery = searchParams.query || "";
   const sortField = (searchParams.sortField as keyof Category) || "created_at";
   const sortDirection = searchParams.sortDirection || "desc";
@@ -117,6 +118,13 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
     router.push(`/dashboard/categories?${params.toString()}`);
   };
 
+  const handleItemsPerPageChange = (limit: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+    params.set("limit", limit.toString());
+    router.push(`/dashboard/categories?${params.toString()}`);
+  };
+
   if (isLoading && !isSearching && !isSorting) {
     return (
       <div className="px-4 sm:px-6 lg:px-8">
@@ -142,7 +150,7 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
         <CategoriesSearch onSearch={handleSearch} />
       </div>
 
-      <div className="flow-root">
+      <div className="flow-root mt-6">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
             <CategoriesTable
@@ -155,6 +163,7 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
               sortDirection={sortDirection}
               onSort={handleSort}
               onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
               onEdit={handleEdit}
               onDelete={handleDelete}
               isDeleting={isDeleting}

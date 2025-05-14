@@ -1,92 +1,162 @@
-import React from "react";
-import Link from "next/link";
-import { PlusIcon } from "@heroicons/react/24/outline";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   getSubcategories,
   searchSubcategories,
-} from "../../lib/actions/subcategories";
-import SubcategoriesTableClient from "../../components/dashboard/subcategories/SubcategoriesTableClient";
-import SubcategoriesSearchWrapper from "../../components/dashboard/subcategories/SubcategoriesSearchWrapper";
+} from "@/app/lib/actions/subcategories";
+import { SubCategory } from "@/app/lib/definition";
+import SubcategoriesTable from "@/app/components/dashboard/subcategories/table/SubcategoriesTable";
+import SubcategoriesSearch from "@/app/components/dashboard/subcategories/search/SubcategoriesSearch";
+import { PlusIcon } from "@heroicons/react/24/outline";
 
-interface SubcategoriesPageProps {
-  searchParams?: Promise<{
-    query?: string;
-  }>;
-}
+export default function SubcategoriesPage() {
+  // Router and URL parameters
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-export default async function SubcategoriesPage({
-  searchParams,
-}: SubcategoriesPageProps) {
-  // Await searchParams before accessing its properties
-  const searchParamsResolved = await searchParams;
-  const query = searchParamsResolved?.query || "";
+  // State management for subcategories data and UI
+  const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [sortField, setSortField] = useState<keyof SubCategory>("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Use searchSubcategories if there's a search query, otherwise use getSubcategories
-  const result = query
-    ? await searchSubcategories(query)
-    : await getSubcategories();
+  // Extract URL parameters
+  const searchQuery = searchParams.get("search") || "";
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = parseInt(searchParams.get("limit") || "10", 10);
 
-  // Handle error case
-  if (result.error) {
-    return (
-      <div className="rounded-md bg-red-50 p-4">
-        <div className="flex">
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
-              Error loading subcategories
-            </h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{result.error}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Update items per page when limit changes
+  useEffect(() => {
+    setItemsPerPage(limit);
+  }, [limit]);
 
-  // Handle empty data case
-  const subcategories = result.data || [];
-  const hasSubcategories = subcategories.length > 0;
+  // Fetch subcategories data based on current filters and pagination
+  useEffect(() => {
+    const fetchSubcategories = async () => {
+      setIsLoading(true);
+      try {
+        const result = searchQuery
+          ? await searchSubcategories(searchQuery, page, itemsPerPage)
+          : await getSubcategories(page, itemsPerPage);
+
+        if (result.data) {
+          setSubcategories(result.data);
+          setTotalPages(Math.ceil(result.total / itemsPerPage));
+          setTotalItems(result.total);
+          setCurrentPage(page);
+        }
+      } catch (error) {
+        console.error("Error fetching subcategories:", error);
+      } finally {
+        setIsLoading(false);
+        setIsSearching(false);
+      }
+    };
+
+    fetchSubcategories();
+  }, [page, searchQuery, sortField, sortDirection, itemsPerPage]);
+
+  // Handle search input and update URL parameters
+  const handleSearch = (query: string) => {
+    setIsSearching(true);
+    const params = new URLSearchParams(searchParams);
+    if (query) {
+      params.set("search", query);
+    } else {
+      params.delete("search");
+    }
+    params.set("page", "1");
+    router.push(`/dashboard/subcategories?${params.toString()}`);
+  };
+
+  // Handle column sorting
+  const handleSort = (field: keyof SubCategory) => {
+    const newDirection =
+      field === sortField && sortDirection === "asc" ? "desc" : "asc";
+    setSortField(field);
+    setSortDirection(newDirection);
+  };
+
+  // Handle page navigation
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", newPage.toString());
+    router.push(`/dashboard/subcategories?${params.toString()}`);
+  };
+
+  // Navigate to edit page for a subcategory
+  const handleEdit = (subcategory: SubCategory) => {
+    router.push(`/dashboard/subcategories/${subcategory.id}/edit`);
+  };
+
+  // Handle subcategory deletion (implemented in table component)
+  const handleDelete = async (subcategory: SubCategory) => {
+    // Delete functionality is handled in the table component
+  };
+
+  // Update items per page and reset to first page
+  const handleItemsPerPageChange = (limit: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("limit", limit.toString());
+    params.set("page", "1");
+    router.push(`/dashboard/subcategories?${params.toString()}`);
+  };
 
   return (
-    <div className="">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Subcategories List
+    <div className="px-4 sm:px-6 lg:px-8">
+      <div className="sm:flex sm:items-center">
+        <div className="sm:flex-auto">
+          <h1 className="text-base font-semibold leading-6 text-gray-900">
+            Subcategories
           </h1>
-          {/* Description for SubcategoriesPage */}
-          <p className="mt-1 text-sm text-gray-500">
-            Manage, organize, and assign subcategories to further classify your
-            articles and content within categories for improved structure and
-            navigation.
+          <p className="mt-2 text-sm text-gray-700">
+            A list of all subcategories in your account including their name,
+            description, and associated category.
           </p>
         </div>
-
-        <Link
-          href="/dashboard/subcategories/create"
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-violet-700 hover:to-fuchsia-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 justify-center items-center"
-        >
-          <PlusIcon className="h-5 mr-2" />
-          <span>Create Subcategory</span>
-        </Link>
+        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/subcategories/create")}
+            className="block rounded-md bg-violet-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-violet-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+          >
+            <PlusIcon className="h-5 w-5 inline-block mr-1" />
+            Add Subcategory
+          </button>
+        </div>
       </div>
 
       <div className="mt-4">
-        <SubcategoriesSearchWrapper />
+        <SubcategoriesSearch onSearch={handleSearch} />
       </div>
 
-      {hasSubcategories ? (
-        <SubcategoriesTableClient subcategories={subcategories} />
-      ) : (
-        <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
-          <p className="text-gray-500">
-            {query
-              ? "No subcategories found matching your search criteria."
-              : "No subcategories found. Create your first subcategory to get started."}
-          </p>
-        </div>
-      )}
+      <div>
+        <SubcategoriesTable
+          subcategories={subcategories}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          totalItems={totalItems}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          searchQuery={searchQuery}
+          isDeleting={isDeleting}
+          isLoading={isLoading || isSearching}
+          onSort={handleSort}
+          onPageChange={handlePageChange}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onItemsPerPageChange={handleItemsPerPageChange}
+        />
+      </div>
     </div>
   );
 }
