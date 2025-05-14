@@ -18,19 +18,58 @@ interface TagRow {
   updated_at: string;
 }
 
-export async function getTags() {
+interface GetTagsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortField?: string;
+  sortDirection?: "asc" | "desc";
+}
+
+export async function getTags({
+  page = 1,
+  limit = 10,
+  search = "",
+  sortField = "name",
+  sortDirection = "asc",
+}: GetTagsParams = {}) {
   try {
-    const result = await query(`
+    const offset = (page - 1) * limit;
+    const searchCondition = search
+      ? `WHERE name LIKE ? OR description LIKE ?`
+      : "";
+    const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
+    const orderBy = `ORDER BY ${sortField} ${sortDirection}`;
+
+    // Get total count for pagination
+    const countQuery = `
+      SELECT COUNT(*) as count
+      FROM Tags 
+      ${searchCondition}
+    `;
+    const countResult = await query(countQuery, searchParams);
+    if (countResult.error || !countResult.data) {
+      throw new Error(countResult.error || "Failed to get count");
+    }
+    const totalItems = parseInt(countResult.data[0].count);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    // Get paginated data
+    const dataQuery = `
       SELECT id, name, description, color, 
              DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as created_at,
              DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s') as updated_at
-      FROM Tags
-      ORDER BY name ASC
-    `);
+      FROM Tags 
+      ${searchCondition}
+      ${orderBy}
+      LIMIT ? 
+      OFFSET ?
+    `;
 
-    if (result.error) {
-      console.error("Error fetching tags:", result.error);
-      return { data: null, error: result.error };
+    const result = await query(dataQuery, [...searchParams, limit, offset]);
+
+    if (result.error || !result.data) {
+      throw new Error(result.error || "Failed to fetch data");
     }
 
     // Convert the dates to proper Date objects
@@ -40,10 +79,20 @@ export async function getTags() {
       updated_at: new Date(tag.updated_at),
     })) as Tag[];
 
-    return { data: tags, error: null };
+    return {
+      data: tags,
+      error: null,
+      totalItems,
+      totalPages,
+    };
   } catch (error) {
-    console.error("Error fetching tags:", error);
-    return { data: null, error: "Failed to fetch tags" };
+    console.error("Database Error:", error);
+    return {
+      data: null,
+      error: "Failed to fetch tags.",
+      totalItems: 0,
+      totalPages: 0,
+    };
   }
 }
 

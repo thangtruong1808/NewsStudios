@@ -10,6 +10,51 @@ import { lusitana } from "../../components/fonts";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Author } from "@/app/lib/definition";
 
+// Loading skeleton component
+function AuthorsTableSkeleton() {
+  return (
+    <div className="mt-8">
+      <div className="animate-pulse">
+        {/* Table header skeleton */}
+        <div className="grid grid-cols-[50px_150px_256px_256px_128px_128px_100px] gap-4 py-3 px-4 bg-gray-50 border-b border-gray-200">
+          <div className="h-4 bg-gray-200 rounded w-8"></div>
+          <div className="h-4 bg-gray-200 rounded w-24"></div>
+          <div className="h-4 bg-gray-200 rounded w-32"></div>
+          <div className="h-4 bg-gray-200 rounded w-32"></div>
+          <div className="h-4 bg-gray-200 rounded w-24"></div>
+          <div className="h-4 bg-gray-200 rounded w-24"></div>
+          <div className="h-4 bg-gray-200 rounded w-16"></div>
+        </div>
+
+        {/* Table rows skeleton */}
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className="grid grid-cols-[50px_150px_256px_256px_128px_128px_100px] gap-4 py-4 px-4 border-b border-gray-200"
+          >
+            <div className="h-4 bg-gray-200 rounded w-8"></div>
+            <div className="h-4 bg-gray-200 rounded w-32"></div>
+            <div className="h-4 bg-gray-200 rounded w-64"></div>
+            <div className="h-4 bg-gray-200 rounded w-64"></div>
+            <div className="h-4 bg-gray-200 rounded w-32"></div>
+            <div className="h-4 bg-gray-200 rounded w-32"></div>
+            <div className="flex space-x-2">
+              <div className="h-5 w-5 bg-gray-200 rounded"></div>
+              <div className="h-5 w-5 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        ))}
+
+        {/* Pagination skeleton */}
+        <div className="flex justify-between items-center mt-4 px-4">
+          <div className="h-8 bg-gray-200 rounded w-36"></div>
+          <div className="h-8 bg-gray-200 rounded w-72"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Remove revalidate since we're using client component
 // export const revalidate = 60;
 
@@ -109,7 +154,9 @@ export default function AuthorsPage() {
         <AuthorsSearchWrapper />
       </div>
 
-      {hasAuthors ? (
+      {isLoading ? (
+        <AuthorsTableSkeleton />
+      ) : hasAuthors ? (
         <AuthorsTableClient
           authors={authors}
           searchQuery={searchQuery}

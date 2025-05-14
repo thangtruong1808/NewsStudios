@@ -39,7 +39,7 @@ const Search = ({ placeholder, onSearch, defaultValue = "" }: SearchProps) => {
   const isFirstRender = useRef(true);
 
   // Get the current search query from the URL
-  const currentQuery = searchParams.get("search")?.toString() || defaultValue;
+  const currentQuery = searchParams.get("query")?.toString() || defaultValue;
 
   // Update the input value when the URL parameters change
   useEffect(() => {
@@ -53,9 +53,9 @@ const Search = ({ placeholder, onSearch, defaultValue = "" }: SearchProps) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", "1"); // Reset to first page on new search
     if (term) {
-      params.set("search", term);
+      params.set("query", term);
     } else {
-      params.delete("search");
+      params.delete("query");
     }
     replace(`${pathname}?${params.toString()}`);
   };

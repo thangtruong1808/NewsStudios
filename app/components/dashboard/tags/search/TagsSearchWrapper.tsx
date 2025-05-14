@@ -1,23 +1,22 @@
 "use client";
 
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
-import { useDebouncedCallback } from "use-debounce";
-import { SearchWrapper } from "../search";
+import { useRouter, useSearchParams } from "next/navigation";
+import { SearchWrapper } from "@/app/components/dashboard/shared/search";
 
 export default function TagsSearchWrapper() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { replace } = useRouter();
 
-  const handleSearch = useDebouncedCallback((term: string) => {
+  const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
     if (term) {
       params.set("query", term);
     } else {
       params.delete("query");
     }
-    replace(`${pathname}?${params.toString()}`);
-  }, 300);
+    router.push(`?${params.toString()}`);
+  };
 
   return (
     <SearchWrapper

@@ -1,4 +1,4 @@
-import TagForm from "../../../components/dashboard/tags/TagForm";
+import TagForm from "../../../components/dashboard/tags/form/TagForm";
 
 export default function CreateTagPage() {
   return (
