@@ -9,6 +9,7 @@ import PhotosSearch from "@/app/components/dashboard/photos/search";
 import PhotosGrid from "@/app/components/dashboard/shared/grid/PhotosGrid";
 import { Image } from "@/app/lib/definition";
 
+// Interface for image data from database
 interface ImageRow {
   id: number;
   article_id: number | null;
@@ -24,6 +25,7 @@ interface ImageRow {
   article_title?: string;
 }
 
+// Interface for paginated API response
 interface PaginatedResult {
   data: ImageRow[];
   error: string | null;
@@ -35,10 +37,10 @@ interface PaginatedResult {
   };
 }
 
-// Use static rendering by default, but revalidate every 60 seconds
+// Revalidate page data every 60 seconds
 export const revalidate = 60;
 
-// Move the function outside the component
+// Helper function to convert database row to Image type
 const convertImageRowToImage = (row: ImageRow): Image => ({
   ...row,
   created_at: row.created_at.toISOString(),
@@ -48,6 +50,8 @@ const convertImageRowToImage = (row: ImageRow): Image => ({
 export default function PhotosPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // State management for photos list, loading states, and pagination
   const [photos, setPhotos] = useState<Image[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -57,7 +61,7 @@ export default function PhotosPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [hasMore, setHasMore] = useState(true);
 
-  // Memoize the fetchPhotos function
+  // Fetch photos with pagination and search support
   const fetchPhotos = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -96,7 +100,7 @@ export default function PhotosPage() {
         firstPhoto: convertedPhotos[0],
       });
 
-      // Only update state if we have photos or it's the first page
+      // Update photos list based on pagination
       if (convertedPhotos.length > 0 || currentPage === 1) {
         if (currentPage === 1) {
           setPhotos(convertedPhotos);
@@ -123,6 +127,7 @@ export default function PhotosPage() {
     }
   }, [currentPage, itemsPerPage, searchQuery]);
 
+  // Initialize and cleanup photo fetching
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
@@ -134,6 +139,7 @@ export default function PhotosPage() {
     };
   }, [fetchPhotos]);
 
+  // Search functionality handlers
   const handleSearch = useCallback((term: string) => {
     setSearchQuery(term);
     setCurrentPage(1);
@@ -144,14 +150,17 @@ export default function PhotosPage() {
     setCurrentPage(1);
   }, []);
 
+  // Load more photos for pagination
   const handleLoadMore = useCallback(() => {
     setCurrentPage((prev) => prev + 1);
   }, []);
 
+  // Navigate to edit page for a specific photo
   const handleEdit = (photo: Image) => {
     router.push(`/dashboard/photos/${photo.id}/edit`);
   };
 
+  // Delete photo with confirmation
   const handleDelete = async (photo: Image) => {
     if (!confirm("Are you sure you want to delete this photo?")) return;
 
@@ -178,10 +187,17 @@ export default function PhotosPage() {
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
+      {/* Header section with title and actions */}
       <PhotosHeader />
+
+      {/* Search bar for filtering photos */}
       <PhotosSearch onSearch={handleSearch} />
+
       <div className="mt-4">
+        {/* Display total photos count */}
         <p className="text-sm text-gray-500 mb-4">Total Photos: {totalItems}</p>
+
+        {/* Empty state when no photos are found */}
         {photos.length === 0 && !isLoading && totalItems === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 mb-2">
@@ -211,12 +227,15 @@ export default function PhotosPage() {
           </div>
         ) : (
           <>
+            {/* Photo grid with edit and delete actions */}
             <PhotosGrid
               photos={photos}
               onEdit={handleEdit}
               onDelete={handleDelete}
               isLoading={isLoading}
             />
+
+            {/* Load more button for pagination */}
             {hasMore && !isLoading && (
               <div className="mt-8 flex justify-center">
                 <button

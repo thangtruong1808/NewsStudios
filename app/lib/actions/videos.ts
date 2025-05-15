@@ -8,33 +8,39 @@ import mysql from "mysql2/promise";
 import pool from "../db/db";
 import { uploadToFTP } from "../utils/ftp";
 
-export async function getVideos(articleId?: number) {
+export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
   try {
-    let sqlQuery = `
+    const offset = (page - 1) * itemsPerPage;
+
+    // Get total count
+    const countResult = await query("SELECT COUNT(*) as total FROM Videos");
+
+    // Get paginated videos
+    const sqlQuery = `
       SELECT v.*, a.title as article_title 
       FROM Videos v
       LEFT JOIN Articles a ON v.article_id = a.id
+      ORDER BY v.created_at DESC
+      LIMIT ? OFFSET ?
     `;
 
-    const values: any[] = [];
-
-    if (articleId) {
-      sqlQuery += " WHERE v.article_id = ?";
-      values.push(articleId);
-    }
-
-    sqlQuery += " ORDER BY v.created_at DESC";
-
-    const result = await query(sqlQuery, values);
+    const result = await query(sqlQuery, [itemsPerPage, offset]);
 
     if (result.error) {
-      return { data: null, error: result.error };
+      return { data: null, error: result.error, totalItems: 0 };
     }
 
-    return { data: result.data || [], error: null };
+    const totalItems = countResult.data?.[0]?.total || 0;
+
+    return {
+      data: result.data || [],
+      error: null,
+      totalItems,
+      totalPages: Math.ceil(totalItems / itemsPerPage),
+    };
   } catch (error) {
     console.error("Error fetching videos:", error);
-    return { data: null, error: "Failed to fetch videos" };
+    return { data: null, error: "Failed to fetch videos", totalItems: 0 };
   }
 }
 

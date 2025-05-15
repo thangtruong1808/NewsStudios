@@ -1,22 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getVideos, searchVideos } from "@/app/lib/actions/videos";
 import { toast } from "react-hot-toast";
-import VideosHeader from "@/app/components/dashboard/videos/header";
+import VideosHeader from "@/app/components/dashboard/videos/header/index";
 import VideosSearch from "@/app/components/dashboard/videos/search";
+import VideosGrid from "@/app/components/dashboard/shared/grid/VideosGrid";
 import { Video } from "@/app/lib/definition";
 
+// Interface for video query results
 interface VideoResult {
-  data: Video[];
+  data: Video[] | null;
   error: string | null;
-  totalItems: number;
-  totalPages: number;
+  totalItems?: number;
+  totalPages?: number;
 }
 
 export default function VideosPage() {
   const router = useRouter();
+
+  // State management for videos list, loading states, and pagination
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -26,53 +30,94 @@ export default function VideosPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    const fetchVideos = async () => {
-      setIsLoading(true);
-      try {
-        const result = searchQuery
-          ? await searchVideos(searchQuery)
-          : await getVideos();
+  // Fetch videos with pagination and search support
+  const fetchVideos = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      console.log("Fetching videos with params:", {
+        currentPage,
+        itemsPerPage,
+        searchQuery,
+      });
 
-        if (result.error) {
-          toast.error(result.error);
-          return;
-        }
+      const result = searchQuery
+        ? await searchVideos(searchQuery)
+        : await getVideos(currentPage, itemsPerPage);
 
-        const videoResult = result as VideoResult;
+      console.log("Received result:", {
+        hasError: !!result.error,
+        dataLength: result.data?.length,
+        firstItem: result.data?.[0],
+        totalItems: (result as VideoResult).totalItems,
+      });
+
+      if (result.error) {
+        toast.error(result.error);
         if (currentPage === 1) {
-          setVideos(videoResult.data);
-        } else {
-          setVideos((prev) => [...prev, ...videoResult.data]);
+          setVideos([]);
+          setTotalItems(0);
         }
-
-        setTotalItems(videoResult.totalItems);
-        setHasMore(videoResult.totalItems > currentPage * itemsPerPage);
-      } catch (error) {
-        console.error("Error fetching videos:", error);
-        toast.error("Failed to fetch videos");
-      } finally {
-        setIsLoading(false);
+        setHasMore(false);
+        return;
       }
-    };
 
-    fetchVideos();
+      // Update videos list based on pagination
+      if (result.data && (result.data.length > 0 || currentPage === 1)) {
+        if (currentPage === 1) {
+          setVideos(result.data);
+        } else {
+          setVideos((prev) => [...prev, ...result.data!]);
+        }
+        // For search results, use the length of the data array as totalItems
+        const totalItems =
+          (result as VideoResult).totalItems || result.data.length;
+        setTotalItems(totalItems);
+        setHasMore(totalItems > currentPage * itemsPerPage);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error fetching videos:", error);
+      toast.error("Failed to fetch videos");
+      if (currentPage === 1) {
+        setVideos([]);
+        setTotalItems(0);
+      }
+      setHasMore(false);
+    } finally {
+      setIsLoading(false);
+    }
   }, [currentPage, itemsPerPage, searchQuery]);
 
-  const handleSearch = (term: string) => {
+  // Initialize and cleanup video fetching
+  useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      await fetchVideos();
+    };
+    fetchData();
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchVideos]);
+
+  // Handle search functionality
+  const handleSearch = useCallback((term: string) => {
     setSearchQuery(term);
     setCurrentPage(1);
-    setVideos([]);
-  };
+  }, []);
 
-  const handleLoadMore = () => {
+  // Load more videos for pagination
+  const handleLoadMore = useCallback(() => {
     setCurrentPage((prev) => prev + 1);
-  };
+  }, []);
 
+  // Navigate to edit page for a specific video
   const handleEdit = (video: Video) => {
     router.push(`/dashboard/videos/${video.id}/edit`);
   };
 
+  // Delete video with confirmation
   const handleDelete = async (video: Video) => {
     if (!confirm("Are you sure you want to delete this video?")) return;
 
@@ -98,17 +143,19 @@ export default function VideosPage() {
   };
 
   return (
-    <main>
-      <div className="mb-8">
-        <VideosHeader />
-      </div>
+    <div className="px-4 sm:px-6 lg:px-8">
+      {/* Header section with title and actions */}
+      <VideosHeader />
 
-      <div className="mb-8">
-        <VideosSearch onSearch={handleSearch} defaultValue={searchQuery} />
-      </div>
+      {/* Search bar for filtering videos */}
+      <VideosSearch onSearch={handleSearch} />
 
-      <div className="mb-8">
-        {videos.length === 0 && !isLoading ? (
+      <div className="mt-4">
+        {/* Display total videos count */}
+        <p className="text-sm text-gray-500 mb-4">Total Videos: {totalItems}</p>
+
+        {/* Empty state when no videos are found */}
+        {videos.length === 0 && !isLoading && totalItems === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 mb-2">
               <svg
@@ -137,100 +184,29 @@ export default function VideosPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {videos.map((video) => (
-                <div
-                  key={video.id}
-                  className="group relative overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:shadow-xl"
-                >
-                  {/* Video Container */}
-                  <div className="relative aspect-video overflow-hidden bg-gray-100">
-                    <video
-                      src={video.video_url}
-                      className="w-full h-full object-cover"
-                      controls
-                    />
-                  </div>
+            {/* Video grid with edit and delete actions */}
+            <VideosGrid
+              videos={videos}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              isLoading={isLoading}
+            />
 
-                  {/* Video Details */}
-                  <div className="p-4 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-medium text-indigo-600">
-                        Article ID: {video.article_id || "N/A"}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs text-gray-500">
-                          {new Date(video.updated_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-
-                    {video.description && (
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {video.description}
-                      </p>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => handleEdit(video)}
-                        className="p-2 text-gray-600 hover:text-indigo-600 transition-colors"
-                        title="Edit video"
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(video)}
-                        className="p-2 text-gray-600 hover:text-red-600 transition-colors"
-                        title="Delete video"
-                        disabled={isDeleting}
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {hasMore && !isLoading && videos.length > 0 && (
+            {/* Load more button for pagination */}
+            {hasMore && !isLoading && (
               <div className="mt-8 flex justify-center">
                 <button
                   onClick={handleLoadMore}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Load More
+                  {isLoading ? "Loading..." : "Load More"}
                 </button>
               </div>
             )}
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }

@@ -2,10 +2,10 @@
 
 import React from "react";
 import { useParams } from "next/navigation";
-import VideoForm from "../../../../components/dashboard/videos/VideoForm";
-import { getVideoById } from "../../../../lib/actions/videos";
-import { getArticles } from "../../../../lib/actions/articles";
-import { Video } from "../../../../lib/definition";
+import VideoForm from "@/app/components/dashboard/videos/form/VideoForm";
+import { getVideoById } from "@/app/lib/actions/videos";
+import { Video } from "@/app/lib/definition";
+import { notFound } from "next/navigation";
 
 // Helper function to serialize dates in the video object
 function serializeVideo(video: Video) {
@@ -26,34 +26,19 @@ export default function EditVideoPage() {
   const params = useParams();
   const videoId = Number(params.id);
   const [video, setVideo] = React.useState<Video | null>(null);
-  const [articles, setArticles] = React.useState<
-    { id: number; title: string }[]
-  >([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const [videoResult, articlesResult] = await Promise.all([
-          getVideoById(videoId),
-          getArticles(),
-        ]);
+        const videoResult = await getVideoById(videoId);
 
         if (videoResult.error) {
           setError(videoResult.error);
         } else if (videoResult.data) {
           // Serialize the video data before setting it in state
           setVideo(serializeVideo(videoResult.data));
-        }
-
-        if (Array.isArray(articlesResult)) {
-          setArticles(
-            articlesResult.map((article) => ({
-              id: article.id,
-              title: article.title,
-            }))
-          );
         }
       } catch (err) {
         setError("Failed to fetch data");
@@ -79,7 +64,7 @@ export default function EditVideoPage() {
 
   return (
     <div className="space-y-4">
-      <VideoForm video={video} articles={articles} />
+      <VideoForm video={video} mode="edit" />
     </div>
   );
 }
