@@ -89,7 +89,7 @@ export default function NavLinks({ isCollapsed }: NavLinksProps) {
           {!isCollapsed && (
             <button
               onClick={() => toggleGroup(group.name)}
-              className="w-full px-3 py-2 flex items-center justify-between text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-300 transition-colors"
+              className="w-full px-3 py-2 flex items-center justify-between text-xs font-semibold text-blue-400 uppercase tracking-wider hover:text-blue-600 transition-colors"
             >
               <span>{group.name}</span>
               <ChevronDownIcon
@@ -123,8 +123,8 @@ export default function NavLinks({ isCollapsed }: NavLinksProps) {
                   className={clsx(
                     "rounded-lg transition-all duration-200",
                     isActive
-                      ? "bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10"
-                      : "hover:bg-gradient-to-r hover:from-violet-500/10 hover:to-fuchsia-500/10"
+                      ? "bg-gradient-to-r from-blue-600/10 to-blue-400/10"
+                      : "hover:bg-gradient-to-r hover:from-blue-600/10 hover:to-blue-400/10"
                   )}
                 >
                   <NavLink

@@ -23,10 +23,11 @@ export default function LayoutDashboard({
 }: {
   children: React.ReactNode;
 }) {
+  // State management for sidebar and mobile menu
   const [isSideNavCollapsed, setIsSideNavCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Close mobile menu when screen size changes to sm or larger
+  // Responsive behavior: Close mobile menu on larger screens
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 640) {
@@ -40,9 +41,9 @@ export default function LayoutDashboard({
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Header with Logo */}
+      {/* Header section with logo and title */}
       <div className="flex flex-col lg:flex-row bg-gray-50 border-b border-gray-200">
-        {/* Logo div - matches sidebar width */}
+        {/* Logo container with dynamic width based on sidebar state */}
         <div
           className={clsx(
             "transition-all duration-300 ease-in-out border-r border-gray-50 h-[88px] lg:h-auto",
@@ -55,22 +56,22 @@ export default function LayoutDashboard({
           </div>
         </div>
 
-        {/* Title div - matches main content width */}
+        {/* Title section with blue text color */}
         <div
           className={clsx(
             "flex-1 flex items-center justify-center py-4 lg:py-0",
             fontClasses.robotoMono
           )}
         >
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold text-blue-500">
             Content Management System
           </h1>
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main content area with sidebar and content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Mobile Menu Button */}
+        {/* Mobile menu toggle button */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="fixed bottom-4 right-4 z-50 sm:hidden bg-violet-600 text-white p-3 rounded-full shadow-lg hover:bg-violet-700 transition-colors"
@@ -82,7 +83,7 @@ export default function LayoutDashboard({
           )}
         </button>
 
-        {/* Side Navigation */}
+        {/* Sidebar navigation with responsive behavior */}
         <aside
           className={clsx(
             "transition-all duration-300 ease-in-out border-r border-gray-100",
@@ -98,7 +99,7 @@ export default function LayoutDashboard({
           <SideNav onCollapse={setIsSideNavCollapsed} />
         </aside>
 
-        {/* Overlay for mobile menu */}
+        {/* Mobile menu overlay */}
         {isMobileMenuOpen && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-30 sm:hidden"
@@ -106,7 +107,7 @@ export default function LayoutDashboard({
           />
         )}
 
-        {/* Main Content */}
+        {/* Main content area with scrolling */}
         <main
           className={clsx(
             "flex-1 overflow-y-auto transition-all duration-300",
@@ -117,6 +118,7 @@ export default function LayoutDashboard({
         </main>
       </div>
 
+      {/* Toast notifications configuration */}
       <Toaster
         position="top-right"
         toastOptions={{

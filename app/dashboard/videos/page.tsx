@@ -9,7 +9,7 @@ import VideosSearch from "@/app/components/dashboard/videos/search";
 import VideosGrid from "@/app/components/dashboard/shared/grid/VideosGrid";
 import { Video } from "@/app/lib/definition";
 
-// Interface for video query results
+// Interface for video query results with pagination metadata
 interface VideoResult {
   data: Video[] | null;
   error: string | null;
@@ -40,6 +40,7 @@ export default function VideosPage() {
         searchQuery,
       });
 
+      // Use searchVideos if search query exists, otherwise use getVideos with pagination
       const result = searchQuery
         ? await searchVideos(searchQuery)
         : await getVideos(currentPage, itemsPerPage);

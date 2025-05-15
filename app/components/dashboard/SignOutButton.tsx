@@ -4,29 +4,34 @@ import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { signOutAction } from "@/app/actions/auth";
 
+// Props interface for the SignOutButton component
 interface SignOutButtonProps {
-  isCollapsed?: boolean;
+  isCollapsed?: boolean; // Controls whether the button is in collapsed state
 }
 
 export default function SignOutButton({ isCollapsed }: SignOutButtonProps) {
   return (
     <button
-      onClick={() => signOutAction()}
+      onClick={() => signOutAction()} // Handles user sign out action
       className={clsx(
-        "flex w-full items-center rounded-lg px-3 py-3 text-sm font-medium text-gray-600 hover:text-violet-600 transition-colors hover:bg-gradient-to-r hover:from-violet-500/10 hover:to-fuchsia-500/10",
+        // Base button styles with hover effects
+        "flex w-full items-center rounded-lg px-3 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors hover:bg-gradient-to-r hover:from-blue-600/10 hover:to-blue-400/10",
+        // Conditional layout based on collapse state
         isCollapsed ? "flex-col space-y-1 justify-center" : "justify-start"
       )}
     >
+      {/* Sign out icon with responsive sizing */}
       <ArrowRightOnRectangleIcon
         className={clsx(
           "transition-colors duration-200",
-          isCollapsed ? "h-7 w-7" : "h-5 w-5"
+          isCollapsed ? "h-7 w-7" : "h-5 w-5" // Larger icon in collapsed state
         )}
       />
+      {/* Sign out text with responsive layout */}
       <span
         className={clsx(
           "relative",
-          isCollapsed ? "text-xs text-center w-full truncate px-1" : "ml-3"
+          isCollapsed ? "text-xs text-center w-full truncate px-1" : "ml-3" // Centered text in collapsed state
         )}
       >
         Sign Out
