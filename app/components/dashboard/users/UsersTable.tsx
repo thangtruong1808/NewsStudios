@@ -6,6 +6,7 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 
+// Interface defining the props required for the UsersTable component
 interface UsersTableProps {
   users: User[];
   currentPage: number;
@@ -24,6 +25,7 @@ interface UsersTableProps {
   onItemsPerPageChange: (limit: number) => void;
 }
 
+// Main UsersTable component that renders a data table with user information
 export default function UsersTable({
   users,
   currentPage,
@@ -41,12 +43,15 @@ export default function UsersTable({
   onDelete,
   onItemsPerPageChange,
 }: UsersTableProps) {
+  // Define table columns with their properties and custom render functions
   const columns: Column<User & { sequence?: number; actions?: never }>[] = [
+    // Sequence number column for row numbering
     {
       field: "sequence",
       label: "#",
       sortable: false,
     },
+    // User image column with fallback to initials if no image
     {
       field: "user_image",
       label: "Image",
@@ -62,7 +67,7 @@ export default function UsersTable({
               sizes="(max-width: 40px) 100vw, 40px"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-r from-violet-600 to-fuchsia-600 flex items-center justify-center">
+            <div className="w-full h-full bg-gradient-to-r from-blue-400 to-blue-300 flex items-center justify-center">
               <span className="text-white text-sm font-medium">
                 {user.firstname?.[0]?.toUpperCase()}
                 {user.lastname?.[0]?.toUpperCase()}
@@ -87,6 +92,7 @@ export default function UsersTable({
       label: "Email",
       sortable: true,
     },
+    // Description column with expandable content for long text
     {
       field: "description",
       label: "Description",
@@ -105,6 +111,7 @@ export default function UsersTable({
       label: "Role",
       sortable: true,
     },
+    // Status column with color-coded badges for active/inactive states
     {
       field: "status",
       label: "Status",
@@ -121,6 +128,7 @@ export default function UsersTable({
         </span>
       ),
     },
+    // Created At column with formatted date display
     {
       field: "created_at",
       label: "Created At",
@@ -133,6 +141,7 @@ export default function UsersTable({
         </div>
       ),
     },
+    // Updated At column with formatted date display
     {
       field: "updated_at",
       label: "Updated At",
@@ -145,6 +154,7 @@ export default function UsersTable({
         </div>
       ),
     },
+    // Actions column with Edit and Delete buttons
     {
       field: "actions",
       label: "Actions",
@@ -171,6 +181,7 @@ export default function UsersTable({
     },
   ];
 
+  // Render the table component with all configured columns and data
   return (
     <div className="mt-8">
       <Table

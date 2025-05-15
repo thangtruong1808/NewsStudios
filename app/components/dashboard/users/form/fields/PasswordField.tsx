@@ -41,7 +41,7 @@ export default function PasswordField({
           id="password"
           {...register("password")}
           placeholder={isEditMode ? "Enter new password to change" : "Password"}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2 pr-10"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2 pr-10 text-sm"
         />
         <button
           type="button"

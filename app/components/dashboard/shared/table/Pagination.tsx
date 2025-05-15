@@ -1,5 +1,6 @@
 "use client";
 
+// Interface defining the required props for the Pagination component
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -15,11 +16,13 @@ export default function Pagination({
   totalItems,
   onPageChange,
 }: PaginationProps) {
+  // Calculate the range of items being displayed
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
     <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+      {/* Mobile view pagination controls */}
       <div className="flex flex-1 justify-between sm:hidden">
         <button
           onClick={() => onPageChange(currentPage - 1)}
@@ -36,11 +39,14 @@ export default function Pagination({
           Next
         </button>
       </div>
+
+      {/* Desktop view pagination controls */}
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-center">
         <nav
           className="isolate inline-flex -space-x-px rounded-md shadow-sm"
           aria-label="Pagination"
         >
+          {/* First page button */}
           <button
             onClick={() => onPageChange(1)}
             disabled={currentPage === 1}
@@ -60,6 +66,8 @@ export default function Pagination({
               />
             </svg>
           </button>
+
+          {/* Previous page button */}
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
@@ -79,19 +87,23 @@ export default function Pagination({
               />
             </svg>
           </button>
+
+          {/* Page number buttons */}
           {[...Array(totalPages)].map((_, index) => (
             <button
               key={index + 1}
               onClick={() => onPageChange(index + 1)}
               className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
                 currentPage === index + 1
-                  ? "z-10 bg-indigo-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                  : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                  ? "z-10 bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                  : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-blue-50 hover:text-blue-600 focus:z-20 focus:outline-offset-0"
               }`}
             >
               {index + 1}
             </button>
           ))}
+
+          {/* Next page button */}
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
@@ -111,6 +123,8 @@ export default function Pagination({
               />
             </svg>
           </button>
+
+          {/* Last page button */}
           <button
             onClick={() => onPageChange(totalPages)}
             disabled={currentPage === totalPages}

@@ -1,40 +1,75 @@
 "use client";
 
-import React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import { Suspense } from "react";
 import ResetPasswordForm from "./ResetPasswordForm";
 import { NewspaperIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
+/**
+ * ResetPasswordPage Component
+ * Main reset password page component that handles password reset requests.
+ * Features:
+ * - Email-based password reset
+ * - Form validation
+ * - Error handling
+ * - Responsive layout with gradient styling
+ */
 export default function ResetPasswordPage() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
   return (
     <>
       <div className="bg-white rounded-2xl shadow-xl">
-        <div className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 mb-2 py-7 rounded-t-2xl" />
+        {/* Header section with blue background */}
+        <div className="relative w-full bg-gradient-to-r from-blue-600 to-blue-400 mb-3 py-12 rounded-t-2xl overflow-hidden">
+          {/* Decorative circles */}
+          <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-500 rounded-full opacity-20 blur-2xl" />
+          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-400 rounded-full opacity-20 blur-2xl" />
 
+          {/* Content container */}
+          <div className="relative z-10 flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Reset Password
+              </h1>
+              <p className="text-blue-100">
+                Enter your email to reset your password
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Welcome section with logo and title */}
         <div className="text-center mb-8">
-          <div className="flex flex-col items-center mb-2">
-            <Link
-              href="/"
-              className="text-4xl font-bold text-stone-500 mt-1 italic"
-            >
-              <span className="relative inline-flex items-center">
-                <span className="text-3xl">D</span>
-                <span>aily</span>
-                <span className="text-3xl">T</span>
-                <span>ech</span>
-                <span className="text-3xl">N</span>
-                <span>ews</span>
-              </span>
+          <div className="flex items-center justify-center h-16">
+            {/* Logo and Brand section with hover effects */}
+            <Link href="/" className="flex items-center space-x-3 group">
+              {/* Icon container with gradient background and blur effect */}
+              <div className="relative">
+                {/* Gradient background with hover opacity transition */}
+                <div className="absolute inset-0 rounded-lg blur opacity-20 group-hover:opacity-30 transition-opacity" />
+                <div className="relative p-2 rounded-lg ">
+                  <NewspaperIcon className="h-8 w-8 text-blue-500" />
+                </div>
+              </div>
+              {/* Brand name with blue text color */}
+              <div className="flex items-center">
+                <span className="text-2xl font-bold text-blue-500">
+                  YourNewsHub
+                </span>
+              </div>
             </Link>
           </div>
-          <h1 className="text-2xl font-bold text-stone-500 tracking-tight">
-            Reset Your Password
-          </h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Enter your email and new password to reset your account
-          </p>
         </div>
-        <ResetPasswordForm />
+
+        {/* Reset password form with suspense boundary */}
+        <Suspense fallback={<div>Loading...</div>}>
+          <ResetPasswordForm />
+        </Suspense>
       </div>
     </>
   );

@@ -17,19 +17,27 @@ import {
   StatusField,
   DescriptionField,
 } from "./fields";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { uploadToCloudinary } from "../../../../lib/utils/cloudinaryUtils";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
 
+/**
+ * Props interface for the UserFormFields component
+ * Handles form field registration, validation errors, and form control
+ */
 interface UserFormFieldsProps {
-  register: UseFormRegister<UserFormValues>;
-  errors: FieldErrors<UserFormValues>;
-  isEditMode: boolean;
-  control: Control<UserFormValues>;
-  userId?: number;
+  register: UseFormRegister<UserFormValues>; // Form field registration function
+  errors: FieldErrors<UserFormValues>; // Form validation errors
+  isEditMode: boolean; // Flag to determine if form is in edit mode
+  control: Control<UserFormValues>; // Form control for field watching
+  userId?: number; // Optional user ID for session updates
 }
 
+/**
+ * UserFormFields Component
+ * Renders and manages all form fields for user creation and editing.
+ * Handles image upload, preview, and validation.
+ */
 export default function UserFormFields({
   register,
   errors,
@@ -38,24 +46,30 @@ export default function UserFormFields({
   userId,
 }: UserFormFieldsProps) {
   const { update: updateSession } = useSession();
-  const [showPassword, setShowPassword] = useState(false);
+
+  // State management for form fields
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Watch the user_image field for changes
+  // Watch the user_image field for changes to update preview
   const userImage = useWatch({
     control,
     name: "user_image",
   });
 
-  // Update image preview when user_image changes
+  // Update image preview when user_image field changes
   useEffect(() => {
     if (userImage) {
       setImagePreview(userImage);
     }
   }, [userImage]);
 
+  /**
+   * Handles image file selection, validation, and upload
+   * Includes file type and size validation, preview generation,
+   * and Cloudinary upload integration
+   */
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -91,7 +105,7 @@ export default function UserFormFields({
         return;
       }
 
-      // Update the form value
+      // Update the form value with the uploaded image URL
       const { onChange } = register("user_image");
       onChange({
         target: {
@@ -121,7 +135,9 @@ export default function UserFormFields({
 
   return (
     <div className="space-y-6">
+      {/* Grid layout for form fields */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Image upload field with preview */}
         <ImageField
           register={register}
           errors={errors}
@@ -129,21 +145,27 @@ export default function UserFormFields({
           setImagePreview={setImagePreview}
         />
 
+        {/* Name fields (first name and last name) */}
         <NameFields register={register} errors={errors} />
 
+        {/* Email field with validation */}
         <EmailField register={register} errors={errors} />
 
+        {/* Password field with show/hide functionality */}
         <PasswordField
           register={register}
           errors={errors}
           isEditMode={isEditMode}
         />
 
+        {/* Role selection field */}
         <RoleField register={register} errors={errors} />
 
+        {/* Status selection field */}
         <StatusField register={register} errors={errors} />
       </div>
 
+      {/* Description field (full width) */}
       <DescriptionField register={register} errors={errors} />
     </div>
   );

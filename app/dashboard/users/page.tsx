@@ -28,7 +28,7 @@ export default function UsersPage() {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [totalItems, setTotalItems] = React.useState(0);
 
-  // Table column definitions
+  // Table column configuration for user data display
   const columns = [
     {
       field: "firstname",
@@ -67,6 +67,7 @@ export default function UsersPage() {
     },
   ];
 
+  // Fetch users data based on search query and pagination parameters
   React.useEffect(() => {
     const fetchUsers = async () => {
       setIsLoading(true);
@@ -96,6 +97,7 @@ export default function UsersPage() {
     fetchUsers();
   }, [searchQuery, currentPage, itemsPerPage, sortField, sortDirection]);
 
+  // Handle sorting functionality for table columns
   const handleSort = (field: keyof User) => {
     const params = new URLSearchParams(searchParams);
     const newDirection =
@@ -105,16 +107,19 @@ export default function UsersPage() {
     router.push(`?${params.toString()}`);
   };
 
+  // Handle pagination - navigate to selected page
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
     router.push(`?${params.toString()}`);
   };
 
+  // Navigate to user edit page
   const handleEdit = (user: User) => {
     router.push(`/dashboard/users/${user.id}/edit`);
   };
 
+  // Handle user deletion with confirmation
   const handleDelete = async (user: User) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       setIsDeleting(true);
@@ -129,6 +134,7 @@ export default function UsersPage() {
     }
   };
 
+  // Update items per page and reset to first page
   const handleItemsPerPageChange = (limit: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("limit", limit.toString());
@@ -136,15 +142,17 @@ export default function UsersPage() {
     router.push(`?${params.toString()}`);
   };
 
+  // Calculate total number of pages for pagination
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
+  // Check if there are any users to display
   const hasUsers = users.length > 0;
 
   return (
     <div className="">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Users List</h1>
+          <h1 className="text-2xl font-semibold text-blue-600">Users List</h1>
           <p className="mt-1 text-sm text-gray-500">
             Manage, organize, and assign users to articles for better content
             attribution and collaboration.
@@ -153,7 +161,7 @@ export default function UsersPage() {
 
         <Link
           href="/dashboard/users/create"
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-violet-700 hover:to-fuchsia-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 justify-center items-center"
+          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-blue-700 hover:to-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 justify-center items-center"
         >
           <PlusIcon className="h-5 mr-2" />
           <span>Create User</span>

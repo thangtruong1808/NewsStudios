@@ -67,7 +67,7 @@ export default function LoginForm() {
       if (result.success) {
         // Set complete user data in context
         console.log("Setting user context with data:", result.user);
-        setUser(result.user);
+        setUser({ ...result.user, password: "" });
 
         toast.success("Logged in successfully!");
         router.push("/dashboard");
@@ -95,7 +95,7 @@ export default function LoginForm() {
             value={formData.email}
             onChange={handleChange}
             error={formErrors.email}
-            placeholder="you@example.com"
+            placeholder="name@example.com"
             icon={
               <AtSymbolIcon
                 className="h-5 w-5 text-gray-400"
@@ -130,26 +130,10 @@ export default function LoginForm() {
         <ErrorMessage message={errorMessage} />
 
         <div className="flex justify-end">
-          {/* Remember me Section */}
-          {/* <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-            />
-            <label
-              htmlFor="remember-me"
-              className="ml-2 block text-sm text-gray-700"
-            >
-              Remember me
-            </label>
-          </div> */}
-
           <div className="text-sm">
             <Link
               href="/login/reset-password"
-              className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200"
+              className="font-medium text-blue-400 hover:text-blue-600 transition-colors duration-200"
             >
               Forgot your password?
             </Link>
@@ -162,7 +146,7 @@ export default function LoginForm() {
         <div className="flex flex-col items-start py-4">
           <p>
             <label
-              className="block text-gray-500 font-small mb-2"
+              className="block text-gray-500 text-sm mb-2"
               htmlFor="username"
             >
               Username:<span className="px-3">user@nextmail.com</span>
@@ -170,22 +154,13 @@ export default function LoginForm() {
           </p>
           <p>
             <label
-              className="block text-gray-500 font-small mb-2"
+              className="block text-gray-500 text-sm mb-2"
               htmlFor="password"
             >
               Password:<span className="px-3">25Thang!@</span>
             </label>
           </p>
         </div>
-        {/* <div className="text-center text-sm text-gray-600">
-          Don't have an account?{" "}
-          <Link
-            href="/register"
-            className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200"
-          >
-            Sign up
-          </Link>
-        </div> */}
       </form>
     </div>
   );
