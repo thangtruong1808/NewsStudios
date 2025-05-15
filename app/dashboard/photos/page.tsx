@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getImages, searchImages } from "@/app/lib/actions/images";
 import { toast } from "react-hot-toast";
@@ -14,15 +14,21 @@ interface ImageRow {
   article_id: number | null;
   image_url: string;
   description: string | null;
+  type: "banner" | "video" | "thumbnail" | "gallery";
+  entity_type: "advertisement" | "article" | "author" | "category";
+  entity_id: number;
+  is_featured: boolean;
+  display_order: number;
   created_at: Date;
   updated_at: Date;
+  article_title?: string;
 }
 
 interface PaginatedResult {
   data: ImageRow[];
   error: string | null;
   pagination: {
-    totalItems: number;
+    total: number;
     totalPages: number;
     currentPage: number;
     itemsPerPage: number;
@@ -31,6 +37,13 @@ interface PaginatedResult {
 
 // Use static rendering by default, but revalidate every 60 seconds
 export const revalidate = 60;
+
+// Move the function outside the component
+const convertImageRowToImage = (row: ImageRow): Image => ({
+  ...row,
+  created_at: row.created_at.toISOString(),
+  updated_at: row.updated_at.toISOString(),
+});
 
 export default function PhotosPage() {
   const router = useRouter();
@@ -44,66 +57,96 @@ export default function PhotosPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [hasMore, setHasMore] = useState(true);
 
-  const convertImageRowToImage = (row: ImageRow): Image => ({
-    ...row,
-    created_at: row.created_at.toISOString(),
-    updated_at: row.updated_at.toISOString(),
-  });
+  // Memoize the fetchPhotos function
+  const fetchPhotos = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      console.log("Fetching photos with params:", {
+        currentPage,
+        itemsPerPage,
+        searchQuery,
+      });
 
-  useEffect(() => {
-    const fetchPhotos = async () => {
-      setIsLoading(true);
-      try {
-        const result = searchQuery
-          ? await searchImages(searchQuery)
-          : await getImages(undefined, currentPage, itemsPerPage);
+      const result = searchQuery
+        ? await searchImages(searchQuery)
+        : await getImages(currentPage, itemsPerPage);
 
-        if (result.error) {
-          toast.error(result.error);
-          return;
+      console.log("Received result:", {
+        hasError: !!result.error,
+        dataLength: result.data?.length,
+        firstItem: result.data?.[0],
+        pagination: result.pagination,
+      });
+
+      if (result.error) {
+        toast.error(result.error);
+        if (currentPage === 1) {
+          setPhotos([]);
+          setTotalItems(0);
         }
+        setHasMore(false);
+        return;
+      }
 
-        const paginatedResult = result as PaginatedResult;
-        const convertedPhotos = paginatedResult.data.map(
-          convertImageRowToImage
-        );
+      const paginatedResult = result as PaginatedResult;
+      const convertedPhotos = paginatedResult.data.map(convertImageRowToImage);
 
+      console.log("Converted photos:", {
+        count: convertedPhotos.length,
+        firstPhoto: convertedPhotos[0],
+      });
+
+      // Only update state if we have photos or it's the first page
+      if (convertedPhotos.length > 0 || currentPage === 1) {
         if (currentPage === 1) {
           setPhotos(convertedPhotos);
         } else {
           setPhotos((prev) => [...prev, ...convertedPhotos]);
         }
-
-        setTotalItems(paginatedResult.pagination.totalItems);
+        setTotalItems(paginatedResult.pagination.total);
         setHasMore(
-          paginatedResult.pagination.totalItems > currentPage * itemsPerPage
+          paginatedResult.pagination.total > currentPage * itemsPerPage
         );
-      } catch (error) {
-        console.error("Error fetching photos:", error);
-        toast.error("Failed to fetch photos");
-      } finally {
-        setIsLoading(false);
+      } else {
+        setHasMore(false);
       }
-    };
-
-    fetchPhotos();
+    } catch (error) {
+      console.error("Error fetching photos:", error);
+      toast.error("Failed to fetch photos");
+      if (currentPage === 1) {
+        setPhotos([]);
+        setTotalItems(0);
+      }
+      setHasMore(false);
+    } finally {
+      setIsLoading(false);
+    }
   }, [currentPage, itemsPerPage, searchQuery]);
 
-  const handleSearch = (term: string) => {
+  useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      await fetchPhotos();
+    };
+    fetchData();
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchPhotos]);
+
+  const handleSearch = useCallback((term: string) => {
     setSearchQuery(term);
     setCurrentPage(1);
-    setPhotos([]);
-  };
+  }, []);
 
-  const handleClearSearch = () => {
+  const handleClearSearch = useCallback(() => {
     setSearchQuery("");
     setCurrentPage(1);
-    setPhotos([]);
-  };
+  }, []);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     setCurrentPage((prev) => prev + 1);
-  };
+  }, []);
 
   const handleEdit = (photo: Image) => {
     router.push(`/dashboard/photos/${photo.id}/edit`);
@@ -139,7 +182,7 @@ export default function PhotosPage() {
       <PhotosSearch onSearch={handleSearch} />
       <div className="mt-4">
         <p className="text-sm text-gray-500 mb-4">Total Photos: {totalItems}</p>
-        {photos.length === 0 && !isLoading ? (
+        {photos.length === 0 && !isLoading && totalItems === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 mb-2">
               <svg
@@ -167,22 +210,25 @@ export default function PhotosPage() {
             </p>
           </div>
         ) : (
-          <PhotosGrid
-            photos={photos}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            isLoading={isLoading}
-          />
-        )}
-        {hasMore && !isLoading && photos.length > 0 && (
-          <div className="mt-8 flex justify-center">
-            <button
-              onClick={handleLoadMore}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Load More
-            </button>
-          </div>
+          <>
+            <PhotosGrid
+              photos={photos}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              isLoading={isLoading}
+            />
+            {hasMore && !isLoading && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? "Loading..." : "Load More"}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

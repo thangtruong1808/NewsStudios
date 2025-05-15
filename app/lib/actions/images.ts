@@ -171,23 +171,6 @@ export async function getImages(
   searchQuery: string = ""
 ) {
   try {
-    // First check if there are any images
-    const countResult = await query("SELECT COUNT(*) as total FROM Images");
-    console.log("Total images in database:", countResult.data?.[0]?.total);
-
-    if (!countResult.data?.[0]?.total) {
-      return {
-        data: [],
-        error: null,
-        pagination: {
-          total: 0,
-          totalPages: 0,
-          currentPage: page,
-          itemsPerPage: limit,
-        },
-      };
-    }
-
     // Build the query with search
     let queryStr = `
       SELECT 
@@ -203,7 +186,8 @@ export async function getImages(
         i.created_at,
         i.updated_at,
         a.title as article_title,
-        a.slug as article_slug
+        a.slug as article_slug,
+        COUNT(*) OVER() as total_count
       FROM Images i
       LEFT JOIN Articles a ON i.article_id = a.id
       WHERE 1=1
@@ -229,10 +213,11 @@ export async function getImages(
     });
 
     const result = await query(queryStr, queryParams);
-    console.log("Query result:", {
+    console.log("Raw query result:", {
       success: !result.error,
       dataLength: result.data?.length,
       firstItem: result.data?.[0],
+      error: result.error,
     });
 
     if (result.error) {
@@ -249,18 +234,9 @@ export async function getImages(
       };
     }
 
-    // Get total count for pagination
-    const totalResult = await query(
-      `SELECT COUNT(*) as total FROM Images i
-       LEFT JOIN Articles a ON i.article_id = a.id
-       WHERE 1=1 ${
-         searchQuery ? "AND (i.description LIKE ? OR a.title LIKE ?)" : ""
-       }`,
-      searchQuery ? [`%${searchQuery}%`, `%${searchQuery}%`] : []
-    );
-
-    const total = totalResult.data?.[0]?.total || 0;
-    console.log("Total count for pagination:", total);
+    // Get total count from the first row
+    const total = result.data?.[0]?.total_count || 0;
+    console.log("Total count from query:", total);
 
     // Process images to ensure they have proper URLs
     const processedImages = result.data?.map((img: any) => {
@@ -285,7 +261,7 @@ export async function getImages(
       };
     });
 
-    console.log("Processed images:", {
+    console.log("Final processed images:", {
       count: processedImages?.length,
       firstImage: processedImages?.[0],
     });
@@ -499,9 +475,9 @@ export async function searchImages(searchQuery: string) {
         a.slug as article_slug
        FROM Images i
        LEFT JOIN Articles a ON i.article_id = a.id
-       WHERE a.title LIKE ?
+       WHERE i.description LIKE ? OR a.title LIKE ?
        ORDER BY i.created_at DESC`,
-      [`%${searchQuery}%`]
+      [`%${searchQuery}%`, `%${searchQuery}%`]
     );
 
     if (result.error) {

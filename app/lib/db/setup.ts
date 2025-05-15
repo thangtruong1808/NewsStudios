@@ -194,7 +194,8 @@ export async function setupDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_entity (entity_type, entity_id),
         INDEX idx_type (type),
-        INDEX idx_article (article_id)
+        INDEX idx_article (article_id),
+        FOREIGN KEY (article_id) REFERENCES Articles(id) ON DELETE SET NULL
       )
     `);
 

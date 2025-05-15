@@ -42,13 +42,13 @@ export default function PhotosGrid({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {[...Array(12)].map((_, index) => (
           <div
             key={index}
             className="group relative bg-white rounded-lg shadow-sm overflow-hidden"
           >
-            <div className="relative aspect-square">
+            <div className="relative aspect-[4/3]">
               <div className="w-full h-full bg-gray-200 animate-pulse" />
             </div>
             <div className="p-3 space-y-2">
@@ -63,13 +63,13 @@ export default function PhotosGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
       {photos.map((photo) => (
         <div
           key={photo.id}
           className="group relative bg-white rounded-lg shadow-sm overflow-hidden"
         >
-          <div className="relative aspect-square">
+          <div className="relative aspect-[4/3]">
             {photo.image_url ? (
               <div className="w-full h-full relative">
                 <NextImage
