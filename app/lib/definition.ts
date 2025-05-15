@@ -144,6 +144,7 @@ export interface Video {
   description?: string;
   created_at: string;
   updated_at: string;
+  article_title?: string;
 }
 
 export interface Tag {

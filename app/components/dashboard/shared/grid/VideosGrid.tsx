@@ -97,41 +97,45 @@ export default function VideosGrid({
             </div>
 
             {/* Hover overlay with action buttons */}
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
-              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <button
-                  onClick={() => onEdit(video)}
-                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors"
-                  title="Edit"
-                >
-                  <PencilIcon className="w-4 h-4 text-gray-600" />
-                </button>
-                <button
-                  onClick={() => handleDelete(video)}
-                  disabled={isDeleting}
-                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors"
-                  title="Delete"
-                >
-                  <TrashIcon className="w-4 h-4 text-red-600" />
-                </button>
-              </div>
+            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <button
+                onClick={() => onEdit(video)}
+                className="p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors"
+                title="Edit"
+              >
+                <PencilIcon className="w-4 h-4 text-gray-600" />
+              </button>
+              <button
+                onClick={() => handleDelete(video)}
+                disabled={isDeleting}
+                className="p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors"
+                title="Delete"
+              >
+                <TrashIcon className="w-4 h-4 text-red-600" />
+              </button>
             </div>
           </div>
 
           {/* Video metadata section */}
           <div className="p-3">
             {video.article_id && (
-              <div className="text-sm text-gray-600 mb-1">
+              <div className="text-xs font-medium text-gray-700 mb-1">
                 <span className="font-medium">Article ID:</span>{" "}
                 {video.article_id}
               </div>
             )}
-            {video.description && (
-              <p className="text-sm text-gray-700 mb-1 line-clamp-2">
+            {video.article_title && (
+              <div className="text-xs font-medium text-gray-700 mb-1">
+                <span className="font-medium">Article Title:</span>{" "}
+                {video.article_title}
+              </div>
+            )}
+            {/* {video.description && (
+              <p className="text-xs text-gray-500 mb-1 line-clamp-2">
                 <span className="font-medium">Description:</span>{" "}
                 {video.description}
               </p>
-            )}
+            )} */}
             <p className="text-xs text-gray-500 flex items-center gap-1">
               <ClockIcon className="w-3 h-3" />
               Updated: {new Date(video.updated_at).toLocaleDateString()}

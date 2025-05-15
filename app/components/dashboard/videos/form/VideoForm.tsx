@@ -7,29 +7,55 @@ import { createVideo, updateVideo } from "@/app/lib/actions/videos";
 import { Video } from "@/app/lib/definition";
 import VideoUpload from "./fields/VideoUpload";
 import ArticleSelect from "./fields/ArticleSelect";
-import { DescriptionField } from "./fields/DescriptionField";
+import DescriptionField from "./fields/DescriptionField";
 
+/**
+ * Props interface for VideoForm component
+ * @property video - Optional video data for edit mode
+ * @property mode - Form mode: "create" or "edit"
+ */
 interface VideoFormProps {
   video?: Video;
   mode: "create" | "edit";
 }
 
+/**
+ * VideoForm Component
+ * A form component for creating and editing videos with features for:
+ * - Video file upload handling
+ * - Article association
+ * - Description management
+ * - Form state tracking
+ * - Error handling with toast notifications
+ * - Responsive layout with consistent styling
+ */
 export default function VideoForm({ video, mode }: VideoFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    article_id: video?.article_id || null,
+    article_id: video?.article_id || 0,
     video_url: video?.video_url || "",
     description: video?.description || "",
   });
 
+  // Check if form is empty
+  const isFormEmpty = !formData.video_url.trim();
+
+  /**
+   * Form submission handler
+   * Processes form data for both create and edit modes
+   * Handles success/error notifications and navigation
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
       if (mode === "create") {
-        const result = await createVideo(formData);
+        const result = await createVideo({
+          ...formData,
+          article_id: formData.article_id || 0,
+        });
         if (result.error) {
           throw new Error(result.error);
         }
@@ -56,13 +82,15 @@ export default function VideoForm({ video, mode }: VideoFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
+        {/* Article selection field */}
         <ArticleSelect
           value={formData.article_id}
           onChange={(value) =>
-            setFormData((prev) => ({ ...prev, article_id: value }))
+            setFormData((prev) => ({ ...prev, article_id: value || 0 }))
           }
         />
 
+        {/* Video upload field */}
         <VideoUpload
           value={formData.video_url}
           onChange={(url) =>
@@ -70,6 +98,7 @@ export default function VideoForm({ video, mode }: VideoFormProps) {
           }
         />
 
+        {/* Description field */}
         <DescriptionField
           value={formData.description}
           onChange={(value) =>
@@ -78,18 +107,19 @@ export default function VideoForm({ video, mode }: VideoFormProps) {
         />
       </div>
 
+      {/* Form action buttons */}
       <div className="flex justify-end space-x-3">
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           Cancel
         </button>
         <button
           type="submit"
-          disabled={isSubmitting}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isSubmitting || (!mode.includes("edit") && isFormEmpty)}
+          className="inline-flex justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-600 to-blue-400 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting
             ? "Saving..."

@@ -5,7 +5,7 @@ interface FormHeaderProps {
 }
 
 const FormHeader: React.FC<FormHeaderProps> = ({ isEdit }) => (
-  <div className="px-6 pt-6 pb-2 border-b border-gray-100 bg-gradient-to-r from-violet-600 to-fuchsia-600">
+  <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-blue-400">
     <h2 className="text-xl font-semibold text-white">
       {isEdit ? "Edit Article" : "Create New Article"}
     </h2>

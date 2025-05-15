@@ -74,7 +74,7 @@ export default function LayoutDashboard({
         {/* Mobile menu toggle button */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="fixed bottom-4 right-4 z-50 sm:hidden bg-violet-600 text-white p-3 rounded-full shadow-lg hover:bg-violet-700 transition-colors"
+          className="fixed bottom-4 right-4 z-50 sm:hidden bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 transition-colors"
         >
           {isMobileMenuOpen ? (
             <XMarkIcon className="h-6 w-6" />

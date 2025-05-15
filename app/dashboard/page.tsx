@@ -30,11 +30,11 @@ function StatCard({
   trend?: string;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
+    <div className="bg-blue-100 rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-600">{title}</p>
-          <p className="text-2xl font-bold mt-1">{value}</p>
+          <p className="text-2xl font-medium mt-1">{value}</p>
           {trend && (
             <p className="text-sm text-green-600 mt-1 flex items-center">
               <FireIcon className="h-4 w-4 mr-1" />
@@ -55,7 +55,7 @@ export default function DashboardPage() {
     <Suspense fallback={<Loading />}>
       <div className="">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-zinc-600 to-indigo-200 rounded-xl p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-400 rounded-xl p-6 text-white">
           <h1 className="text-3xl font-bold">Welcome back!</h1>
           <p className="mt-2 text-blue-100">
             Here's what's happening with your content today.
@@ -63,7 +63,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-8">
           <StatCard
             title="Total Views"
             value="2,543"
@@ -81,7 +81,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Trending Section */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 my-8">
           <h2 className="text-xl font-bold mb-4 flex items-center">
             <FireIcon className="h-5 w-5 text-orange-500 mr-2" />
             Trending Now
@@ -90,7 +90,7 @@ export default function DashboardPage() {
             {[1, 2, 3].map((item) => (
               <div
                 key={item}
-                className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <div className="flex-1">
                   <h3 className="font-medium">Trending Article {item}</h3>

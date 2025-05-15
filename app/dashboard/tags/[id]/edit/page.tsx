@@ -1,27 +1,58 @@
-import { getTagById } from "../../../../lib/actions/tags";
+"use client";
+
+import { notFound, useParams } from "next/navigation";
 import TagForm from "../../../../components/dashboard/tags/form/TagForm";
-import { Tag } from "../../../../lib/definition";
+import { getTagById } from "../../../../lib/actions/tags";
+import { useEffect, useState } from "react";
 
-interface EditTagPageProps {
-  params: {
-    id: string;
-  };
-}
+export default function EditTagPage() {
+  const params = useParams();
+  const tagId = params.id as string;
+  const [tag, setTag] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default async function EditTagPage({ params }: EditTagPageProps) {
-  const { id } = params;
-  const result = await getTagById(Number(id));
+  useEffect(() => {
+    const fetchTag = async () => {
+      try {
+        const { data, error } = await getTagById(parseInt(tagId));
+        if (error) {
+          setError(error);
+          return;
+        }
+        if (data) {
+          setTag(data);
+        } else {
+          setError("Tag not found");
+        }
+      } catch (err) {
+        setError("Failed to fetch tag data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  if (result.error) {
+    fetchTag();
+  }, [tagId]);
+
+  if (isLoading) {
     return (
-      <div className="rounded-md bg-red-50 p-4">
-        <div className="flex">
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
-              Error loading tag
-            </h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{result.error}</p>
+      <div className="flex items-center justify-center p-6">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="rounded-md bg-red-50 p-4">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -30,9 +61,12 @@ export default async function EditTagPage({ params }: EditTagPageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6"></div>
-      <TagForm tag={result.data} isEditMode tagId={Number(id)} />
+    <div className="mx-auto max-w-4xl px-4 py-2">
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-4">
+          <TagForm tag={tag} isEditMode={true} tagId={parseInt(tagId)} />
+        </div>
+      </div>
     </div>
   );
 }

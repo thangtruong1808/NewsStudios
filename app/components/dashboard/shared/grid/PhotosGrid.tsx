@@ -137,25 +137,25 @@ export default function PhotosGrid({
           </div>
 
           {/* Photo metadata section */}
-          <div className="p-3">
+          <div className="p-3 space-y-1">
             {photo.article_id && (
-              <div className="text-sm text-gray-600 mb-1">
+              <div className="text-xs">
                 <span className="font-medium">Article ID:</span>{" "}
-                {photo.article_id}
+                <span className="text-gray-500">{photo.article_id}</span>
               </div>
             )}
             {photo.article_title && (
-              <div className="text-sm text-gray-600 mb-1">
-                <span className="font-medium">Article:</span>{" "}
-                {photo.article_title}
+              <div className="text-xs">
+                <span className="font-medium">Article Title:</span>{" "}
+                <span className="text-gray-500">{photo.article_title}</span>
               </div>
             )}
-            {photo.description && (
-              <p className="text-sm text-gray-700 mb-1 line-clamp-2">
+            {/* {photo.description && (
+              <p className="text-xs line-clamp-2">
                 <span className="font-medium">Description:</span>{" "}
-                {photo.description}
+                <span className="text-gray-500">{photo.description}</span>
               </p>
-            )}
+            )} */}
             <p className="text-xs text-gray-500 flex items-center gap-1">
               <ClockIcon className="w-3 h-3" />
               Updated: {new Date(photo.updated_at).toLocaleDateString()}

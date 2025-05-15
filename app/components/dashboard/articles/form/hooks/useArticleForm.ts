@@ -61,7 +61,7 @@ export function useArticleForm({
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid, isDirty },
     setValue,
     watch,
     control,
@@ -81,6 +81,7 @@ export function useArticleForm({
       is_trending: article?.is_trending || false,
       tag_ids: article?.tag_ids || [],
     },
+    mode: "onChange",
   });
 
   useEffect(() => {
@@ -250,6 +251,9 @@ export function useArticleForm({
     }
   };
 
+  const formValues = watch();
+  const isFormEmpty = !formValues.title.trim() || !formValues.content.trim();
+
   return {
     register,
     handleSubmit,
@@ -268,5 +272,7 @@ export function useArticleForm({
     handleFileUpload,
     handleCategoryChange,
     onSubmit,
+    isFormEmpty,
+    isEditMode: !!article,
   };
 }

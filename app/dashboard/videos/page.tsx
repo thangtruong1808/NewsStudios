@@ -9,7 +9,13 @@ import VideosSearch from "@/app/components/dashboard/videos/search";
 import VideosGrid from "@/app/components/dashboard/shared/grid/VideosGrid";
 import { Video } from "@/app/lib/definition";
 
-// Interface for video query results with pagination metadata
+/**
+ * Interface for video query results with pagination metadata
+ * @property data - Array of video objects or null
+ * @property error - Error message or null
+ * @property totalItems - Total number of videos
+ * @property totalPages - Total number of pages
+ */
 interface VideoResult {
   data: Video[] | null;
   error: string | null;
@@ -17,6 +23,16 @@ interface VideoResult {
   totalPages?: number;
 }
 
+/**
+ * VideosPage Component
+ * Main page for managing videos with features for:
+ * - Pagination and infinite scroll
+ * - Search functionality
+ * - Video grid display
+ * - CRUD operations
+ * - Loading states
+ * - Error handling with toast notifications
+ */
 export default function VideosPage() {
   const router = useRouter();
 
@@ -30,7 +46,11 @@ export default function VideosPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [hasMore, setHasMore] = useState(true);
 
-  // Fetch videos with pagination and search support
+  /**
+   * Fetch videos with pagination and search support
+   * Handles both initial load and infinite scroll
+   * Manages loading states and error handling
+   */
   const fetchVideos = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -90,7 +110,10 @@ export default function VideosPage() {
     }
   }, [currentPage, itemsPerPage, searchQuery]);
 
-  // Initialize and cleanup video fetching
+  /**
+   * Initialize and cleanup video fetching
+   * Handles component mount/unmount lifecycle
+   */
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
@@ -102,23 +125,35 @@ export default function VideosPage() {
     };
   }, [fetchVideos]);
 
-  // Handle search functionality
+  /**
+   * Handle search functionality
+   * Resets pagination and triggers new search
+   */
   const handleSearch = useCallback((term: string) => {
     setSearchQuery(term);
     setCurrentPage(1);
   }, []);
 
-  // Load more videos for pagination
+  /**
+   * Load more videos for pagination
+   * Increments current page to trigger fetch of next batch
+   */
   const handleLoadMore = useCallback(() => {
     setCurrentPage((prev) => prev + 1);
   }, []);
 
-  // Navigate to edit page for a specific video
+  /**
+   * Navigate to edit page for a specific video
+   * Routes to the edit form with video ID
+   */
   const handleEdit = (video: Video) => {
     router.push(`/dashboard/videos/${video.id}/edit`);
   };
 
-  // Delete video with confirmation
+  /**
+   * Delete video with confirmation
+   * Handles API call, state updates, and error handling
+   */
   const handleDelete = async (video: Video) => {
     if (!confirm("Are you sure you want to delete this video?")) return;
 
@@ -199,7 +234,7 @@ export default function VideosPage() {
                 <button
                   onClick={handleLoadMore}
                   disabled={isLoading}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-600 to-blue-400 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? "Loading..." : "Load More"}
                 </button>

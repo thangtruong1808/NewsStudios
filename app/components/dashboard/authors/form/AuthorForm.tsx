@@ -9,10 +9,31 @@ import { createAuthor, updateAuthor } from "@/app/lib/actions/authors";
 import toast from "react-hot-toast";
 import { AuthorFormFields } from "./fields";
 
+// Form data type that matches the schema
+type AuthorFormData = {
+  name: string;
+  description?: string;
+  bio?: string;
+};
+
+/**
+ * Props interface for the AuthorForm component
+ * @property author - Optional author data for edit mode
+ */
 interface AuthorFormProps {
   author?: Author;
 }
 
+/**
+ * AuthorForm Component
+ * A form component for creating and editing authors with validation and error handling.
+ * Features:
+ * - Form validation using react-hook-form and zod
+ * - Create and edit mode support
+ * - Real-time validation
+ * - Error handling with toast notifications
+ * - Responsive layout with gradient styling
+ */
 export default function AuthorForm({ author }: AuthorFormProps) {
   const router = useRouter();
   const isEditMode = !!author;
@@ -23,7 +44,8 @@ export default function AuthorForm({ author }: AuthorFormProps) {
     handleSubmit,
     formState: { errors, isSubmitting },
     control,
-  } = useForm({
+    watch,
+  } = useForm<AuthorFormData>({
     resolver: zodResolver(authorSchema),
     defaultValues: author || {
       name: "",
@@ -32,7 +54,15 @@ export default function AuthorForm({ author }: AuthorFormProps) {
     },
   });
 
-  // Handle form submission
+  // Watch form values for button disable state
+  const formValues = watch();
+  const isFormEmpty = !formValues.name.trim();
+
+  /**
+   * Form submission handler
+   * Processes form data for both create and edit modes
+   * Handles success/error notifications and navigation
+   */
   const onSubmit = async (data: any) => {
     try {
       if (isEditMode && author) {
@@ -52,7 +82,8 @@ export default function AuthorForm({ author }: AuthorFormProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="px-6 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600">
+      {/* Form header with gradient background */}
+      <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
         <h2 className="text-lg font-medium text-white">
           {isEditMode ? "Edit Author" : "Create Author"}
         </h2>
@@ -63,11 +94,13 @@ export default function AuthorForm({ author }: AuthorFormProps) {
         </p>
       </div>
 
+      {/* Main form content */}
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-        <p className="text-sm text-gray-500">
+        <p className="text-xs text-gray-500">
           Fields marked with an asterisk (*) are required
         </p>
 
+        {/* Form fields component with validation */}
         <AuthorFormFields
           register={register}
           errors={errors}
@@ -75,19 +108,19 @@ export default function AuthorForm({ author }: AuthorFormProps) {
           isEditMode={isEditMode}
         />
 
-        {/* Form actions */}
+        {/* Form action buttons */}
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
           <button
             type="button"
             onClick={() => router.back()}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Cancel
           </button>
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="inline-flex justify-center rounded-md border border-transparent bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-violet-700 hover:to-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 disabled:opacity-50"
+            disabled={isSubmitting || (!isEditMode && isFormEmpty)}
+            className="inline-flex justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-600 to-blue-400 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting
               ? "Saving..."

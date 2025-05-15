@@ -36,10 +36,16 @@ export default function SubcategoryForm({
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting: formIsSubmitting },
+    watch,
   } = useForm<SubcategoryFormData>({
     resolver: zodResolver(subcategorySchema),
   });
+
+  // Watch form values to determine if form is empty
+  const formValues = watch();
+  const isFormEmpty =
+    !formValues.name && !formValues.description && !formValues.category_id;
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -133,7 +139,7 @@ export default function SubcategoryForm({
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="px-6 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600">
+      <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
         <h2 className="text-xl font-semibold text-white">
           {subcategoryId ? "Edit Subcategory" : "Create New Subcategory"}
         </h2>
@@ -141,7 +147,7 @@ export default function SubcategoryForm({
 
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
         {/* Required Fields Note */}
-        <p className="text-sm text-gray-500">
+        <p className="text-xs text-gray-500">
           Fields marked with an asterisk (*) are required
         </p>
 
@@ -151,38 +157,42 @@ export default function SubcategoryForm({
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="space-y-4">
+          <NameField
+            register={register}
+            errors={errors}
+            placeholder="Enter subcategory name"
+          />
+          <DescriptionField
+            register={register}
+            errors={errors}
+            placeholder="Enter subcategory description"
+          />
           <CategoryField
             register={register}
             errors={errors}
             categories={categories}
           />
-          <NameField register={register} errors={errors} />
-          <DescriptionField register={register} errors={errors} />
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+        <div className="flex justify-end gap-4">
           <button
             type="button"
-            onClick={() => router.push("/dashboard/subcategories")}
-            className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
+            onClick={() => router.back()}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <XMarkIcon className="h-4 w-4" />
             Cancel
           </button>
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="inline-flex items-center gap-1 rounded-md border border-transparent bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500 disabled:opacity-50"
+            disabled={formIsSubmitting || isFormEmpty}
+            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-400 border border-transparent rounded-md hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? (
-              "Processing..."
-            ) : (
-              <>
-                <CheckIcon className="h-4 w-4" />
-                Submit
-              </>
-            )}
+            {formIsSubmitting
+              ? "Processing..."
+              : subcategoryId
+              ? "Update Subcategory"
+              : "Create Subcategory"}
           </button>
         </div>
       </form>

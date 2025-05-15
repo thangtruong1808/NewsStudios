@@ -17,10 +17,24 @@ import { Category } from "../../../lib/definition";
 import toast from "react-hot-toast";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
+/**
+ * Props interface for CategoryForm component
+ * @property {string} [categoryId] - Optional ID for editing existing category
+ */
 interface CategoryFormProps {
   categoryId?: string;
 }
 
+/**
+ * CategoryForm Component
+ * Handles both creation and editing of categories with form validation and error handling.
+ * Features:
+ * - Form state management with React Hook Form
+ * - Zod schema validation
+ * - Dynamic loading of existing category data
+ * - Error handling and toast notifications
+ * - Responsive form layout with gradient styling
+ */
 export default function CategoryForm({ categoryId }: CategoryFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,15 +42,26 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
   const [category, setCategory] = useState<Category | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Initialize form with React Hook Form and Zod validation
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     reset,
+    watch,
   } = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
+    mode: "onChange",
   });
 
+  // Watch form values to determine if form is empty
+  const formValues = watch();
+  const isFormEmpty = !formValues.name && !formValues.description;
+
+  /**
+   * Fetch existing category data when in edit mode
+   * Handles error cases and redirects on failure
+   */
   useEffect(() => {
     const fetchCategory = async () => {
       if (categoryId) {
@@ -82,6 +107,10 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
     fetchCategory();
   }, [categoryId, reset, router]);
 
+  /**
+   * Handle form submission for both create and update operations
+   * Includes validation, error handling, and success notifications
+   */
   const onSubmit = async (data: CategoryFormData) => {
     try {
       setIsSubmitting(true);
@@ -123,21 +152,22 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
     }
   };
 
+  // Show loading state while fetching category data
   if (categoryId && isLoading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="px-6 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600">
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      {/* Form header with gradient background */}
+      <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
         <h2 className="text-xl font-semibold text-white">
           {categoryId ? "Edit Category" : "Create New Category"}
         </h2>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-        {/* Required Fields Note */}
-        <p className="text-sm text-gray-500">
+        <p className="text-xs text-gray-500">
           Fields marked with an asterisk (*) are required
         </p>
 
@@ -147,7 +177,7 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="space-y-6">
           <div>
             <label
               htmlFor="name"
@@ -159,7 +189,8 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
               type="text"
               id="name"
               {...register("name")}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+              placeholder="Enter category name"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2 text-sm"
             />
             {errors.name && (
               <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -172,13 +203,14 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
               className="block text-sm font-medium text-gray-700"
             >
               Description{" "}
-              <span className="text-sm text-gray-400">(optional)</span>
+              <span className="text-xs text-gray-500">(optional)</span>
             </label>
             <textarea
               id="description"
               {...register("description")}
-              rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+              placeholder="Enter category description"
+              rows={8}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2 text-sm"
             />
             {errors.description && (
               <p className="mt-1 text-sm text-red-600">
@@ -188,28 +220,24 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+        <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
           <button
             type="button"
             onClick={() => router.push("/dashboard/categories")}
-            className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <XMarkIcon className="h-4 w-4" />
             Cancel
           </button>
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="inline-flex items-center gap-1 rounded-md border border-transparent bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500 disabled:opacity-50"
+            disabled={isSubmitting || isFormEmpty}
+            className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-400 border border-transparent rounded-md shadow-sm hover:from-blue-700 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? (
-              "Processing..."
-            ) : (
-              <>
-                <CheckIcon className="h-4 w-4" />
-                Submit
-              </>
-            )}
+            {isSubmitting
+              ? "Processing..."
+              : categoryId
+              ? "Update Category"
+              : "Create Category"}
           </button>
         </div>
       </form>

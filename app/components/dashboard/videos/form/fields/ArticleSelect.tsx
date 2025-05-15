@@ -1,60 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { getArticles } from "@/app/lib/actions/articles";
 import { Article } from "@/app/lib/definition";
 
 interface ArticleSelectProps {
-  value: number | null;
-  onChange: (value: number | null) => void;
+  value: number;
+  onChange: (value: number) => void;
 }
 
 export default function ArticleSelect({ value, onChange }: ArticleSelectProps) {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchArticles = async () => {
-      try {
-        const result = await getArticles();
-        if (result.error) {
-          throw new Error(result.error);
-        }
-        setArticles(result.data || []);
-      } catch (error) {
-        console.error("Error fetching articles:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchArticles();
-  }, []);
-
   return (
     <div>
       <label
-        htmlFor="article"
+        htmlFor="article_id"
         className="block text-sm font-medium text-gray-700"
       >
-        Associated Article
+        Article
       </label>
-      <select
-        id="article"
-        value={value || ""}
-        onChange={(e) =>
-          onChange(e.target.value ? Number(e.target.value) : null)
-        }
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        disabled={isLoading}
-      >
-        <option value="">Select an article</option>
-        {articles.map((article) => (
-          <option key={article.id} value={article.id}>
-            {article.title}
-          </option>
-        ))}
-      </select>
+      <div className="mt-2">
+        <select
+          id="article_id"
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+        >
+          <option value={0}>Select an article (optional)</option>
+          {/* Articles will be populated from parent component */}
+        </select>
+      </div>
     </div>
   );
 }

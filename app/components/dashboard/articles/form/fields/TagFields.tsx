@@ -35,7 +35,15 @@ export default function TagFields({
         value={Array.isArray(selectedTags) ? selectedTags.map(String) : []}
       >
         {tags.map((tag) => (
-          <option key={tag.id} value={tag.id} className="py-2">
+          <option
+            key={tag.id}
+            value={tag.id}
+            className={`py-2 ${
+              selectedTags.includes(tag.id)
+                ? "bg-blue-100 text-gray-900 rounded-md underline"
+                : ""
+            }`}
+          >
             {tag.name}
           </option>
         ))}

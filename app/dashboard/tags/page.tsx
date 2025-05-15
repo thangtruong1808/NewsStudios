@@ -1,37 +1,57 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getTags, searchTags } from "@/app/lib/actions/tags";
 import { Tag } from "@/app/lib/definition";
-import { getTags, deleteTag } from "@/app/lib/actions/tags";
 import TagsTable from "@/app/components/dashboard/tags/table/TagsTable";
-import { toast } from "react-hot-toast";
+import TagsSearchWrapper from "@/app/components/dashboard/tags/search/TagsSearchWrapper";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
-import { useDebounce } from "@/app/hooks/useDebounce";
-import { SearchWrapper } from "@/app/components/dashboard/shared/search";
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
+import TagsHeader from "@/app/components/dashboard/tags/header/TagsHeader";
 
-// Use force-dynamic to ensure fresh data
-export const dynamic = "force-dynamic";
+/**
+ * Props interface for TagsPage component
+ * Defines the expected search parameters for filtering and sorting
+ */
+interface TagsPageProps {
+  searchParams: {
+    page?: string;
+    search?: string;
+    sortField?: string;
+    sortDirection?: "asc" | "desc";
+    query?: string;
+    limit?: string;
+  };
+}
 
-export default function TagsPage() {
+/**
+ * TagsPage Component
+ * Main page for managing tags with features for:
+ * - Pagination and sorting
+ * - Search functionality
+ * - CRUD operations
+ * - Loading states
+ * - Error handling
+ */
+export default function TagsPage({ searchParams }: TagsPageProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] =
-    useState<keyof (Tag & { sequence?: number })>("name");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSorting, setIsSorting] = useState(false);
 
-  // Table column definitions
+  // Extract and parse URL parameters for pagination and sorting
+  const currentPage = Number(searchParams.page) || 1;
+  const itemsPerPage = Number(searchParams.limit) || 5;
+  const searchQuery = searchParams.query || "";
+  const sortField = (searchParams.sortField as keyof Tag) || "created_at";
+  const sortDirection = searchParams.sortDirection || "desc";
+
+  // Table column configuration for tag data display
   const columns = [
     {
       field: "name",
@@ -55,165 +75,157 @@ export default function TagsPage() {
     },
   ];
 
+  /**
+   * Fetch tags data based on search and pagination parameters
+   * Handles loading states and error cases
+   */
   useEffect(() => {
-    const fetchTags = async () => {
-      setIsLoading(true);
+    const fetchData = async () => {
       try {
-        const result = await getTags({
-          page: currentPage,
-          limit: itemsPerPage,
-          search: debouncedSearchQuery,
-          sortField: sortField as string,
-          sortDirection,
-        });
-
-        if (result.error) {
-          toast.error(result.error);
-          return;
+        if (!isSearching && !isSorting) {
+          setIsLoading(true);
         }
+        const result = searchQuery
+          ? await searchTags(searchQuery)
+          : await getTags({
+              page: currentPage,
+              limit: itemsPerPage,
+              sortField,
+              sortDirection,
+            });
 
-        if (result.data) {
-          setTags(result.data);
-          setTotalPages(result.totalPages);
+        setTags(result.data || []);
+        if (result.totalItems !== undefined) {
+          setTotalPages(Math.ceil(result.totalItems / itemsPerPage));
           setTotalItems(result.totalItems);
         }
       } catch (error) {
-        console.error("Error fetching tags:", error);
-        toast.error("Failed to fetch tags");
+        console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
+        setIsSearching(false);
+        setIsSorting(false);
       }
     };
 
-    fetchTags();
-  }, [
-    currentPage,
-    itemsPerPage,
-    debouncedSearchQuery,
-    sortField,
-    sortDirection,
-  ]);
+    fetchData();
+  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
 
-  const handleDelete = async (tag: Tag) => {
-    if (!confirm("Are you sure you want to delete this tag?")) return;
-
-    setIsDeleting(true);
-    try {
-      const result = await deleteTag(tag.id);
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-      toast.success("Tag deleted successfully");
-      router.refresh();
-    } catch (error) {
-      console.error("Error deleting tag:", error);
-      toast.error("Failed to delete tag");
-    } finally {
-      setIsDeleting(false);
-    }
+  /**
+   * Handle pagination - navigate to selected page
+   * Updates URL parameters and triggers data fetch
+   */
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", page.toString());
+    router.push(`/dashboard/tags?${params.toString()}`);
   };
 
+  /**
+   * Handle sorting - toggle sort direction and update URL
+   * Manages sorting state and triggers data refresh
+   */
+  const handleSort = (field: keyof Tag) => {
+    setIsSorting(true);
+    const newDirection =
+      field === sortField && sortDirection === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(searchParams);
+    params.set("sortField", field as string);
+    params.set("sortDirection", newDirection);
+    router.push(`/dashboard/tags?${params.toString()}`);
+  };
+
+  /**
+   * Navigate to tag edit page
+   * Routes to the edit form for the selected tag
+   */
   const handleEdit = (tag: Tag) => {
     router.push(`/dashboard/tags/${tag.id}/edit`);
   };
 
-  const handleSort = (field: keyof (Tag & { sequence?: number })) => {
-    if (field === sortField) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
+  /**
+   * Handle tag deletion with confirmation
+   * Includes error handling and state management
+   */
+  const handleDelete = async (tag: Tag) => {
+    if (window.confirm("Are you sure you want to delete this tag?")) {
+      setIsDeleting(true);
+      try {
+        const response = await fetch(`/api/tags/${tag.id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete tag");
+        }
+
+        router.refresh();
+      } catch (error) {
+        console.error("Error deleting tag:", error);
+        alert("Failed to delete tag. Please try again.");
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
+  /**
+   * Handle search functionality
+   * Updates URL parameters and triggers data refresh
+   */
   const handleSearch = (term: string) => {
-    setSearchQuery(term);
+    setIsSearching(true);
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+    if (term) {
+      params.set("query", term);
+    } else {
+      params.delete("query");
+    }
+    router.push(`/dashboard/tags?${params.toString()}`);
   };
 
-  if (isLoading) {
-    return (
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-              Tags
-            </h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Manage your content tags and categories.
-            </p>
-          </div>
-          <Link
-            href="/dashboard/tags/create"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-            New Tag
-          </Link>
-        </div>
-
-        <div className="mt-4">
-          <div className="w-full">
-            <SearchWrapper
-              placeholder="Search tags..."
-              onSearch={handleSearch}
-              defaultValue={searchQuery}
-            />
-          </div>
-        </div>
-
-        <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
-      </div>
-    );
-  }
+  /**
+   * Update items per page and reset to first page
+   * Manages pagination size and triggers data refresh
+   */
+  const handleItemsPerPageChange = (limit: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+    params.set("limit", limit.toString());
+    router.push(`/dashboard/tags?${params.toString()}`);
+  };
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-            Tags
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage your content tags and categories.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/tags/create"
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-          New Tag
-        </Link>
-      </div>
+    <div className="space-y-6">
+      {/* Header section with title and create button */}
+      <TagsHeader />
 
-      <div className="mt-4">
-        <div className="w-full">
-          <SearchWrapper
-            placeholder="Search tags..."
-            onSearch={handleSearch}
-            defaultValue={searchQuery}
-          />
-        </div>
-      </div>
+      {/* Search functionality */}
+      <TagsSearchWrapper />
 
-      <TagsTable
-        tags={tags}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        itemsPerPage={itemsPerPage}
-        totalItems={totalItems}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        searchQuery={searchQuery}
-        isDeleting={isDeleting}
-        isLoading={isLoading}
-        onSort={handleSort}
-        onPageChange={setCurrentPage}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onItemsPerPageChange={setItemsPerPage}
-      />
+      {/* Main content area */}
+      {isLoading ? (
+        <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
+      ) : (
+        <TagsTable
+          tags={tags}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          totalItems={totalItems}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          searchQuery={searchQuery}
+          isDeleting={isDeleting}
+          isLoading={isLoading}
+          onSort={handleSort}
+          onPageChange={handlePageChange}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onItemsPerPageChange={handleItemsPerPageChange}
+        />
+      )}
     </div>
   );
 }

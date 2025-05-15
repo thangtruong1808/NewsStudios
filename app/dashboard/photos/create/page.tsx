@@ -1,6 +1,6 @@
-import { getArticles } from "../../../lib/actions/articles";
+import { getArticles } from "@/app/lib/actions/articles";
 import CreatePhotoPageClient from "@/app/components/dashboard/photos/CreatePhotoPageClient";
-import { Article } from "../../../lib/definition";
+import { Article } from "@/app/lib/definition";
 
 export default async function CreatePhotoPage() {
   let articles: Article[] = [];
@@ -19,14 +19,16 @@ export default async function CreatePhotoPage() {
 
   if (error) {
     return (
-      <div className="rounded-md bg-red-50 p-4">
-        <div className="flex">
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
-              Error loading articles
-            </h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{error}</p>
+      <div className="mx-auto max-w-4xl px-4 py-2">
+        <div className="rounded-md bg-red-50 p-4">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">
+                Error loading articles
+              </h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -34,5 +36,13 @@ export default async function CreatePhotoPage() {
     );
   }
 
-  return <CreatePhotoPageClient articles={articles} />;
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-2">
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-4">
+          <CreatePhotoPageClient articles={articles} />
+        </div>
+      </div>
+    </div>
+  );
 }

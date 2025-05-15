@@ -18,7 +18,7 @@ export default function UsersPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("query") || "";
   const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("limit")) || 10;
+  const itemsPerPage = Number(searchParams.get("limit")) || 5;
   const sortField =
     (searchParams.get("sortField") as keyof User) || "created_at";
   const sortDirection =
@@ -152,7 +152,7 @@ export default function UsersPage() {
     <div className="">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-blue-600">Users List</h1>
+          <h1 className="text-2xl font-semibold text-blue-500">Users List</h1>
           <p className="mt-1 text-sm text-gray-500">
             Manage, organize, and assign users to articles for better content
             attribution and collaboration.
@@ -161,7 +161,7 @@ export default function UsersPage() {
 
         <Link
           href="/dashboard/users/create"
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-blue-700 hover:to-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 justify-center items-center"
+          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-blue-600 to-blue-400 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-blue-700 hover:to-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 justify-center items-center"
         >
           <PlusIcon className="h-5 mr-2" />
           <span>Create User</span>

@@ -1,6 +1,6 @@
 import { getImageById } from "@/app/lib/actions/images";
 import { getArticles } from "@/app/lib/actions/articles";
-import PhotoUploadForm from "@/app/components/dashboard/photos/form/PhotoUploadForm";
+import CreatePhotoPageClient from "@/app/components/dashboard/photos/CreatePhotoPageClient";
 import { notFound } from "next/navigation";
 
 interface EditPhotoPageProps {
@@ -24,15 +24,22 @@ export default async function EditPhotoPage({ params }: EditPhotoPageProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        <PhotoUploadForm
-          articles={articlesResult.data || []}
-          image={{
-            ...imageResult.data,
-            description: imageResult.data.description || null,
-          }}
-        />
+    <div className="mx-auto max-w-4xl px-4 py-2">
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-4">
+          <CreatePhotoPageClient
+            articles={articlesResult.data || []}
+            image={{
+              ...imageResult.data,
+              description: imageResult.data.description || null,
+              type: "gallery",
+              entity_type: "article",
+              entity_id: imageResult.data.article_id || 0,
+              is_featured: false,
+              display_order: 0,
+            }}
+          />
+        </div>
       </div>
     </div>
   );

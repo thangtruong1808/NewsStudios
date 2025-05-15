@@ -9,6 +9,10 @@ import CategoriesSearch from "@/app/components/dashboard/categories/search/Categ
 import CategoriesHeader from "@/app/components/dashboard/categories/header/CategoriesHeader";
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
 
+/**
+ * Props interface for CategoriesPage component
+ * Defines the expected search parameters for filtering and sorting
+ */
 interface CategoriesPageProps {
   searchParams: {
     page?: string;
@@ -20,6 +24,15 @@ interface CategoriesPageProps {
   };
 }
 
+/**
+ * CategoriesPage Component
+ * Main page for managing categories with features for:
+ * - Pagination and sorting
+ * - Search functionality
+ * - CRUD operations
+ * - Loading states
+ * - Error handling
+ */
 export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -30,13 +43,14 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [isSorting, setIsSorting] = useState(false);
 
+  // Extract and parse URL parameters for pagination and sorting
   const currentPage = Number(searchParams.page) || 1;
   const itemsPerPage = Number(searchParams.limit) || 5;
   const searchQuery = searchParams.query || "";
   const sortField = (searchParams.sortField as keyof Category) || "created_at";
   const sortDirection = searchParams.sortDirection || "desc";
 
-  // Table column definitions
+  // Table column configuration for category data display
   const columns = [
     {
       field: "name",
@@ -60,6 +74,10 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
     },
   ];
 
+  /**
+   * Fetch categories data based on search and pagination parameters
+   * Handles loading states and error cases
+   */
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -89,12 +107,20 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
     fetchData();
   }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
 
+  /**
+   * Handle pagination - navigate to selected page
+   * Updates URL parameters and triggers data fetch
+   */
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
     router.push(`/dashboard/categories?${params.toString()}`);
   };
 
+  /**
+   * Handle sorting - toggle sort direction and update URL
+   * Manages sorting state and triggers data refresh
+   */
   const handleSort = (field: keyof Category) => {
     setIsSorting(true);
     const newDirection =
@@ -105,10 +131,18 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
     router.push(`/dashboard/categories?${params.toString()}`);
   };
 
+  /**
+   * Navigate to category edit page
+   * Routes to the edit form for the selected category
+   */
   const handleEdit = (category: Category) => {
     router.push(`/dashboard/categories/${category.id}/edit`);
   };
 
+  /**
+   * Handle category deletion with confirmation
+   * Includes error handling and state management
+   */
   const handleDelete = async (category: Category) => {
     if (window.confirm("Are you sure you want to delete this category?")) {
       setIsDeleting(true);
@@ -131,6 +165,10 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
     }
   };
 
+  /**
+   * Handle search functionality
+   * Updates URL parameters and triggers data refresh
+   */
   const handleSearch = (term: string) => {
     setIsSearching(true);
     const params = new URLSearchParams(searchParams);
@@ -143,6 +181,10 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
     router.push(`/dashboard/categories?${params.toString()}`);
   };
 
+  /**
+   * Update items per page and reset to first page
+   * Manages pagination size and triggers data refresh
+   */
   const handleItemsPerPageChange = (limit: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
@@ -150,49 +192,36 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
     router.push(`/dashboard/categories?${params.toString()}`);
   };
 
-  if (isLoading && !isSearching && !isSorting) {
-    return (
-      <div className="px-4 sm:px-6 lg:px-8">
-        <CategoriesHeader />
-        <div className="my-6">
-          <CategoriesSearch onSearch={handleSearch} />
-        </div>
-        <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
-      </div>
-    );
-  }
-
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6">
+      {/* Header section with title and create button */}
       <CategoriesHeader />
 
-      <div className="my-6">
-        <CategoriesSearch onSearch={handleSearch} />
-      </div>
+      {/* Search functionality */}
+      <CategoriesSearch onSearch={handleSearch} />
 
-      <div className="flow-root">
-        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-            <CategoriesTable
-              categories={categories}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              itemsPerPage={itemsPerPage}
-              totalItems={totalItems}
-              sortField={sortField}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-              onPageChange={handlePageChange}
-              onItemsPerPageChange={handleItemsPerPageChange}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              isDeleting={isDeleting}
-              searchQuery={searchQuery}
-              isLoading={isSearching || isSorting}
-            />
-          </div>
-        </div>
-      </div>
+      {/* Main content area */}
+      {isLoading ? (
+        <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
+      ) : (
+        <CategoriesTable
+          categories={categories}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          totalItems={totalItems}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          searchQuery={searchQuery}
+          isDeleting={isDeleting}
+          isLoading={isLoading}
+          onSort={handleSort}
+          onPageChange={handlePageChange}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onItemsPerPageChange={handleItemsPerPageChange}
+        />
+      )}
     </div>
   );
 }

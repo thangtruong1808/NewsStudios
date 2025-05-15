@@ -9,66 +9,60 @@ import AuthorsSearchWrapper from "../../components/dashboard/authors/search/Auth
 import { lusitana } from "../../components/fonts";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Author } from "@/app/lib/definition";
-
-// Loading skeleton component
-function AuthorsTableSkeleton() {
-  return (
-    <div className="mt-8">
-      <div className="animate-pulse">
-        {/* Table header skeleton */}
-        <div className="grid grid-cols-[50px_150px_256px_256px_128px_128px_100px] gap-4 py-3 px-4 bg-gray-50 border-b border-gray-200">
-          <div className="h-4 bg-gray-200 rounded w-8"></div>
-          <div className="h-4 bg-gray-200 rounded w-24"></div>
-          <div className="h-4 bg-gray-200 rounded w-32"></div>
-          <div className="h-4 bg-gray-200 rounded w-32"></div>
-          <div className="h-4 bg-gray-200 rounded w-24"></div>
-          <div className="h-4 bg-gray-200 rounded w-24"></div>
-          <div className="h-4 bg-gray-200 rounded w-16"></div>
-        </div>
-
-        {/* Table rows skeleton */}
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className="grid grid-cols-[50px_150px_256px_256px_128px_128px_100px] gap-4 py-4 px-4 border-b border-gray-200"
-          >
-            <div className="h-4 bg-gray-200 rounded w-8"></div>
-            <div className="h-4 bg-gray-200 rounded w-32"></div>
-            <div className="h-4 bg-gray-200 rounded w-64"></div>
-            <div className="h-4 bg-gray-200 rounded w-64"></div>
-            <div className="h-4 bg-gray-200 rounded w-32"></div>
-            <div className="h-4 bg-gray-200 rounded w-32"></div>
-            <div className="flex space-x-2">
-              <div className="h-5 w-5 bg-gray-200 rounded"></div>
-              <div className="h-5 w-5 bg-gray-200 rounded"></div>
-            </div>
-          </div>
-        ))}
-
-        {/* Pagination skeleton */}
-        <div className="flex justify-between items-center mt-4 px-4">
-          <div className="h-8 bg-gray-200 rounded w-36"></div>
-          <div className="h-8 bg-gray-200 rounded w-72"></div>
-        </div>
-      </div>
-    </div>
-  );
-}
+import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
 
 // Remove revalidate since we're using client component
 // export const revalidate = 60;
 
 export default function AuthorsPage() {
+  // Router and search params hooks for navigation and URL management
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Extract and parse URL parameters for pagination and search
   const searchQuery = searchParams.get("query") || "";
   const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("limit")) || 10;
+  const itemsPerPage = Number(searchParams.get("limit")) || 5;
+
+  // State management for authors data and UI states
   const [authors, setAuthors] = React.useState<Author[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [totalItems, setTotalItems] = React.useState(0);
 
+  // Table column configuration for author data display
+  const columns = [
+    {
+      field: "name",
+      label: "Name",
+      sortable: true,
+    },
+    {
+      field: "description",
+      label: "Description",
+      sortable: true,
+    },
+    {
+      field: "bio",
+      label: "Bio",
+      sortable: true,
+    },
+    {
+      field: "created_at",
+      label: "Created At",
+      sortable: true,
+    },
+    {
+      field: "updated_at",
+      label: "Updated At",
+      sortable: true,
+    },
+  ];
+
+  /**
+   * Fetch authors data based on search and pagination parameters
+   * Handles both regular listing and search functionality
+   */
   React.useEffect(() => {
     const fetchAuthors = async () => {
       setIsLoading(true);
@@ -88,22 +82,38 @@ export default function AuthorsPage() {
     fetchAuthors();
   }, [searchQuery, currentPage, itemsPerPage]);
 
+  /**
+   * Handle sorting functionality
+   * Updates URL parameters to reflect sort field changes
+   */
   const handleSort = (field: string) => {
     const params = new URLSearchParams(searchParams);
     params.set("sortField", field);
     router.push(`?${params.toString()}`);
   };
 
+  /**
+   * Handle pagination - navigate to selected page
+   * Updates URL parameters and triggers data refresh
+   */
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
     router.push(`?${params.toString()}`);
   };
 
+  /**
+   * Navigate to author edit page
+   * Routes to the edit form for the selected author
+   */
   const handleEdit = (author: any) => {
     router.push(`/dashboard/author/${author.id}/edit`);
   };
 
+  /**
+   * Handle author deletion with confirmation
+   * Includes error handling and state management
+   */
   const handleDelete = async (author: any) => {
     if (window.confirm("Are you sure you want to delete this author?")) {
       setIsDeleting(true);
@@ -118,6 +128,10 @@ export default function AuthorsPage() {
     }
   };
 
+  /**
+   * Update items per page and reset to first page
+   * Manages pagination size and triggers data refresh
+   */
   const handleItemsPerPageChange = (limit: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("limit", limit.toString());
@@ -125,16 +139,18 @@ export default function AuthorsPage() {
     router.push(`?${params.toString()}`);
   };
 
+  // Calculate total pages for pagination
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
+  // Check if there are any authors to display
   const hasAuthors = authors.length > 0;
 
   return (
     <div className="">
+      {/* Header section with title and create button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Authors List</h1>
-          {/* Description for AuthorsPage */}
+          <h1 className="text-2xl font-semibold text-blue-500">Authors List</h1>
           <p className="mt-1 text-sm text-gray-500">
             Manage, organize, and assign authors to articles for better content
             attribution and collaboration.
@@ -143,19 +159,21 @@ export default function AuthorsPage() {
 
         <Link
           href="/dashboard/author/create"
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-violet-700 hover:to-fuchsia-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 justify-center items-center"
+          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-blue-600 to-blue-400 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-blue-700 hover:to-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 justify-center items-center"
         >
           <PlusIcon className="h-5 mr-2" />
           <span>Create Author</span>
         </Link>
       </div>
 
+      {/* Search functionality */}
       <div className="mt-4">
         <AuthorsSearchWrapper />
       </div>
 
+      {/* Main content area with conditional rendering */}
       {isLoading ? (
-        <AuthorsTableSkeleton />
+        <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
       ) : hasAuthors ? (
         <AuthorsTableClient
           authors={authors}

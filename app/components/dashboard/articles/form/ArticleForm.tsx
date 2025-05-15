@@ -1,3 +1,15 @@
+/**
+ * ArticleForm Component
+ * A comprehensive form for creating and editing articles with the following features:
+ * - Tabbed interface for organizing form fields (Basic, Content, Media, Settings)
+ * - Form validation using react-hook-form and zod schema
+ * - Real-time validation and error handling
+ * - File upload handling for images and videos
+ * - Dynamic subcategory filtering based on selected category
+ * - Tag management with multi-select functionality
+ * - Responsive layout with consistent styling
+ */
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -19,6 +31,7 @@ import {
 import { FormHeader, FormTabs, FormActions } from ".";
 import { useArticleForm } from "./hooks/useArticleForm";
 
+// Props interface defining the required data for the form
 interface ArticleFormProps {
   article?: Partial<Article>;
   categories: CategoryType[];
@@ -37,6 +50,8 @@ export default function ArticleForm({
   tags = [],
 }: ArticleFormProps) {
   const router = useRouter();
+
+  // Custom hook that manages all form logic and state
   const {
     register,
     handleSubmit,
@@ -55,6 +70,8 @@ export default function ArticleForm({
     handleFileUpload,
     handleCategoryChange,
     onSubmit,
+    isFormEmpty,
+    isEditMode,
   } = useArticleForm({
     article,
     categories,
@@ -66,16 +83,19 @@ export default function ArticleForm({
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      {/* Form header with title and description */}
       <FormHeader isEdit={!!article} />
 
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-        <p className="text-sm text-gray-500">
+        <p className="text-xs text-gray-500">
           Fields marked with an asterisk (*) are required
         </p>
 
+        {/* Tab navigation for form sections */}
         <FormTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
         <div className="grid grid-cols-1 gap-6">
+          {/* Basic Information Tab */}
           {activeTab === "basic" && (
             <>
               <BasicFields
@@ -100,10 +120,12 @@ export default function ArticleForm({
             </>
           )}
 
+          {/* Content Tab */}
           {activeTab === "content" && (
             <ContentFields register={register} errors={errors} />
           )}
 
+          {/* Media Tab */}
           {activeTab === "media" && (
             <MediaFields
               register={register}
@@ -115,13 +137,17 @@ export default function ArticleForm({
             />
           )}
 
+          {/* Settings Tab */}
           {activeTab === "settings" && (
             <SettingsFields register={register} errors={errors} />
           )}
         </div>
 
+        {/* Form action buttons with conditional rendering */}
         <FormActions
           isSubmitting={isSubmitting}
+          isEditMode={isEditMode}
+          isFormEmpty={isFormEmpty}
           onCancel={() => router.push("/dashboard/articles")}
         />
       </form>

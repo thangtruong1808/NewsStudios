@@ -220,7 +220,7 @@ export async function searchTags(searchQuery: string) {
 
     if (result.error) {
       console.error("Error searching tags:", result.error);
-      return { data: null, error: result.error };
+      return { data: null, error: result.error, totalItems: 0 };
     }
 
     // Convert the dates to proper Date objects
@@ -230,9 +230,9 @@ export async function searchTags(searchQuery: string) {
       updated_at: new Date(tag.updated_at),
     })) as Tag[];
 
-    return { data: tags, error: null };
+    return { data: tags, error: null, totalItems: tags.length };
   } catch (error) {
     console.error("Error searching tags:", error);
-    return { data: null, error: "Failed to search tags" };
+    return { data: null, error: "Failed to search tags", totalItems: 0 };
   }
 }
