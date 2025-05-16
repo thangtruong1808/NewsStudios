@@ -6,7 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { TagFormValues, tagSchema } from "../types";
 import TagFormFields from "./TagFormFields";
 import { createTag, updateTag } from "@/app/lib/actions/tags";
-import toast from "react-hot-toast";
+import {
+  showSuccessToast,
+  showErrorToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 /**
  * Props interface for TagForm component
@@ -65,16 +68,16 @@ export default function TagForm({
     try {
       if (isEditMode && tagId) {
         await updateTag(tagId, data);
-        toast.success("Tag updated successfully");
+        showSuccessToast({ message: "Tag updated successfully" });
       } else {
         await createTag(data);
-        toast.success("Tag created successfully");
+        showSuccessToast({ message: "Tag created successfully" });
       }
       router.push("/dashboard/tags");
       router.refresh();
     } catch (error) {
       console.error("Error saving tag:", error);
-      toast.error("Failed to save tag");
+      showErrorToast({ message: "Failed to save tag" });
     }
   };
 

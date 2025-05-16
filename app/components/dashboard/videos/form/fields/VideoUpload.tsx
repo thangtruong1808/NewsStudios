@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { uploadVideoToServer } from "@/app/lib/actions/videos";
-import { toast } from "react-hot-toast";
+import {
+  showSuccessToast,
+  showErrorToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 interface VideoUploadProps {
   value: string;
@@ -23,10 +26,10 @@ export default function VideoUpload({ value, onChange }: VideoUploadProps) {
         throw new Error(result.error);
       }
       onChange(result.url);
-      toast.success("Video uploaded successfully");
+      showSuccessToast({ message: "Video uploaded successfully" });
     } catch (error) {
       console.error("Error uploading video:", error);
-      toast.error("Failed to upload video");
+      showErrorToast({ message: "Failed to upload video" });
     } finally {
       setIsUploading(false);
     }

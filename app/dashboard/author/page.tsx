@@ -10,6 +10,11 @@ import { lusitana } from "../../components/fonts";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Author } from "@/app/lib/definition";
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showConfirmationToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 // Remove revalidate since we're using client component
 // export const revalidate = 60;
@@ -115,16 +120,29 @@ export default function AuthorsPage() {
    * Includes error handling and state management
    */
   const handleDelete = async (author: any) => {
-    if (window.confirm("Are you sure you want to delete this author?")) {
-      setIsDeleting(true);
-      try {
-        // Add delete logic here
-        router.refresh();
-      } catch (error) {
-        console.error("Error deleting author:", error);
-      } finally {
-        setIsDeleting(false);
-      }
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      showConfirmationToast({
+        title: "Delete Author",
+        message:
+          "Are you sure you want to delete this author? This action cannot be undone.",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
+
+    setIsDeleting(true);
+    try {
+      // Add delete logic here
+      router.refresh();
+      showSuccessToast({ message: "Author deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting author:", error);
+      showErrorToast({ message: "Failed to delete author" });
+    } finally {
+      setIsDeleting(false);
     }
   };
 

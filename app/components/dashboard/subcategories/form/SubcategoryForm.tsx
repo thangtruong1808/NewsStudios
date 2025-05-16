@@ -15,7 +15,10 @@ import {
 } from "@/app/lib/actions/subcategories";
 import { getCategories } from "@/app/lib/actions/categories";
 import { Category } from "@/app/lib/definition";
-import toast from "react-hot-toast";
+import {
+  showSuccessToast,
+  showErrorToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { NameField, DescriptionField, CategoryField } from "./fields";
 
@@ -29,7 +32,6 @@ export default function SubcategoryForm({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
 
   const {
@@ -62,17 +64,18 @@ export default function SubcategoryForm({
   useEffect(() => {
     const fetchSubcategory = async () => {
       if (subcategoryId) {
-        setIsLoading(true);
         try {
           const numericId = parseInt(subcategoryId, 10);
           if (isNaN(numericId)) {
             setError("Invalid subcategory ID");
+            showErrorToast({ message: "Invalid subcategory ID" });
             return;
           }
 
           const { data, error } = await getSubcategoryById(numericId);
           if (error) {
             setError(error);
+            showErrorToast({ message: error || "Failed to load subcategory" });
           } else if (data) {
             reset({
               name: data.name,
@@ -82,8 +85,7 @@ export default function SubcategoryForm({
           }
         } catch (err) {
           setError("Failed to load subcategory");
-        } finally {
-          setIsLoading(false);
+          showErrorToast({ message: "Failed to load subcategory" });
         }
       }
     };
@@ -101,16 +103,16 @@ export default function SubcategoryForm({
         const numericId = parseInt(subcategoryId, 10);
         if (isNaN(numericId)) {
           setError("Invalid subcategory ID");
-          toast.error("Invalid subcategory ID");
+          showErrorToast({ message: "Invalid subcategory ID" });
           return;
         }
 
         const { error } = await updateSubcategory(numericId, data);
         if (error) {
           setError(error);
-          toast.error(error);
+          showErrorToast({ message: error });
         } else {
-          toast.success("Subcategory updated successfully");
+          showSuccessToast({ message: "Subcategory updated successfully" });
           router.push("/dashboard/subcategories");
           router.refresh();
         }
@@ -118,24 +120,20 @@ export default function SubcategoryForm({
         const response = await createSubcategory(data);
         if (!response.success) {
           setError(response.error);
-          toast.error(response.error);
+          showErrorToast({ message: response.error });
         } else {
-          toast.success("Subcategory created successfully");
+          showSuccessToast({ message: "Subcategory created successfully" });
           router.push("/dashboard/subcategories");
           router.refresh();
         }
       }
     } catch (err) {
       setError("An unexpected error occurred");
-      toast.error("An unexpected error occurred");
+      showErrorToast({ message: "An unexpected error occurred" });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  if (subcategoryId && isLoading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -175,7 +173,7 @@ export default function SubcategoryForm({
           />
         </div>
 
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
           <button
             type="button"
             onClick={() => router.back()}

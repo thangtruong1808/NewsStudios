@@ -3,11 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getVideos, searchVideos } from "@/app/lib/actions/videos";
-import { toast } from "react-hot-toast";
 import VideosHeader from "@/app/components/dashboard/videos/header/index";
 import VideosSearch from "@/app/components/dashboard/videos/search";
 import VideosGrid from "@/app/components/dashboard/shared/grid/VideosGrid";
 import { Video } from "@/app/lib/definition";
+import {
+  showConfirmationToast,
+  showSuccessToast,
+  showErrorToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 /**
  * Interface for video query results with pagination metadata
@@ -73,7 +77,7 @@ export default function VideosPage() {
       });
 
       if (result.error) {
-        toast.error(result.error);
+        showErrorToast({ message: result.error });
         if (currentPage === 1) {
           setVideos([]);
           setTotalItems(0);
@@ -99,7 +103,7 @@ export default function VideosPage() {
       }
     } catch (error) {
       console.error("Error fetching videos:", error);
-      toast.error("Failed to fetch videos");
+      showErrorToast({ message: "Failed to fetch videos" });
       if (currentPage === 1) {
         setVideos([]);
         setTotalItems(0);
@@ -155,7 +159,18 @@ export default function VideosPage() {
    * Handles API call, state updates, and error handling
    */
   const handleDelete = async (video: Video) => {
-    if (!confirm("Are you sure you want to delete this video?")) return;
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      showConfirmationToast({
+        title: "Delete Video",
+        message:
+          "Are you sure you want to delete this video? This action cannot be undone.",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
 
     setIsDeleting(true);
     try {
@@ -167,12 +182,12 @@ export default function VideosPage() {
         throw new Error("Failed to delete video");
       }
 
-      toast.success("Video deleted successfully");
+      showSuccessToast({ message: "Video deleted successfully" });
       setVideos((prev) => prev.filter((v) => v.id !== video.id));
       setTotalItems((prev) => prev - 1);
     } catch (error) {
       console.error("Error deleting video:", error);
-      toast.error("Failed to delete video");
+      showErrorToast({ message: "Failed to delete video" });
     } finally {
       setIsDeleting(false);
     }

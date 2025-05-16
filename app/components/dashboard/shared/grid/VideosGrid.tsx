@@ -3,7 +3,10 @@
 import { Video } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
-import { toast } from "react-hot-toast";
+import {
+  showConfirmationToast,
+  showErrorToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 // Props interface for VideosGrid component
 interface VideosGridProps {
@@ -24,14 +27,25 @@ export default function VideosGrid({
 
   // Handle video deletion with confirmation
   const handleDelete = async (video: Video) => {
-    if (!confirm("Are you sure you want to delete this video?")) return;
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      showConfirmationToast({
+        title: "Delete Video",
+        message:
+          "Are you sure you want to delete this video? This action cannot be undone.",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
 
     setIsDeleting(true);
     try {
       await onDelete(video);
     } catch (error) {
       console.error("Error deleting video:", error);
-      toast.error("Failed to delete video");
+      showErrorToast({ message: "Failed to delete video" });
     } finally {
       setIsDeleting(false);
     }

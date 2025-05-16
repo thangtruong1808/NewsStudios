@@ -9,6 +9,12 @@ import { SearchWrapper } from "../../components/dashboard/shared/search";
 import { useRouter, useSearchParams } from "next/navigation";
 import { User } from "@/app/lib/definition";
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
+import { toast } from "react-hot-toast";
+import {
+  showConfirmationToast,
+  showSuccessToast,
+  showErrorToast,
+} from "../../components/dashboard/shared/toast/Toast";
 
 // Use static rendering by default, but revalidate every 60 seconds
 export const revalidate = 60;
@@ -121,16 +127,29 @@ export default function UsersPage() {
 
   // Handle user deletion with confirmation
   const handleDelete = async (user: User) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      setIsDeleting(true);
-      try {
-        // Add delete logic here
-        router.refresh();
-      } catch (error) {
-        console.error("Error deleting user:", error);
-      } finally {
-        setIsDeleting(false);
-      }
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      showConfirmationToast({
+        title: "Delete User",
+        message:
+          "Are you sure you want to delete this user? This action cannot be undone.",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
+
+    setIsDeleting(true);
+    try {
+      // Add delete logic here
+      router.refresh();
+      showSuccessToast({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      showErrorToast({ message: "Failed to delete user" });
+    } finally {
+      setIsDeleting(false);
     }
   };
 

@@ -13,6 +13,11 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
 import SubcategoriesHeader from "@/app/components/dashboard/subcategories/header/SubcategoriesHeader";
 import Link from "next/link";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showConfirmationToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 /**
  * Props interface for SubcategoriesPage component
@@ -155,24 +160,38 @@ export default function SubcategoriesPage({
    * Includes error handling and state management
    */
   const handleDelete = async (subcategory: SubCategory) => {
-    if (window.confirm("Are you sure you want to delete this subcategory?")) {
-      setIsDeleting(true);
-      try {
-        const response = await fetch(`/api/subcategories/${subcategory.id}`, {
-          method: "DELETE",
-        });
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      showConfirmationToast({
+        title: "Delete Subcategory",
+        message:
+          "Are you sure you want to delete this subcategory? This action cannot be undone.",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
 
-        if (!response.ok) {
-          throw new Error("Failed to delete subcategory");
-        }
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
 
-        router.refresh();
-      } catch (error) {
-        console.error("Error deleting subcategory:", error);
-        alert("Failed to delete subcategory. Please try again.");
-      } finally {
-        setIsDeleting(false);
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/subcategories/${subcategory.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete subcategory");
       }
+
+      router.refresh();
+      showSuccessToast({ message: "Subcategory deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting subcategory:", error);
+      showErrorToast({
+        message: "Failed to delete subcategory. Please try again.",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 

@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Article } from "@/app/lib/definition";
 import { getArticles } from "@/app/lib/actions/articles";
+import {
+  showConfirmationToast,
+  showSuccessToast,
+  showErrorToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 /**
  * Hook for managing articles data and operations
@@ -88,24 +93,38 @@ export function useArticles() {
   };
 
   const handleDelete = async (article: Article) => {
-    if (window.confirm("Are you sure you want to delete this article?")) {
-      setIsDeleting(true);
-      try {
-        const response = await fetch(`/api/articles/${article.id}`, {
-          method: "DELETE",
-        });
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      showConfirmationToast({
+        title: "Delete Article",
+        message:
+          "Are you sure you want to delete this article? This action cannot be undone.",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
 
-        if (!response.ok) {
-          throw new Error("Failed to delete article");
-        }
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
 
-        router.refresh();
-      } catch (error) {
-        console.error("Error deleting article:", error);
-        alert("Failed to delete article. Please try again.");
-      } finally {
-        setIsDeleting(false);
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/articles/${article.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete article");
       }
+
+      router.refresh();
+      showSuccessToast({ message: "Article deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting article:", error);
+      showErrorToast({
+        message: "Failed to delete article. Please try again.",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 

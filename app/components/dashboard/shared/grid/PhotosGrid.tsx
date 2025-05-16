@@ -9,7 +9,10 @@ import {
   PhotoIcon,
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
-import { toast } from "react-hot-toast";
+import {
+  showErrorToast,
+  showConfirmationToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 // Props interface for PhotosGrid component
 interface PhotosGridProps {
@@ -30,14 +33,25 @@ export default function PhotosGrid({
 
   // Handle photo deletion with confirmation
   const handleDelete = async (photo: Image) => {
-    if (!confirm("Are you sure you want to delete this photo?")) return;
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      showConfirmationToast({
+        title: "Delete Photo",
+        message:
+          "Are you sure you want to delete this photo? This action cannot be undone.",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
 
     setIsDeleting(true);
     try {
       await onDelete(photo);
     } catch (error) {
       console.error("Error deleting photo:", error);
-      toast.error("Failed to delete photo");
+      showErrorToast({ message: "Failed to delete photo" });
     } finally {
       setIsDeleting(false);
     }

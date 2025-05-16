@@ -8,6 +8,11 @@ import CategoriesTable from "@/app/components/dashboard/categories/table/Categor
 import CategoriesSearch from "@/app/components/dashboard/categories/search/CategoriesSearch";
 import CategoriesHeader from "@/app/components/dashboard/categories/header/CategoriesHeader";
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showConfirmationToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 /**
  * Props interface for CategoriesPage component
@@ -144,24 +149,38 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
    * Includes error handling and state management
    */
   const handleDelete = async (category: Category) => {
-    if (window.confirm("Are you sure you want to delete this category?")) {
-      setIsDeleting(true);
-      try {
-        const response = await fetch(`/api/categories/${category.id}`, {
-          method: "DELETE",
-        });
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      showConfirmationToast({
+        title: "Delete Category",
+        message:
+          "Are you sure you want to delete this category? This action cannot be undone.",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
 
-        if (!response.ok) {
-          throw new Error("Failed to delete category");
-        }
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
 
-        router.refresh();
-      } catch (error) {
-        console.error("Error deleting category:", error);
-        alert("Failed to delete category. Please try again.");
-      } finally {
-        setIsDeleting(false);
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/categories/${category.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete category");
       }
+
+      router.refresh();
+      showSuccessToast({ message: "Category deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      showErrorToast({
+        message: "Failed to delete category. Please try again.",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 

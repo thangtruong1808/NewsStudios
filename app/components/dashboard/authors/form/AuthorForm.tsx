@@ -6,7 +6,10 @@ import { Author } from "@/app/lib/definition";
 import { authorSchema } from "./authorSchema";
 import { useRouter } from "next/navigation";
 import { createAuthor, updateAuthor } from "@/app/lib/actions/authors";
-import toast from "react-hot-toast";
+import {
+  showSuccessToast,
+  showErrorToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 import { AuthorFormFields } from "./fields";
 
 // Form data type that matches the schema
@@ -67,15 +70,15 @@ export default function AuthorForm({ author }: AuthorFormProps) {
     try {
       if (isEditMode && author) {
         await updateAuthor(author.id, data);
-        toast.success("Author updated successfully");
+        showSuccessToast({ message: "Author updated successfully" });
       } else {
         await createAuthor(data);
-        toast.success("Author created successfully");
+        showSuccessToast({ message: "Author created successfully" });
       }
       router.push("/dashboard/author");
       router.refresh();
     } catch (error) {
-      toast.error("Something went wrong");
+      showErrorToast({ message: "Something went wrong" });
       console.error(error);
     }
   };

@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
 import { createVideo, updateVideo } from "@/app/lib/actions/videos";
 import { Video } from "@/app/lib/definition";
 import VideoUpload from "./fields/VideoUpload";
 import ArticleSelect from "./fields/ArticleSelect";
 import DescriptionField from "./fields/DescriptionField";
+import {
+  showSuccessToast,
+  showErrorToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 /**
  * Props interface for VideoForm component
@@ -59,21 +62,22 @@ export default function VideoForm({ video, mode }: VideoFormProps) {
         if (result.error) {
           throw new Error(result.error);
         }
-        toast.success("Video created successfully");
+        showSuccessToast({ message: "Video created successfully" });
         router.push("/dashboard/videos");
       } else if (mode === "edit" && video) {
         const result = await updateVideo(video.id, formData);
         if (result.error) {
           throw new Error(result.error);
         }
-        toast.success("Video updated successfully");
+        showSuccessToast({ message: "Video updated successfully" });
         router.push("/dashboard/videos");
       }
     } catch (error) {
       console.error("Error submitting video:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to submit video"
-      );
+      showErrorToast({
+        message:
+          error instanceof Error ? error.message : "Failed to submit video",
+      });
     } finally {
       setIsSubmitting(false);
     }

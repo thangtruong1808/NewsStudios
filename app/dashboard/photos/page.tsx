@@ -3,11 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getImages, searchImages } from "@/app/lib/actions/images";
-import { toast } from "react-hot-toast";
 import PhotosHeader from "@/app/components/dashboard/photos/header";
 import PhotosSearch from "@/app/components/dashboard/photos/search";
 import PhotosGrid from "@/app/components/dashboard/shared/grid/PhotosGrid";
 import { Image } from "@/app/lib/definition";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showConfirmationToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 /**
  * PhotosPage Component
@@ -93,7 +97,7 @@ export default function PhotosPage() {
       });
 
       if (result.error) {
-        toast.error(result.error);
+        showErrorToast({ message: result.error });
         if (currentPage === 1) {
           setPhotos([]);
           setTotalItems(0);
@@ -126,7 +130,7 @@ export default function PhotosPage() {
       }
     } catch (error) {
       console.error("Error fetching photos:", error);
-      toast.error("Failed to fetch photos");
+      showErrorToast({ message: "Failed to fetch photos" });
       if (currentPage === 1) {
         setPhotos([]);
         setTotalItems(0);
@@ -172,7 +176,18 @@ export default function PhotosPage() {
 
   // Delete photo with confirmation
   const handleDelete = async (photo: Image) => {
-    if (!confirm("Are you sure you want to delete this photo?")) return;
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      showConfirmationToast({
+        title: "Delete Photo",
+        message:
+          "Are you sure you want to delete this photo? This action cannot be undone.",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
 
     setIsDeleting(true);
     try {
@@ -184,12 +199,12 @@ export default function PhotosPage() {
         throw new Error("Failed to delete photo");
       }
 
-      toast.success("Photo deleted successfully");
+      showSuccessToast({ message: "Photo deleted successfully" });
       setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
       setTotalItems((prev) => prev - 1);
     } catch (error) {
       console.error("Error deleting photo:", error);
-      toast.error("Failed to delete photo");
+      showErrorToast({ message: "Failed to delete photo" });
     } finally {
       setIsDeleting(false);
     }

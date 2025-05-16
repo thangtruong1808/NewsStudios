@@ -9,6 +9,11 @@ import TagsSearchWrapper from "@/app/components/dashboard/tags/search/TagsSearch
 import { PlusIcon } from "@heroicons/react/24/outline";
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
 import TagsHeader from "@/app/components/dashboard/tags/header/TagsHeader";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showConfirmationToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 /**
  * Props interface for TagsPage component
@@ -148,24 +153,36 @@ export default function TagsPage({ searchParams }: TagsPageProps) {
    * Includes error handling and state management
    */
   const handleDelete = async (tag: Tag) => {
-    if (window.confirm("Are you sure you want to delete this tag?")) {
-      setIsDeleting(true);
-      try {
-        const response = await fetch(`/api/tags/${tag.id}`, {
-          method: "DELETE",
-        });
+    const confirmPromise = new Promise<boolean>((resolve) => {
+      showConfirmationToast({
+        title: "Delete Tag",
+        message:
+          "Are you sure you want to delete this tag? This action cannot be undone.",
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
 
-        if (!response.ok) {
-          throw new Error("Failed to delete tag");
-        }
+    const isConfirmed = await confirmPromise;
+    if (!isConfirmed) return;
 
-        router.refresh();
-      } catch (error) {
-        console.error("Error deleting tag:", error);
-        alert("Failed to delete tag. Please try again.");
-      } finally {
-        setIsDeleting(false);
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/tags/${tag.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete tag");
       }
+
+      router.refresh();
+      showSuccessToast({ message: "Tag deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting tag:", error);
+      showErrorToast({ message: "Failed to delete tag. Please try again." });
+    } finally {
+      setIsDeleting(false);
     }
   };
 

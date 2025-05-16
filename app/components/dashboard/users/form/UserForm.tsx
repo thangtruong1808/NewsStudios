@@ -9,6 +9,10 @@ import { toast } from "react-hot-toast";
 import { createUser, updateUser } from "../../../../lib/actions/users";
 import UserFormFields from "./UserFormFields";
 import { useSession } from "next-auth/react";
+import {
+  showSuccessToast,
+  showErrorToast,
+} from "../../../dashboard/shared/toast/Toast";
 
 /**
  * Props interface for the UserForm component
@@ -68,29 +72,31 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
           // Update the session to reflect the changes
           await updateSession();
           console.log("Session updated");
-          toast.success("User updated successfully");
+          showSuccessToast({ message: "User updated successfully" });
           router.push("/dashboard/users");
           router.refresh();
         } else {
           console.log("Failed to update user");
-          toast.error("Failed to update user");
+          showErrorToast({ message: "Failed to update user" });
         }
       } else {
         console.log("Creating new user");
         const success = await createUser(data);
         if (success) {
           console.log("User created successfully");
-          toast.success("User created successfully");
+          showSuccessToast({ message: "User created successfully" });
           router.push("/dashboard/users");
           router.refresh();
         } else {
           console.log("Failed to create user");
-          toast.error("Failed to create user");
+          showErrorToast({ message: "Failed to create user" });
         }
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("An error occurred while submitting the form");
+      showErrorToast({
+        message: "An error occurred while submitting the form",
+      });
     }
   };
 

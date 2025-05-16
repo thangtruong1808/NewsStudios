@@ -1,14 +1,16 @@
 "use client";
 
-import { notFound, useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import TagForm from "../../../../components/dashboard/tags/form/TagForm";
 import { getTagById } from "../../../../lib/actions/tags";
-import { useEffect, useState } from "react";
+import { Tag } from "@/app/lib/definition";
+import FormSkeleton from "@/app/components/dashboard/shared/skeleton/FormSkeleton";
+import { useParams } from "next/navigation";
 
 export default function EditTagPage() {
   const params = useParams();
   const tagId = params.id as string;
-  const [tag, setTag] = useState<any>(null);
+  const [tag, setTag] = useState<Tag | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,8 +39,16 @@ export default function EditTagPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-6">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="mx-auto max-w-4xl px-4 py-2">
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-4">
+            <FormSkeleton
+              fields={3} // Number of fields in the tag form: name, description, color
+              showHeader={true}
+              showActions={true}
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -58,6 +68,10 @@ export default function EditTagPage() {
         </div>
       </div>
     );
+  }
+
+  if (!tag) {
+    return null;
   }
 
   return (

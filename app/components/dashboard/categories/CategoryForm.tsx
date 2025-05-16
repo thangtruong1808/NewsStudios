@@ -14,7 +14,10 @@ import {
   getCategoryById,
 } from "../../../lib/actions/categories";
 import { Category } from "../../../lib/definition";
-import toast from "react-hot-toast";
+import {
+  showSuccessToast,
+  showErrorToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 /**
@@ -40,7 +43,6 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Initialize form with React Hook Form and Zod validation
   const {
@@ -65,26 +67,25 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
   useEffect(() => {
     const fetchCategory = async () => {
       if (categoryId) {
-        setIsLoading(true);
         try {
           const numericId = parseInt(categoryId, 10);
           if (isNaN(numericId)) {
             setError("Invalid category ID");
-            toast.error("Invalid category ID");
+            showErrorToast({ message: "Invalid category ID" });
             return;
           }
 
           const { data, error } = await getCategoryById(numericId);
           if (error) {
             setError(error);
-            toast.error(error);
+            showErrorToast({ message: error });
             router.push("/dashboard/categories");
             return;
           }
 
           if (!data) {
             setError("Category not found");
-            toast.error("Category not found");
+            showErrorToast({ message: "Category not found" });
             router.push("/dashboard/categories");
             return;
           }
@@ -96,10 +97,8 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
           });
         } catch (err) {
           setError("Failed to fetch category");
-          toast.error("Failed to fetch category");
+          showErrorToast({ message: "Failed to fetch category" });
           router.push("/dashboard/categories");
-        } finally {
-          setIsLoading(false);
         }
       }
     };
@@ -120,16 +119,16 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
         const numericId = parseInt(categoryId, 10);
         if (isNaN(numericId)) {
           setError("Invalid category ID");
-          toast.error("Invalid category ID");
+          showErrorToast({ message: "Invalid category ID" });
           return;
         }
 
         const { error } = await updateCategory(numericId, data);
         if (error) {
           setError(error);
-          toast.error(error);
+          showErrorToast({ message: error });
         } else {
-          toast.success("Category updated successfully");
+          showSuccessToast({ message: "Category updated successfully" });
           router.push("/dashboard/categories");
           router.refresh();
         }
@@ -137,25 +136,20 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
         const { error } = await createCategory(data);
         if (error) {
           setError(error);
-          toast.error(error);
+          showErrorToast({ message: error });
         } else {
-          toast.success("Category created successfully");
+          showSuccessToast({ message: "Category created successfully" });
           router.push("/dashboard/categories");
           router.refresh();
         }
       }
     } catch (err) {
       setError("An unexpected error occurred");
-      toast.error("An unexpected error occurred");
+      showErrorToast({ message: "An unexpected error occurred" });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  // Show loading state while fetching category data
-  if (categoryId && isLoading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">

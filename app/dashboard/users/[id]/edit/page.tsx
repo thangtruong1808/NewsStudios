@@ -4,7 +4,7 @@ import { notFound, useParams } from "next/navigation";
 import UserForm from "../../../../components/dashboard/users/form/UserForm";
 import { getUserById } from "../../../../lib/actions/users";
 import { useEffect, useState } from "react";
-import UserFormLoading from "../../../../components/dashboard/users/form/UserFormLoading";
+import FormSkeleton from "../../../../components/dashboard/shared/skeleton/FormSkeleton";
 
 export default function EditUserPage() {
   const params = useParams();
@@ -37,7 +37,19 @@ export default function EditUserPage() {
   }, [userId]);
 
   if (isLoading) {
-    return <UserFormLoading />;
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-2">
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-4">
+            <FormSkeleton
+              fields={7} // Number of fields in the user form: image, firstname, lastname, email, password, role, status, description
+              showHeader={true}
+              showActions={true}
+            />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
