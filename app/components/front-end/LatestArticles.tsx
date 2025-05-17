@@ -5,7 +5,7 @@ import { getArticles } from "@/app/lib/actions/articles";
 import { Article } from "@/app/lib/definition";
 import Link from "next/link";
 import Image from "next/image";
-import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import { ArticleMetadata } from "./latest-articles/ArticleMetadata";
 import { ArticleInfo } from "./latest-articles/ArticleInfo";
 

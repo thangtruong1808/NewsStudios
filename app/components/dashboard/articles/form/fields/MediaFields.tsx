@@ -2,7 +2,7 @@
 
 import { UseFormRegister, FieldErrors } from "react-hook-form";
 import { ArticleFormData } from "../articleSchema";
-import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 
 interface MediaFieldsProps {
   register: UseFormRegister<ArticleFormData>;

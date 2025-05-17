@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { StarIcon, NewspaperIcon, FireIcon } from "@heroicons/react/24/outline";
 import GetLeftSidebar from "./trending/GetLeftSidebar";
-import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 
 export default function QuickLinks() {
   const { featuredCount, headlinesCount, trendingCount, isLoading, error } =

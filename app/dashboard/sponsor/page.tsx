@@ -4,7 +4,7 @@ import { Sponsor } from "../../lib/definition";
 import SponsorsTableClient from "../../components/dashboard/sponsors/SponsorsTableClient";
 import SponsorsSearchWrapper from "../../components/dashboard/sponsors/SponsorsSearchWrapper";
 import { ErrorMessage } from "../../components/ErrorMessage";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { LoadingSpinner } from "../../components/dashboard/shared/loading-spinner";
 import { getSponsors, searchSponsors } from "../../lib/actions/sponsors";
 import { PlusIcon } from "@heroicons/react/24/outline";
 

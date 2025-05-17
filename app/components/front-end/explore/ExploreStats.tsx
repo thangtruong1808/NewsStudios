@@ -7,7 +7,7 @@ import {
   ChatBubbleLeftIcon,
 } from "@heroicons/react/24/outline";
 import GetExploreStats from "./GetExploreStats";
-import { LoadingSpinner } from "../../shared/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 
 interface ExploreStatsProps {
   type?: "trending";

@@ -37,14 +37,14 @@ interface ConfirmationToastProps extends ToastProps {
  */
 export const showSuccessToast = ({
   message = "Operation completed successfully",
-  duration = 3000,
+  duration = 2000,
   position = "top-right",
 }: ToastProps = {}) => {
   toast.success(message, {
     duration,
     position,
     style: {
-      background: "#F3F4F6",
+      background: "#FFFFFF",
       color: "#6B7280",
       padding: "12px 16px",
       borderRadius: "8px",
@@ -60,14 +60,14 @@ export const showSuccessToast = ({
  */
 export const showInfoToast = ({
   message = "Information",
-  duration = 3000,
+  duration = 2000,
   position = "top-right",
 }: ToastProps = {}) => {
   toast(message, {
     duration,
     position,
     style: {
-      background: "#F3F4F6",
+      background: "#FFFFFF",
       color: "#6B7280",
       padding: "12px 16px",
       borderRadius: "8px",
@@ -90,7 +90,7 @@ export const showWarningToast = ({
     duration,
     position,
     style: {
-      background: "#F3F4F6",
+      background: "#FFFFFF",
       color: "#6B7280",
       padding: "12px 16px",
       borderRadius: "8px",
@@ -113,7 +113,7 @@ export const showErrorToast = ({
     duration,
     position,
     style: {
-      background: "#F3F4F6",
+      background: "#FFFFFF",
       color: "#6B7280",
       padding: "12px 16px",
       borderRadius: "8px",
@@ -147,7 +147,7 @@ export const showConfirmationToast = ({
 }: ConfirmationToastProps) => {
   toast(
     (t) => (
-      <div className="flex flex-col gap-2 bg-gray-100 rounded-md p-4 border border-gray-200">
+      <div className="flex flex-col gap-2 bg-gray-50 rounded-md p-4 border border-gray-200">
         <p className="font-medium text-gray-500">{title}</p>
         <hr className="border-gray-300" />
         <p className="text-sm text-gray-500">{message}</p>

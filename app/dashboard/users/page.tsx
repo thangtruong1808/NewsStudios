@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { getUsers, searchUsers } from "../../lib/actions/users";
+import { getUsers, searchUsers, deleteUser } from "../../lib/actions/users";
 import UsersTable from "../../components/dashboard/users/UsersTable";
 import { SearchWrapper } from "../../components/dashboard/shared/search";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -142,9 +142,33 @@ export default function UsersPage() {
 
     setIsDeleting(true);
     try {
-      // Add delete logic here
-      router.refresh();
-      showSuccessToast({ message: "User deleted successfully" });
+      const { success, error } = await deleteUser(user.id);
+      if (success) {
+        // Fetch updated users data
+        const result = searchQuery
+          ? await searchUsers(searchQuery, {
+              page: currentPage,
+              limit: itemsPerPage,
+              sortField,
+              sortDirection,
+            })
+          : await getUsers({
+              page: currentPage,
+              limit: itemsPerPage,
+              sortField,
+              sortDirection,
+            });
+
+        if (!result.error) {
+          setUsers(result.data || []);
+          if ("totalItems" in result) {
+            setTotalItems(result.totalItems);
+          }
+        }
+        showSuccessToast({ message: "User deleted successfully" });
+      } else {
+        showErrorToast({ message: error || "Failed to delete user" });
+      }
     } catch (error) {
       console.error("Error deleting user:", error);
       showErrorToast({ message: "Failed to delete user" });

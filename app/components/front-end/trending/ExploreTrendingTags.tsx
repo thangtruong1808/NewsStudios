@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { getArticles } from "@/app/lib/actions/articles";
 import Link from "next/link";
 import { TagIcon } from "@heroicons/react/24/outline";
-import { LoadingSpinner } from "../../shared/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import { Article } from "@/app/lib/definition";
 
 export default function ExploreTrendingTags() {

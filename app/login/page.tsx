@@ -92,7 +92,7 @@ export default function LoginPage() {
     <>
       <div className="bg-white rounded-2xl shadow-xl">
         {/* Header section with blue background */}
-        <div className="relative w-full bg-gradient-to-r from-blue-600 to-blue-400 mb-3 py-12 rounded-t-2xl overflow-hidden">
+        <div className="relative w-full bg-gradient-to-r from-blue-600 to-blue-400 mb-3 py-8 rounded-t-2xl overflow-hidden">
           {/* Decorative circles */}
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-500 rounded-full opacity-20 blur-2xl" />
           <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-400 rounded-full opacity-20 blur-2xl" />

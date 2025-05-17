@@ -4,7 +4,7 @@ import { Advertisement } from "../../lib/definition";
 import AdvertisementsTableClient from "../../components/dashboard/advertisements/AdvertisementsTableClient";
 import AdvertisementsSearchWrapper from "../../components/dashboard/advertisements/AdvertisementsSearchWrapper";
 import { ErrorMessage } from "../../components/ErrorMessage";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { LoadingSpinner } from "../../components/dashboard/shared/loading-spinner";
 import {
   getAdvertisements,
   searchAdvertisements,

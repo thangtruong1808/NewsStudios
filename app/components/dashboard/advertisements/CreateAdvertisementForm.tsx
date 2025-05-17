@@ -22,7 +22,7 @@ import {
 import { uploadToCloudinary } from "@/app/lib/utils/cloudinaryUtils";
 import { toast } from "react-hot-toast";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 
 interface CreateAdvertisementFormProps {
   sponsors: Pick<Sponsor, "id" | "name">[];

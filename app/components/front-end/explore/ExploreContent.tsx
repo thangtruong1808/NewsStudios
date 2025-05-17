@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { getArticles } from "@/app/lib/actions/articles";
 import { Article } from "@/app/lib/definition";
 import Link from "next/link";
-import { LoadingSpinner } from "../../shared/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import { CalendarIcon, UserIcon } from "@heroicons/react/24/outline";
 
 // Define the props interface for the ExploreContent component

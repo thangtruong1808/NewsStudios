@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { getArticles } from "@/app/lib/actions/articles";
 import { Article } from "@/app/lib/definition";
-import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import Link from "next/link";
 import Image from "next/image";
 import { UserIcon, ClockIcon } from "@heroicons/react/24/outline";

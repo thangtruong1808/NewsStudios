@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getArticles } from "@/app/lib/actions/articles";
 import { Article } from "@/app/lib/definition";
-import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import { ArrowTrendingUpIcon } from "@heroicons/react/24/outline";
 import { TrendingImageCarousel } from "./trending/TrendingImageCarousel";
 import { TrendingArticleList } from "./trending/TrendingArticleList";

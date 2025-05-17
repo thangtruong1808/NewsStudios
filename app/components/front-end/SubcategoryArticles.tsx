@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { getArticles } from "@/app/lib/actions/articles";
 import { Article } from "@/app/lib/definition";
 import Link from "next/link";
-import { LoadingSpinner } from "@/app/components/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import {
   PlayCircleIcon,
   TagIcon,

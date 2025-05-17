@@ -5,7 +5,7 @@ import { getArticleById } from "@/app/lib/actions/articles";
 import { getImages } from "@/app/lib/actions/images";
 import { getVideos } from "@/app/lib/actions/videos";
 import { Article } from "@/app/lib/definition";
-import { LoadingSpinner } from "../../shared/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import {
   CalendarIcon,
   UserIcon,
