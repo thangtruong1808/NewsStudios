@@ -40,6 +40,9 @@ export const showSuccessToast = ({
   duration = 2000,
   position = "top-right",
 }: ToastProps = {}) => {
+  // Dismiss all existing toasts before showing a new one
+  toast.dismiss();
+
   toast.success(message, {
     duration,
     position,
@@ -63,6 +66,9 @@ export const showInfoToast = ({
   duration = 2000,
   position = "top-right",
 }: ToastProps = {}) => {
+  // Dismiss all existing toasts before showing a new one
+  toast.dismiss();
+
   toast(message, {
     duration,
     position,
@@ -86,6 +92,9 @@ export const showWarningToast = ({
   duration = 3000,
   position = "top-right",
 }: ToastProps = {}) => {
+  // Dismiss all existing toasts before showing a new one
+  toast.dismiss();
+
   toast(message, {
     duration,
     position,
@@ -109,6 +118,9 @@ export const showErrorToast = ({
   duration = 3000,
   position = "top-right",
 }: ToastProps = {}) => {
+  // Dismiss all existing toasts before showing a new one
+  toast.dismiss();
+
   toast.error(message, {
     duration,
     position,
@@ -145,6 +157,9 @@ export const showConfirmationToast = ({
   duration = 5000,
   position = "top-center",
 }: ConfirmationToastProps) => {
+  // Dismiss all existing toasts before showing a new one
+  toast.dismiss();
+
   toast(
     (t) => (
       <div className="flex flex-col gap-2 bg-gray-50 rounded-md p-4 border border-gray-200">

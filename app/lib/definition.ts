@@ -59,6 +59,7 @@ export interface SubCategory {
   created_at: Date;
   updated_at: Date;
   category_name?: string;
+  articles_count?: number;
 }
 
 export interface Author {
@@ -68,6 +69,7 @@ export interface Author {
   bio?: string;
   created_at: string;
   updated_at: string;
+  articles_count?: number;
 }
 
 export interface Article {

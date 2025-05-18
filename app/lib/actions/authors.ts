@@ -5,6 +5,7 @@ import { Author } from "../../lib/definition";
 import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
 import { RowDataPacket } from "mysql2";
+import { transaction } from "../db/query";
 
 interface AuthorRow extends RowDataPacket {
   id: number;
@@ -53,39 +54,53 @@ export async function getAuthorById(
 export async function getAuthors(page = 1, limit = 10) {
   try {
     // Get total count
-    const countResult = await query("SELECT COUNT(*) as total FROM Authors");
-    if (countResult.error) {
-      return { data: [], error: countResult.error };
+    const countResult = await query(`
+      SELECT COUNT(*) as total 
+      FROM Authors
+    `);
+
+    if (countResult.error || !countResult.data) {
+      return {
+        data: null,
+        total: 0,
+        error: countResult.error || "Failed to get total count",
+      };
     }
 
-    // Get paginated data
+    // Get paginated data with articles count
     const result = await query(
-      "SELECT * FROM Authors ORDER BY name LIMIT ? OFFSET ?",
+      `
+      SELECT 
+        a.*,
+        (SELECT COUNT(*) FROM Articles ar WHERE ar.author_id = a.id) as articles_count
+      FROM Authors a
+      ORDER BY a.name ASC
+      LIMIT ? OFFSET ?
+    `,
       [limit, (page - 1) * limit]
     );
 
-    if (result.error) {
-      return { data: [], error: result.error };
+    if (result.error || !result.data) {
+      return {
+        data: null,
+        total: 0,
+        error: result.error || "No data found",
+      };
     }
 
-    const authors = result.data as AuthorRow[];
     const total = (countResult.data[0] as { total: number }).total;
-
     return {
-      data: authors.map((author) => ({
-        id: author.id,
-        name: author.name,
-        description: author.description || undefined,
-        bio: author.bio || undefined,
-        created_at: author.created_at.toISOString(),
-        updated_at: author.updated_at.toISOString(),
-      })),
+      data: result.data as Author[],
       total,
       error: null,
     };
   } catch (error) {
-    console.error("Error in getAuthors:", error);
-    return { data: [], error: "Failed to fetch authors" };
+    console.error("Error fetching authors:", error);
+    return {
+      data: null,
+      total: 0,
+      error: "Failed to fetch authors",
+    };
   }
 }
 
@@ -140,16 +155,57 @@ export async function updateAuthor(id: number, authorData: AuthorFormData) {
 
 export async function deleteAuthor(id: number) {
   try {
+    // First check if the author exists
+    const authorCheck = await query("SELECT id FROM Authors WHERE id = ?", [
+      id,
+    ]);
+    if (authorCheck.error) {
+      return {
+        success: false,
+        error: `Database error checking author: ${authorCheck.error}`,
+      };
+    }
+
+    if (
+      !authorCheck.data ||
+      (Array.isArray(authorCheck.data) && authorCheck.data.length === 0)
+    ) {
+      return { success: false, error: "Author not found" };
+    }
+
+    // Check for associated articles
+    const articlesCheck = await query(
+      "SELECT COUNT(*) as count FROM Articles WHERE author_id = ?",
+      [id]
+    );
+
+    if (articlesCheck.error) {
+      return {
+        success: false,
+        error: `Database error checking articles: ${articlesCheck.error}`,
+      };
+    }
+
+    const articleCount = (articlesCheck.data as any[])[0].count;
+    if (articleCount > 0) {
+      return {
+        success: false,
+        error:
+          "Cannot delete author because they have associated articles. Please reassign or delete these articles first.",
+      };
+    }
+
+    // Try to delete the author
     const result = await query("DELETE FROM Authors WHERE id = ?", [id]);
 
     if (result.error) {
-      return { success: false, error: result.error };
+      return { success: false, error: `Database error: ${result.error}` };
     }
 
     revalidatePath("/dashboard/authors");
     return { success: true, error: null };
   } catch (error) {
-    console.error("Error deleting author:", error);
+    console.error("Error in deleteAuthor:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to delete author",
@@ -169,8 +225,11 @@ export async function searchAuthors(searchQuery: string, page = 1, limit = 10) {
       [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
     );
 
-    if (countResult.error) {
-      return { data: [], error: countResult.error };
+    if (countResult.error || !countResult.data) {
+      return {
+        data: [],
+        error: countResult.error || "Failed to get total count",
+      };
     }
 
     // Get paginated search results
@@ -185,8 +244,11 @@ export async function searchAuthors(searchQuery: string, page = 1, limit = 10) {
       ]
     );
 
-    if (result.error) {
-      return { data: [], error: result.error };
+    if (result.error || !result.data) {
+      return {
+        data: [],
+        error: result.error || "Failed to get search results",
+      };
     }
 
     const authors = result.data as AuthorRow[];

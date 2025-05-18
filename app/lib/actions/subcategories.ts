@@ -18,10 +18,13 @@ export async function getSubcategories(page = 1, limit = 10) {
       FROM SubCategories
     `);
 
-    // Get paginated data
+    // Get paginated data with articles count
     const result = await query(
       `
-      SELECT s.*, c.name as category_name 
+      SELECT 
+        s.*, 
+        c.name as category_name,
+        (SELECT COUNT(*) FROM Articles a WHERE a.sub_category_id = s.id) as articles_count
       FROM SubCategories s
       LEFT JOIN Categories c ON s.category_id = c.id
       ORDER BY c.name ASC, s.name ASC
@@ -126,10 +129,29 @@ export async function updateSubcategory(
 
 export async function deleteSubcategory(id: number) {
   try {
+    // First check if there are any articles using this subcategory
+    const articlesResult = await query(
+      `SELECT COUNT(*) as count FROM Articles WHERE sub_category_id = ?`,
+      [id]
+    );
+
+    if (articlesResult.error || !articlesResult.data) {
+      return { success: false, error: "Failed to check for articles" };
+    }
+
+    const articleCount = (articlesResult.data[0] as { count: number }).count;
+    if (articleCount > 0) {
+      return {
+        success: false,
+        error: `Cannot delete subcategory. It has ${articleCount} article(s) associated with it. Please reassign or delete these articles first.`,
+      };
+    }
+
+    // If no articles are using this subcategory, proceed with deletion
     const result = await query("DELETE FROM SubCategories WHERE id = ?", [id]);
 
     if (result.error) {
-      return { success: false, error: result.error };
+      return { success: false, error: "Failed to delete subcategory" };
     }
 
     revalidatePath("/dashboard/subcategories");

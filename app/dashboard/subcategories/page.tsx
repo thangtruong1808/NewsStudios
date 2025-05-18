@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   getSubcategories,
   searchSubcategories,
+  deleteSubcategory,
 } from "@/app/lib/actions/subcategories";
 import { SubCategory } from "@/app/lib/definition";
 import SubcategoriesTable from "@/app/components/dashboard/subcategories/table/SubcategoriesTable";
@@ -78,6 +79,11 @@ export default function SubcategoriesPage({
     {
       field: "category_name",
       label: "Category",
+      sortable: true,
+    },
+    {
+      field: "articles_count",
+      label: "Articles",
       sortable: true,
     },
     {
@@ -175,20 +181,31 @@ export default function SubcategoriesPage({
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/subcategories/${subcategory.id}`, {
-        method: "DELETE",
-      });
+      const { success, error } = await deleteSubcategory(subcategory.id);
 
-      if (!response.ok) {
-        throw new Error("Failed to delete subcategory");
+      if (!success) {
+        throw new Error(error || "Failed to delete subcategory");
       }
 
-      router.refresh();
+      // Refresh the data after successful deletion
+      const result = searchQuery
+        ? await searchSubcategories(searchQuery, currentPage, itemsPerPage)
+        : await getSubcategories(currentPage, itemsPerPage);
+
+      setSubcategories(result.data || []);
+      if (result.total !== undefined) {
+        setTotalPages(Math.ceil(result.total / itemsPerPage));
+        setTotalItems(result.total);
+      }
+
       showSuccessToast({ message: "Subcategory deleted successfully" });
     } catch (error) {
       console.error("Error deleting subcategory:", error);
       showErrorToast({
-        message: "Failed to delete subcategory. Please try again.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete subcategory. Please try again.",
       });
     } finally {
       setIsDeleting(false);

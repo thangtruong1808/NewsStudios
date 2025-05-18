@@ -26,7 +26,7 @@ export default function AuthorsSearch() {
 
   return (
     <SearchWrapper
-      placeholder="Search authors by name, email, or bio..."
+      placeholder="Search authors by name, or bio..."
       onSearch={handleSearch}
       defaultValue={currentSearch}
     />

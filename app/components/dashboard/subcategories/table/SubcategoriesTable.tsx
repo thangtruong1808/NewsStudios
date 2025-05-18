@@ -73,6 +73,18 @@ export default function SubcategoriesTable({
       sortable: true,
     },
     {
+      field: "articles_count",
+      label: "Articles",
+      sortable: true,
+      render: (value: string) => (
+        <div className="w-20">
+          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+            {parseInt(value) || 0}
+          </span>
+        </div>
+      ),
+    },
+    {
       field: "created_at",
       label: "Created At",
       sortable: true,

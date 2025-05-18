@@ -57,12 +57,24 @@ export default function AuthorsTable({
       field: "description",
       label: "Description",
       sortable: true,
-      render: (value) => (
+      render: (value: string) => (
         <div className="w-64">
           <ExpandableContent
             content={value || "No description"}
             maxWords={20}
           />
+        </div>
+      ),
+    },
+    {
+      field: "articles_count",
+      label: "Articles",
+      sortable: true,
+      render: (value: string) => (
+        <div className="w-20">
+          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+            {parseInt(value) || 0}
+          </span>
         </div>
       ),
     },
@@ -80,13 +92,25 @@ export default function AuthorsTable({
       field: "created_at",
       label: "Created At",
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value: string) => (
+        <div className="w-32">
+          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+            {new Date(value).toLocaleDateString()}
+          </span>
+        </div>
+      ),
     },
     {
       field: "updated_at",
       label: "Updated At",
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value: string) => (
+        <div className="w-32">
+          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+            {new Date(value).toLocaleDateString()}
+          </span>
+        </div>
+      ),
     },
     {
       field: "actions",
