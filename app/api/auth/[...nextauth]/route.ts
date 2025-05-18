@@ -28,7 +28,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id.toString(),
           email: user.email,
           name: `${user.firstname} ${user.lastname}`,
-          image: user.user_image || "",
+          user_image: user.user_image || "",
           role: user.role,
           firstname: user.firstname,
           lastname: user.lastname,
@@ -64,7 +64,7 @@ export const authOptions: NextAuthOptions = {
         token.firstname = user.firstname;
         token.lastname = user.lastname;
         token.role = user.role;
-        token.image = user.image;
+        token.user_image = user.user_image;
         token.status = user.status;
         token.created_at = user.created_at;
         token.updated_at = user.updated_at;
@@ -79,7 +79,7 @@ export const authOptions: NextAuthOptions = {
         session.user.firstname = token.firstname;
         session.user.lastname = token.lastname;
         session.user.role = token.role;
-        session.user.user_image = token.image as string | undefined;
+        session.user.user_image = token.user_image as string | undefined;
         session.user.status = token.status;
         session.user.created_at = token.created_at;
         session.user.updated_at = token.updated_at;
