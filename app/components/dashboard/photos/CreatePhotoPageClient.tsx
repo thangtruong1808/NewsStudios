@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Article, Image } from "@/app/lib/definition";
-import { uploadImageToServer, updateImage } from "@/app/lib/actions/images";
+import {
+  uploadImageToServer,
+  updateImage,
+  createImage,
+} from "@/app/lib/actions/images";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import {
   showSuccessToast,
@@ -66,17 +70,25 @@ export default function CreatePhotoPageClient({
    * Handles success/error notifications and navigation
    */
   const handleSubmit = async (formData: FormData) => {
-    setIsSubmitting(true);
-    setUploadProgress(0);
-    setIsImageProcessing(true);
-
     try {
+      setIsSubmitting(true);
+      setUploadProgress(0);
+      setIsImageProcessing(true);
+
       if (isEditMode && image) {
         // If a new file is selected, upload it first
         let imageUrl = image.image_url;
         if (selectedFile) {
           const uploadFormData = new FormData();
           uploadFormData.append("file", selectedFile);
+          uploadFormData.append(
+            "description",
+            formData.get("description") as string
+          );
+          uploadFormData.append(
+            "article_id",
+            formData.get("article_id") as string
+          );
 
           // Simulate upload progress for file upload
           const progressInterval = setInterval(() => {
@@ -89,7 +101,11 @@ export default function CreatePhotoPageClient({
             });
           }, 200);
 
-          const uploadResult = await uploadImageToServer(uploadFormData);
+          const uploadResult = await uploadImageToServer(
+            uploadFormData,
+            true,
+            image.id
+          );
           clearInterval(progressInterval);
           setUploadProgress(100);
 
@@ -97,20 +113,16 @@ export default function CreatePhotoPageClient({
             throw new Error(uploadResult.error || "Failed to upload image");
           }
 
-          imageUrl = uploadResult.url;
-        }
+          showSuccessToast({ message: "Photo updated successfully" });
+          router.refresh();
+          router.push("/dashboard/photos");
+        } else {
+          const articleId = formData.get("article_id")
+            ? parseInt(formData.get("article_id") as string)
+            : undefined;
 
-        const articleId = formData.get("article_id")
-          ? parseInt(formData.get("article_id") as string)
-          : undefined;
-
-        // Update the image record
-        const updateResult = await fetch(`/api/images/${image.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+          // Update the image record
+          const updateResult = await updateImage(image.id, {
             image_url: imageUrl,
             description: formData.get("description") as string,
             type: "gallery",
@@ -118,17 +130,18 @@ export default function CreatePhotoPageClient({
             entity_id: articleId || image.entity_id,
             is_featured: false,
             display_order: 0,
-          }),
-        });
+          });
 
-        if (!updateResult.ok) {
-          const errorData = await updateResult.json();
-          throw new Error(errorData.error || "Failed to update photo record");
+          if (!updateResult.success) {
+            throw new Error(
+              updateResult.error || "Failed to update photo record"
+            );
+          }
+
+          showSuccessToast({ message: "Photo updated successfully" });
+          router.refresh();
+          router.push("/dashboard/photos");
         }
-
-        showSuccessToast({ message: "Photo updated successfully" });
-        router.refresh();
-        router.push("/dashboard/photos");
       } else {
         // Simulate upload progress for new photos
         const progressInterval = setInterval(() => {
@@ -149,32 +162,6 @@ export default function CreatePhotoPageClient({
           throw new Error(result.error || "Failed to upload image");
         }
 
-        const articleId = formData.get("article_id")
-          ? parseInt(formData.get("article_id") as string)
-          : undefined;
-
-        // Create the image record
-        const createResult = await fetch("/api/images", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            image_url: result.url,
-            description: formData.get("description") as string,
-            type: "gallery",
-            entity_type: articleId ? "article" : "article", // Default to article type
-            entity_id: articleId || 1, // Default to article ID 1 if no article selected
-            is_featured: false,
-            display_order: 0,
-          }),
-        });
-
-        if (!createResult.ok) {
-          const errorData = await createResult.json();
-          throw new Error(errorData.error || "Failed to create photo record");
-        }
-
         showSuccessToast({ message: "Photo created successfully" });
         router.refresh();
         router.push("/dashboard/photos");
@@ -193,6 +180,7 @@ export default function CreatePhotoPageClient({
             : "Failed to create photo",
       });
     } finally {
+      // Ensure we reset all states after the operation is complete
       setIsSubmitting(false);
       setIsImageProcessing(false);
       setUploadProgress(0);
@@ -269,7 +257,13 @@ export default function CreatePhotoPageClient({
         </div>
 
         {/* Main form content */}
-        <form action={handleSubmit} className="p-6 space-y-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(new FormData(e.currentTarget));
+          }}
+          className="p-6 space-y-6"
+        >
           <p className="text-xs text-gray-500">
             Fields marked with an asterisk (*) are required
           </p>
@@ -396,7 +390,7 @@ export default function CreatePhotoPageClient({
             <button
               type="submit"
               disabled={isSubmitting || (!isEditMode && isFormEmpty)}
-              className="inline-flex justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-600 to-blue-400 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex justify-center items-center rounded-md border border-transparent bg-gradient-to-r from-blue-600 to-blue-400 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]"
             >
               {isSubmitting ? (
                 <>

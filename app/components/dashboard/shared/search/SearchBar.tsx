@@ -1,26 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-interface PhotosSearchProps {
-  onSearch: (term: string) => void;
+interface SearchBarProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  placeholder?: string;
 }
 
-export default function PhotosSearch({ onSearch }: PhotosSearchProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onSearch(searchTerm);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm, onSearch]);
-
+export default function SearchBar({
+  searchQuery,
+  setSearchQuery,
+  placeholder = "Search...",
+}: SearchBarProps) {
   const handleClear = () => {
-    setSearchTerm("");
-    onSearch("");
+    setSearchQuery("");
   };
 
   return (
@@ -34,12 +28,12 @@ export default function PhotosSearch({ onSearch }: PhotosSearchProps) {
         </div>
         <input
           type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={placeholder}
           className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-          placeholder="Search photos by Article Title..."
         />
-        {searchTerm && (
+        {searchQuery && (
           <div className="absolute inset-y-0 right-0 flex items-center pr-3">
             <button
               type="button"

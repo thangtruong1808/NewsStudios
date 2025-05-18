@@ -33,19 +33,6 @@ export default function PhotosGrid({
 
   // Handle photo deletion with confirmation
   const handleDelete = async (photo: Image) => {
-    const confirmPromise = new Promise<boolean>((resolve) => {
-      showConfirmationToast({
-        title: "Delete Photo",
-        message:
-          "Are you sure you want to delete this photo? This action cannot be undone.",
-        onConfirm: () => resolve(true),
-        onCancel: () => resolve(false),
-      });
-    });
-
-    const isConfirmed = await confirmPromise;
-    if (!isConfirmed) return;
-
     try {
       await onDelete(photo);
     } catch (error) {
@@ -139,7 +126,7 @@ export default function PhotosGrid({
           </div>
 
           {/* Photo metadata */}
-          <div className="p-4">
+          <div className="p-2">
             <div className="flex items-center gap-1">
               <span className="text-xs font-medium">Article ID:</span>
               <span className="text-xs text-gray-500">
@@ -148,14 +135,35 @@ export default function PhotosGrid({
             </div>
             {photo.article_title && (
               <div className="mt-1">
-                <span className="text-xs font-medium">Article Title:</span>
-                <div className="text-xs text-gray-500 line-clamp-4 min-h-[2.5rem]">
-                  {photo.article_title}
+                <div className="flex items-start gap-1">
+                  <span className="text-xs font-medium whitespace-nowrap">
+                    Article Title:
+                  </span>
+                  <div
+                    className={`text-xs text-gray-500 line-clamp-2 ${
+                      photo.article_title.length < 50
+                        ? "min-h-[1rem]"
+                        : "min-h-[2rem]"
+                    }`}
+                  >
+                    {photo.article_title}
+                  </div>
                 </div>
               </div>
             )}
-            <div className="mt-2 flex items-center gap-1">
-              <ClockIcon className="h-4 w-4 text-gray-400" />
+            {photo.description && (
+              <div className="mt-1">
+                <div className="flex items-start gap-1">
+                  <span className="text-xs font-medium whitespace-nowrap">
+                    Description:
+                  </span>
+                  <div className="text-xs text-gray-500 line-clamp-2">
+                    {photo.description}
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="mt-1 flex items-center gap-1">
               <span className="text-xs font-medium">Last updated:</span>
               <span className="text-xs text-gray-500">
                 {new Date(photo.updated_at).toLocaleDateString("en-US", {
@@ -164,6 +172,7 @@ export default function PhotosGrid({
                   day: "numeric",
                 })}
               </span>
+              <ClockIcon className="h-4 w-4 text-gray-400" />
             </div>
           </div>
         </div>

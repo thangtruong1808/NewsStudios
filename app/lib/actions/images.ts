@@ -18,7 +18,11 @@ interface ImageRow extends RowDataPacket {
 }
 
 // Function to upload image to server and get the URL
-export async function uploadImageToServer(formData: FormData) {
+export async function uploadImageToServer(
+  formData: FormData,
+  isUpdate: boolean = false,
+  existingImageId?: number
+) {
   try {
     const file = formData.get("file") as File;
     const article_id = formData.get("article_id");
@@ -47,69 +51,90 @@ export async function uploadImageToServer(formData: FormData) {
       return { error: "File size must be less than 10MB" };
     }
 
-    // Upload to Cloudinary instead of FTP
-    console.log("Uploading image to Cloudinary...");
-    const result = await uploadImageToCloudinary(file, "newshub_photos");
+    // Use transaction to handle both upload and database insert/update
+    const result = await transaction(async (connection) => {
+      // Upload to Cloudinary
+      console.log("Uploading image to Cloudinary...");
+      const uploadResult = await uploadImageToCloudinary(
+        file,
+        "newshub_photos"
+      );
+
+      if (!uploadResult.success || !uploadResult.url) {
+        throw new Error(
+          uploadResult.error || "Failed to upload image to Cloudinary"
+        );
+      }
+
+      if (isUpdate && existingImageId) {
+        // Update existing record
+        const [rows] = await connection.execute(
+          `UPDATE Images 
+           SET image_url = ?,
+               description = ?,
+               type = ?,
+               entity_type = ?,
+               entity_id = ?,
+               article_id = ?,
+               is_featured = ?,
+               display_order = ?,
+               updated_at = NOW()
+           WHERE id = ?`,
+          [
+            uploadResult.url,
+            description || null,
+            "gallery",
+            "article",
+            article_id ? parseInt(article_id.toString(), 10) : 0,
+            article_id ? parseInt(article_id.toString(), 10) : null,
+            false,
+            0,
+            existingImageId,
+          ]
+        );
+        return {
+          success: true,
+          url: uploadResult.url,
+          id: existingImageId,
+        };
+      } else {
+        // Insert new record
+        const [rows] = await connection.execute(
+          `INSERT INTO Images (
+            image_url,
+            description,
+            type,
+            entity_type,
+            entity_id,
+            article_id,
+            is_featured,
+            display_order,
+            created_at,
+            updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+          [
+            uploadResult.url,
+            description || null,
+            "gallery",
+            "article",
+            article_id ? parseInt(article_id.toString(), 10) : 0,
+            article_id ? parseInt(article_id.toString(), 10) : null,
+            false,
+            0,
+          ]
+        );
+        return {
+          success: true,
+          url: uploadResult.url,
+          id: (rows as any).insertId,
+        };
+      }
+    });
 
     if (!result.success) {
-      console.error("Cloudinary upload error:", result.error);
-      return { error: result.error || "Failed to upload image to Cloudinary" };
+      return { error: "Failed to process image" };
     }
 
-    if (!result.url) {
-      return { error: "Failed to get URL from Cloudinary upload" };
-    }
-
-    console.log("Image uploaded to Cloudinary successfully:", {
-      url: result.url,
-      article_id: article_id,
-      description: description,
-    });
-
-    // Log the URL before saving to database
-    console.log("URL before database save:", {
-      originalUrl: result.url,
-      urlType: typeof result.url,
-      urlLength: result.url.length,
-      firstChar: result.url.charAt(0),
-      lastChar: result.url.charAt(result.url.length - 1),
-    });
-
-    // Save to database - store the full Cloudinary URL
-    const dbResult = await query(
-      `INSERT INTO Images (
-        article_id, 
-        image_url, 
-        description, 
-        type,
-        entity_type,
-        entity_id,
-        created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-      [
-        article_id ? parseInt(article_id.toString(), 10) : null,
-        result.url, // Store the full Cloudinary URL
-        description || null,
-        "gallery", // Default type for uploaded images
-        "article", // Default entity type
-        article_id ? parseInt(article_id.toString(), 10) : 0, // Use article_id as entity_id if available
-      ]
-    );
-
-    if (dbResult.error) {
-      console.error("Database error:", dbResult.error);
-      return { error: dbResult.error };
-    }
-
-    // Log the database result
-    console.log("Database save result:", {
-      success: !dbResult.error,
-      article_id: article_id,
-      image_url: result.url,
-      dbResult: dbResult.data,
-    });
-
-    // Return the Cloudinary URL
     return { url: result.url };
   } catch (error) {
     console.error("Error uploading image:", error);
@@ -121,8 +146,8 @@ export async function uploadImageToServer(formData: FormData) {
 
 // Function to create a new image record in the database
 export async function createImage(data: {
-  url: string;
-  alt_text?: string;
+  image_url: string;
+  description?: string;
   type: "banner" | "video" | "thumbnail" | "gallery";
   entity_type: "advertisement" | "article" | "author" | "category";
   entity_id: number;
@@ -133,8 +158,8 @@ export async function createImage(data: {
     const result = await transaction(async (connection) => {
       const [rows] = await connection.execute(
         `INSERT INTO Images (
-          url,
-          alt_text,
+          image_url,
+          description,
           type,
           entity_type,
           entity_id,
@@ -144,8 +169,8 @@ export async function createImage(data: {
           updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
         [
-          data.url,
-          data.alt_text || null,
+          data.image_url,
+          data.description || null,
           data.type,
           data.entity_type,
           data.entity_id,
@@ -385,6 +410,7 @@ export async function updateImage(id: number, data: Partial<Image>) {
              type = ?,
              entity_type = ?,
              entity_id = ?,
+             article_id = ?,
              is_featured = ?,
              display_order = ?,
              updated_at = NOW()
@@ -395,6 +421,7 @@ export async function updateImage(id: number, data: Partial<Image>) {
           data.type,
           data.entity_type,
           data.entity_id,
+          data.entity_type === "article" ? data.entity_id : null,
           data.is_featured,
           data.display_order,
           id,

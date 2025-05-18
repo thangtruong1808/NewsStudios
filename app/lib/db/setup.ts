@@ -162,22 +162,6 @@ export async function setupDatabase() {
       )
     `);
 
-    // Create Sponsors table
-    await query(`
-      CREATE TABLE IF NOT EXISTS Sponsors (
-        id INT(11) PRIMARY KEY AUTO_INCREMENT,
-        name VARCHAR(255) NOT NULL,
-        contact_email VARCHAR(255),
-        contact_phone VARCHAR(50),
-        website_url VARCHAR(255),
-        image_url VARCHAR(255),
-        video_url VARCHAR(255),
-        description TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      )
-    `);
-
     // Create Images table
     await query(`
       CREATE TABLE IF NOT EXISTS Images (
@@ -209,27 +193,6 @@ export async function setupDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (article_id) REFERENCES Articles(id) ON DELETE CASCADE
-      )
-    `);
-
-    // Create Advertisements table
-    await query(`
-      CREATE TABLE IF NOT EXISTS Advertisements (
-        id INT(11) PRIMARY KEY AUTO_INCREMENT,
-        sponsor_id INT(11) NOT NULL,
-        article_id INT(11) NULL,
-        category_id INT(11) NULL,
-        ad_type ENUM('banner', 'video') NOT NULL,
-        ad_content TEXT NOT NULL,
-        start_date TIMESTAMP NOT NULL,
-        end_date TIMESTAMP NOT NULL,
-        image_url VARCHAR(255),
-        video_url VARCHAR(255),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (sponsor_id) REFERENCES Sponsors(id) ON DELETE CASCADE,
-        FOREIGN KEY (article_id) REFERENCES Articles(id) ON DELETE SET NULL,
-        FOREIGN KEY (category_id) REFERENCES Categories(id) ON DELETE SET NULL
       )
     `);
 

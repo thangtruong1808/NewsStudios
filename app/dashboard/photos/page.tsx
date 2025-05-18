@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getImages, searchImages } from "@/app/lib/actions/images";
 import PhotosHeader from "@/app/components/dashboard/photos/header";
-import PhotosSearch from "@/app/components/dashboard/photos/search";
+import SearchBar from "@/app/components/dashboard/shared/search/SearchBar";
 import PhotosGrid from "@/app/components/dashboard/shared/grid/PhotosGrid";
 import { Image } from "@/app/lib/definition";
 import {
@@ -13,6 +13,7 @@ import {
   showConfirmationToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { deleteImage } from "@/app/lib/actions/images";
 
 /**
  * PhotosPage Component
@@ -210,17 +211,17 @@ export default function PhotosPage() {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/photos/${photo.id}`, {
-        method: "DELETE",
-      });
+      const result = await deleteImage(photo.id);
 
-      if (!response.ok) {
-        throw new Error("Failed to delete photo");
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete photo");
       }
 
       showSuccessToast({ message: "Photo deleted successfully" });
-      setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
-      setTotalItems((prev) => prev - 1);
+
+      // Reset to first page and refresh data
+      setCurrentPage(1);
+      await fetchPhotos(true);
     } catch (error) {
       console.error("Error deleting photo:", error);
       showErrorToast({ message: "Failed to delete photo" });
@@ -236,7 +237,11 @@ export default function PhotosPage() {
 
       {/* Search bar for filtering photos */}
       <div className="mt-6 space-y-4">
-        <PhotosSearch onSearch={handleSearch} />
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={handleSearch}
+          placeholder="Search by photo description or article title..."
+        />
         <div className="flex justify-end">
           <button
             onClick={handleRefresh}
