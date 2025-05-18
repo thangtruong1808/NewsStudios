@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Article, Image } from "@/app/lib/definition";
-import { toast } from "react-hot-toast";
 import { uploadImageToServer, updateImage } from "@/app/lib/actions/images";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import {
+  showSuccessToast,
+  showErrorToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 
 /**
  * Props interface for CreatePhotoPageClient component
@@ -32,6 +36,10 @@ export default function CreatePhotoPageClient({
 }: CreatePhotoPageClientProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isImageProcessing, setIsImageProcessing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [formValues, setFormValues] = useState({
     file: "",
     description: image?.description || "",
@@ -41,7 +49,16 @@ export default function CreatePhotoPageClient({
   const isEditMode = !!image;
 
   // Check if form is empty (required for create mode)
-  const isFormEmpty = !formValues.file;
+  const isFormEmpty = !selectedFile;
+
+  // Cleanup preview URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   /**
    * Form submission handler
@@ -50,45 +67,135 @@ export default function CreatePhotoPageClient({
    */
   const handleSubmit = async (formData: FormData) => {
     setIsSubmitting(true);
+    setUploadProgress(0);
+    setIsImageProcessing(true);
+
     try {
       if (isEditMode && image) {
-        const result = await updateImage(image.id, {
-          description: formData.get("description") as string,
-          type: "gallery",
-          entity_type: "article",
-          entity_id: formData.get("article_id")
-            ? parseInt(formData.get("article_id") as string)
-            : 0,
-          is_featured: false,
-          display_order: 0,
+        // If a new file is selected, upload it first
+        let imageUrl = image.image_url;
+        if (selectedFile) {
+          const uploadFormData = new FormData();
+          uploadFormData.append("file", selectedFile);
+
+          // Simulate upload progress for file upload
+          const progressInterval = setInterval(() => {
+            setUploadProgress((prev) => {
+              if (prev >= 90) {
+                clearInterval(progressInterval);
+                return prev;
+              }
+              return prev + 10;
+            });
+          }, 200);
+
+          const uploadResult = await uploadImageToServer(uploadFormData);
+          clearInterval(progressInterval);
+          setUploadProgress(100);
+
+          if (uploadResult.error || !uploadResult.url) {
+            throw new Error(uploadResult.error || "Failed to upload image");
+          }
+
+          imageUrl = uploadResult.url;
+        }
+
+        const articleId = formData.get("article_id")
+          ? parseInt(formData.get("article_id") as string)
+          : undefined;
+
+        // Update the image record
+        const updateResult = await fetch(`/api/images/${image.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image_url: imageUrl,
+            description: formData.get("description") as string,
+            type: "gallery",
+            entity_type: articleId ? "article" : image.entity_type,
+            entity_id: articleId || image.entity_id,
+            is_featured: false,
+            display_order: 0,
+          }),
         });
 
-        if (!result.success) {
-          throw new Error("Failed to update photo");
+        if (!updateResult.ok) {
+          const errorData = await updateResult.json();
+          throw new Error(errorData.error || "Failed to update photo record");
         }
 
-        toast.success("Photo updated successfully");
+        showSuccessToast({ message: "Photo updated successfully" });
+        router.refresh();
+        router.push("/dashboard/photos");
       } else {
+        // Simulate upload progress for new photos
+        const progressInterval = setInterval(() => {
+          setUploadProgress((prev) => {
+            if (prev >= 90) {
+              clearInterval(progressInterval);
+              return prev;
+            }
+            return prev + 10;
+          });
+        }, 200);
+
         const result = await uploadImageToServer(formData);
-        if (result.error) {
-          throw new Error(result.error);
+        clearInterval(progressInterval);
+        setUploadProgress(100);
+
+        if (result.error || !result.url) {
+          throw new Error(result.error || "Failed to upload image");
         }
 
-        toast.success("Photo created successfully");
-      }
+        const articleId = formData.get("article_id")
+          ? parseInt(formData.get("article_id") as string)
+          : undefined;
 
-      router.push("/dashboard/photos");
-      router.refresh();
+        // Create the image record
+        const createResult = await fetch("/api/images", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image_url: result.url,
+            description: formData.get("description") as string,
+            type: "gallery",
+            entity_type: articleId ? "article" : "article", // Default to article type
+            entity_id: articleId || 1, // Default to article ID 1 if no article selected
+            is_featured: false,
+            display_order: 0,
+          }),
+        });
+
+        if (!createResult.ok) {
+          const errorData = await createResult.json();
+          throw new Error(errorData.error || "Failed to create photo record");
+        }
+
+        showSuccessToast({ message: "Photo created successfully" });
+        router.refresh();
+        router.push("/dashboard/photos");
+      }
     } catch (error) {
       console.error(
         `Error ${isEditMode ? "updating" : "creating"} photo:`,
         error
       );
-      toast.error(
-        isEditMode ? "Failed to update photo" : "Failed to create photo"
-      );
+      showErrorToast({
+        message:
+          error instanceof Error
+            ? error.message
+            : isEditMode
+            ? "Failed to update photo"
+            : "Failed to create photo",
+      });
     } finally {
       setIsSubmitting(false);
+      setIsImageProcessing(false);
+      setUploadProgress(0);
     }
   };
 
@@ -104,6 +211,51 @@ export default function CreatePhotoPageClient({
       ...prev,
       [name]: value,
     }));
+  };
+
+  /**
+   * File input change handler
+   * Updates selected file and form state
+   */
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setFormValues((prev) => ({
+        ...prev,
+        file: file.name,
+      }));
+      setIsImageProcessing(true);
+      setUploadProgress(0);
+
+      // Simulate upload progress for new file selection
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      // After progress completes, show preview and toast
+      setTimeout(() => {
+        clearInterval(progressInterval);
+        setUploadProgress(100);
+
+        // Create preview URL after progress completes
+        const filePreviewUrl = URL.createObjectURL(file);
+        setPreviewUrl(filePreviewUrl);
+        showSuccessToast({ message: "Photo selected successfully" });
+
+        // Reset processing state after a short delay
+        setTimeout(() => {
+          setIsImageProcessing(false);
+          setUploadProgress(0);
+        }, 500);
+      }, 2000);
+    }
   };
 
   return (
@@ -138,7 +290,7 @@ export default function CreatePhotoPageClient({
                   name="file"
                   accept="image/*"
                   required={!isEditMode}
-                  onChange={handleInputChange}
+                  onChange={handleFileChange}
                   className="block w-full text-sm text-gray-500
                     file:mr-4 file:py-2 file:px-4
                     file:rounded-md file:border-0
@@ -147,6 +299,42 @@ export default function CreatePhotoPageClient({
                     hover:file:bg-indigo-100"
                 />
               </div>
+              {/* Photo preview */}
+              {(isEditMode && image?.image_url && !previewUrl) || previewUrl ? (
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                    {previewUrl ? "New Photo Preview" : "Current Photo"}
+                  </h3>
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200">
+                    <img
+                      src={previewUrl || image?.image_url}
+                      alt={image?.description || "Photo preview"}
+                      className="w-full h-full object-contain bg-gray-50"
+                    />
+                  </div>
+                </div>
+              ) : null}
+              {/* Upload progress bar */}
+              {isImageProcessing && (
+                <div className="mt-4">
+                  <div className="flex items-center gap-2">
+                    <ArrowPathIcon className="h-5 w-5 animate-spin text-blue-500" />
+                    <div className="flex-1">
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {uploadProgress < 100
+                          ? `Uploading... ${uploadProgress}%`
+                          : "Processing image..."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Article selection field */}
@@ -210,13 +398,16 @@ export default function CreatePhotoPageClient({
               disabled={isSubmitting || (!isEditMode && isFormEmpty)}
               className="inline-flex justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-600 to-blue-400 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting
-                ? isEditMode
-                  ? "Updating..."
-                  : "Creating..."
-                : isEditMode
-                ? "Update Photo"
-                : "Create Photo"}
+              {isSubmitting ? (
+                <>
+                  <ArrowPathIcon className="h-5 w-5 animate-spin mr-2" />
+                  {isEditMode ? "Updating..." : "Creating..."}
+                </>
+              ) : isEditMode ? (
+                "Update Photo"
+              ) : (
+                "Create Photo"
+              )}
             </button>
           </div>
         </form>

@@ -12,6 +12,7 @@ import {
   showErrorToast,
   showConfirmationToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 /**
  * PhotosPage Component
@@ -69,77 +70,89 @@ export default function PhotosPage() {
   const [photos, setPhotos] = useState<Image[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
   const [searchQuery, setSearchQuery] = useState("");
   const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Fetch photos with pagination and search support
-  const fetchPhotos = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      console.log("Fetching photos with params:", {
-        currentPage,
-        itemsPerPage,
-        searchQuery,
-      });
+  const fetchPhotos = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+      try {
+        console.log("Fetching photos with params:", {
+          currentPage,
+          itemsPerPage,
+          searchQuery,
+        });
 
-      const result = searchQuery
-        ? await searchImages(searchQuery)
-        : await getImages(currentPage, itemsPerPage);
+        const result = searchQuery
+          ? await searchImages(searchQuery)
+          : await getImages(currentPage, itemsPerPage);
 
-      console.log("Received result:", {
-        hasError: !!result.error,
-        dataLength: result.data?.length,
-        firstItem: result.data?.[0],
-        pagination: result.pagination,
-      });
+        console.log("Received result:", {
+          hasError: !!result.error,
+          dataLength: result.data?.length,
+          firstItem: result.data?.[0],
+          pagination: result.pagination,
+        });
 
-      if (result.error) {
-        showErrorToast({ message: result.error });
+        if (result.error) {
+          showErrorToast({ message: result.error });
+          if (currentPage === 1) {
+            setPhotos([]);
+            setTotalItems(0);
+          }
+          setHasMore(false);
+          return;
+        }
+
+        const paginatedResult = result as PaginatedResult;
+        const convertedPhotos = paginatedResult.data.map(
+          convertImageRowToImage
+        );
+
+        console.log("Converted photos:", {
+          count: convertedPhotos.length,
+          firstPhoto: convertedPhotos[0],
+        });
+
+        // Update photos list based on pagination
+        if (convertedPhotos.length > 0 || currentPage === 1) {
+          if (currentPage === 1) {
+            setPhotos(convertedPhotos);
+          } else {
+            setPhotos((prev) => [...prev, ...convertedPhotos]);
+          }
+          setTotalItems(paginatedResult.pagination.total);
+          setHasMore(
+            paginatedResult.pagination.total > currentPage * itemsPerPage
+          );
+        } else {
+          setHasMore(false);
+        }
+      } catch (error) {
+        console.error("Error fetching photos:", error);
+        showErrorToast({ message: "Failed to fetch photos" });
         if (currentPage === 1) {
           setPhotos([]);
           setTotalItems(0);
         }
         setHasMore(false);
-        return;
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
       }
-
-      const paginatedResult = result as PaginatedResult;
-      const convertedPhotos = paginatedResult.data.map(convertImageRowToImage);
-
-      console.log("Converted photos:", {
-        count: convertedPhotos.length,
-        firstPhoto: convertedPhotos[0],
-      });
-
-      // Update photos list based on pagination
-      if (convertedPhotos.length > 0 || currentPage === 1) {
-        if (currentPage === 1) {
-          setPhotos(convertedPhotos);
-        } else {
-          setPhotos((prev) => [...prev, ...convertedPhotos]);
-        }
-        setTotalItems(paginatedResult.pagination.total);
-        setHasMore(
-          paginatedResult.pagination.total > currentPage * itemsPerPage
-        );
-      } else {
-        setHasMore(false);
-      }
-    } catch (error) {
-      console.error("Error fetching photos:", error);
-      showErrorToast({ message: "Failed to fetch photos" });
-      if (currentPage === 1) {
-        setPhotos([]);
-        setTotalItems(0);
-      }
-      setHasMore(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentPage, itemsPerPage, searchQuery]);
+    },
+    [currentPage, itemsPerPage, searchQuery]
+  );
 
   // Initialize and cleanup photo fetching
   useEffect(() => {
@@ -168,6 +181,12 @@ export default function PhotosPage() {
   const handleLoadMore = useCallback(() => {
     setCurrentPage((prev) => prev + 1);
   }, []);
+
+  // Refresh photos list
+  const handleRefresh = useCallback(() => {
+    setCurrentPage(1);
+    fetchPhotos(true);
+  }, [fetchPhotos]);
 
   // Navigate to edit page for a specific photo
   const handleEdit = (photo: Image) => {
@@ -216,7 +235,21 @@ export default function PhotosPage() {
       <PhotosHeader />
 
       {/* Search bar for filtering photos */}
-      <PhotosSearch onSearch={handleSearch} />
+      <div className="mt-6 space-y-4">
+        <PhotosSearch onSearch={handleSearch} />
+        <div className="flex justify-end">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ArrowPathIcon
+              className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </button>
+        </div>
+      </div>
 
       <div className="mt-4">
         {/* Display total photos count */}
@@ -252,7 +285,7 @@ export default function PhotosPage() {
           </div>
         ) : (
           <>
-            {/* Photo grid with edit and delete actions */}
+            {/* Photos grid with loading state */}
             <PhotosGrid
               photos={photos}
               onEdit={handleEdit}
@@ -260,15 +293,25 @@ export default function PhotosPage() {
               isLoading={isLoading}
             />
 
-            {/* Load more button for pagination */}
-            {hasMore && !isLoading && (
+            {/* Load More button */}
+            {hasMore && (
               <div className="mt-8 flex justify-center">
                 <button
                   onClick={handleLoadMore}
-                  disabled={isLoading}
-                  className="inline-flex justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-600 to-blue-400 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isLoadingMore}
+                  className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-blue-600 to-blue-400 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-blue-700 hover:to-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? "Loading..." : "Load More"}
+                  {isLoadingMore ? (
+                    <>
+                      <ArrowPathIcon className="h-5 w-5 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowPathIcon className="h-5 w-5" />
+                      Load More
+                    </>
+                  )}
                 </button>
               </div>
             )}

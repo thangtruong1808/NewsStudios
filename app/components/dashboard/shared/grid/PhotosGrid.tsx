@@ -28,8 +28,8 @@ export default function PhotosGrid({
   onDelete,
   isLoading = false,
 }: PhotosGridProps) {
-  // State to track deletion process
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [hoveredPhoto, setHoveredPhoto] = useState<number | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
 
   // Handle photo deletion with confirmation
   const handleDelete = async (photo: Image) => {
@@ -46,14 +46,18 @@ export default function PhotosGrid({
     const isConfirmed = await confirmPromise;
     if (!isConfirmed) return;
 
-    setIsDeleting(true);
     try {
       await onDelete(photo);
     } catch (error) {
       console.error("Error deleting photo:", error);
       showErrorToast({ message: "Failed to delete photo" });
-    } finally {
-      setIsDeleting(false);
+    }
+  };
+
+  // Handle image loading error
+  const handleImageError = (photoId: number) => {
+    if (!failedImages.has(photoId)) {
+      setFailedImages((prev) => new Set([...prev, photoId]));
     }
   };
 
@@ -64,15 +68,16 @@ export default function PhotosGrid({
         {[...Array(12)].map((_, index) => (
           <div
             key={index}
-            className="group relative bg-white rounded-lg shadow-sm overflow-hidden"
+            className="bg-white rounded-lg shadow-sm overflow-hidden animate-pulse"
           >
-            <div className="relative aspect-[4/3]">
-              <div className="w-full h-full bg-gray-200 animate-pulse" />
-            </div>
-            <div className="p-3 space-y-2">
-              <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
-              <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-              <div className="h-3 bg-gray-200 rounded animate-pulse w-1/3" />
+            <div className="w-full h-48 bg-gray-200" />
+            <div className="p-4 space-y-3">
+              <div className="h-4 bg-gray-200 rounded w-3/4" />
+              <div className="h-4 bg-gray-200 rounded w-1/2" />
+              <div className="flex justify-end space-x-2">
+                <div className="h-8 w-8 bg-gray-200 rounded" />
+                <div className="h-8 w-8 bg-gray-200 rounded" />
+              </div>
             </div>
           </div>
         ))}
@@ -85,95 +90,81 @@ export default function PhotosGrid({
       {photos.map((photo) => (
         <div
           key={photo.id}
-          className="group relative bg-white rounded-lg shadow-sm overflow-hidden"
+          className={`bg-white rounded-lg shadow-sm overflow-hidden group relative ${
+            failedImages.has(photo.id)
+              ? "ring-2 ring-gray-300 ring-opacity-50"
+              : ""
+          }`}
+          onMouseEnter={() => setHoveredPhoto(photo.id)}
+          onMouseLeave={() => setHoveredPhoto(null)}
         >
-          {/* Photo container with error handling */}
-          <div className="relative aspect-[4/3]">
-            {photo.image_url ? (
-              <div className="w-full h-full relative">
-                <NextImage
-                  src={photo.image_url}
-                  alt={photo.description || "Photo"}
-                  fill
-                  className="object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = "none";
-                    const parent = target.parentElement;
-                    if (parent) {
-                      const fallback = document.createElement("div");
-                      fallback.className =
-                        "w-full h-full flex flex-col items-center justify-center bg-gray-50";
-                      fallback.innerHTML = `
-                        <div class="flex flex-col items-center justify-center text-gray-400">
-                          <svg class="w-10 h-10 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                          </svg>
-                          <span class="text-xs text-center font-medium">Photo not available on server</span>
-                        </div>
-                      `;
-                      parent.appendChild(fallback);
-                    }
-                  }}
-                />
+          {/* Photo container with fixed dimensions */}
+          <div className="relative w-full h-48">
+            {failedImages.has(photo.id) ? (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50">
+                <PhotoIcon className="w-12 h-12 text-gray-400 mb-2" />
+                <span className="text-xs text-gray-500 text-center">
+                  Image not available
+                </span>
               </div>
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50">
-                <div className="flex flex-col items-center justify-center text-gray-400">
-                  <PhotoIcon className="w-16 h-16 mb-1" />
-                  <span className="text-xs text-center font-medium">
-                    No image uploaded
-                  </span>
-                </div>
-              </div>
+              <img
+                src={photo.image_url}
+                alt={photo.description || "Photo"}
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={() => handleImageError(photo.id)}
+              />
             )}
-
-            {/* Hover overlay with action buttons */}
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
-              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <button
-                  onClick={() => onEdit(photo)}
-                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors"
-                  title="Edit"
-                >
-                  <PencilIcon className="w-4 h-4 text-gray-600" />
-                </button>
-                <button
-                  onClick={() => handleDelete(photo)}
-                  disabled={isDeleting}
-                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors"
-                  title="Delete"
-                >
-                  <TrashIcon className="w-4 h-4 text-red-600" />
-                </button>
-              </div>
+            {/* Action buttons in top right corner */}
+            <div
+              className={`absolute top-2 right-2 flex gap-2 transition-opacity duration-200 ${
+                hoveredPhoto === photo.id ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <button
+                onClick={() => onEdit(photo)}
+                className="p-2 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
+                title="Edit photo"
+              >
+                <PencilIcon className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => handleDelete(photo)}
+                className="p-2 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
+                title="Delete photo"
+              >
+                <TrashIcon className="h-5 w-5" />
+              </button>
             </div>
           </div>
 
-          {/* Photo metadata section */}
-          <div className="p-3 space-y-1">
-            {photo.article_id && (
-              <div className="text-xs">
-                <span className="font-medium">Article ID:</span>{" "}
-                <span className="text-gray-500">{photo.article_id}</span>
-              </div>
-            )}
+          {/* Photo metadata */}
+          <div className="p-4">
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-medium">Article ID:</span>
+              <span className="text-xs text-gray-500">
+                {photo.article_id || "No article associated"}
+              </span>
+            </div>
             {photo.article_title && (
-              <div className="text-xs">
-                <span className="font-medium">Article Title:</span>{" "}
-                <span className="text-gray-500">{photo.article_title}</span>
+              <div className="mt-1">
+                <span className="text-xs font-medium">Article Title:</span>
+                <div className="text-xs text-gray-500 line-clamp-4 min-h-[2.5rem]">
+                  {photo.article_title}
+                </div>
               </div>
             )}
-            {/* {photo.description && (
-              <p className="text-xs line-clamp-2">
-                <span className="font-medium">Description:</span>{" "}
-                <span className="text-gray-500">{photo.description}</span>
-              </p>
-            )} */}
-            <p className="text-xs text-gray-500 flex items-center gap-1">
-              <ClockIcon className="w-3 h-3" />
-              Updated: {new Date(photo.updated_at).toLocaleDateString()}
-            </p>
+            <div className="mt-2 flex items-center gap-1">
+              <ClockIcon className="h-4 w-4 text-gray-400" />
+              <span className="text-xs font-medium">Last updated:</span>
+              <span className="text-xs text-gray-500">
+                {new Date(photo.updated_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
           </div>
         </div>
       ))}

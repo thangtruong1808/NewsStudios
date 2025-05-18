@@ -327,6 +327,57 @@ export async function getImageById(id: number) {
 export async function updateImage(id: number, data: Partial<Image>) {
   try {
     const result = await transaction(async (connection) => {
+      // First, get the current image data
+      const [currentImage] = await connection.execute(
+        "SELECT * FROM Images WHERE id = ?",
+        [id]
+      );
+      const image = (currentImage as any[])[0];
+
+      if (!image) {
+        throw new Error("Image not found");
+      }
+
+      // If entity_type is changing, verify the entity exists
+      if (data.entity_type && data.entity_type !== image.entity_type) {
+        let entityExists = false;
+        switch (data.entity_type) {
+          case "article":
+            const [article] = await connection.execute(
+              "SELECT id FROM Articles WHERE id = ?",
+              [data.entity_id]
+            );
+            entityExists = (article as any[]).length > 0;
+            break;
+          case "advertisement":
+            const [advertisement] = await connection.execute(
+              "SELECT id FROM Advertisements WHERE id = ?",
+              [data.entity_id]
+            );
+            entityExists = (advertisement as any[]).length > 0;
+            break;
+          case "author":
+            const [author] = await connection.execute(
+              "SELECT id FROM Authors WHERE id = ?",
+              [data.entity_id]
+            );
+            entityExists = (author as any[]).length > 0;
+            break;
+          case "category":
+            const [category] = await connection.execute(
+              "SELECT id FROM Categories WHERE id = ?",
+              [data.entity_id]
+            );
+            entityExists = (category as any[]).length > 0;
+            break;
+        }
+
+        if (!entityExists) {
+          throw new Error(`Referenced ${data.entity_type} does not exist`);
+        }
+      }
+
+      // Update the image
       const [rows] = await connection.execute(
         `UPDATE Images 
          SET image_url = ?,
@@ -356,7 +407,10 @@ export async function updateImage(id: number, data: Partial<Image>) {
     return { success: true };
   } catch (error) {
     console.error("Error updating image:", error);
-    return { success: false, error: "Failed to update image" };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update image",
+    };
   }
 }
 
