@@ -47,6 +47,8 @@ export interface Category {
   description?: string;
   created_at: Date;
   updated_at: Date;
+  subcategories_count?: number;
+  articles_count?: number;
 }
 
 export interface SubCategory {

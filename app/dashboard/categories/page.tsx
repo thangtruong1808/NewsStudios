@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Category } from "@/app/lib/definition";
-import { getCategories } from "@/app/lib/actions/categories";
+import { getCategories, deleteCategory } from "@/app/lib/actions/categories";
 import CategoriesTable from "@/app/components/dashboard/categories/table/CategoriesTable";
 import CategoriesSearch from "@/app/components/dashboard/categories/search/CategoriesSearch";
 import CategoriesHeader from "@/app/components/dashboard/categories/header/CategoriesHeader";
@@ -65,6 +65,16 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
     {
       field: "description",
       label: "Description",
+      sortable: true,
+    },
+    {
+      field: "subcategories_count",
+      label: "Subcategories",
+      sortable: true,
+    },
+    {
+      field: "articles_count",
+      label: "Articles",
       sortable: true,
     },
     {
@@ -164,13 +174,25 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/categories/${category.id}`, {
-        method: "DELETE",
+      const { error } = await deleteCategory(category.id);
+
+      if (error) {
+        showErrorToast({ message: error });
+        return;
+      }
+
+      // Refresh the categories data
+      const { data, totalItems, totalPages } = await getCategories({
+        page: currentPage,
+        limit: itemsPerPage,
+        search: searchQuery,
+        sortField: sortField as string,
+        sortDirection,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to delete category");
-      }
+      setCategories(data || []);
+      setTotalPages(totalPages);
+      setTotalItems(totalItems);
 
       router.refresh();
       showSuccessToast({ message: "Category deleted successfully" });

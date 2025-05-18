@@ -65,6 +65,30 @@ export default function CategoriesTable({
       ),
     },
     {
+      field: "subcategories_count",
+      label: "Subcategories",
+      sortable: true,
+      render: (value) => (
+        <div className="w-24">
+          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+            {value || 0}
+          </span>
+        </div>
+      ),
+    },
+    {
+      field: "articles_count",
+      label: "Articles",
+      sortable: true,
+      render: (value) => (
+        <div className="w-24">
+          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+            {value || 0}
+          </span>
+        </div>
+      ),
+    },
+    {
       field: "created_at",
       label: "Created At",
       sortable: true,

@@ -31,15 +31,15 @@ export async function getCategories({
   try {
     const offset = (page - 1) * limit;
     const searchCondition = search
-      ? `WHERE name LIKE ? OR description LIKE ?`
+      ? `WHERE c.name LIKE ? OR c.description LIKE ?`
       : "";
     const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
-    const orderBy = `ORDER BY ${sortField} ${sortDirection}`;
+    const orderBy = `ORDER BY c.${sortField} ${sortDirection}`;
 
     // Get total count for pagination
     const countQuery = `
       SELECT COUNT(*) as count
-      FROM Categories 
+      FROM Categories c
       ${searchCondition}
     `;
     const countResult = await query(countQuery, searchParams);
@@ -49,10 +49,13 @@ export async function getCategories({
     const totalItems = parseInt(countResult.data[0].count);
     const totalPages = Math.ceil(totalItems / limit);
 
-    // Get paginated data
+    // Get paginated data with subcategories and articles count
     const dataQuery = `
-      SELECT * 
-      FROM Categories 
+      SELECT 
+        c.*,
+        (SELECT COUNT(*) FROM SubCategories sc WHERE sc.category_id = c.id) as subcategories_count,
+        (SELECT COUNT(*) FROM Articles a WHERE a.category_id = c.id) as articles_count
+      FROM Categories c
       ${searchCondition}
       ${orderBy}
       LIMIT ? 
@@ -126,6 +129,45 @@ export async function updateCategory(id: number, data: CategoryFormData) {
 
 export async function deleteCategory(id: number) {
   try {
+    // First check if there are any subcategories using this category
+    const subCategoriesResult = await query(
+      "SELECT COUNT(*) as count FROM SubCategories WHERE category_id = ?",
+      [id]
+    );
+
+    if (subCategoriesResult.error) {
+      throw new Error("Failed to check related subcategories");
+    }
+
+    const subCategoryCount = subCategoriesResult.data?.[0]?.count || 0;
+    if (subCategoryCount > 0) {
+      return {
+        data: null,
+        error:
+          "Cannot delete category because it has associated subcategories. Please delete the subcategories first.",
+      };
+    }
+
+    // Check for articles
+    const articlesResult = await query(
+      "SELECT COUNT(*) as count FROM Articles WHERE category_id = ?",
+      [id]
+    );
+
+    if (articlesResult.error) {
+      throw new Error("Failed to check related articles");
+    }
+
+    const articleCount = articlesResult.data?.[0]?.count || 0;
+    if (articleCount > 0) {
+      return {
+        data: null,
+        error:
+          "Cannot delete category because it has associated articles. Please reassign or delete the articles first.",
+      };
+    }
+
+    // If no related records, proceed with deletion
     await query("DELETE FROM Categories WHERE id = ?", [id]);
     revalidatePath("/dashboard/categories");
     return { data: null, error: null };
