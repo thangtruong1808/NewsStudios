@@ -54,23 +54,19 @@ export default function EditVideoPage({ params }: EditVideoPageProps) {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-2">
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4">
-            <FormSkeleton
-              fields={3} // Number of fields in the video form: article selection, video upload, description
-              showHeader={true}
-              showActions={true}
-            />
-          </div>
-        </div>
+      <div className="w-full">
+        <FormSkeleton
+          fields={3} // Number of fields in the video form: article selection, video upload, description
+          showHeader={true}
+          showActions={true}
+        />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="w-full">
         <div className="rounded-md bg-red-50 p-4">
           <div className="flex">
             <div className="ml-3">

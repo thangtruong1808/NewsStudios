@@ -21,18 +21,16 @@ export default function ArticleFormContainer({
   tags,
 }: ArticleFormContainerProps) {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-2">
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4">
-          <ArticleForm
-            article={article}
-            categories={categories}
-            authors={authors}
-            subcategories={subcategories}
-            users={users}
-            tags={tags}
-          />
-        </div>
+    <div className="w-full">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <ArticleForm
+          article={article}
+          categories={categories}
+          authors={authors}
+          subcategories={subcategories}
+          users={users}
+          tags={tags}
+        />
       </div>
     </div>
   );

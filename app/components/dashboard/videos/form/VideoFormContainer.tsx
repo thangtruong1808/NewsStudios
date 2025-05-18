@@ -13,7 +13,7 @@ export default function VideoFormContainer({
   mode,
 }: VideoFormContainerProps) {
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="w-full bg-white rounded-lg shadow-md overflow-hidden">
       {/* Form header with gradient background */}
       <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
         <h2 className="text-lg font-medium text-white">

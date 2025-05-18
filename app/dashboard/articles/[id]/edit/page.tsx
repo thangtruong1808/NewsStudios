@@ -41,10 +41,10 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
           tagsResult,
         ] = await Promise.all([
           getArticleById(parseInt(params.id)),
-          getCategories(),
-          getAuthors(),
-          getSubcategories(),
-          getUsers(),
+          getCategories({ page: 1, limit: 1000 }),
+          getAuthors(1, 1000),
+          getSubcategories(1, 1000),
+          getUsers({ page: 1, limit: 1000 }),
           getAllTags(),
         ]);
 
@@ -98,23 +98,19 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-2">
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4">
-            <FormSkeleton
-              fields={8} // Number of fields in the article form: title, content, category, author, subcategory, user, image, video
-              showHeader={true}
-              showActions={true}
-            />
-          </div>
-        </div>
+      <div className="w-full">
+        <FormSkeleton
+          fields={8} // Number of fields in the article form: title, content, category, author, subcategory, user, image, video
+          showHeader={true}
+          showActions={true}
+        />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="w-full">
         <div className="rounded-md bg-red-50 p-4">
           <div className="flex">
             <div className="ml-3">

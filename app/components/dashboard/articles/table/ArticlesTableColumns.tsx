@@ -4,6 +4,7 @@ import { Column } from "@/app/components/dashboard/shared/table";
 import { Article } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
+import ExpandableTagList from "./ExpandableTagList";
 
 /**
  * Interface for the column configuration props
@@ -82,14 +83,15 @@ export function getArticlesTableColumns({
       ),
     },
     {
-      field: "published_at",
-      label: "Published At",
-      sortable: true,
-      render: (value) => (
-        <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
-            {new Date(value).toLocaleDateString()}
-          </span>
+      field: "tag_names",
+      label: "Tags",
+      sortable: false,
+      render: (value, article) => (
+        <div className="w-48">
+          <ExpandableTagList
+            tags={Array.isArray(value) ? value : []}
+            tagColors={article.tag_colors || []}
+          />
         </div>
       ),
     },

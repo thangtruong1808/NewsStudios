@@ -19,7 +19,7 @@ export default async function CreatePhotoPage() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-2">
+      <div className="w-full">
         <div className="rounded-md bg-red-50 p-4">
           <div className="flex">
             <div className="ml-3">
@@ -37,12 +37,8 @@ export default async function CreatePhotoPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-2">
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4">
-          <CreatePhotoPageClient articles={articles} />
-        </div>
-      </div>
+    <div className="w-full">
+      <CreatePhotoPageClient articles={articles} />
     </div>
   );
 }

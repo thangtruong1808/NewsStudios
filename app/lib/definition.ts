@@ -97,6 +97,7 @@ export interface Article {
   user_lastname?: string;
   tag_names?: string[];
   tag_ids?: number[];
+  tag_colors?: string[];
   views: number;
   likes: number;
   comments: Array<{

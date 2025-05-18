@@ -54,7 +54,8 @@ export async function getArticles(params?: {
       sc.name as sub_category_name,
       CONCAT(u.firstname, ' ', u.lastname) as author_name,
       GROUP_CONCAT(t.name) as tag_names,
-      GROUP_CONCAT(t.id) as tag_ids
+      GROUP_CONCAT(t.id) as tag_ids,
+      GROUP_CONCAT(t.color) as tag_colors
     FROM Articles a
     LEFT JOIN Categories c ON a.category_id = c.id
     LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
@@ -133,6 +134,7 @@ export async function getArticles(params?: {
       headline_priority: Number(article.headline_priority),
       tag_names: article.tag_names ? article.tag_names.split(",") : [],
       tag_ids: article.tag_ids ? article.tag_ids.split(",").map(Number) : [],
+      tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
     }));
 
     // Ensure totalItems and totalPages are at least 1 when there's data

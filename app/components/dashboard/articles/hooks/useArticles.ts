@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Article } from "@/app/lib/definition";
-import { getArticles } from "@/app/lib/actions/articles";
+import { getArticles, deleteArticle } from "@/app/lib/actions/articles";
 import {
   showConfirmationToast,
   showSuccessToast,
@@ -108,20 +108,51 @@ export function useArticles() {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/articles/${article.id}`, {
-        method: "DELETE",
-      });
+      const success = await deleteArticle(article.id);
 
-      if (!response.ok) {
+      if (!success) {
         throw new Error("Failed to delete article");
       }
 
+      // Force a router refresh to ensure we get fresh data
       router.refresh();
+
+      // Refresh the data after successful deletion
+      const result = await getArticles({
+        page: currentPage,
+        limit: itemsPerPage,
+        search: searchQuery,
+        sortField: sortField as string,
+        sortDirection,
+      });
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      // Update the state with the new data
+      setArticles(result.data || []);
+      if (result.totalItems !== undefined) {
+        setTotalPages(Math.ceil(result.totalItems / itemsPerPage));
+        setTotalItems(result.totalItems);
+      }
+
+      // If we're on the last page and it's now empty, go to the previous page
+      if (result.data?.length === 0 && currentPage > 1) {
+        const newPage = currentPage - 1;
+        const params = new URLSearchParams(searchParams);
+        params.set("page", newPage.toString());
+        router.push(`/dashboard/articles?${params.toString()}`);
+      }
+
       showSuccessToast({ message: "Article deleted successfully" });
     } catch (error) {
       console.error("Error deleting article:", error);
       showErrorToast({
-        message: "Failed to delete article. Please try again.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete article. Please try again.",
       });
     } finally {
       setIsDeleting(false);

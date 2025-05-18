@@ -37,13 +37,13 @@ interface ConfirmationToastProps extends ToastProps {
  */
 export const showSuccessToast = ({
   message = "Operation completed successfully",
-  duration = 2000,
+  duration = 3000,
   position = "top-right",
 }: ToastProps = {}) => {
   // Dismiss all existing toasts before showing a new one
   toast.dismiss();
 
-  toast.success(message, {
+  return toast.success(message, {
     duration,
     position,
     style: {
@@ -63,7 +63,7 @@ export const showSuccessToast = ({
  */
 export const showInfoToast = ({
   message = "Information",
-  duration = 2000,
+  duration = 3000,
   position = "top-right",
 }: ToastProps = {}) => {
   // Dismiss all existing toasts before showing a new one

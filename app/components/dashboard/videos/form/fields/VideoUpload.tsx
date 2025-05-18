@@ -59,11 +59,11 @@ export default function VideoUpload({ value, onChange }: VideoUploadProps) {
         />
       </div>
       {value && (
-        <div className="mt-2">
+        <div className="mt-2 max-w-2xl mx-auto">
           <video
             src={value}
             controls
-            className="w-full h-48 object-cover rounded-md"
+            className="w-full aspect-video object-cover rounded-md"
           />
         </div>
       )}

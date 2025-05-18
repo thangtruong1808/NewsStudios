@@ -23,6 +23,7 @@ export default function CreateArticlePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch all data in parallel
         const [
           categoriesResult,
           authorsResult,
@@ -30,13 +31,14 @@ export default function CreateArticlePage() {
           usersResult,
           tagsResult,
         ] = await Promise.all([
-          getCategories(),
-          getAuthors(),
-          getSubcategories(),
-          getUsers(),
-          getAllTags(),
+          getCategories({ page: 1, limit: 1000 }), // Get all categories
+          getAuthors(1, 1000), // Get all authors
+          getSubcategories(1, 1000), // Get all subcategories
+          getUsers({ page: 1, limit: 1000 }), // Get all users
+          getAllTags({ page: 1, limit: 1000 }), // Get all tags
         ]);
 
+        // Check for errors
         if (categoriesResult.error) {
           setError(categoriesResult.error);
           return;
@@ -62,6 +64,7 @@ export default function CreateArticlePage() {
           return;
         }
 
+        // Set the data
         setData({
           categories: categoriesResult.data || [],
           authors: authorsResult.data || [],
@@ -71,6 +74,7 @@ export default function CreateArticlePage() {
         });
       } catch (err) {
         setError("Failed to fetch data");
+        console.error("Error fetching data:", err);
       } finally {
         setIsLoading(false);
       }
@@ -81,19 +85,15 @@ export default function CreateArticlePage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-2">
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4">
-            <FormSkeleton fields={8} showHeader={true} showActions={true} />
-          </div>
-        </div>
+      <div className="w-full">
+        <FormSkeleton fields={8} showHeader={true} showActions={true} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="w-full">
         <div className="rounded-md bg-red-50 p-4">
           <div className="flex">
             <div className="ml-3">
