@@ -41,25 +41,48 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      if (trigger === "update" && session) {
+        // When session is updated, merge the new session data with the token
+        return {
+          ...token,
+          ...session.user,
+          role: session.user.role,
+          firstname: session.user.firstname,
+          lastname: session.user.lastname,
+          user_image: session.user.user_image,
+          status: session.user.status,
+        };
+      }
+
       if (user) {
+        // Initial sign in
         token.id = user.id;
         token.firstname = user.firstname;
         token.lastname = user.lastname;
         token.role = user.role;
         token.image = user.image;
+        token.status = user.status;
+        token.created_at = user.created_at;
+        token.updated_at = user.updated_at;
       }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
+        // Always use the latest token data for the session
         session.user.id = token.id;
         session.user.firstname = token.firstname;
         session.user.lastname = token.lastname;
         session.user.role = token.role;
         session.user.user_image = token.image as string | undefined;
+        session.user.status = token.status;
+        session.user.created_at = token.created_at;
+        session.user.updated_at = token.updated_at;
       }
       return session;
     },

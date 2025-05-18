@@ -149,8 +149,15 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
         const success = await updateUser(user.id, data);
         if (success) {
           console.log("User updated successfully, updating session");
-          // Update the session to reflect the changes
-          await updateSession();
+          // Update the session with the new user data
+          await updateSession({
+            ...session,
+            user: {
+              ...session?.user,
+              ...data,
+              id: user.id.toString(),
+            },
+          });
           console.log("Session updated");
           showSuccessToast({ message: "User updated successfully" });
           router.push("/dashboard/users");

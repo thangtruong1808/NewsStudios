@@ -10,12 +10,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import clsx from "clsx";
-
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-
-import { getServerSession } from "next-auth";
-import { Session } from "next-auth";
+import { useSession } from "next-auth/react";
 
 /**
  * SideNav Component Props
@@ -25,20 +22,13 @@ interface SideNavProps {
   onCollapse: (collapsed: boolean) => void;
 }
 
-interface SideNavWithSessionProps extends SideNavProps {
-  session: Session | null;
-}
 /**
  * SideNav Component
  * Responsive sidebar navigation with collapsible functionality
  * Features user profile, navigation links, and sign out button
  */
-export default function SideNav({
-  onCollapse,
-  session,
-}: SideNavWithSessionProps) {
-  const user = session?.user;
-  // State management for sidebar collapse and user data
+export default function SideNav({ onCollapse }: SideNavProps) {
+  const { data: session, status } = useSession({ required: true });
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
 

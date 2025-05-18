@@ -7,7 +7,7 @@ import clsx from "clsx";
 import MyLogo from "../components/dashboard/MyLogo";
 import { fontClasses } from "../components/fonts";
 import { getAuthSession } from "../lib/auth";
-import DashboardClient from "./DashboardClient";
+import DashboardClient from "@/app/components/dashboard/DashboardClient";
 
 // Remove experimental_ppr flag as it might be causing issues
 // export const experimental_ppr = true;
