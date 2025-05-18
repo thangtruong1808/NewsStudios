@@ -2,7 +2,9 @@
 
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import { signOutAction } from "@/app/actions/auth";
+// import { signOutAction } from "@/app/actions/auth";
+
+import { signOut } from "next-auth/react";
 
 // Props interface for the SignOutButton component
 interface SignOutButtonProps {
@@ -12,7 +14,7 @@ interface SignOutButtonProps {
 export default function SignOutButton({ isCollapsed }: SignOutButtonProps) {
   return (
     <button
-      onClick={() => signOutAction()} // Handles user sign out action
+      onClick={() => signOut({ callbackUrl: "/login" })} // Handles user sign out action
       className={clsx(
         // Base button styles with hover effects
         "flex w-full items-center rounded-lg px-3 py-3 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors hover:bg-gradient-to-r hover:from-blue-600/10 hover:to-blue-400/10",

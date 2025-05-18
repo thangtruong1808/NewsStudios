@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { authenticate } from "../actions";
+import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { AtSymbolIcon, KeyIcon } from "@heroicons/react/24/outline";
@@ -11,7 +11,6 @@ import ErrorMessage from "./components/ErrorMessage";
 import SubmitButton from "./components/SubmitButton";
 import PasswordToggle from "./components/PasswordToggle";
 import { LoginFormData, FormErrors, validateForm } from "./utils/validation";
-import { useUser } from "../context/UserContext";
 
 export default function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
@@ -25,7 +24,6 @@ export default function LoginForm() {
     password: "",
   });
   const router = useRouter();
-  const { setUser } = useUser();
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,29 +50,21 @@ export default function LoginForm() {
     setIsPending(true);
     setErrorMessage(undefined);
 
-    const formDataObj = new FormData();
-    formDataObj.append("email", formData.email);
-    formDataObj.append("password", formData.password);
-
     try {
-      const result = await authenticate(undefined, formDataObj);
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
 
-      if (typeof result === "string") {
-        setErrorMessage(result);
+      if (result?.error) {
+        setErrorMessage(result.error);
         return;
       }
 
-      if (result.success) {
-        // Set complete user data in context
-        console.log("Setting user context with data:", result.user);
-        setUser({ ...result.user, password: "" });
-
-        toast.success("Logged in successfully!");
-        router.push("/dashboard");
-        router.refresh();
-      } else {
-        setErrorMessage("Authentication failed");
-      }
+      toast.success("Logged in successfully!");
+      router.push("/dashboard");
+      router.refresh();
     } catch (error) {
       console.error("Login error:", error);
       setErrorMessage("An unexpected error occurred.");

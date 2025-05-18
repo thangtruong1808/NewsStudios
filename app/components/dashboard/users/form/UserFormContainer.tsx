@@ -15,7 +15,6 @@ import { userSchema, UserFormValues } from "./userSchema";
 import UserForm from "./UserForm";
 import UserFormLoading from "./UserFormLoading";
 import UserFormError from "./UserFormError";
-import { useUser } from "../../../../context/UserContext";
 import { useSession } from "next-auth/react";
 
 interface UserFormContainerProps {
@@ -25,12 +24,11 @@ interface UserFormContainerProps {
 export default function UserFormContainer({ userId }: UserFormContainerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user: currentUser, updateUser: updateUserContext } = useUser();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(!!userId);
   const [userData, setUserData] = useState<User | undefined>(undefined);
   const isEditMode = !!userId && searchParams.get("edit") === "true";
-  const { update: updateSession, data: session } = useSession();
+  const { data: session } = useSession();
 
   console.log("UserFormContainer - userId:", userId);
   console.log("UserFormContainer - isEditMode:", isEditMode);

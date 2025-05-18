@@ -10,9 +10,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import clsx from "clsx";
-import { useUser } from "../../context/UserContext";
+
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+
+import { getServerSession } from "next-auth";
+import { Session } from "next-auth";
 
 /**
  * SideNav Component Props
@@ -22,15 +25,21 @@ interface SideNavProps {
   onCollapse: (collapsed: boolean) => void;
 }
 
+interface SideNavWithSessionProps extends SideNavProps {
+  session: Session | null;
+}
 /**
  * SideNav Component
  * Responsive sidebar navigation with collapsible functionality
  * Features user profile, navigation links, and sign out button
  */
-export default function SideNav({ onCollapse }: SideNavProps) {
+export default function SideNav({
+  onCollapse,
+  session,
+}: SideNavWithSessionProps) {
+  const user = session?.user;
   // State management for sidebar collapse and user data
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user, isLoading } = useUser();
   const pathname = usePathname();
 
   // Handle window resize for responsive behavior
@@ -56,17 +65,17 @@ export default function SideNav({ onCollapse }: SideNavProps) {
 
   // Memoize user display name to prevent unnecessary recalculations
   const userDisplayName = useMemo(() => {
-    if (!user) return "";
-    if (user.firstname && user.lastname) {
-      return `${user.firstname} ${user.lastname}`;
+    if (!session?.user) return "";
+    if (session.user.firstname && session.user.lastname) {
+      return `${session.user.firstname} ${session.user.lastname}`;
     }
-    return user.email || "";
-  }, [user?.firstname, user?.lastname, user?.email]);
+    return session.user.email || "";
+  }, [session?.user?.firstname, session?.user?.lastname, session?.user?.email]);
 
   // Memoize user role to prevent unnecessary recalculations
   const userRole = useMemo(() => {
-    return user?.role || "";
-  }, [user?.role]);
+    return session?.user?.role || "";
+  }, [session?.user?.role]);
 
   return (
     <div
@@ -97,10 +106,10 @@ export default function SideNav({ onCollapse }: SideNavProps) {
         >
           {/* User avatar with gradient background and fallback icon */}
           <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 flex items-center justify-center shadow-md ring-2 ring-white/50 overflow-hidden">
-            {!isLoading && user?.user_image ? (
+            {session?.user?.user_image ? (
               <Image
-                src={user.user_image}
-                alt={userDisplayName}
+                src={session.user.user_image}
+                alt={session.user.firstname || ""}
                 width={64}
                 height={64}
                 className="h-full w-full object-cover"
@@ -111,13 +120,13 @@ export default function SideNav({ onCollapse }: SideNavProps) {
             )}
           </div>
           {/* User name and role display (hidden when collapsed) */}
-          {!isCollapsed && !isLoading && user && (
+          {!isCollapsed && session?.user && (
             <div className="text-center">
               <p className="text-sm font-medium text-blue-600">
-                {userDisplayName}
+                {session.user.firstname} {session.user.lastname}
               </p>
               <p className="text-xs text-blue-400 capitalize mt-1">
-                {userRole}
+                {session.user.role}
               </p>
             </div>
           )}
