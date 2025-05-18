@@ -2,65 +2,57 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import AuthorForm from "@/app/components/dashboard/authors/form/AuthorForm";
 import { getAuthorById } from "@/app/lib/actions/authors";
 import { Author } from "@/app/lib/definition";
-import FormSkeleton from "@/app/components/dashboard/shared/skeleton/FormSkeleton";
+import AuthorForm from "@/app/components/dashboard/authors/form/AuthorForm";
+import { showErrorToast } from "@/app/components/dashboard/shared/toast/Toast";
 
-export default function EditAuthorPage({ params }: { params: { id: string } }) {
+interface EditAuthorPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function EditAuthorPage({ params }: EditAuthorPageProps) {
   const router = useRouter();
   const [author, setAuthor] = useState<Author | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAuthor = async () => {
       try {
         const result = await getAuthorById(parseInt(params.id));
-        if (result.error || !result.data) {
-          setError("Author not found");
-          return;
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        if (!result.data) {
+          throw new Error("Author not found");
         }
         setAuthor(result.data);
       } catch (error) {
         console.error("Error fetching author:", error);
-        setError("Failed to fetch author data");
+        showErrorToast({
+          message:
+            error instanceof Error ? error.message : "Failed to fetch author",
+        });
+        router.push("/dashboard/author");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchAuthor();
-  }, [params.id]);
+  }, [params.id, router]);
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-2">
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4">
-            <FormSkeleton
-              fields={3} // Number of fields in the author form: name, description, bio
-              showHeader={true}
-              showActions={true}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="rounded-md bg-red-50 p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{error}</p>
-              </div>
-            </div>
-          </div>
+      <div className="animate-pulse">
+        <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+        <div className="space-y-4">
+          <div className="h-10 bg-gray-200 rounded"></div>
+          <div className="h-32 bg-gray-200 rounded"></div>
+          <div className="h-32 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
@@ -70,13 +62,5 @@ export default function EditAuthorPage({ params }: { params: { id: string } }) {
     return null;
   }
 
-  return (
-    <div className="mx-auto max-w-4xl px-4 py-2">
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4">
-          <AuthorForm author={author} />
-        </div>
-      </div>
-    </div>
-  );
+  return <AuthorForm author={author} />;
 }

@@ -1,45 +1,53 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   getAuthors,
   searchAuthors,
   deleteAuthor,
-} from "../../lib/actions/authors";
-import AuthorsTableClient from "../../components/dashboard/authors/table/AuthorsTable";
-import AuthorsSearchWrapper from "../../components/dashboard/authors/search/AuthorsSearch";
-import { lusitana } from "../../components/fonts";
-import { useRouter, useSearchParams } from "next/navigation";
+} from "@/app/lib/actions/authors";
 import { Author } from "@/app/lib/definition";
+import AuthorsTable from "@/app/components/dashboard/authors/table/AuthorsTable";
+import AuthorsSearch from "@/app/components/dashboard/authors/search/AuthorsSearch";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
+import Link from "next/link";
 import {
   showSuccessToast,
   showErrorToast,
   showConfirmationToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 
-// Remove revalidate since we're using client component
-// export const revalidate = 60;
+interface AuthorsPageProps {
+  searchParams: {
+    page?: string;
+    search?: string;
+    sortField?: string;
+    sortDirection?: "asc" | "desc";
+    query?: string;
+    limit?: string;
+  };
+}
 
-export default function AuthorsPage() {
-  // Router and search params hooks for navigation and URL management
+export default function AuthorsPage({ searchParams }: AuthorsPageProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSorting, setIsSorting] = useState(false);
 
-  // Extract and parse URL parameters for pagination and search
-  const searchQuery = searchParams.get("query") || "";
-  const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("limit")) || 5;
+  // Extract and parse URL parameters for pagination and sorting
+  const currentPage = Number(searchParams.page) || 1;
+  const itemsPerPage = Number(searchParams.limit) || 5;
+  const searchQuery = searchParams.query || "";
+  const sortField = (searchParams.sortField as keyof Author) || "created_at";
+  const sortDirection = searchParams.sortDirection || "desc";
 
-  // State management for authors data and UI states
-  const [authors, setAuthors] = React.useState<Author[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [isDeleting, setIsDeleting] = React.useState(false);
-  const [totalItems, setTotalItems] = React.useState(0);
-
-  // Table column configuration for author data display
+  // Table column configuration
   const columns = [
     {
       field: "name",
@@ -49,6 +57,11 @@ export default function AuthorsPage() {
     {
       field: "description",
       label: "Description",
+      sortable: true,
+    },
+    {
+      field: "articles_count",
+      label: "Articles",
       sortable: true,
     },
     {
@@ -68,62 +81,35 @@ export default function AuthorsPage() {
     },
   ];
 
-  /**
-   * Fetch authors data based on search and pagination parameters
-   * Handles both regular listing and search functionality
-   */
-  React.useEffect(() => {
-    const fetchAuthors = async () => {
-      setIsLoading(true);
-      const result = searchQuery
-        ? await searchAuthors(searchQuery, currentPage, itemsPerPage)
-        : await getAuthors(currentPage, itemsPerPage);
+  // Fetch authors data based on search and pagination parameters
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!isSearching && !isSorting) {
+          setIsLoading(true);
+        }
+        const result = searchQuery
+          ? await searchAuthors(searchQuery, currentPage, itemsPerPage)
+          : await getAuthors(currentPage, itemsPerPage);
 
-      if (!result.error) {
         setAuthors(result.data || []);
-        if ("total" in result && typeof result.total === "number") {
+        if (result.total !== undefined) {
+          setTotalPages(Math.ceil(result.total / itemsPerPage));
           setTotalItems(result.total);
         }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+        setIsSearching(false);
+        setIsSorting(false);
       }
-      setIsLoading(false);
     };
 
-    fetchAuthors();
-  }, [searchQuery, currentPage, itemsPerPage]);
+    fetchData();
+  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
 
-  /**
-   * Handle sorting functionality
-   * Updates URL parameters to reflect sort field changes
-   */
-  const handleSort = (field: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("sortField", field);
-    router.push(`?${params.toString()}`);
-  };
-
-  /**
-   * Handle pagination - navigate to selected page
-   * Updates URL parameters and triggers data refresh
-   */
-  const handlePageChange = (page: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", page.toString());
-    router.push(`?${params.toString()}`);
-  };
-
-  /**
-   * Navigate to author edit page
-   * Routes to the edit form for the selected author
-   */
-  const handleEdit = (author: any) => {
-    router.push(`/dashboard/author/${author.id}/edit`);
-  };
-
-  /**
-   * Handle author deletion with confirmation
-   * Includes error handling and state management
-   */
-  const handleDelete = async (author: any) => {
+  const handleDelete = async (author: Author) => {
     const confirmPromise = new Promise<boolean>((resolve) => {
       showConfirmationToast({
         title: "Delete Author",
@@ -160,6 +146,7 @@ export default function AuthorsPage() {
       // Update the state with the new data
       setAuthors(result.data || []);
       if (result.total !== undefined) {
+        setTotalPages(Math.ceil(result.total / itemsPerPage));
         setTotalItems(result.total);
       }
 
@@ -168,7 +155,7 @@ export default function AuthorsPage() {
         const newPage = currentPage - 1;
         const params = new URLSearchParams(searchParams);
         params.set("page", newPage.toString());
-        router.push(`?${params.toString()}`);
+        router.push(`/dashboard/author?${params.toString()}`);
       }
 
       showSuccessToast({ message: "Author deleted successfully" });
@@ -185,32 +172,54 @@ export default function AuthorsPage() {
     }
   };
 
-  /**
-   * Update items per page and reset to first page
-   * Manages pagination size and triggers data refresh
-   */
-  const handleItemsPerPageChange = (limit: number) => {
+  const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
-    params.set("limit", limit.toString());
-    params.set("page", "1");
-    router.push(`?${params.toString()}`);
+    params.set("page", page.toString());
+    router.push(`/dashboard/author?${params.toString()}`);
   };
 
-  // Calculate total pages for pagination
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const handleSort = (field: keyof Author) => {
+    setIsSorting(true);
+    const newDirection =
+      field === sortField && sortDirection === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(searchParams);
+    params.set("sortField", field as string);
+    params.set("sortDirection", newDirection);
+    router.push(`/dashboard/author?${params.toString()}`);
+  };
 
-  // Check if there are any authors to display
-  const hasAuthors = authors.length > 0;
+  const handleEdit = (author: Author) => {
+    router.push(`/dashboard/author/${author.id}/edit`);
+  };
+
+  const handleSearch = (term: string) => {
+    setIsSearching(true);
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+    if (term) {
+      params.set("query", term);
+    } else {
+      params.delete("query");
+    }
+    router.push(`/dashboard/author?${params.toString()}`);
+  };
+
+  const handleItemsPerPageChange = (limit: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+    params.set("limit", limit.toString());
+    router.push(`/dashboard/author?${params.toString()}`);
+  };
 
   return (
-    <div className="">
+    <div className="space-y-6">
       {/* Header section with title and create button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-blue-500">Authors List</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Manage, organize, and assign authors to articles for better content
-            attribution and collaboration.
+            Manage authors and their articles for better content organization
+            and attribution.
           </p>
         </div>
 
@@ -224,39 +233,27 @@ export default function AuthorsPage() {
       </div>
 
       {/* Search functionality */}
-      <div className="mt-4">
-        <AuthorsSearchWrapper />
-      </div>
+      <AuthorsSearch onSearch={handleSearch} />
 
-      {/* Main content area with conditional rendering */}
+      {/* Main content area */}
       {isLoading ? (
         <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
-      ) : hasAuthors ? (
-        <AuthorsTableClient
+      ) : (
+        <AuthorsTable
           authors={authors}
-          searchQuery={searchQuery}
           currentPage={currentPage}
           totalPages={totalPages}
           itemsPerPage={itemsPerPage}
           totalItems={totalItems}
-          sortField="name"
-          sortDirection="asc"
-          isDeleting={isDeleting}
-          isLoading={isLoading}
-          onSort={handleSort}
+          sortField={sortField}
+          sortDirection={sortDirection}
           onPageChange={handlePageChange}
+          onSort={handleSort}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onItemsPerPageChange={handleItemsPerPageChange}
+          isDeleting={isDeleting}
         />
-      ) : (
-        <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
-          <p className="text-gray-500">
-            {searchQuery
-              ? "No authors found matching your search criteria."
-              : "No authors found. Create your first author to get started."}
-          </p>
-        </div>
       )}
     </div>
   );

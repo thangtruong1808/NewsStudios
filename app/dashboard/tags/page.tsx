@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getTags, searchTags } from "@/app/lib/actions/tags";
+import { getTags, searchTags, deleteTag } from "@/app/lib/actions/tags";
 import { Tag } from "@/app/lib/definition";
 import TagsTable from "@/app/components/dashboard/tags/table/TagsTable";
 import TagsSearchWrapper from "@/app/components/dashboard/tags/search/TagsSearchWrapper";
@@ -130,7 +130,7 @@ export default function TagsPage({ searchParams }: TagsPageProps) {
    * Handle sorting - toggle sort direction and update URL
    * Manages sorting state and triggers data refresh
    */
-  const handleSort = (field: keyof Tag) => {
+  const handleSort = (field: keyof (Tag & { sequence?: number })) => {
     setIsSorting(true);
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
@@ -168,15 +168,45 @@ export default function TagsPage({ searchParams }: TagsPageProps) {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/tags/${tag.id}`, {
-        method: "DELETE",
-      });
+      const { data, error } = await deleteTag(tag.id);
 
-      if (!response.ok) {
-        throw new Error("Failed to delete tag");
+      if (error) {
+        showErrorToast({ message: error });
+        return;
       }
 
+      // Force a router refresh to ensure we get fresh data
       router.refresh();
+
+      // Fetch fresh data after successful deletion
+      const result = searchQuery
+        ? await searchTags(searchQuery)
+        : await getTags({
+            page: currentPage,
+            limit: itemsPerPage,
+            sortField,
+            sortDirection,
+          });
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      // Update the state with the new data
+      setTags(result.data || []);
+      if (result.totalItems !== undefined) {
+        setTotalPages(Math.ceil(result.totalItems / itemsPerPage));
+        setTotalItems(result.totalItems);
+      }
+
+      // If we're on the last page and it's now empty, go to the previous page
+      if (result.data?.length === 0 && currentPage > 1) {
+        const newPage = currentPage - 1;
+        const params = new URLSearchParams(searchParams);
+        params.set("page", newPage.toString());
+        router.push(`/dashboard/tags?${params.toString()}`);
+      }
+
       showSuccessToast({ message: "Tag deleted successfully" });
     } catch (error) {
       console.error("Error deleting tag:", error);

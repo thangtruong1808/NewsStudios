@@ -6,7 +6,7 @@ import { getCategories } from "@/app/lib/actions/categories";
 import { getAuthors } from "@/app/lib/actions/authors";
 import { getSubcategories } from "@/app/lib/actions/subcategories";
 import { getUsers } from "@/app/lib/actions/users";
-import { getTags } from "@/app/lib/actions/tags";
+import { getAllTags } from "@/app/lib/actions/tags";
 import ArticleFormContainer from "@/app/components/dashboard/articles/form/ArticleFormContainer";
 import FormSkeleton from "@/app/components/dashboard/shared/skeleton/FormSkeleton";
 import { notFound } from "next/navigation";
@@ -45,7 +45,7 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
           getAuthors(),
           getSubcategories(),
           getUsers(),
-          getTags(),
+          getAllTags(),
         ]);
 
         if (articleResult.error || !articleResult.data) {

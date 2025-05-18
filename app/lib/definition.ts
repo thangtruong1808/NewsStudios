@@ -158,6 +158,9 @@ export interface Tag {
   color?: string;
   created_at: Date;
   updated_at: Date;
+  articles_count?: number;
+  categories_count?: number;
+  subcategories_count?: number;
 }
 
 export interface ArticleTag {

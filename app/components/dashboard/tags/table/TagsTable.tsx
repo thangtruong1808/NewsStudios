@@ -72,6 +72,42 @@ export default function TagsTable({
       ),
     },
     {
+      field: "articles_count",
+      label: "Articles",
+      sortable: true,
+      render: (value) => (
+        <div className="w-20">
+          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+            {value || 0}
+          </span>
+        </div>
+      ),
+    },
+    {
+      field: "categories_count",
+      label: "Categories",
+      sortable: true,
+      render: (value) => (
+        <div className="w-20">
+          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+            {value || 0}
+          </span>
+        </div>
+      ),
+    },
+    {
+      field: "subcategories_count",
+      label: "Subcategories",
+      sortable: true,
+      render: (value) => (
+        <div className="w-20">
+          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+            {value || 0}
+          </span>
+        </div>
+      ),
+    },
+    {
       field: "color",
       label: "Color",
       sortable: true,

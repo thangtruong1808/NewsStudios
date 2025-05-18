@@ -46,6 +46,7 @@ export default function TagForm({
     handleSubmit,
     formState: { errors, isSubmitting },
     watch,
+    setValue,
   } = useForm<TagFormValues>({
     resolver: zodResolver(tagSchema),
     defaultValues: tag || {
@@ -97,7 +98,11 @@ export default function TagForm({
         </p>
 
         {/* Form fields component with validation */}
-        <TagFormFields register={register} errors={errors} />
+        <TagFormFields
+          register={register}
+          errors={errors}
+          setValue={setValue}
+        />
 
         {/* Form action buttons */}
         <div className="flex justify-end space-x-3">

@@ -1,14 +1,23 @@
 "use client";
 
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import { UseFormRegister, FieldErrors, UseFormSetValue } from "react-hook-form";
 import { TagFormValues } from "../../types";
 
 interface ColorFieldProps {
   register: UseFormRegister<TagFormValues>;
   errors: FieldErrors<TagFormValues>;
+  setValue: UseFormSetValue<TagFormValues>;
 }
 
-export default function ColorField({ register, errors }: ColorFieldProps) {
+export default function ColorField({
+  register,
+  errors,
+  setValue,
+}: ColorFieldProps) {
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue("color", e.target.value);
+  };
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700">Color</label>
@@ -16,6 +25,7 @@ export default function ColorField({ register, errors }: ColorFieldProps) {
         <input
           type="color"
           {...register("color")}
+          onChange={handleColorChange}
           className="h-8 w-8 rounded border border-gray-300"
         />
         <input
