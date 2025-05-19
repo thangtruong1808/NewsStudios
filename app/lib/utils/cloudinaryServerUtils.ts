@@ -138,11 +138,61 @@ export async function deleteImageFromCloudinary(
   try {
     // Check if Cloudinary is properly configured
     if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) {
-      throw new Error("Cloudinary cloud_name is not configured");
+      console.error("Cloudinary cloud_name is not configured");
+      return {
+        success: false,
+        error: "Cloudinary cloud_name is not configured",
+      };
     }
 
-    const result = await cloudinary.uploader.destroy(publicId);
-    return { success: true };
+    if (!publicId) {
+      console.error("No public ID provided for deletion");
+      return {
+        success: false,
+        error: "No public ID provided",
+      };
+    }
+
+    // Remove the version prefix if it exists
+    const cleanPublicId = publicId.replace(/^v\d+\//, "");
+    console.log(
+      "Attempting to delete image with clean public ID:",
+      cleanPublicId
+    );
+
+    return new Promise((resolve) => {
+      cloudinary.uploader.destroy(cleanPublicId, (error, result) => {
+        if (error) {
+          console.error("Cloudinary delete error:", error);
+          resolve({
+            success: false,
+            error: error.message || "Failed to delete image from Cloudinary",
+          });
+          return;
+        }
+
+        if (!result) {
+          console.error("No response from Cloudinary delete operation");
+          resolve({
+            success: false,
+            error: "No response from Cloudinary delete operation",
+          });
+          return;
+        }
+
+        if (result.result !== "ok") {
+          console.error("Cloudinary delete operation failed:", result);
+          resolve({
+            success: false,
+            error: "Failed to delete image from Cloudinary",
+          });
+          return;
+        }
+
+        console.log("Successfully deleted image from Cloudinary");
+        resolve({ success: true });
+      });
+    });
   } catch (error) {
     console.error("Error deleting image from Cloudinary:", error);
     return {

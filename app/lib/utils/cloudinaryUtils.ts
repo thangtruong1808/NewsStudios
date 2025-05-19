@@ -115,16 +115,40 @@ export async function deleteImage(
   publicId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Use the server action to delete the image
-    const result = await deleteImageFromCloudinary(publicId);
-
-    if (!result.success) {
-      throw new Error(result.error || "Failed to delete image");
+    if (!publicId) {
+      console.error("No public ID provided for deletion");
+      return {
+        success: false,
+        error: "No public ID provided",
+      };
     }
 
+    console.log("Calling server action to delete image:", publicId);
+
+    // Ensure we're calling the server action correctly
+    const result = await deleteImageFromCloudinary(publicId);
+    console.log("Server action response:", result);
+
+    if (!result) {
+      console.error("No response from server action");
+      return {
+        success: false,
+        error: "No response from server action",
+      };
+    }
+
+    if (!result.success) {
+      console.error("Server action failed:", result.error);
+      return {
+        success: false,
+        error: result.error || "Failed to delete image",
+      };
+    }
+
+    console.log("Successfully deleted image");
     return { success: true };
   } catch (error) {
-    console.error("Error deleting image:", error);
+    console.error("Error in deleteImage:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to delete image",
