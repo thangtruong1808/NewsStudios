@@ -160,39 +160,61 @@ export async function deleteImageFromCloudinary(
       cleanPublicId
     );
 
-    return new Promise((resolve) => {
-      cloudinary.uploader.destroy(cleanPublicId, (error, result) => {
-        if (error) {
-          console.error("Cloudinary delete error:", error);
-          resolve({
-            success: false,
-            error: error.message || "Failed to delete image from Cloudinary",
-          });
-          return;
-        }
+    // Use a synchronous version of the destroy method with retry
+    let retryCount = 0;
+    const maxRetries = 3;
+    let lastError: any = null;
+
+    while (retryCount < maxRetries) {
+      try {
+        const result = await new Promise((resolve, reject) => {
+          cloudinary.uploader.destroy(
+            cleanPublicId,
+            { invalidate: true },
+            (error, result) => {
+              if (error) {
+                console.error(
+                  `Cloudinary delete error (attempt ${retryCount + 1}):`,
+                  error
+                );
+                reject(error);
+                return;
+              }
+              resolve(result);
+            }
+          );
+        });
 
         if (!result) {
-          console.error("No response from Cloudinary delete operation");
-          resolve({
-            success: false,
-            error: "No response from Cloudinary delete operation",
-          });
-          return;
+          throw new Error("No response from Cloudinary delete operation");
         }
 
-        if (result.result !== "ok") {
-          console.error("Cloudinary delete operation failed:", result);
-          resolve({
-            success: false,
-            error: "Failed to delete image from Cloudinary",
-          });
-          return;
+        if ((result as any).result !== "ok") {
+          throw new Error("Failed to delete image from Cloudinary");
         }
 
         console.log("Successfully deleted image from Cloudinary");
-        resolve({ success: true });
-      });
-    });
+        return { success: true };
+      } catch (error) {
+        lastError = error;
+        retryCount++;
+
+        if (retryCount < maxRetries) {
+          // Wait for 1 second before retrying
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+    }
+
+    // If we get here, all retries failed
+    console.error("All retry attempts failed:", lastError);
+    return {
+      success: false,
+      error:
+        lastError instanceof Error
+          ? lastError.message
+          : "Failed to delete image after all retries",
+    };
   } catch (error) {
     console.error("Error deleting image from Cloudinary:", error);
     return {

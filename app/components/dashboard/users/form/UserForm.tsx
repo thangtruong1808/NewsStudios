@@ -13,7 +13,7 @@ import {
   showSuccessToast,
   showErrorToast,
 } from "../../../dashboard/shared/toast/Toast";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   uploadToCloudinary,
   deleteImage,
@@ -48,6 +48,50 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
     string | null
   >(null);
   const previousPathRef = useRef(pathname);
+
+  // Create a cleanup function that can be reused
+  const cleanupImage = useCallback(async () => {
+    if (cloudinaryPublicId) {
+      console.log("Starting cleanup for image:", cloudinaryPublicId);
+      try {
+        const result = await deleteImage(cloudinaryPublicId);
+        if (result.success) {
+          console.log("Successfully deleted image during cleanup");
+          setCloudinaryPublicId(null);
+        } else {
+          console.error("Failed to delete image:", result.error);
+          toast.error("Failed to clean up image");
+        }
+      } catch (error) {
+        console.error("Error during cleanup:", error);
+        toast.error("Failed to clean up image");
+      }
+    }
+  }, [cloudinaryPublicId]);
+
+  // Handle cancel button click
+  const handleCancel = async () => {
+    try {
+      await cleanupImage();
+      router.back();
+    } catch (error) {
+      console.error("Error during cancel:", error);
+      toast.error("Failed to clean up image");
+      router.back();
+    }
+  };
+
+  // Initialize image preview with user's existing image in edit mode
+  useEffect(() => {
+    if (isEditMode && user?.user_image) {
+      setImagePreview(user.user_image);
+      // Extract public ID from existing image URL using utility function
+      const publicId = getPublicIdFromUrl(user.user_image);
+      if (publicId) {
+        setPreviousImagePublicId(publicId);
+      }
+    }
+  }, [isEditMode, user?.user_image]);
 
   // Handle image upload
   const handleImageUpload = async (file: File) => {
@@ -206,178 +250,6 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
       showErrorToast({
         message: "An error occurred while submitting the form",
       });
-    }
-  };
-
-  // Initialize image preview with user's existing image in edit mode
-  useEffect(() => {
-    if (isEditMode && user?.user_image) {
-      setImagePreview(user.user_image);
-      // Extract public ID from existing image URL using utility function
-      const publicId = getPublicIdFromUrl(user.user_image);
-      if (publicId) {
-        setPreviousImagePublicId(publicId);
-      }
-    }
-  }, [isEditMode, user?.user_image]);
-
-  // Cleanup function for unmounting
-  useEffect(() => {
-    let isMounted = true;
-
-    const cleanup = async () => {
-      if (!isMounted) return;
-
-      // Only delete if we still have a public ID (meaning it wasn't deleted by handleCancel)
-      if (cloudinaryPublicId) {
-        console.log("Cleaning up image on unmount:", cloudinaryPublicId);
-        try {
-          // Retry mechanism for deletion
-          let retryCount = 0;
-          const maxRetries = 3;
-          let success = false;
-
-          while (retryCount < maxRetries && !success && isMounted) {
-            const result = await deleteImage(cloudinaryPublicId);
-            if (result.success) {
-              success = true;
-              console.log("Successfully deleted image on unmount");
-              if (isMounted) {
-                setCloudinaryPublicId(null);
-              }
-            } else {
-              retryCount++;
-              console.error(
-                `Failed to delete image (attempt ${retryCount}/${maxRetries}):`,
-                result.error
-              );
-              if (retryCount < maxRetries && isMounted) {
-                // Wait for 1 second before retrying
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-              }
-            }
-          }
-
-          if (!success && isMounted) {
-            console.error("Failed to delete image after all retries");
-            toast.error("Failed to clean up image");
-          }
-        } catch (error) {
-          console.error("Error deleting image on unmount:", error);
-          if (isMounted) {
-            toast.error("Failed to clean up image");
-          }
-        }
-      }
-    };
-
-    // Run cleanup when component unmounts
-    return () => {
-      isMounted = false;
-      // Execute cleanup immediately
-      cleanup();
-    };
-  }, [cloudinaryPublicId]);
-
-  // Add a cleanup effect for navigation
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (cloudinaryPublicId) {
-        console.log("Cleaning up image before navigation:", cloudinaryPublicId);
-        deleteImage(cloudinaryPublicId)
-          .then((result) => {
-            if (result.success) {
-              console.log("Successfully deleted image before navigation");
-              setCloudinaryPublicId(null);
-            } else {
-              console.error(
-                "Failed to delete image before navigation:",
-                result.error
-              );
-            }
-          })
-          .catch((error) => {
-            console.error("Error deleting image before navigation:", error);
-          });
-      }
-    };
-
-    // Add event listener for navigation
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [cloudinaryPublicId]);
-
-  // Handle pathname changes for navigation cleanup
-  useEffect(() => {
-    if (previousPathRef.current !== pathname && cloudinaryPublicId) {
-      console.log("Path changed, cleaning up image:", cloudinaryPublicId);
-      deleteImage(cloudinaryPublicId)
-        .then((result) => {
-          if (result.success) {
-            console.log("Successfully deleted image after navigation");
-            setCloudinaryPublicId(null);
-          } else {
-            console.error(
-              "Failed to delete image after navigation:",
-              result.error
-            );
-          }
-        })
-        .catch((error) => {
-          console.error("Error deleting image after navigation:", error);
-        });
-    }
-    previousPathRef.current = pathname;
-  }, [pathname, cloudinaryPublicId]);
-
-  // Handle cancel button click
-  const handleCancel = async () => {
-    try {
-      // If there's a new image uploaded but not saved, delete it
-      if (cloudinaryPublicId) {
-        console.log(
-          "Attempting to delete image with public ID:",
-          cloudinaryPublicId
-        );
-
-        // Retry mechanism for deletion
-        let retryCount = 0;
-        const maxRetries = 3;
-        let success = false;
-
-        while (retryCount < maxRetries && !success) {
-          const deleteResult = await deleteImage(cloudinaryPublicId);
-          if (deleteResult.success) {
-            success = true;
-            console.log("Successfully deleted image from Cloudinary");
-            setCloudinaryPublicId(null);
-          } else {
-            retryCount++;
-            console.error(
-              `Failed to delete image (attempt ${retryCount}/${maxRetries}):`,
-              deleteResult.error
-            );
-            if (retryCount < maxRetries) {
-              // Wait for 1 second before retrying
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-            }
-          }
-        }
-
-        if (!success) {
-          console.error("Failed to delete image after all retries");
-          toast.error("Failed to clean up image");
-        }
-      }
-      router.back();
-    } catch (error) {
-      console.error("Error cleaning up image:", error);
-      toast.error("Failed to clean up image");
-      // Still navigate back even if cleanup fails
-      router.back();
     }
   };
 
