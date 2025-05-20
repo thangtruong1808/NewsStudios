@@ -5,8 +5,31 @@ import { query } from "../db/db";
 import { RowDataPacket } from "mysql2";
 import { Video } from "../definition";
 import mysql from "mysql2/promise";
-import pool from "../db/db";
 import { uploadToFTP } from "../utils/ftp";
+import { getPublicIdFromUrl } from "../utils/cloudinaryUtils";
+import { deleteImageFromCloudinary } from "../utils/cloudinaryServerUtils";
+import pool from "../db/query";
+
+// Helper function to extract public ID from Cloudinary URL
+function extractPublicId(url: string): string | null {
+  try {
+    // For URLs like: https://res.cloudinary.com/difsfoku4/video/upload/v1747736859/newshub_photos/491506839_9170892416350089_8889553899704583763_n_tyep7a.mp4
+    const urlParts = url.split("/");
+    const uploadIndex = urlParts.findIndex((part) => part === "upload");
+
+    if (uploadIndex !== -1 && uploadIndex + 2 < urlParts.length) {
+      // Get everything after 'upload/v{version}/' and before the file extension
+      const publicIdParts = urlParts.slice(uploadIndex + 2);
+      const lastPart = publicIdParts[publicIdParts.length - 1];
+      return lastPart.split(".")[0];
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error extracting public ID:", error);
+    return null;
+  }
+}
 
 export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
   try {
@@ -104,66 +127,116 @@ export async function createVideo(
   }
 }
 
-export async function updateVideo(id: number, video: Partial<Video>) {
+export async function updateVideo(
+  id: number,
+  data: Partial<Video>
+): Promise<boolean> {
   try {
-    const result = await query(
-      `UPDATE Videos 
-       SET article_id = ?, video_url = ?, description = ?
-       WHERE id = ?`,
-      [video.article_id, video.video_url, video.description, id]
-    );
-    revalidatePath("/dashboard/videos");
-    return { success: true, error: null };
+    return await pool.transaction(async (client) => {
+      // Get the old video details first
+      const [oldVideo] = await client.query<mysql.RowDataPacket[]>(
+        "SELECT * FROM Videos WHERE id = ?",
+        [id]
+      );
+
+      if (!oldVideo || oldVideo.length === 0) {
+        throw new Error("Video not found");
+      }
+
+      const oldVideoData = oldVideo[0] as Video;
+
+      // Update the video in the database first
+      const [result] = await client.query(
+        "UPDATE Videos SET article_id = ?, video_url = ?, description = ? WHERE id = ?",
+        [data.article_id, data.video_url || "", data.description || null, id]
+      );
+
+      if (!result || (result as mysql.ResultSetHeader).affectedRows === 0) {
+        throw new Error("Failed to update video");
+      }
+
+      // If there's a new video URL and it's different from the old one, delete the old video asynchronously
+      if (data.video_url && data.video_url !== oldVideoData.video_url) {
+        if (
+          oldVideoData.video_url &&
+          oldVideoData.video_url.includes("cloudinary.com")
+        ) {
+          const oldPublicId = extractPublicId(oldVideoData.video_url);
+          if (oldPublicId) {
+            // Delete the old video asynchronously without waiting for the result
+            deleteImageFromCloudinary(oldPublicId).catch((error) => {
+              console.error("Error deleting old video from Cloudinary:", error);
+            });
+          }
+        }
+      }
+
+      revalidatePath("/dashboard/videos");
+      return true;
+    });
   } catch (error) {
     console.error("Error updating video:", error);
-    return { success: false, error: "Failed to update video" };
+    throw error;
   }
 }
 
 export async function deleteVideo(id: number) {
-  const connection = await pool.getConnection();
   try {
-    await connection.beginTransaction();
-
-    // First, get the video details before deleting
-    const [videoResult] = await connection.execute(
-      "SELECT article_id, video_url FROM Videos WHERE id = ?",
-      [id]
-    );
-    const video = (videoResult as any[])[0];
-
-    if (!video) {
-      await connection.rollback();
-      return { data: null, error: "Video not found" };
-    }
-
-    // Check if this video is used as the main video in any article
-    const [articleResult] = await connection.execute(
-      "SELECT id FROM Articles WHERE video = ?",
-      [video.video_url]
-    );
-    const article = (articleResult as any[])[0];
-
-    // If this video is used as a main video, update the article to remove it
-    if (article) {
-      await connection.execute(
-        "UPDATE Articles SET video = NULL WHERE id = ?",
-        [article.id]
+    return await pool.transaction(async (client) => {
+      // First, get the video details before deleting
+      const [videoResult] = await client.execute(
+        "SELECT article_id, video_url FROM Videos WHERE id = ?",
+        [id]
       );
-    }
+      const video = (videoResult as any[])[0];
 
-    // Now delete the video from the Videos table
-    await connection.execute("DELETE FROM Videos WHERE id = ?", [id]);
+      if (!video) {
+        throw new Error("Video not found");
+      }
 
-    await connection.commit();
-    revalidatePath("/dashboard/videos");
-    return { data: { success: true }, error: null };
+      // Check if this video is used as the main video in any article
+      const [articleResult] = await client.execute(
+        "SELECT id FROM Articles WHERE video = ?",
+        [video.video_url]
+      );
+      const article = (articleResult as any[])[0];
+
+      // If this video is used as a main video, update the article to remove it
+      if (article) {
+        await client.execute("UPDATE Articles SET video = NULL WHERE id = ?", [
+          article.id,
+        ]);
+      }
+
+      // Delete from Cloudinary if it's a Cloudinary URL
+      if (video.video_url && video.video_url.includes("cloudinary.com")) {
+        const publicId = getPublicIdFromUrl(video.video_url);
+        if (publicId) {
+          try {
+            const deleteResult = await deleteImageFromCloudinary(publicId);
+            if (!deleteResult.success) {
+              console.error(
+                "Failed to delete video from Cloudinary:",
+                deleteResult.error
+              );
+              // Continue with database deletion even if Cloudinary deletion fails
+            }
+          } catch (error) {
+            console.error("Error deleting video from Cloudinary:", error);
+            // Continue with database deletion even if Cloudinary deletion fails
+          }
+        }
+      }
+
+      // Now delete the video from the Videos table
+      await client.execute("DELETE FROM Videos WHERE id = ?", [id]);
+
+      revalidatePath("/dashboard/videos");
+      return { data: { success: true }, error: null };
+    });
   } catch (error) {
-    await connection.rollback();
     console.error("Error deleting video:", error);
     return { data: null, error: "Failed to delete video" };
-  } finally {
-    connection.release();
   }
 }
 

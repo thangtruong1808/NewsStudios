@@ -15,7 +15,11 @@ export default function CreateVideoPageClient({
 }: CreateVideoPageClientProps) {
   return (
     <div className="w-full">
-      <VideoFormContainer video={video} mode={video ? "edit" : "create"} />
+      <VideoFormContainer
+        video={video}
+        mode={video ? "edit" : "create"}
+        articles={articles}
+      />
     </div>
   );
 }

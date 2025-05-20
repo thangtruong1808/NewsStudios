@@ -264,7 +264,7 @@ export function getPublicIdFromUrl(url: string): string | null {
 export async function uploadToCloudinary(
   file: File,
   type: "image" | "video" = "image"
-): Promise<{ success: boolean; url?: string; error?: string }> {
+): Promise<{ success: boolean; url?: any; error?: string }> {
   try {
     // Get environment variables from .env
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -332,7 +332,7 @@ export async function uploadToCloudinary(
         if (i === totalChunks - 1) {
           return {
             success: true,
-            url: data.secure_url,
+            url: data,
           };
         }
       }
@@ -367,11 +367,13 @@ export async function uploadToCloudinary(
           `Upload preset "${uploadPreset}" not found in your Cloudinary account. Please verify the preset name in your Cloudinary dashboard.`
         );
       }
+      throw new Error(errorData.error?.message || "Upload failed");
     }
 
+    const data = await response.json();
     return {
       success: true,
-      url: response.ok ? await response.json() : null,
+      url: data,
     };
   } catch (error) {
     console.error("Error uploading file:", error);

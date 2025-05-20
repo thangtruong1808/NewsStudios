@@ -136,26 +136,29 @@ export default function VideosGrid({
             {/* Video metadata section */}
             <div className="p-3">
               {video.article_id && (
-                <div className="text-xs font-medium text-gray-700 mb-1">
-                  <span className="font-medium">Article ID:</span>{" "}
-                  {video.article_id}
+                <div className="text-xs text-gray-500 mb-1">
+                  <span className="font-medium mr-1">Article ID:</span>{" "}
+                  <span className="">{video.article_id}</span>
                 </div>
               )}
               {video.article_title && (
-                <div className="text-xs font-medium text-gray-700 mb-1">
-                  <span className="font-medium">Article Title:</span>{" "}
-                  {video.article_title}
+                <div className="text-xs text-gray-500 mb-1">
+                  <span className="font-medium mr-1">Article Title:</span>{" "}
+                  <span className="">{video.article_title}</span>
                 </div>
               )}
-              {/* {video.description && (
-                <p className="text-xs text-gray-500 mb-1 line-clamp-2">
-                  <span className="font-medium">Description:</span>{" "}
-                  {video.description}
-                </p>
-              )} */}
+              {video.description && (
+                <div className="text-xs text-gray-500 mb-1 line-clamp-2">
+                  <span className="font-medium mr-1">Description:</span>{" "}
+                  <span className="">{video.description}</span>
+                </div>
+              )}
               <p className="text-xs text-gray-500 flex items-center gap-1">
-                <ClockIcon className="w-3 h-3" />
-                Updated: {new Date(video.updated_at).toLocaleDateString()}
+                <span className="mr-1 font-medium">Updated:</span>{" "}
+                <span>{new Date(video.updated_at).toLocaleDateString()}</span>
+                <span>
+                  <ClockIcon className="w-3 h-3" />
+                </span>
               </p>
             </div>
           </div>

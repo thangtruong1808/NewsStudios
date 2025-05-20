@@ -132,97 +132,60 @@ export async function uploadImageToCloudinary(
  * @param publicId - The public ID of the image to delete
  * @returns Promise with the deletion result
  */
-export async function deleteImageFromCloudinary(
-  publicId: string
-): Promise<{ success: boolean; error?: string }> {
+export async function deleteImageFromCloudinary(publicId: string) {
   try {
-    // Check if Cloudinary is properly configured
-    if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) {
-      console.error("Cloudinary cloud_name is not configured");
-      return {
-        success: false,
-        error: "Cloudinary cloud_name is not configured",
-      };
+    console.log("Attempting to delete from Cloudinary:", publicId);
+
+    // Ensure the public ID doesn't include the file extension
+    const cleanPublicId = publicId.split(".")[0];
+
+    // Add the folder path if it's not already included
+    const fullPublicId = cleanPublicId.includes("newshub_photos/")
+      ? cleanPublicId
+      : `newshub_photos/${cleanPublicId}`;
+
+    console.log("Using full public ID for deletion:", fullPublicId);
+
+    // Use synchronous version of destroy with invalidate option
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.destroy(
+        fullPublicId,
+        {
+          resource_type: "video",
+          invalidate: true,
+        },
+        (error, result) => {
+          if (error) {
+            console.error("Cloudinary delete error:", error);
+            reject(error);
+            return;
+          }
+          resolve(result);
+        }
+      );
+    });
+
+    console.log("Cloudinary deletion result:", result);
+
+    // Handle both 'ok' and 'not found' as success cases
+    if (
+      result &&
+      ((result as any).result === "ok" ||
+        (result as any).result === "not found")
+    ) {
+      console.log("Successfully handled video deletion from Cloudinary");
+      return { success: true };
     }
 
-    if (!publicId) {
-      console.error("No public ID provided for deletion");
-      return {
-        success: false,
-        error: "No public ID provided",
-      };
-    }
-
-    // Remove the version prefix if it exists
-    const cleanPublicId = publicId.replace(/^v\d+\//, "");
-    console.log(
-      "Attempting to delete image with clean public ID:",
-      cleanPublicId
-    );
-
-    // Use a synchronous version of the destroy method with retry
-    let retryCount = 0;
-    const maxRetries = 3;
-    let lastError: any = null;
-
-    while (retryCount < maxRetries) {
-      try {
-        const result = await new Promise((resolve, reject) => {
-          cloudinary.uploader.destroy(
-            cleanPublicId,
-            { invalidate: true },
-            (error, result) => {
-              if (error) {
-                console.error(
-                  `Cloudinary delete error (attempt ${retryCount + 1}):`,
-                  error
-                );
-                reject(error);
-                return;
-              }
-              resolve(result);
-            }
-          );
-        });
-
-        if (!result) {
-          throw new Error("No response from Cloudinary delete operation");
-        }
-
-        if ((result as any).result !== "ok") {
-          throw new Error("Failed to delete image from Cloudinary");
-        }
-
-        console.log("Successfully deleted image from Cloudinary");
-        return { success: true };
-      } catch (error) {
-        lastError = error;
-        retryCount++;
-
-        if (retryCount < maxRetries) {
-          // Wait for 1 second before retrying
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
-    }
-
-    // If we get here, all retries failed
-    console.error("All retry attempts failed:", lastError);
-    return {
-      success: false,
-      error:
-        lastError instanceof Error
-          ? lastError.message
-          : "Failed to delete image after all retries",
-    };
+    throw new Error("Failed to delete from Cloudinary");
   } catch (error) {
-    console.error("Error deleting image from Cloudinary:", error);
+    console.error("Error in deleteImageFromCloudinary:", error);
     return {
       success: false,
       error:
         error instanceof Error
           ? error.message
-          : "Failed to delete image from Cloudinary",
+          : "Failed to delete from Cloudinary",
     };
   }
 }

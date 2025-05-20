@@ -1,23 +1,25 @@
 "use client";
 
-import { Video } from "@/app/lib/definition";
+import { Article, Video } from "@/app/lib/definition";
 import VideoForm from "./VideoForm";
 
 interface VideoFormContainerProps {
   video?: Video;
   mode: "create" | "edit";
+  articles: Article[];
 }
 
 export default function VideoFormContainer({
   video,
   mode,
+  articles,
 }: VideoFormContainerProps) {
   return (
-    <div className="w-full bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
       {/* Form header with gradient background */}
       <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
-        <h2 className="text-lg font-medium text-white">
-          {mode === "edit" ? "Edit Video" : "Create Video"}
+        <h2 className="text-xl font-semibold text-white">
+          {mode === "create" ? "Create New Video" : "Edit Video"}
         </h2>
         <p className="mt-1 text-sm text-white/80">
           {mode === "edit"
@@ -31,7 +33,7 @@ export default function VideoFormContainer({
         <p className="text-xs text-gray-500 mb-6">
           Fields marked with an asterisk (*) are required
         </p>
-        <VideoForm video={video} mode={mode} />
+        <VideoForm video={video} mode={mode} articles={articles} />
       </div>
     </div>
   );
