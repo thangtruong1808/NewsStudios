@@ -48,22 +48,19 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
     string | null
   >(null);
   const previousPathRef = useRef(pathname);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Create a cleanup function that can be reused
   const cleanupImage = useCallback(async () => {
     if (cloudinaryPublicId) {
-      console.log("Starting cleanup for image:", cloudinaryPublicId);
       try {
         const result = await deleteImage(cloudinaryPublicId);
         if (result.success) {
-          console.log("Successfully deleted image during cleanup");
           setCloudinaryPublicId(null);
         } else {
-          console.error("Failed to delete image:", result.error);
           toast.error("Failed to clean up image");
         }
       } catch (error) {
-        console.error("Error during cleanup:", error);
         toast.error("Failed to clean up image");
       }
     }
@@ -75,7 +72,6 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
       await cleanupImage();
       router.back();
     } catch (error) {
-      console.error("Error during cancel:", error);
       toast.error("Failed to clean up image");
       router.back();
     }
@@ -102,17 +98,17 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
 
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file");
+        showErrorToast({ message: "Please select an image file" });
         return;
       }
 
       // Validate file size (limit to 500MB)
       if (file.size > 500 * 1024 * 1024) {
-        toast.error("Image file size must be less than 500MB");
+        showErrorToast({ message: "Image file size must be less than 500MB" });
         return;
       }
 
-      // Start progress simulation
+      // Start progress simulation for preview
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 90) {
@@ -123,46 +119,19 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
         });
       }, 200);
 
-      // Upload to Cloudinary
-      const result = await uploadToCloudinary(file, "image");
+      // Create local preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+      setSelectedFile(file); // Store the file for later upload
 
-      // Clear progress interval
-      clearInterval(progressInterval);
-
-      if (!result.success || !result.url) {
-        toast.error(`Failed to upload image: ${result.error}`);
-        return;
-      }
-
-      // Set progress to 100% when upload is complete
+      // Set progress to 100% when preview is ready
       setUploadProgress(100);
-
-      // Extract public ID from the URL using the utility function
-      const publicId = getPublicIdFromUrl(result.url);
-      console.log("Uploaded image public ID:", publicId);
-
-      if (!publicId) {
-        console.error("Failed to extract public ID from URL:", result.url);
-        toast.error("Failed to process uploaded image");
-        return;
-      }
-
-      // Store the public ID for cleanup
-      setCloudinaryPublicId(publicId);
-
-      // Update the form value with the uploaded image URL
-      setValue("user_image", result.url);
-      setImagePreview(result.url);
-
-      // Update session if this is the current user's profile
-      if (isEditMode && user?.id) {
-        await updateSession();
-      }
-
-      toast.success("Image uploaded successfully");
+      showSuccessToast({ message: "Image selected successfully" });
     } catch (error) {
-      console.error("Error uploading image:", error);
-      toast.error("Failed to upload image");
+      showErrorToast({
+        message:
+          error instanceof Error ? error.message : "Failed to process image",
+      });
     } finally {
       // Add a small delay before hiding the processing state
       setTimeout(() => {
@@ -172,9 +141,6 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
     }
   };
 
-  console.log("UserForm - Current Session:", session);
-  console.log("UserForm - Editing User:", user);
-
   /**
    * Form submission handler
    * Processes form data for both create and edit modes
@@ -182,22 +148,66 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
    */
   const onSubmit = async (data: UserFormValues) => {
     try {
-      console.log("Submitting form data:", data);
-      console.log("Current cloudinaryPublicId:", cloudinaryPublicId);
-
       if (isEditMode && user) {
-        console.log("Updating existing user:", user.id);
-        const success = await updateUser(user.id, data);
+        // If there's a new file selected, upload it first
+        let imageUrl = user.user_image;
+        let newPublicId: string | null = null;
+
+        if (selectedFile) {
+          const uploadResult = await uploadToCloudinary(selectedFile, "image");
+
+          if (!uploadResult.success || !uploadResult.url) {
+            throw new Error(uploadResult.error || "Failed to upload image");
+          }
+
+          // Extract the secure_url from the Cloudinary response
+          const cloudinaryUrl = uploadResult.url.secure_url;
+          if (!cloudinaryUrl) {
+            throw new Error("Failed to get image URL from Cloudinary");
+          }
+
+          // Extract public ID from the URL
+          const publicId = getPublicIdFromUrl(cloudinaryUrl);
+          if (!publicId) {
+            throw new Error("Failed to extract public ID from URL");
+          }
+
+          // Store the new image URL and public ID
+          imageUrl = cloudinaryUrl;
+          newPublicId = publicId;
+          setCloudinaryPublicId(publicId);
+
+          // If there was a previous image, store its public ID for cleanup
+          if (user.user_image) {
+            const oldPublicId = getPublicIdFromUrl(user.user_image);
+            if (oldPublicId) {
+              setPreviousImagePublicId(oldPublicId);
+            }
+          }
+        }
+
+        // Update user with new data
+        const success = await updateUser(user.id, {
+          ...data,
+          user_image: imageUrl,
+        });
+
         if (success) {
           // If there was a previous image and it's different from the new one, delete it
-          if (
-            previousImagePublicId &&
-            previousImagePublicId !== cloudinaryPublicId
-          ) {
-            console.log("Deleting previous image:", previousImagePublicId);
-            await deleteImage(previousImagePublicId);
+          if (previousImagePublicId && previousImagePublicId !== newPublicId) {
+            try {
+              const deleteResult = await deleteImage(previousImagePublicId);
+              if (!deleteResult.success) {
+                showErrorToast({
+                  message: "Failed to delete old image from Cloudinary",
+                });
+              }
+            } catch (error) {
+              showErrorToast({
+                message: "Failed to delete old image from Cloudinary",
+              });
+            }
           }
-          console.log("User updated successfully, updating session");
           await updateSession({
             ...session,
             user: {
@@ -206,49 +216,56 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
               id: user.id.toString(),
             },
           });
-          console.log("Session updated");
           showSuccessToast({ message: "User updated successfully" });
           router.push("/dashboard/users");
           router.refresh();
         } else {
           // If update fails, delete the new image if it exists
-          if (cloudinaryPublicId) {
-            console.log(
-              "Update failed, deleting new image:",
-              cloudinaryPublicId
-            );
-            await deleteImage(cloudinaryPublicId);
+          if (newPublicId) {
+            try {
+              await deleteImage(newPublicId);
+            } catch (error) {
+              showErrorToast({
+                message: "Failed to clean up new image after failed update",
+              });
+            }
           }
-          console.log("Failed to update user");
           showErrorToast({ message: "Failed to update user" });
         }
       } else {
-        console.log("Creating new user");
         const success = await createUser(data);
         if (success) {
-          console.log("User created successfully");
           showSuccessToast({ message: "User created successfully" });
           router.push("/dashboard/users");
           router.refresh();
         } else {
           // If creation fails, delete the uploaded image
           if (cloudinaryPublicId) {
-            console.log("Creation failed, deleting image:", cloudinaryPublicId);
-            await deleteImage(cloudinaryPublicId);
+            try {
+              await deleteImage(cloudinaryPublicId);
+            } catch (error) {
+              showErrorToast({
+                message: "Failed to clean up image after failed creation",
+              });
+            }
           }
-          console.log("Failed to create user");
           showErrorToast({ message: "Failed to create user" });
         }
       }
     } catch (error) {
       // If any error occurs, delete the uploaded image
       if (cloudinaryPublicId) {
-        console.log("Error occurred, deleting image:", cloudinaryPublicId);
-        await deleteImage(cloudinaryPublicId);
+        try {
+          await deleteImage(cloudinaryPublicId);
+        } catch (error) {
+          showErrorToast({ message: "Failed to clean up image after error" });
+        }
       }
-      console.error("Error submitting form:", error);
       showErrorToast({
-        message: "An error occurred while submitting the form",
+        message:
+          error instanceof Error
+            ? error.message
+            : "An error occurred while submitting the form",
       });
     }
   };

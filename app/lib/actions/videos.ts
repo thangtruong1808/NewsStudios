@@ -7,7 +7,7 @@ import { Video } from "../definition";
 import mysql from "mysql2/promise";
 import { uploadToFTP } from "../utils/ftp";
 import { getPublicIdFromUrl } from "../utils/cloudinaryUtils";
-import { deleteImageFromCloudinary } from "../utils/cloudinaryServerUtils";
+import { deleteVideoFromCloudinary } from "../utils/cloudinaryServerUtils";
 import pool from "../db/query";
 
 // Helper function to extract public ID from Cloudinary URL
@@ -164,7 +164,7 @@ export async function updateVideo(
           const oldPublicId = extractPublicId(oldVideoData.video_url);
           if (oldPublicId) {
             // Delete the old video asynchronously without waiting for the result
-            deleteImageFromCloudinary(oldPublicId).catch((error) => {
+            deleteVideoFromCloudinary(oldPublicId).catch((error) => {
               console.error("Error deleting old video from Cloudinary:", error);
             });
           }
@@ -213,7 +213,7 @@ export async function deleteVideo(id: number) {
         const publicId = extractPublicId(video.video_url);
         if (publicId) {
           try {
-            const deleteResult = await deleteImageFromCloudinary(publicId);
+            const deleteResult = await deleteVideoFromCloudinary(publicId);
             if (!deleteResult.success) {
               console.error(
                 "Failed to delete video from Cloudinary:",

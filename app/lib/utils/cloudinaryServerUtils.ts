@@ -134,58 +134,87 @@ export async function uploadImageToCloudinary(
  */
 export async function deleteImageFromCloudinary(publicId: string) {
   try {
-    console.log("Attempting to delete from Cloudinary:", publicId);
+    if (!publicId) {
+      throw new Error("Public ID is required for deletion");
+    }
 
-    // Ensure the public ID doesn't include the file extension
     const cleanPublicId = publicId.split(".")[0];
-
-    // Add the folder path if it's not already included
     const fullPublicId = cleanPublicId.includes("newshub_photos/")
       ? cleanPublicId
       : `newshub_photos/${cleanPublicId}`;
 
-    console.log("Using full public ID for deletion:", fullPublicId);
-
-    // Use synchronous version of destroy with invalidate option
     const result = await new Promise((resolve, reject) => {
       cloudinary.uploader.destroy(
         fullPublicId,
-        {
-          resource_type: "video",
-          invalidate: true,
-        },
+        { resource_type: "image", invalidate: true },
         (error, result) => {
-          if (error) {
-            console.error("Cloudinary delete error:", error);
-            reject(error);
-            return;
-          }
+          if (error) return reject(error);
           resolve(result);
         }
       );
     });
 
-    console.log("Cloudinary deletion result:", result);
-
-    // Handle both 'ok' and 'not found' as success cases
-    if (
-      result &&
-      ((result as any).result === "ok" ||
-        (result as any).result === "not found")
-    ) {
-      console.log("Successfully handled video deletion from Cloudinary");
-      return { success: true };
-    }
-
-    throw new Error("Failed to delete from Cloudinary");
+    return {
+      success: true,
+      message: `Successfully deleted image: ${fullPublicId}`,
+    };
   } catch (error) {
-    console.error("Error in deleteImageFromCloudinary:", error);
     return {
       success: false,
       error:
         error instanceof Error
           ? error.message
-          : "Failed to delete from Cloudinary",
+          : "Failed to delete image from Cloudinary",
+      details: {
+        publicId,
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+}
+
+/**
+ * Delete a video from Cloudinary
+ * @param publicId - The public ID of the video to delete
+ * @returns Promise with the deletion result
+ */
+export async function deleteVideoFromCloudinary(publicId: string) {
+  try {
+    if (!publicId) {
+      throw new Error("Public ID is required for deletion");
+    }
+
+    const cleanPublicId = publicId.split(".")[0];
+    const fullPublicId = cleanPublicId.includes("newshub_photos/")
+      ? cleanPublicId
+      : `newshub_photos/${cleanPublicId}`;
+
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.destroy(
+        fullPublicId,
+        { resource_type: "video", invalidate: true },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
+    });
+
+    return {
+      success: true,
+      message: `Successfully deleted video: ${fullPublicId}`,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to delete video from Cloudinary",
+      details: {
+        publicId,
+        timestamp: new Date().toISOString(),
+      },
     };
   }
 }

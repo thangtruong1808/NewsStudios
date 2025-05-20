@@ -30,10 +30,6 @@ export default function UserFormContainer({ userId }: UserFormContainerProps) {
   const isEditMode = !!userId && searchParams.get("edit") === "true";
   const { data: session } = useSession();
 
-  console.log("UserFormContainer - userId:", userId);
-  console.log("UserFormContainer - isEditMode:", isEditMode);
-  console.log("UserFormContainer - searchParams:", searchParams.get("edit"));
-
   // Fetch user data if userId is provided
   useEffect(() => {
     const fetchUser = async () => {

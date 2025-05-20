@@ -12,7 +12,11 @@ import {
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
-import { uploadToCloudinary } from "@/app/lib/utils/cloudinaryUtils";
+import {
+  uploadToCloudinary,
+  deleteVideo,
+  getPublicIdFromUrl,
+} from "@/app/lib/utils/cloudinaryUtils";
 
 /**
  * Props interface for VideoForm component
@@ -40,14 +44,29 @@ export default function VideoForm({ video, mode, articles }: VideoFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [formData, setFormData] = useState({
-    video_url: video?.video_url || "",
+  const [formData, setFormData] = useState<Partial<Video>>({
     article_id: video?.article_id || 0,
+    video_url: video?.video_url || "",
     description: video?.description || "",
   });
 
   // Check if form is empty
   const isFormEmpty = !formData.video_url && !selectedFile;
+
+  // Cleanup function for old video
+  const cleanupOldVideo = async (oldVideoUrl: string) => {
+    if (oldVideoUrl && oldVideoUrl.includes("cloudinary.com")) {
+      try {
+        const publicId = getPublicIdFromUrl(oldVideoUrl);
+        if (publicId) {
+          await deleteVideo(publicId);
+        }
+      } catch (error) {
+        console.error("Error cleaning up old video:", error);
+        // Don't throw the error, just log it
+      }
+    }
+  };
 
   /**
    * Form submission handler
@@ -64,12 +83,12 @@ export default function VideoForm({ video, mode, articles }: VideoFormProps) {
         return;
       }
 
-      if (!formData.video_url && !selectedFile) {
+      if (isFormEmpty) {
         showErrorToast({ message: "Please upload a video" });
         return;
       }
 
-      let videoUrl = formData.video_url;
+      let videoUrl = formData.video_url || "";
 
       // If there's a new file selected, upload it to Cloudinary
       if (selectedFile) {
@@ -78,47 +97,35 @@ export default function VideoForm({ video, mode, articles }: VideoFormProps) {
           throw new Error(result.error || "Failed to upload video");
         }
         videoUrl = result.url.secure_url;
-      }
 
-      if (mode === "edit" && video) {
-        // Check if there are any changes
-        const hasChanges =
-          formData.article_id !== video.article_id ||
-          videoUrl !== video.video_url ||
-          formData.description !== video.description;
-
-        if (!hasChanges) {
-          showSuccessToast({ message: "No changes to update" });
-          router.back();
-          return;
-        }
-
-        const success = await updateVideo(video.id, {
-          ...formData,
-          video_url: videoUrl,
-        });
-
-        if (success) {
-          showSuccessToast({ message: "Video updated successfully" });
-          router.refresh();
-          router.back();
-        } else {
-          showErrorToast({ message: "Failed to update video" });
-        }
-      } else {
-        const success = await createVideo({
-          ...formData,
-          video_url: videoUrl,
-        });
-
-        if (success) {
-          showSuccessToast({ message: "Video created successfully" });
-          router.refresh();
-          router.back();
-        } else {
-          showErrorToast({ message: "Failed to create video" });
+        // Clean up old video if in edit mode
+        if (mode === "edit" && video?.video_url) {
+          await cleanupOldVideo(video.video_url);
         }
       }
+
+      if (mode === "create") {
+        // For create, we need to provide all required fields
+        const createData = {
+          article_id: formData.article_id!,
+          video_url: videoUrl!,
+          description: formData.description || undefined,
+        };
+        await createVideo(createData);
+        showSuccessToast({ message: "Video created successfully" });
+      } else if (video?.id) {
+        // For update, we can provide partial data
+        const updateData = {
+          article_id: formData.article_id!,
+          video_url: videoUrl!,
+          description: formData.description || undefined,
+        };
+        await updateVideo(video.id, updateData);
+        showSuccessToast({ message: "Video updated successfully" });
+      }
+
+      router.push("/dashboard/videos");
+      router.refresh();
     } catch (error) {
       console.error("Error submitting form:", error);
       showErrorToast({

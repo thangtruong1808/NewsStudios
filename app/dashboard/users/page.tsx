@@ -170,7 +170,6 @@ export default function UsersPage() {
         showErrorToast({ message: error || "Failed to delete user" });
       }
     } catch (error) {
-      console.error("Error deleting user:", error);
       showErrorToast({ message: "Failed to delete user" });
     } finally {
       setIsDeleting(false);

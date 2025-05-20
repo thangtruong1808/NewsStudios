@@ -15,6 +15,7 @@
 import {
   uploadImageToCloudinary,
   deleteImageFromCloudinary,
+  deleteVideoFromCloudinary,
 } from "./cloudinaryServerUtils";
 
 /**
@@ -116,42 +117,60 @@ export async function deleteImage(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     if (!publicId) {
-      console.error("No public ID provided for deletion");
       return {
         success: false,
         error: "No public ID provided",
       };
     }
 
-    console.log("Calling server action to delete image:", publicId);
-
-    // Ensure we're calling the server action correctly
     const result = await deleteImageFromCloudinary(publicId);
-    console.log("Server action response:", result);
-
-    if (!result) {
-      console.error("No response from server action");
-      return {
-        success: false,
-        error: "No response from server action",
-      };
-    }
 
     if (!result.success) {
-      console.error("Server action failed:", result.error);
       return {
         success: false,
         error: result.error || "Failed to delete image",
       };
     }
 
-    console.log("Successfully deleted image");
     return { success: true };
   } catch (error) {
-    console.error("Error in deleteImage:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to delete image",
+    };
+  }
+}
+
+/**
+ * Delete a video from Cloudinary
+ * @param publicId - The public ID of the video to delete
+ * @returns Promise with the deletion result
+ */
+export async function deleteVideo(
+  publicId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!publicId) {
+      return {
+        success: false,
+        error: "No public ID provided",
+      };
+    }
+
+    const result = await deleteVideoFromCloudinary(publicId);
+
+    if (!result.success) {
+      return {
+        success: false,
+        error: result.error || "Failed to delete video",
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete video",
     };
   }
 }
@@ -219,7 +238,10 @@ export function isCloudinaryUrl(url: string): boolean {
  * @returns The public ID or null if not a valid Cloudinary URL
  */
 export function getPublicIdFromUrl(url: string): string | null {
-  if (!url) return null;
+  if (!url) {
+    console.log("No URL provided to getPublicIdFromUrl");
+    return null;
+  }
 
   try {
     // Check if the URL contains cloudinary.com
@@ -239,24 +261,33 @@ export function getPublicIdFromUrl(url: string): string | null {
       return null;
     }
 
-    // Get the folder and public ID parts
+    // Get the parts after 'upload'
     const partsAfterUpload = pathParts.slice(uploadIndex + 1);
 
-    // Remove any transformation parameters
-    const publicIdParts = partsAfterUpload.filter(
-      (part) => !part.includes(",")
-    );
+    // Skip version number if present (v1234567890)
+    const startIndex = partsAfterUpload[0]?.startsWith("v") ? 1 : 0;
+    const relevantParts = partsAfterUpload.slice(startIndex);
 
-    // Join the parts to form the public ID
+    // Remove any transformation parameters and join the parts
+    const publicIdParts = relevantParts.filter((part) => !part.includes(","));
     const publicId = publicIdParts.join("/");
 
     // Remove the file extension if present
     const cleanPublicId = publicId.replace(/\.[^/.]+$/, "");
 
-    console.log("Extracted public ID:", cleanPublicId);
+    console.log("Extracted public ID:", {
+      originalUrl: url,
+      pathParts,
+      uploadIndex,
+      partsAfterUpload,
+      relevantParts,
+      publicIdParts,
+      cleanPublicId,
+    });
+
     return cleanPublicId;
   } catch (error) {
-    console.error("Error extracting public ID:", error);
+    console.error("Error extracting public ID:", error, "URL:", url);
     return null;
   }
 }
