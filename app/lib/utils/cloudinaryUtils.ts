@@ -219,11 +219,15 @@ export function isCloudinaryUrl(url: string): boolean {
  * @returns The public ID or null if not a valid Cloudinary URL
  */
 export function getPublicIdFromUrl(url: string): string | null {
-  if (!isCloudinaryUrl(url)) {
-    return null;
-  }
+  if (!url) return null;
 
   try {
+    // Check if the URL contains cloudinary.com
+    if (!url.includes("cloudinary.com")) {
+      console.log("Not a Cloudinary URL:", url);
+      return null;
+    }
+
     // Extract the path part of the URL
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split("/");
@@ -231,14 +235,26 @@ export function getPublicIdFromUrl(url: string): string | null {
     // Find the upload index
     const uploadIndex = pathParts.findIndex((part) => part === "upload");
     if (uploadIndex === -1) {
+      console.log("No 'upload' segment found in URL:", url);
       return null;
     }
 
-    // The public ID is everything after the upload part
-    const publicId = pathParts.slice(uploadIndex + 1).join("/");
+    // Get the folder and public ID parts
+    const partsAfterUpload = pathParts.slice(uploadIndex + 1);
+
+    // Remove any transformation parameters
+    const publicIdParts = partsAfterUpload.filter(
+      (part) => !part.includes(",")
+    );
+
+    // Join the parts to form the public ID
+    const publicId = publicIdParts.join("/");
 
     // Remove the file extension if present
-    return publicId.replace(/\.[^/.]+$/, "");
+    const cleanPublicId = publicId.replace(/\.[^/.]+$/, "");
+
+    console.log("Extracted public ID:", cleanPublicId);
+    return cleanPublicId;
   } catch (error) {
     console.error("Error extracting public ID:", error);
     return null;
@@ -351,23 +367,14 @@ export async function uploadToCloudinary(
           `Upload preset "${uploadPreset}" not found in your Cloudinary account. Please verify the preset name in your Cloudinary dashboard.`
         );
       }
-
-      throw new Error(errorData.error?.message || "Upload failed");
     }
-
-    const data = await response.json();
-    console.log("Cloudinary upload success:", {
-      url: data.secure_url,
-      publicId: data.public_id,
-      folder: data.folder,
-    });
 
     return {
       success: true,
-      url: data.secure_url,
+      url: response.ok ? await response.json() : null,
     };
   } catch (error) {
-    console.error("Error in uploadToCloudinary:", error);
+    console.error("Error uploading file:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to upload file",

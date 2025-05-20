@@ -1,18 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Article, Image } from "@/app/lib/definition";
+import type { Article, Image } from "@/app/lib/definition";
 import {
   uploadImageToServer,
   updateImage,
   createImage,
 } from "@/app/lib/actions/images";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import {
   showSuccessToast,
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
+import ImageCleanupHandler from "./form/ImageCleanupHandler";
 
 /**
  * Props interface for CreatePhotoPageClient component
@@ -48,12 +49,40 @@ export default function CreatePhotoPageClient({
     file: "",
     description: image?.description || "",
   });
+  const [previousImageUrl, setPreviousImageUrl] = useState<string | null>(null);
+  const [isCleanupComplete, setIsCleanupComplete] = useState(false);
+  const [isImageAvailable, setIsImageAvailable] = useState(true);
 
   // Determine if component is in edit mode
   const isEditMode = !!image;
 
   // Check if form is empty (required for create mode)
   const isFormEmpty = !selectedFile;
+
+  // Check if the current image is available
+  useEffect(() => {
+    const checkImageAvailability = async () => {
+      if (isEditMode && image?.image_url) {
+        try {
+          const img = new Image();
+          const imageLoadPromise = new Promise((resolve, reject) => {
+            img.onload = () => resolve(true);
+            img.onerror = () => reject(new Error("Image failed to load"));
+            setTimeout(() => reject(new Error("Image load timeout")), 5000);
+          });
+
+          img.src = image.image_url;
+          await imageLoadPromise;
+          setIsImageAvailable(true);
+        } catch (error) {
+          console.log("Image not available:", error);
+          setIsImageAvailable(false);
+        }
+      }
+    };
+
+    checkImageAvailability();
+  }, [isEditMode, image?.image_url]);
 
   // Cleanup preview URL when component unmounts
   useEffect(() => {
@@ -63,6 +92,19 @@ export default function CreatePhotoPageClient({
       }
     };
   }, [previewUrl]);
+
+  // Set previous image URL when in edit mode
+  useEffect(() => {
+    if (isEditMode && image?.image_url) {
+      setPreviousImageUrl(image.image_url);
+    }
+  }, [isEditMode, image?.image_url]);
+
+  // Handle cleanup completion
+  const handleCleanupComplete = useCallback(() => {
+    setIsCleanupComplete(true);
+    setPreviousImageUrl(null);
+  }, []);
 
   /**
    * Form submission handler
@@ -113,35 +155,41 @@ export default function CreatePhotoPageClient({
             throw new Error(uploadResult.error || "Failed to upload image");
           }
 
-          showSuccessToast({ message: "Photo updated successfully" });
-          router.refresh();
-          router.push("/dashboard/photos");
-        } else {
-          const articleId = formData.get("article_id")
-            ? parseInt(formData.get("article_id") as string)
-            : undefined;
-
-          // Update the image record
-          const updateResult = await updateImage(image.id, {
-            image_url: imageUrl,
-            description: formData.get("description") as string,
-            type: "gallery",
-            entity_type: articleId ? "article" : image.entity_type,
-            entity_id: articleId || image.entity_id,
-            is_featured: false,
-            display_order: 0,
-          });
-
-          if (!updateResult.success) {
-            throw new Error(
-              updateResult.error || "Failed to update photo record"
-            );
-          }
-
-          showSuccessToast({ message: "Photo updated successfully" });
-          router.refresh();
-          router.push("/dashboard/photos");
+          // Set the new image URL and trigger cleanup of the old one
+          imageUrl = uploadResult.url;
+          // Store the old image URL for cleanup
+          setPreviousImageUrl(image.image_url);
+          // Reset cleanup completion state
+          setIsCleanupComplete(false);
         }
+
+        const articleId = formData.get("article_id")
+          ? parseInt(formData.get("article_id") as string)
+          : undefined;
+
+        // Update the image record
+        const updateResult = await updateImage(image.id, {
+          image_url: imageUrl,
+          description: formData.get("description") as string,
+          type: "gallery",
+          entity_type: articleId ? "article" : image.entity_type,
+          entity_id: articleId || image.entity_id,
+          is_featured: false,
+          display_order: 0,
+        });
+
+        if (!updateResult.success) {
+          throw new Error(
+            updateResult.error || "Failed to update photo record"
+          );
+        }
+
+        // Wait a bit to ensure cleanup has time to complete
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        showSuccessToast({ message: "Photo updated successfully" });
+        router.refresh();
+        router.push("/dashboard/photos");
       } else {
         // Simulate upload progress for new photos
         const progressInterval = setInterval(() => {
@@ -248,6 +296,14 @@ export default function CreatePhotoPageClient({
 
   return (
     <div className="w-full">
+      {/* Add ImageCleanupHandler */}
+      {isEditMode && previousImageUrl && !isCleanupComplete && (
+        <ImageCleanupHandler
+          previousImageUrl={previousImageUrl}
+          onCleanupComplete={handleCleanupComplete}
+        />
+      )}
+
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {/* Form header with gradient background */}
         <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
@@ -294,7 +350,11 @@ export default function CreatePhotoPageClient({
                 />
               </div>
               {/* Photo preview */}
-              {(isEditMode && image?.image_url && !previewUrl) || previewUrl ? (
+              {(isEditMode &&
+                image?.image_url &&
+                !previewUrl &&
+                isImageAvailable) ||
+              previewUrl ? (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-gray-700 mb-2">
                     {previewUrl ? "New Photo Preview" : "Current Photo"}
@@ -305,6 +365,20 @@ export default function CreatePhotoPageClient({
                       alt={image?.description || "Photo preview"}
                       className="w-full h-full object-contain bg-gray-50"
                     />
+                  </div>
+                </div>
+              ) : isEditMode && !isImageAvailable ? (
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                    Current Photo
+                  </h3>
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                    <div className="w-full h-full flex flex-col items-center justify-center">
+                      <PhotoIcon className="w-12 h-12 text-gray-400 mb-2" />
+                      <span className="text-sm text-gray-500">
+                        Image not available
+                      </span>
+                    </div>
                   </div>
                 </div>
               ) : null}

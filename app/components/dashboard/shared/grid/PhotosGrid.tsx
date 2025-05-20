@@ -1,6 +1,6 @@
 "use client";
 
-import { Image } from "@/app/lib/definition";
+import { Image as ImageType } from "@/app/lib/definition";
 import NextImage from "next/image";
 import {
   PencilIcon,
@@ -8,7 +8,7 @@ import {
   ClockIcon,
   PhotoIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   showErrorToast,
   showConfirmationToast,
@@ -16,9 +16,9 @@ import {
 
 // Props interface for PhotosGrid component
 interface PhotosGridProps {
-  photos: Image[]; // Array of image objects to display
-  onEdit: (photo: Image) => void; // Callback for edit action
-  onDelete: (photo: Image) => void; // Callback for delete action
+  photos: ImageType[]; // Array of image objects to display
+  onEdit: (photo: ImageType) => void; // Callback for edit action
+  onDelete: (photo: ImageType) => void; // Callback for delete action
   isLoading?: boolean; // Loading state indicator
 }
 
@@ -31,8 +31,42 @@ export default function PhotosGrid({
   const [hoveredPhoto, setHoveredPhoto] = useState<number | null>(null);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
 
+  // Check for failed images on mount and when photos change
+  useEffect(() => {
+    const checkImages = async () => {
+      const newFailedImages = new Set<number>();
+
+      for (const photo of photos) {
+        try {
+          // Create a new image object to check if the image loads
+          const img = new Image();
+
+          // Create a promise that resolves when the image loads or rejects when it fails
+          const imageLoadPromise = new Promise((resolve, reject) => {
+            img.onload = () => resolve(true);
+            img.onerror = () => reject(new Error("Image failed to load"));
+
+            // Set a timeout to reject if the image takes too long to load
+            setTimeout(() => reject(new Error("Image load timeout")), 5000);
+          });
+
+          // Try to load the image
+          img.src = photo.image_url;
+          await imageLoadPromise;
+        } catch (error) {
+          console.log(`Image check failed for photo ${photo.id}:`, error);
+          newFailedImages.add(photo.id);
+        }
+      }
+
+      setFailedImages(newFailedImages);
+    };
+
+    checkImages();
+  }, [photos]);
+
   // Handle photo deletion with confirmation
-  const handleDelete = async (photo: Image) => {
+  const handleDelete = async (photo: ImageType) => {
     try {
       await onDelete(photo);
     } catch (error) {
@@ -126,7 +160,7 @@ export default function PhotosGrid({
           </div>
 
           {/* Photo metadata */}
-          <div className="p-2">
+          <div className="p-4 space-y-2">
             <div className="flex items-center gap-1">
               <span className="text-xs font-medium">Article ID:</span>
               <span className="text-xs text-gray-500">
