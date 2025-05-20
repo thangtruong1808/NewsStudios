@@ -114,8 +114,6 @@ export default function CreatePhotoPageClient({
   const handleSubmit = async (formData: FormData) => {
     try {
       setIsSubmitting(true);
-      setUploadProgress(0);
-      setIsImageProcessing(true);
 
       if (isEditMode && image) {
         // If a new file is selected, upload it first
@@ -132,24 +130,11 @@ export default function CreatePhotoPageClient({
             formData.get("article_id") as string
           );
 
-          // Simulate upload progress for file upload
-          const progressInterval = setInterval(() => {
-            setUploadProgress((prev) => {
-              if (prev >= 90) {
-                clearInterval(progressInterval);
-                return prev;
-              }
-              return prev + 10;
-            });
-          }, 200);
-
           const uploadResult = await uploadImageToServer(
             uploadFormData,
             true,
             image.id
           );
-          clearInterval(progressInterval);
-          setUploadProgress(100);
 
           if (uploadResult.error || !uploadResult.url) {
             throw new Error(uploadResult.error || "Failed to upload image");
@@ -191,20 +176,7 @@ export default function CreatePhotoPageClient({
         router.refresh();
         router.push("/dashboard/photos");
       } else {
-        // Simulate upload progress for new photos
-        const progressInterval = setInterval(() => {
-          setUploadProgress((prev) => {
-            if (prev >= 90) {
-              clearInterval(progressInterval);
-              return prev;
-            }
-            return prev + 10;
-          });
-        }, 200);
-
         const result = await uploadImageToServer(formData);
-        clearInterval(progressInterval);
-        setUploadProgress(100);
 
         if (result.error || !result.url) {
           throw new Error(result.error || "Failed to upload image");
@@ -228,10 +200,7 @@ export default function CreatePhotoPageClient({
             : "Failed to create photo",
       });
     } finally {
-      // Ensure we reset all states after the operation is complete
       setIsSubmitting(false);
-      setIsImageProcessing(false);
-      setUploadProgress(0);
     }
   };
 
@@ -382,8 +351,8 @@ export default function CreatePhotoPageClient({
                   </div>
                 </div>
               ) : null}
-              {/* Upload progress bar */}
-              {isImageProcessing && (
+              {/* Upload progress bar - only shown during file selection */}
+              {isImageProcessing && !isSubmitting && (
                 <div className="mt-4">
                   <div className="flex items-center gap-2">
                     <ArrowPathIcon className="h-5 w-5 animate-spin text-blue-500" />
