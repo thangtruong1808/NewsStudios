@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getVideos, searchVideos } from "@/app/lib/actions/videos";
+import { getVideos, searchVideos, deleteVideo } from "@/app/lib/actions/videos";
 import VideosHeader from "@/app/components/dashboard/videos/header/index";
 import VideosSearch from "@/app/components/dashboard/videos/search";
 import VideosGrid from "@/app/components/dashboard/shared/grid/VideosGrid";
@@ -174,12 +174,10 @@ export default function VideosPage() {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/videos/${video.id}`, {
-        method: "DELETE",
-      });
+      const result = await deleteVideo(video.id);
 
-      if (!response.ok) {
-        throw new Error("Failed to delete video");
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete video");
       }
 
       showSuccessToast({ message: "Video deleted successfully" });
@@ -187,7 +185,10 @@ export default function VideosPage() {
       setTotalItems((prev) => prev - 1);
     } catch (error) {
       console.error("Error deleting video:", error);
-      showErrorToast({ message: "Failed to delete video" });
+      showErrorToast({
+        message:
+          error instanceof Error ? error.message : "Failed to delete video",
+      });
     } finally {
       setIsDeleting(false);
     }

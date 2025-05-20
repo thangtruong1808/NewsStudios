@@ -6,6 +6,7 @@ import {
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
+import { VideoCameraIcon } from "@heroicons/react/24/outline";
 
 interface VideoUploadProps {
   value: string;
@@ -21,6 +22,22 @@ export default function VideoUpload({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingFileName, setProcessingFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isVideoAvailable, setIsVideoAvailable] = useState(true);
+
+  // Check if the video is available in Cloudinary
+  useEffect(() => {
+    if (value) {
+      const video = document.createElement("video");
+      video.src = value;
+      video.onerror = () => {
+        setIsVideoAvailable(false);
+      };
+      video.onloadeddata = () => {
+        setIsVideoAvailable(true);
+      };
+    }
+  }, [value]);
 
   // Create preview URL when file is selected
   useEffect(() => {
@@ -39,6 +56,7 @@ export default function VideoUpload({
 
     setIsProcessing(true);
     setProcessingFileName(file.name);
+    setUploadProgress(0);
 
     try {
       // Validate file type
@@ -51,10 +69,22 @@ export default function VideoUpload({
         throw new Error("Video size should be less than 50MB");
       }
 
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
       // Simulate processing delay
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       onChange(file);
+      setUploadProgress(100);
       showSuccessToast({ message: "Video selected successfully" });
     } catch (error) {
       console.error("Error processing video:", error);
@@ -66,6 +96,7 @@ export default function VideoUpload({
     } finally {
       setIsProcessing(false);
       setProcessingFileName("");
+      setTimeout(() => setUploadProgress(0), 500);
     }
   };
 
@@ -93,14 +124,20 @@ export default function VideoUpload({
         />
       </div>
 
-      {/* Processing State */}
+      {/* Processing State with Progress */}
       {isProcessing && (
-        <div className="mt-2">
+        <div className="mt-4 space-y-2">
           <div className="flex items-center space-x-2">
             <LoadingSpinner />
             <span className="text-sm text-gray-600">
-              Processing {processingFileName}...
+              Uploading {processingFileName}... {uploadProgress}%
             </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${uploadProgress}%` }}
+            />
           </div>
         </div>
       )}
@@ -121,8 +158,14 @@ export default function VideoUpload({
 
       {/* Fallback State */}
       {!previewUrl && !isProcessing && (
-        <div className="mt-2 text-sm text-gray-500">
-          No video selected. Please upload a video file.
+        <div className="mt-4 flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
+          <VideoCameraIcon className="h-12 w-12 text-gray-400" />
+          <p className="mt-2 text-sm text-gray-500">
+            {isVideoAvailable ? "No video selected" : "Video not available"}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Please upload a video file
+          </p>
         </div>
       )}
     </div>

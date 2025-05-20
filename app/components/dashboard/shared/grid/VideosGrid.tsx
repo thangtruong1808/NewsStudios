@@ -27,25 +27,13 @@ export default function VideosGrid({
 
   // Handle video deletion with confirmation
   const handleDelete = async (video: Video) => {
-    const confirmPromise = new Promise<boolean>((resolve) => {
-      showConfirmationToast({
-        title: "Delete Video",
-        message:
-          "Are you sure you want to delete this video? This action cannot be undone.",
-        onConfirm: () => resolve(true),
-        onCancel: () => resolve(false),
-      });
-    });
-
-    const isConfirmed = await confirmPromise;
-    if (!isConfirmed) return;
-
     setIsDeleting(true);
     try {
       await onDelete(video);
     } catch (error) {
       console.error("Error deleting video:", error);
-      showErrorToast({ message: "Failed to delete video" });
+      // Let the parent component handle the error toast
+      throw error; // Re-throw the error to be handled by the parent
     } finally {
       setIsDeleting(false);
     }
@@ -98,9 +86,9 @@ export default function VideosGrid({
                     if (parent) {
                       const fallback = document.createElement("div");
                       fallback.className =
-                        "w-full h-full flex flex-col items-center justify-center bg-gray-50";
+                        "w-full h-full flex flex-col items-center justify-center bg-gray-50 border border-gray-200 ";
                       fallback.innerHTML = `
-                        <div class="flex flex-col items-center justify-center text-gray-400">
+                        <div class="flex flex-col items-center justify-center text-red-400">
                           <svg class="w-10 h-10 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                           </svg>
@@ -134,7 +122,7 @@ export default function VideosGrid({
             </div>
 
             {/* Video metadata section */}
-            <div className="p-3">
+            <div className="p-3 border border-gray-200">
               {video.article_id && (
                 <div className="text-xs text-gray-500 mb-1">
                   <span className="font-medium mr-1">Article ID:</span>{" "}

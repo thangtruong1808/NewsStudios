@@ -210,7 +210,7 @@ export async function deleteVideo(id: number) {
 
       // Delete from Cloudinary if it's a Cloudinary URL
       if (video.video_url && video.video_url.includes("cloudinary.com")) {
-        const publicId = getPublicIdFromUrl(video.video_url);
+        const publicId = extractPublicId(video.video_url);
         if (publicId) {
           try {
             const deleteResult = await deleteImageFromCloudinary(publicId);
@@ -229,14 +229,24 @@ export async function deleteVideo(id: number) {
       }
 
       // Now delete the video from the Videos table
-      await client.execute("DELETE FROM Videos WHERE id = ?", [id]);
+      const [deleteResult] = await client.execute(
+        "DELETE FROM Videos WHERE id = ?",
+        [id]
+      );
+
+      if (!deleteResult || (deleteResult as any).affectedRows === 0) {
+        throw new Error("Failed to delete video from database");
+      }
 
       revalidatePath("/dashboard/videos");
-      return { data: { success: true }, error: null };
+      return { success: true, error: null };
     });
   } catch (error) {
     console.error("Error deleting video:", error);
-    return { data: null, error: "Failed to delete video" };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete video",
+    };
   }
 }
 
