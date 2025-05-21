@@ -24,7 +24,7 @@ export default function UsersPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("query") || "";
   const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("limit")) || 5;
+  const itemsPerPage = Number(searchParams.get("limit")) || 10;
   const sortField =
     (searchParams.get("sortField") as keyof User) || "created_at";
   const sortDirection =
@@ -195,7 +195,7 @@ export default function UsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-blue-500">Users List</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm">
             Manage, organize, and assign users to articles for better content
             attribution and collaboration.
           </p>
@@ -212,7 +212,7 @@ export default function UsersPage() {
 
       <div className="my-6">
         <SearchWrapper
-          placeholder="Search users by name, email, or role..."
+          placeholder="Search users by name, email, or role . . ."
           onSearch={(term) => {
             const params = new URLSearchParams(searchParams);
             if (term) {
@@ -248,7 +248,7 @@ export default function UsersPage() {
         />
       ) : (
         <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
-          <p className="text-gray-500">
+          <p className="text-red-500">
             {searchQuery
               ? "No users found matching your search criteria."
               : "No users found. Create your first user to get started."}

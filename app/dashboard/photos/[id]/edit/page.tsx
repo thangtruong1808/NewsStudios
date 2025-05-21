@@ -25,7 +25,7 @@ export default function EditPhotoPage({ params }: EditPhotoPageProps) {
       try {
         const [imageResult, articlesResult] = await Promise.all([
           getImageById(parseInt(params.id)),
-          getArticles(),
+          getArticles({ limit: 1000 }),
         ]);
 
         if (imageResult.error || !imageResult.data) {

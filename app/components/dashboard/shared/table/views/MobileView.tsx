@@ -48,7 +48,7 @@ export default function MobileView<T extends { id: number }>({
             </div>
           ))
         ) : data.length === 0 ? (
-          <div className="text-center py-4 text-sm text-gray-500">
+          <div className="rounded-md bg-gray-50 p-6 text-center text-red-500">
             {searchQuery
               ? "No items found matching your search criteria."
               : "No items found."}
@@ -59,7 +59,7 @@ export default function MobileView<T extends { id: number }>({
             return (
               <div
                 key={item.id}
-                className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
+                className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow hover:bg-gray-100"
               >
                 <div className="space-y-2">
                   {displayColumns.map((column) => (
@@ -67,10 +67,10 @@ export default function MobileView<T extends { id: number }>({
                       key={String(column.field)}
                       className="flex items-start"
                     >
-                      <div className="w-1/3 font-medium text-gray-900 text-xs">
+                      <div className="w-1/3 font-medium text-xs">
                         {column.label}:
                       </div>
-                      <div className="w-2/3 text-gray-500 text-xs">
+                      <div className="w-2/3 text-xs">
                         {column.field === "sequence"
                           ? sequence
                           : column.render

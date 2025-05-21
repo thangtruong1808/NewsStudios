@@ -34,11 +34,11 @@ export default function TableRow<T extends { id: number }>({
   const displayColumns = columns.filter((column) => column.field !== "actions");
 
   return (
-    <tr className="hover:bg-gray-50">
+    <tr className="hover:bg-gray-100">
       {displayColumns.map((column) => (
         <td
           key={String(column.field)}
-          className="whitespace-nowrap px-3 py-4 text-sm text-gray-500"
+          className="whitespace-nowrap px-2 py-2 text-xs "
         >
           {column.field === "sequence" && sequence !== undefined
             ? sequence

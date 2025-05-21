@@ -67,7 +67,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
         <div className="mt-8">
           <div className="w-full">
             <SearchWrapper
-              placeholder="Search articles by title, content, or category..."
+              placeholder="Search articles by title, content, or category . . ."
               onSearch={handleSearch}
             />
           </div>
@@ -85,7 +85,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
       <div className="my-6">
         <div className="w-full">
           <SearchWrapper
-            placeholder="Search articles by title, content, or category..."
+            placeholder="Search articles by title and content ..."
             onSearch={handleSearch}
           />
         </div>

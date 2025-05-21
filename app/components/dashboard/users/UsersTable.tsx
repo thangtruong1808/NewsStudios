@@ -134,8 +134,8 @@ export default function UsersTable({
       label: "Created At",
       sortable: true,
       render: (value: string) => (
-        <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+        <div className="w-24">
+          <span className="text-xs whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>
@@ -147,8 +147,8 @@ export default function UsersTable({
       label: "Updated At",
       sortable: true,
       render: (value: string) => (
-        <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+        <div className="w-24">
+          <span className="text-xs whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>
@@ -163,9 +163,9 @@ export default function UsersTable({
         <div className="flex justify-start items-start space-x-2">
           <button
             onClick={() => onEdit(user)}
-            className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+            className="inline-flex items-center gap-1 rounded border border-blue-500 px-2 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
           >
-            <PencilIcon className="h-4 w-4" />
+            <PencilIcon className="h-5 w-5" />
             Edit
           </button>
           <button
@@ -173,7 +173,7 @@ export default function UsersTable({
             disabled={isDeleting}
             className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
           >
-            <TrashIcon className="h-4 w-4" />
+            <TrashIcon className="h-5 w-5" />
             Delete
           </button>
         </div>
@@ -183,7 +183,7 @@ export default function UsersTable({
 
   // Render the table component with all configured columns and data
   return (
-    <div className="mt-8">
+    <div className="mt-5">
       <Table
         data={users}
         columns={columns}

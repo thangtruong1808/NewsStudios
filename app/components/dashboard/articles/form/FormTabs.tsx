@@ -21,8 +21,8 @@ const FormTabs: React.FC<FormTabsProps> = ({ activeTab, onTabChange }) => (
         className={`px-4 py-2 text-sm font-medium rounded-t-md focus:outline-none transition-colors duration-150
           ${
             activeTab === tab.key
-              ? "bg-blue-100 border-l border-t border-r border-gray-200 text-indigo-600"
-              : "bg-gray-100 text-gray-500 hover:text-indigo-600"
+              ? "bg-blue-100 border-l border-t border-r border-gray-200 text-blue-600"
+              : "bg-gray-100 text-gray-500 hover:text-blue-600"
           }
         `}
         onClick={() => onTabChange(tab.key)}

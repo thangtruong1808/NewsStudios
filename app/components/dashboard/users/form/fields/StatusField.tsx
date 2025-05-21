@@ -11,16 +11,13 @@ interface StatusFieldProps {
 export default function StatusField({ register, errors }: StatusFieldProps) {
   return (
     <div>
-      <label
-        htmlFor="status"
-        className="block text-sm font-medium text-gray-700"
-      >
+      <label htmlFor="status" className="block text-sm font-medium">
         Status <span className="text-red-500">*</span>
       </label>
       <select
         id="status"
         {...register("status")}
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2 text-sm"
+        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2 text-sm "
       >
         <option value="" disabled>
           Select status

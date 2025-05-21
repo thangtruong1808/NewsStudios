@@ -7,7 +7,7 @@ export default async function CreatePhotoPage() {
   let error: string | null = null;
 
   try {
-    const result = await getArticles();
+    const result = await getArticles({ limit: 1000 });
     if (result.error) {
       throw new Error(result.error);
     }

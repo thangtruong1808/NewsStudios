@@ -19,6 +19,7 @@ import {
   deleteImage,
   getPublicIdFromUrl,
 } from "../../../../lib/utils/cloudinaryUtils";
+import { UserGroupIcon } from "@heroicons/react/24/outline";
 
 /**
  * Props interface for the UserForm component
@@ -300,7 +301,8 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       {/* Form header with gradient background */}
       <div className="px-4 sm:px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
-        <h2 className="text-xl font-semibold text-white">
+        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+          <UserGroupIcon className="h-8 w-8" />
           {isEditMode
             ? `Edit User: ${user?.firstname} ${user?.lastname}`
             : "Create New User"}
@@ -309,7 +311,7 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
 
       {/* Main form content */}
       <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 space-y-6">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs">
           Fields marked with an asterisk (*) are required
         </p>
 

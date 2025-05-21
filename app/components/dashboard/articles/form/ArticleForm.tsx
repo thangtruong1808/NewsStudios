@@ -87,7 +87,7 @@ export default function ArticleForm({
       <FormHeader isEdit={!!article} />
 
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs">
           Fields marked with an asterisk (*) are required
         </p>
 

@@ -36,7 +36,7 @@ export default function BasicFields({
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium ">
           Title <span className="text-red-500">*</span>
         </label>
         <input
@@ -51,13 +51,13 @@ export default function BasicFields({
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium">
             Category <span className="text-red-500">*</span>
           </label>
           <select
             {...register("category_id")}
             onChange={onCategoryChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-2 py-2 text-xs"
           >
             <option value="">Select a category</option>
             {categories.map((category) => (
@@ -74,12 +74,10 @@ export default function BasicFields({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Subcategory
-          </label>
+          <label className="block text-sm font-medium">Subcategory</label>
           <select
             {...register("sub_category_id")}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-2 py-2 text-xs"
             disabled={!selectedCategory}
           >
             <option value="">Select a subcategory</option>
@@ -90,7 +88,7 @@ export default function BasicFields({
             ))}
           </select>
           {!selectedCategory && (
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-xs text-gray-500">
               Please select a category first to enable subcategory selection
             </p>
           )}
@@ -104,12 +102,12 @@ export default function BasicFields({
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium">
             Author <span className="text-red-500">*</span>
           </label>
           <select
             {...register("author_id")}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-2 py-2 text-xs"
           >
             <option value="">Select an author</option>
             {authors.map((author) => (
@@ -126,12 +124,12 @@ export default function BasicFields({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium ">
             User <span className="text-red-500">*</span>
           </label>
           <select
             {...register("user_id")}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-2 py-2 text-xs"
           >
             <option value="">Select a user</option>
             {users.map((user) => (

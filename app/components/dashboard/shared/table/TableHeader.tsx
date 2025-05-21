@@ -26,14 +26,14 @@ export default function TableHeader<T>({
   onSort,
 }: TableHeaderProps<T>) {
   return (
-    <thead className="bg-gray-50">
+    <thead className="bg-gray-50 ">
       <tr>
         {/* Map through columns to create header cells */}
         {columns.map((column) => (
           <th
             key={String(column.field)}
             scope="col"
-            className={`px-3 py-3.5 text-sm font-medium text-gray-900 ${
+            className={`px-2 py-3 text-sm font-medium ${
               column.field === "actions" ? "text-left" : "text-left"
             } ${
               column.sortable !== false

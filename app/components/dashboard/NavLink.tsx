@@ -26,11 +26,11 @@ export default function NavLink({
       href={href}
       className={clsx(
         // Base link styles with active and hover states
-        "flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200",
+        "flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 group",
         fontClasses.robotoMono,
         {
           "text-blue-600": isActive, // Active link color
-          "text-gray-600 hover:text-blue-600": !isActive, // Default and hover colors
+          "text-gray-700 hover:text-blue-600": !isActive, // Default and hover colors
           "justify-center": isCollapsed, // Center alignment in collapsed state
           "flex-col space-y-1": isCollapsed, // Vertical layout in collapsed state
           "w-full": isCollapsed, // Full width in collapsed state
@@ -41,7 +41,7 @@ export default function NavLink({
       <Icon
         className={clsx("transition-colors duration-200", {
           "text-blue-600": isActive, // Active icon color
-          "text-gray-400 group-hover:text-blue-600": !isActive, // Default and hover colors
+          "text-gray-700 group-hover:text-blue-600": !isActive, // Default and hover colors
           "mr-3": !isCollapsed, // Right margin in expanded state
           "h-5 w-5": !isCollapsed, // Icon size in expanded state
           "h-7 w-7": isCollapsed, // Larger icon in collapsed state

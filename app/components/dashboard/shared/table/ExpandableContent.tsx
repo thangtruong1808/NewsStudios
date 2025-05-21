@@ -24,22 +24,22 @@ export default function ExpandableContent({
   return (
     <div className={`relative ${className}`}>
       <div className="flex flex-col gap-2">
-        <span className="text-sm text-zinc-500 break-words whitespace-normal text-left">
+        <span className="text-xs  break-words whitespace-normal text-left">
           {displayContent}
         </span>
         {shouldShowButton && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="self-start inline-flex items-center gap-1 rounded border border-zinc-300 px-2 py-0.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 transition-colors duration-200"
+            className="self-start inline-flex items-center gap-1 rounded border border-zinc-400 px-2 py-1 text-xxs font-medium hover:bg-blue-100 transition-colors duration-200"
           >
             {isExpanded ? (
               <>
-                Show Less
+                <span className="">Show Less</span>
                 <ChevronUpIcon className="h-3 w-3" />
               </>
             ) : (
               <>
-                Show More
+                <span className="">Show More</span>
                 <ChevronDownIcon className="h-3 w-3" />
               </>
             )}

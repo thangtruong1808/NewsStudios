@@ -24,10 +24,7 @@ export default function PasswordField({
 
   return (
     <div>
-      <label
-        htmlFor="password"
-        className="block text-sm font-medium text-gray-700"
-      >
+      <label htmlFor="password" className="block text-sm font-medium">
         Password{" "}
         {isEditMode ? (
           <span className="text-gray-500">(leave blank to keep current)</span>

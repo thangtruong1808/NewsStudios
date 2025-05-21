@@ -14,11 +14,8 @@ export default function DescriptionField({
 }: DescriptionFieldProps) {
   return (
     <div>
-      <label
-        htmlFor="description"
-        className="block text-sm font-medium text-gray-700"
-      >
-        Description <span className="text-xs text-gray-500">(optional)</span>
+      <label htmlFor="description" className="block text-sm font-medium">
+        Description <span className="text-xs ">(optional)</span>
       </label>
       <textarea
         id="description"

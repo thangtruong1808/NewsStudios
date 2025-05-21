@@ -27,7 +27,7 @@ export default function TableBody<T extends { id: number }>({
             >
               <div className="flex justify-start items-start">
                 {column.render
-                  ? column.render(item[column.field], item)
+                  ? column.render(item[column.field] as string, item)
                   : String(item[column.field])}
               </div>
             </td>

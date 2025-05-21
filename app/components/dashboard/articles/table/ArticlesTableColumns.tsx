@@ -101,7 +101,7 @@ export function getArticlesTableColumns({
       sortable: true,
       render: (value) => (
         <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-xs whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>
@@ -114,7 +114,7 @@ export function getArticlesTableColumns({
       render: (value) => (
         <div className="w-24">
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs  ${
               value
                 ? "bg-green-100 text-green-800"
                 : "bg-gray-100 text-gray-800"
@@ -132,7 +132,7 @@ export function getArticlesTableColumns({
       render: (value) => (
         <div className="w-24">
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs  ${
               value
                 ? "bg-green-100 text-green-800"
                 : "bg-gray-100 text-gray-800"

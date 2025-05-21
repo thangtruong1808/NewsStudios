@@ -15,8 +15,8 @@ export default function ArticlesHeader() {
   return (
     <div className="sm:flex sm:items-center">
       <div className="sm:flex-auto">
-        <h1 className="text-2xl font-semibold text-blue-500">Articles</h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <h1 className="text-2xl font-semibold text-blue-500">Articles List</h1>
+        <p className="mt-2 text-sm ">
           A list of all articles in your account including their title, content,
           and status.
         </p>

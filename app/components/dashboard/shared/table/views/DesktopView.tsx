@@ -32,7 +32,7 @@ export default function DesktopView<T extends { id: number }>({
 }: DesktopViewProps<T>) {
   return (
     <div className="hidden lg:block">
-      <table className="min-w-full divide-y divide-gray-300">
+      <table className="min-w-full divide-y divide-gray-300 ">
         <TableHeader
           columns={columns}
           sortField={sortField}
@@ -58,7 +58,7 @@ export default function DesktopView<T extends { id: number }>({
             <tr>
               <td
                 colSpan={columns.length}
-                className="px-3 py-4 text-sm text-gray-500 text-center"
+                className="rounded-md bg-gray-50 p-6 text-center text-red-500"
               >
                 {searchQuery
                   ? "No items found matching your search criteria."

@@ -50,7 +50,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(1)}
             disabled={currentPage === 1}
-            className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+            className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-500 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
           >
             <span className="sr-only">First</span>
             <svg
@@ -71,7 +71,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+            className="relative inline-flex items-center px-2 py-2 text-gray-500 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
           >
             <span className="sr-only">Previous</span>
             <svg
@@ -95,7 +95,7 @@ export default function Pagination({
               onClick={() => onPageChange(index + 1)}
               className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
                 currentPage === index + 1
-                  ? "z-10 bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                  ? "z-10 bg-gradient-to-r from-blue-600 to-blue-400 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                   : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-blue-50 hover:text-blue-600 focus:z-20 focus:outline-offset-0"
               }`}
             >
@@ -107,7 +107,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+            className="relative inline-flex items-center px-2 py-2 text-gray-500 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
           >
             <span className="sr-only">Next</span>
             <svg
@@ -128,7 +128,7 @@ export default function Pagination({
           <button
             onClick={() => onPageChange(totalPages)}
             disabled={currentPage === totalPages}
-            className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+            className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-500 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
           >
             <span className="sr-only">Last</span>
             <svg

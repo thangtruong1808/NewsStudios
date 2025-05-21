@@ -36,10 +36,7 @@ export default function ImageField({
   return (
     <div className="col-span-full">
       {/* Image upload label */}
-      <label
-        htmlFor="user_image"
-        className="block text-sm font-medium text-gray-900"
-      >
+      <label htmlFor="user_image" className="block text-sm font-medium">
         Profile Image
       </label>
 
@@ -50,7 +47,7 @@ export default function ImageField({
           id="user_image"
           accept="image/*"
           onChange={onImageChange}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-2 file:rounded-md file:border-0 file:text-sm file:font-medium file:text-blue-600 hover:file:from-blue-700 hover:file:to-blue-500"
+          className="block w-full text-sm file:mr-4 file:py-2 file:px-2 file:rounded-lg file:border-0 file:text-sm file:font-medium file:text-blue-600 hover:file:from-blue-700 hover:file:to-blue-500"
         />
       </div>
 
@@ -82,7 +79,7 @@ export default function ImageField({
         <div className="mt-2">
           <p className="text-sm font-medium text-gray-700">Preview:</p>
           <div className="mt-1 relative h-24 w-24 overflow-hidden rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center bg-gray-50">
-            <PhotoIcon className="h-12 w-12 text-gray-400" />
+            <PhotoIcon className="h-10 w-10 text-gray-500" />
             <span className="text-xs text-gray-500 text-center ">
               No profile image selected
             </span>

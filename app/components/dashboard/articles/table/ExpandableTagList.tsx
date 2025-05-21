@@ -50,7 +50,7 @@ export default function ExpandableTagList({
           return (
             <span
               key={index}
-              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xxs font-medium"
               style={{
                 backgroundColor: bgColor,
                 color: textColor,
@@ -64,7 +64,7 @@ export default function ExpandableTagList({
       {hasMoreTags && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="self-start inline-flex items-center gap-1 rounded border border-zinc-300 px-2 py-0.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 transition-colors duration-200 mt-2"
+          className="self-start inline-flex items-center gap-1 rounded border border-zinc-300 px-2 py-0.5 text-xxs font-medium hover:bg-zinc-50 transition-colors duration-200 mt-2"
         >
           {isExpanded ? (
             <>

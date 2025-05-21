@@ -25,9 +25,12 @@ export default function Table<T extends { id: number }>({
   sortDirection,
   onSort,
 }: TableProps<T>) {
+  // Only show entries selector and pagination if there are items
+  const hasItems = data.length > 0;
+
   return (
     <div className="space-y-4">
-      {onItemsPerPageChange && totalItems && (
+      {hasItems && onItemsPerPageChange && totalItems && (
         <EntriesSelector
           itemsPerPage={itemsPerPage}
           totalItems={totalItems}
@@ -78,16 +81,20 @@ export default function Table<T extends { id: number }>({
         itemsPerPage={itemsPerPage}
       />
 
-      {/* Pagination */}
-      {totalPages && totalPages > 1 && onPageChange && totalItems && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={onPageChange}
-          totalItems={totalItems}
-          itemsPerPage={itemsPerPage}
-        />
-      )}
+      {/* Pagination - only show if there are items */}
+      {hasItems &&
+        totalPages &&
+        totalPages > 1 &&
+        onPageChange &&
+        totalItems && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+          />
+        )}
     </div>
   );
 }

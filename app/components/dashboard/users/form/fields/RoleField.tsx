@@ -11,7 +11,7 @@ interface RoleFieldProps {
 export default function RoleField({ register, errors }: RoleFieldProps) {
   return (
     <div>
-      <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+      <label htmlFor="role" className="block text-sm font-medium">
         Role <span className="text-red-500">*</span>
       </label>
       <select

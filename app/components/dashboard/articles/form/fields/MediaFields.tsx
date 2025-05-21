@@ -3,6 +3,8 @@
 import { UseFormRegister, FieldErrors } from "react-hook-form";
 import { ArticleFormData } from "../articleSchema";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
+import { PhotoIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
 
 interface MediaFieldsProps {
   register: UseFormRegister<ArticleFormData>;
@@ -24,26 +26,38 @@ export default function MediaFields({
   uploadProgress,
   onFileUpload,
 }: MediaFieldsProps) {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Create a preview URL for the selected image
+      const previewUrl = URL.createObjectURL(file);
+      setSelectedImage(previewUrl);
+      await onFileUpload(file, "image");
+    }
+  };
+
+  const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Create a preview URL for the selected video
+      const previewUrl = URL.createObjectURL(file);
+      setSelectedVideo(previewUrl);
+      await onFileUpload(file, "video");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700">Image</label>
-        <div className="mt-1 flex items-center space-x-4">
-          <input
-            type="text"
-            {...register("image")}
-            placeholder="Image URL"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
-          />
+        <label className="block text-sm font-medium">Image</label>
+        <div className="mt-1">
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                onFileUpload(file, "image");
-              }
-            }}
+            onChange={handleImageChange}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
           />
         </div>
@@ -60,14 +74,18 @@ export default function MediaFields({
             {uploadProgress.image < 100 && <LoadingSpinner />}
           </div>
         )}
-        {imageUrl && (
+        {selectedImage && (
           <div className="mt-2">
-            <p className="text-sm font-medium text-gray-700">Preview:</p>
-            <div className="mt-1 relative h-48 w-48 overflow-hidden rounded-md">
+            <p className="text-sm font-medium ">Preview:</p>
+            <div className="mt-1 relative h-24 w-24 overflow-hidden rounded-md">
               <img
-                src={imageUrl}
+                src={selectedImage}
                 alt="Preview"
                 className="h-full w-full object-cover"
+                onError={(e) => {
+                  console.error("Error loading image:", selectedImage);
+                  (e.target as HTMLImageElement).src = "/placeholder-image.jpg";
+                }}
               />
             </div>
           </div>
@@ -75,23 +93,12 @@ export default function MediaFields({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Video</label>
-        <div className="mt-1 flex items-center space-x-4">
-          <input
-            type="text"
-            {...register("video")}
-            placeholder="Video URL"
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2"
-          />
+        <label className="block text-sm font-medium ">Video</label>
+        <div className="mt-1">
           <input
             type="file"
             accept="video/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                onFileUpload(file, "video");
-              }
-            }}
+            onChange={handleVideoChange}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
           />
         </div>
@@ -108,14 +115,12 @@ export default function MediaFields({
             {uploadProgress.video < 100 && <LoadingSpinner />}
           </div>
         )}
-        {videoUrl && (
-          <div className="mt-2">
-            <p className="text-sm font-medium text-gray-700">Preview:</p>
-            <video
-              src={videoUrl}
-              controls
-              className="mt-1 max-w-md rounded-md"
-            />
+        {selectedVideo && (
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
+            <div className="max-w-md rounded-md border border-gray-200 overflow-hidden">
+              <video src={selectedVideo} controls className="w-full" />
+            </div>
           </div>
         )}
       </div>

@@ -16,20 +16,20 @@ export default function EntriesSelector({
   return (
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center space-x-2">
-        <span className="text-sm text-gray-700">Show</span>
+        <span className="text-sm ">Show</span>
         <select
           value={itemsPerPage}
           onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-          className="rounded-md border-gray-300 text-sm focus:border-violet-500 focus:ring-violet-500"
+          className="rounded-md border-gray-300 text-sm focus:border-violet-500 focus:ring-violet-500 "
         >
           <option value={5}>5</option>
           <option value={10}>10</option>
           <option value={25}>25</option>
           <option value={50}>50</option>
         </select>
-        <span className="text-sm text-gray-700">entries</span>
+        <span className="text-sm ">entries</span>
       </div>
-      <div className="text-sm text-gray-700">
+      <div className="text-sm ">
         Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
         {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems}{" "}
         entries

@@ -21,16 +21,13 @@ export default function TagFields({
 }: TagFieldsProps) {
   return (
     <div className="space-y-2">
-      <label
-        htmlFor="tag_ids"
-        className="block text-sm font-medium text-gray-700"
-      >
+      <label htmlFor="tag_ids" className="block text-sm font-medium">
         Tags <span className="text-red-500">*</span>
       </label>
       <select
         id="tag_ids"
         multiple
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2"
+        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-xs border px-3 py-2"
         onChange={onTagChange}
         value={Array.isArray(selectedTags) ? selectedTags.map(String) : []}
       >
@@ -38,17 +35,15 @@ export default function TagFields({
           <option
             key={tag.id}
             value={tag.id}
-            className={`py-2 ${
-              selectedTags.includes(tag.id)
-                ? "bg-blue-100 text-gray-900 rounded-md underline"
-                : ""
+            className={`py-2 hover:bg-blue-100 ${
+              selectedTags.includes(tag.id) ? "bg-blue-100 rounded-md " : ""
             }`}
           >
             {tag.name}
           </option>
         ))}
       </select>
-      <p className="text-xs text-gray-500 mt-2">
+      <p className="text-xs mt-2">
         Hold Ctrl (Windows) or Command (Mac) to select multiple tags
       </p>
       {errors.tag_ids && (
