@@ -231,7 +231,8 @@ export default function PhotosPage() {
   };
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    // px-4 sm:px-6 lg:px-8
+    <div className="">
       {/* Header section with title and actions */}
       <PhotosHeader />
 

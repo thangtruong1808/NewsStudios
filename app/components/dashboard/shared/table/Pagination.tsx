@@ -21,7 +21,7 @@ export default function Pagination({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+    <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6">
       {/* Mobile view pagination controls */}
       <div className="flex flex-1 justify-between sm:hidden">
         <button

@@ -166,7 +166,7 @@ export default function TagsTable({
   }));
 
   return (
-    <div className="mt-8">
+    <div className="">
       <Table
         data={tagsWithSequence}
         columns={columns}

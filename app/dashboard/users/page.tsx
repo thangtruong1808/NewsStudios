@@ -210,7 +210,7 @@ export default function UsersPage() {
         </Link>
       </div>
 
-      <div className="my-6">
+      <div className="mt-8">
         <SearchWrapper
           placeholder="Search users by name, email, or role . . ."
           onSearch={(term) => {
@@ -229,23 +229,29 @@ export default function UsersPage() {
       {isLoading ? (
         <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
       ) : hasUsers ? (
-        <UsersTable
-          users={users}
-          searchQuery={searchQuery}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          itemsPerPage={itemsPerPage}
-          totalItems={totalItems}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          isDeleting={isDeleting}
-          isLoading={isLoading}
-          onSort={handleSort}
-          onPageChange={handlePageChange}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onItemsPerPageChange={handleItemsPerPageChange}
-        />
+        <div className="flow-root">
+          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <UsersTable
+                users={users}
+                searchQuery={searchQuery}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                itemsPerPage={itemsPerPage}
+                totalItems={totalItems}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                isDeleting={isDeleting}
+                isLoading={isLoading}
+                onSort={handleSort}
+                onPageChange={handlePageChange}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onItemsPerPageChange={handleItemsPerPageChange}
+              />
+            </div>
+          </div>
+        </div>
       ) : (
         <div className="mt-6 rounded-md bg-gray-50 p-6 text-center">
           <p className="text-red-500">

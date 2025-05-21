@@ -32,7 +32,7 @@ export default function DesktopView<T extends { id: number }>({
 }: DesktopViewProps<T>) {
   return (
     <div className="hidden lg:block">
-      <table className="min-w-full divide-y divide-gray-300 ">
+      <table className="min-w-full divide-y divide-gray-300">
         <TableHeader
           columns={columns}
           sortField={sortField}

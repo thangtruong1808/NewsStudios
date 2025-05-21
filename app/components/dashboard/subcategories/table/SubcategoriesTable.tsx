@@ -135,7 +135,7 @@ export default function SubcategoriesTable({
   ];
 
   return (
-    <div className="mt-8">
+    <div className="">
       <Table
         data={subcategories}
         columns={columns}

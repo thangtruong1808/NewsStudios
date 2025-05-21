@@ -240,52 +240,44 @@ export default function SubcategoriesPage({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="">
       {/* Header section with title and create button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-blue-500">
-            Subcategories List
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage, organize, and assign subcategories to articles for better
-            content attribution and collaboration.
-          </p>
-        </div>
-
-        <Link
-          href="/dashboard/subcategories/create"
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-blue-600 to-blue-400 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-blue-700 hover:to-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 justify-center items-center"
-        >
-          <PlusIcon className="h-5 mr-2" />
-          <span>Create Subcategory</span>
-        </Link>
-      </div>
+      <SubcategoriesHeader />
 
       {/* Search functionality */}
-      <SubcategoriesSearch onSearch={handleSearch} />
+      <div className="my-6">
+        <div className="w-full">
+          <SubcategoriesSearch onSearch={handleSearch} />
+        </div>
+      </div>
 
       {/* Main content area */}
       {isLoading ? (
         <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
       ) : (
-        <SubcategoriesTable
-          subcategories={subcategories}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          itemsPerPage={itemsPerPage}
-          totalItems={totalItems}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          searchQuery={searchQuery}
-          isDeleting={isDeleting}
-          isLoading={isLoading}
-          onSort={handleSort}
-          onPageChange={handlePageChange}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onItemsPerPageChange={handleItemsPerPageChange}
-        />
+        <div className="flow-root">
+          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <SubcategoriesTable
+                subcategories={subcategories}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                itemsPerPage={itemsPerPage}
+                totalItems={totalItems}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                searchQuery={searchQuery}
+                isDeleting={isDeleting}
+                isLoading={isLoading}
+                onSort={handleSort}
+                onPageChange={handlePageChange}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onItemsPerPageChange={handleItemsPerPageChange}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

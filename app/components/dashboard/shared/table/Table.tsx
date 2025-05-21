@@ -31,55 +31,77 @@ export default function Table<T extends { id: number }>({
   return (
     <div className="space-y-4">
       {hasItems && onItemsPerPageChange && totalItems && (
-        <EntriesSelector
-          itemsPerPage={itemsPerPage}
-          totalItems={totalItems}
-          currentPage={currentPage}
-          onItemsPerPageChange={onItemsPerPageChange}
-        />
+        <div className="px-4 sm:px-6 lg:px-8">
+          <EntriesSelector
+            itemsPerPage={itemsPerPage}
+            totalItems={totalItems}
+            currentPage={currentPage}
+            onItemsPerPageChange={onItemsPerPageChange}
+          />
+        </div>
       )}
 
       {/* Desktop View (lg and above) */}
-      <DesktopView
-        data={data}
-        columns={columns}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        isDeleting={isDeleting}
-        isLoading={isLoading}
-        searchQuery={searchQuery}
-        currentPage={currentPage}
-        itemsPerPage={itemsPerPage}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSort={onSort}
-      />
+      <div className="hidden lg:block">
+        <div className="overflow-x-auto">
+          <div className="inline-block min-w-full align-middle">
+            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+              <DesktopView
+                data={data}
+                columns={columns}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                isDeleting={isDeleting}
+                isLoading={isLoading}
+                searchQuery={searchQuery}
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Tablet View (sm to lg) */}
-      <TabletView
-        data={data}
-        columns={columns}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        isDeleting={isDeleting}
-        isLoading={isLoading}
-        searchQuery={searchQuery}
-        currentPage={currentPage}
-        itemsPerPage={itemsPerPage}
-      />
+      <div className="hidden sm:block lg:hidden">
+        <div className="overflow-x-auto">
+          <div className="inline-block min-w-full align-middle">
+            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+              <TabletView
+                data={data}
+                columns={columns}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                isDeleting={isDeleting}
+                isLoading={isLoading}
+                searchQuery={searchQuery}
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Mobile View (below sm) */}
-      <MobileView
-        data={data}
-        columns={columns}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        isDeleting={isDeleting}
-        isLoading={isLoading}
-        searchQuery={searchQuery}
-        currentPage={currentPage}
-        itemsPerPage={itemsPerPage}
-      />
+      <div className="sm:hidden">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <MobileView
+            data={data}
+            columns={columns}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            isDeleting={isDeleting}
+            isLoading={isLoading}
+            searchQuery={searchQuery}
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+          />
+        </div>
+      </div>
 
       {/* Pagination - only show if there are items */}
       {hasItems &&
@@ -87,13 +109,15 @@ export default function Table<T extends { id: number }>({
         totalPages > 1 &&
         onPageChange &&
         totalItems && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-            totalItems={totalItems}
-            itemsPerPage={itemsPerPage}
-          />
+          <div className="px-4 sm:px-6 lg:px-8">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+            />
+          </div>
         )}
     </div>
   );

@@ -212,7 +212,7 @@ export default function AuthorsPage({ searchParams }: AuthorsPageProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="">
       {/* Header section with title and create button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -233,27 +233,35 @@ export default function AuthorsPage({ searchParams }: AuthorsPageProps) {
       </div>
 
       {/* Search functionality */}
-      <AuthorsSearch onSearch={handleSearch} />
+      <div className="mt-8">
+        <AuthorsSearch onSearch={handleSearch} />
+      </div>
 
       {/* Main content area */}
       {isLoading ? (
         <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
       ) : (
-        <AuthorsTable
-          authors={authors}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          itemsPerPage={itemsPerPage}
-          totalItems={totalItems}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          onPageChange={handlePageChange}
-          onSort={handleSort}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onItemsPerPageChange={handleItemsPerPageChange}
-          isDeleting={isDeleting}
-        />
+        <div className="flow-root">
+          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <AuthorsTable
+                authors={authors}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                itemsPerPage={itemsPerPage}
+                totalItems={totalItems}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onPageChange={handlePageChange}
+                onSort={handleSort}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                isDeleting={isDeleting}
+                onItemsPerPageChange={handleItemsPerPageChange}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

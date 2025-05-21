@@ -234,34 +234,44 @@ export default function CategoriesPage({ searchParams }: CategoriesPageProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="">
       {/* Header section with title and create button */}
       <CategoriesHeader />
 
       {/* Search functionality */}
-      <CategoriesSearch onSearch={handleSearch} />
+      <div className="my-6">
+        <div className="w-full">
+          <CategoriesSearch onSearch={handleSearch} />
+        </div>
+      </div>
 
       {/* Main content area */}
       {isLoading ? (
         <TableSkeleton columns={columns} itemsPerPage={itemsPerPage} />
       ) : (
-        <CategoriesTable
-          categories={categories}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          itemsPerPage={itemsPerPage}
-          totalItems={totalItems}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          searchQuery={searchQuery}
-          isDeleting={isDeleting}
-          isLoading={isLoading}
-          onSort={handleSort}
-          onPageChange={handlePageChange}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onItemsPerPageChange={handleItemsPerPageChange}
-        />
+        <div className="flow-root">
+          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <CategoriesTable
+                categories={categories}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                itemsPerPage={itemsPerPage}
+                totalItems={totalItems}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                searchQuery={searchQuery}
+                isDeleting={isDeleting}
+                isLoading={isLoading}
+                onSort={handleSort}
+                onPageChange={handlePageChange}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onItemsPerPageChange={handleItemsPerPageChange}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

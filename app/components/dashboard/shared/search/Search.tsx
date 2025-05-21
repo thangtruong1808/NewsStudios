@@ -91,7 +91,7 @@ const Search = ({ placeholder, onSearch, defaultValue = "" }: SearchProps) => {
       </label>
       <input
         ref={inputRef}
-        className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 pr-10 text-sm outline-1 placeholder:text-gray-500 "
+        className="peer block w-full rounded-md border border-gray-200 py-[10px] pl-10 pr-10 ring-1 ring-inset ring-gray-400 text-sm outline-1 placeholder:text-gray-500"
         placeholder={placeholder}
         onChange={(e) => handleSearch(e.target.value)}
         defaultValue={currentQuery}

@@ -62,9 +62,9 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
   // Loading state with skeleton UI
   if (isLoading && !isSearching && !isSorting) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8">
+      <div className="">
         <ArticlesHeader />
-        <div className="mt-8">
+        <div className="my-6">
           <div className="w-full">
             <SearchWrapper
               placeholder="Search articles by title, content, or category . . ."
@@ -79,7 +79,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
 
   // Main render with full table functionality
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <div className="">
       <ArticlesHeader />
 
       <div className="my-6">
