@@ -15,10 +15,7 @@ export default function ArticleSelect({
 }: ArticleSelectProps) {
   return (
     <div>
-      <label
-        htmlFor="article_id"
-        className="block text-sm font-medium text-gray-700"
-      >
+      <label htmlFor="article_id" className="block text-sm font-medium">
         Article
       </label>
       <div className="mt-2">
@@ -29,7 +26,7 @@ export default function ArticleSelect({
             const newValue = Number(e.target.value);
             onChange(newValue === 0 ? undefined : newValue);
           }}
-          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+          className="block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-2 py-2"
         >
           <option value={0}>Select an article (optional)</option>
           {articles.map((article) => (

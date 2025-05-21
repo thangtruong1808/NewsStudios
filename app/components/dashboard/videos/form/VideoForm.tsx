@@ -30,6 +30,12 @@ interface VideoFormProps {
   articles: Article[];
 }
 
+interface VideoFormData {
+  article_id: number;
+  video_url: string;
+  description: string;
+}
+
 /**
  * VideoForm Component
  * A form component for creating and editing videos with features for:
@@ -44,10 +50,10 @@ export default function VideoForm({ video, mode, articles }: VideoFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [formData, setFormData] = useState<Partial<Video>>({
-    article_id: video?.article_id || 0,
-    video_url: video?.video_url || "",
-    description: video?.description || "",
+  const [formData, setFormData] = useState<VideoFormData>({
+    article_id: video?.article_id ?? 0,
+    video_url: video?.video_url ?? "",
+    description: video?.description ?? "",
   });
 
   // Check if form is empty

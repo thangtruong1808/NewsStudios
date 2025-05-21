@@ -204,7 +204,7 @@ export default function VideosPage() {
 
       <div className="mt-4">
         {/* Display total videos count */}
-        <p className="text-sm text-gray-500 mb-4">Total Videos: {totalItems}</p>
+        <p className="text-sm mb-4">Total Videos: {totalItems}</p>
 
         {/* Empty state when no videos are found */}
         {videos.length === 0 && !isLoading && totalItems === 0 ? (
@@ -228,7 +228,7 @@ export default function VideosPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-1">
               No Videos Found
             </h3>
-            <p className="text-gray-500">
+            <p className="rounded-md bg-gray-50 p-6 text-center text-red-500">
               {searchQuery
                 ? "No videos match your search criteria."
                 : "It seems the videos are not available. They might have been accidentally deleted from the storage."}

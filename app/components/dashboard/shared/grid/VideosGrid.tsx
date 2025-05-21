@@ -105,18 +105,18 @@ export default function VideosGrid({
               <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => onEdit(video)}
-                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors"
+                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-blue-100 transition-colors"
                   title="Edit"
                 >
-                  <PencilIcon className="w-4 h-4 text-gray-600" />
+                  <PencilIcon className="w-5 h-5 text-gray-700" />
                 </button>
                 <button
                   onClick={() => handleDelete(video)}
                   disabled={isDeleting}
-                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-gray-100 transition-colors"
+                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-blue-200 transition-colors"
                   title="Delete"
                 >
-                  <TrashIcon className="w-4 h-4 text-red-600" />
+                  <TrashIcon className="w-5 h-5 text-red-500" />
                 </button>
               </div>
             </div>
@@ -124,24 +124,24 @@ export default function VideosGrid({
             {/* Video metadata section */}
             <div className="p-3 border border-gray-200">
               {video.article_id && (
-                <div className="text-xs text-gray-500 mb-1">
+                <div className="text-xs mb-1">
                   <span className="font-medium mr-1">Article ID:</span>{" "}
                   <span className="">{video.article_id}</span>
                 </div>
               )}
               {video.article_title && (
-                <div className="text-xs text-gray-500 mb-1">
+                <div className="text-xs mb-1">
                   <span className="font-medium mr-1">Article Title:</span>{" "}
                   <span className="">{video.article_title}</span>
                 </div>
               )}
               {video.description && (
-                <div className="text-xs text-gray-500 mb-1 line-clamp-2">
+                <div className="text-xs mb-1 line-clamp-2">
                   <span className="font-medium mr-1">Description:</span>{" "}
                   <span className="">{video.description}</span>
                 </div>
               )}
-              <p className="text-xs text-gray-500 flex items-center gap-1">
+              <p className="text-xs flex items-center gap-1">
                 <span className="mr-1 font-medium">Updated:</span>{" "}
                 <span>{new Date(video.updated_at).toLocaleDateString()}</span>
                 <span>

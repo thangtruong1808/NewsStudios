@@ -102,10 +102,7 @@ export default function VideoUpload({
 
   return (
     <div>
-      <label
-        htmlFor="video"
-        className="block text-sm font-medium text-gray-700"
-      >
+      <label htmlFor="video" className="block text-sm font-medium">
         Video *
       </label>
       <div className="mt-2">
@@ -159,7 +156,7 @@ export default function VideoUpload({
       {/* Fallback State */}
       {!previewUrl && !isProcessing && (
         <div className="mt-4 flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
-          <VideoCameraIcon className="h-12 w-12 text-gray-400" />
+          <VideoCameraIcon className="h-12 w-12 text-gray-500" />
           <p className="mt-2 text-sm text-gray-500">
             {isVideoAvailable ? "No video selected" : "Video not available"}
           </p>
