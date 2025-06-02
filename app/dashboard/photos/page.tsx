@@ -259,7 +259,7 @@ export default function PhotosPage() {
 
       <div className="mt-4">
         {/* Display total photos count */}
-        <p className="text-sm text-gray-500 mb-4">Total Photos: {totalItems}</p>
+        <p className="text-sm  mb-4">Total Photos: {totalItems}</p>
 
         {/* Empty state when no photos are found */}
         {photos.length === 0 && !isLoading && totalItems === 0 ? (

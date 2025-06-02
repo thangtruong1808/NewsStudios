@@ -20,7 +20,7 @@ export default function VideoFormContainer({
       {/* Form header with gradient background */}
       <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
         <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-          <VideoCameraIcon className="h-6 w-6" />
+          <VideoCameraIcon className="h-8 w-8" />
           {mode === "create" ? "Create New Video" : "Edit Video"}
         </h2>
         <p className="mt-1 text-sm text-white/80">

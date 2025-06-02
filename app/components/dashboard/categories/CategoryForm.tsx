@@ -18,7 +18,7 @@ import {
   showSuccessToast,
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
-import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, XMarkIcon, FolderIcon } from "@heroicons/react/24/outline";
 
 /**
  * Props interface for CategoryForm component
@@ -155,7 +155,8 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Form header with gradient background */}
       <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
-        <h2 className="text-xl font-semibold text-white">
+        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+          <FolderIcon className="h-8 w-8" />
           {categoryId ? "Edit Category" : "Create New Category"}
         </h2>
       </div>

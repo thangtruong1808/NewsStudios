@@ -12,6 +12,7 @@ import {
   showSuccessToast,
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 /**
  * Interface for video query results with pagination metadata
@@ -44,6 +45,7 @@ export default function VideosPage() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
@@ -55,64 +57,72 @@ export default function VideosPage() {
    * Handles both initial load and infinite scroll
    * Manages loading states and error handling
    */
-  const fetchVideos = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      console.log("Fetching videos with params:", {
-        currentPage,
-        itemsPerPage,
-        searchQuery,
-      });
+  const fetchVideos = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+      try {
+        console.log("Fetching videos with params:", {
+          currentPage,
+          itemsPerPage,
+          searchQuery,
+        });
 
-      // Use searchVideos if search query exists, otherwise use getVideos with pagination
-      const result = searchQuery
-        ? await searchVideos(searchQuery)
-        : await getVideos(currentPage, itemsPerPage);
+        // Use searchVideos if search query exists, otherwise use getVideos with pagination
+        const result = searchQuery
+          ? await searchVideos(searchQuery)
+          : await getVideos(currentPage, itemsPerPage);
 
-      console.log("Received result:", {
-        hasError: !!result.error,
-        dataLength: result.data?.length,
-        firstItem: result.data?.[0],
-        totalItems: (result as VideoResult).totalItems,
-      });
+        console.log("Received result:", {
+          hasError: !!result.error,
+          dataLength: result.data?.length,
+          firstItem: result.data?.[0],
+          totalItems: (result as VideoResult).totalItems,
+        });
 
-      if (result.error) {
-        showErrorToast({ message: result.error });
+        if (result.error) {
+          showErrorToast({ message: result.error });
+          if (currentPage === 1) {
+            setVideos([]);
+            setTotalItems(0);
+          }
+          setHasMore(false);
+          return;
+        }
+
+        // Update videos list based on pagination
+        if (result.data && (result.data.length > 0 || currentPage === 1)) {
+          if (currentPage === 1) {
+            setVideos(result.data);
+          } else {
+            setVideos((prev) => [...prev, ...result.data!]);
+          }
+          // For search results, use the length of the data array as totalItems
+          const totalItems =
+            (result as VideoResult).totalItems || result.data.length;
+          setTotalItems(totalItems);
+          setHasMore(totalItems > currentPage * itemsPerPage);
+        } else {
+          setHasMore(false);
+        }
+      } catch (error) {
+        console.error("Error fetching videos:", error);
+        showErrorToast({ message: "Failed to fetch videos" });
         if (currentPage === 1) {
           setVideos([]);
           setTotalItems(0);
         }
         setHasMore(false);
-        return;
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
       }
-
-      // Update videos list based on pagination
-      if (result.data && (result.data.length > 0 || currentPage === 1)) {
-        if (currentPage === 1) {
-          setVideos(result.data);
-        } else {
-          setVideos((prev) => [...prev, ...result.data!]);
-        }
-        // For search results, use the length of the data array as totalItems
-        const totalItems =
-          (result as VideoResult).totalItems || result.data.length;
-        setTotalItems(totalItems);
-        setHasMore(totalItems > currentPage * itemsPerPage);
-      } else {
-        setHasMore(false);
-      }
-    } catch (error) {
-      console.error("Error fetching videos:", error);
-      showErrorToast({ message: "Failed to fetch videos" });
-      if (currentPage === 1) {
-        setVideos([]);
-        setTotalItems(0);
-      }
-      setHasMore(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentPage, itemsPerPage, searchQuery]);
+    },
+    [currentPage, itemsPerPage, searchQuery]
+  );
 
   /**
    * Initialize and cleanup video fetching
@@ -194,6 +204,12 @@ export default function VideosPage() {
     }
   };
 
+  // Refresh videos list
+  const handleRefresh = useCallback(() => {
+    setCurrentPage(1);
+    fetchVideos(true);
+  }, [fetchVideos]);
+
   return (
     // px-4 sm:px-6 lg:px-8
     <div className="">
@@ -201,7 +217,21 @@ export default function VideosPage() {
       <VideosHeader />
 
       {/* Search bar for filtering videos */}
-      <VideosSearch onSearch={handleSearch} />
+      <div className="mt-6 space-y-4">
+        <VideosSearch onSearch={handleSearch} />
+        <div className="flex justify-end">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ArrowPathIcon
+              className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </button>
+        </div>
+      </div>
 
       <div className="mt-4">
         {/* Display total videos count */}

@@ -276,7 +276,8 @@ export default function CreatePhotoPageClient({
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {/* Form header with gradient background */}
         <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
-          <h2 className="text-xl font-semibold text-white">
+          <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+            <PhotoIcon className="h-8 w-8" />
             {isEditMode ? "Edit Photo" : "Create New Photo"}
           </h2>
         </div>

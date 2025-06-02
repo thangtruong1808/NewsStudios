@@ -19,7 +19,7 @@ import {
   showSuccessToast,
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
-import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, CheckIcon, FolderIcon } from "@heroicons/react/24/outline";
 import { NameField, DescriptionField, CategoryField } from "./fields";
 
 interface SubcategoryFormProps {
@@ -138,7 +138,8 @@ export default function SubcategoryForm({
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
-        <h2 className="text-xl font-semibold text-white">
+        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+          <FolderIcon className="h-8 w-8" />
           {subcategoryId ? "Edit Subcategory" : "Create New Subcategory"}
         </h2>
       </div>

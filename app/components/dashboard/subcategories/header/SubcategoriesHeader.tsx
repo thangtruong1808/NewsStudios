@@ -12,7 +12,7 @@ export default function SubcategoriesHeader() {
         <h1 className="text-2xl font-semibold text-blue-500">
           Subcategories List
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm ">
           Manage, organize, and assign subcategories to articles for better
           content attribution and collaboration.
         </p>

@@ -3,25 +3,17 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { SearchWrapper } from "@/app/components/dashboard/shared/search";
 
-export default function TagsSearchWrapper() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+interface TagsSearchWrapperProps {
+  onSearch: (term: string) => void;
+}
 
-  const handleSearch = (term: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", "1");
-    if (term) {
-      params.set("query", term);
-    } else {
-      params.delete("query");
-    }
-    router.push(`?${params.toString()}`);
-  };
-
+export default function TagsSearchWrapper({
+  onSearch,
+}: TagsSearchWrapperProps) {
   return (
     <SearchWrapper
       placeholder="Search tags by name or description..."
-      onSearch={handleSearch}
+      onSearch={onSearch}
     />
   );
 }

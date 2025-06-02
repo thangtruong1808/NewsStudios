@@ -4,7 +4,11 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 import { SearchWrapper } from "@/app/components/dashboard/shared/search";
 
-export default function AuthorsSearch() {
+interface AuthorsSearchProps {
+  onSearch: (term: string) => void;
+}
+
+export default function AuthorsSearch({ onSearch }: AuthorsSearchProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -27,7 +31,7 @@ export default function AuthorsSearch() {
   return (
     <SearchWrapper
       placeholder="Search authors by name, or bio..."
-      onSearch={handleSearch}
+      onSearch={onSearch}
       defaultValue={currentSearch}
     />
   );

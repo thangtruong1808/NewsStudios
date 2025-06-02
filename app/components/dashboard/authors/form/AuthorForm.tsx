@@ -11,6 +11,7 @@ import {
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 import { AuthorFormFields } from "./fields";
+import { UserIcon } from "@heroicons/react/24/outline";
 
 // Form data type that matches the schema
 type AuthorFormData = {
@@ -87,7 +88,8 @@ export default function AuthorForm({ author }: AuthorFormProps) {
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       {/* Form header with gradient background */}
       <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
-        <h2 className="text-lg font-medium text-white">
+        <h2 className="text-lg font-medium text-white flex items-center gap-2">
+          <UserIcon className="h-8 w-8" />
           {isEditMode ? "Edit Author" : "Create Author"}
         </h2>
         <p className="mt-1 text-sm text-white/80">

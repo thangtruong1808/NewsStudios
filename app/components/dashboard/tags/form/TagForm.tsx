@@ -10,6 +10,7 @@ import {
   showSuccessToast,
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
+import { TagIcon } from "@heroicons/react/24/outline";
 
 /**
  * Props interface for TagForm component
@@ -86,7 +87,8 @@ export default function TagForm({
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       {/* Form header with gradient background */}
       <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
-        <h2 className="text-xl font-semibold text-white">
+        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+          <TagIcon className="h-8 w-8" />
           {isEditMode ? "Edit Tag" : "Create New Tag"}
         </h2>
       </div>

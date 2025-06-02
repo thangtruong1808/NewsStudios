@@ -178,7 +178,7 @@ export default function AuthorsPage({ searchParams }: AuthorsPageProps) {
     router.push(`/dashboard/author?${params.toString()}`);
   };
 
-  const handleSort = (field: keyof Author) => {
+  const handleSort = (field: keyof (Author & { sequence?: number })) => {
     setIsSorting(true);
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
@@ -217,7 +217,7 @@ export default function AuthorsPage({ searchParams }: AuthorsPageProps) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-blue-500">Authors List</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm ">
             Manage authors and their articles for better content organization
             and attribution.
           </p>
@@ -252,6 +252,8 @@ export default function AuthorsPage({ searchParams }: AuthorsPageProps) {
                 totalItems={totalItems}
                 sortField={sortField}
                 sortDirection={sortDirection}
+                searchQuery={searchQuery}
+                isLoading={isLoading}
                 onPageChange={handlePageChange}
                 onSort={handleSort}
                 onEdit={handleEdit}
