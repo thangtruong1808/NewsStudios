@@ -53,6 +53,8 @@ export function useArticleForm({
   const [videoUrl, setVideoUrl] = useState<string | null>(
     article?.video || null
   );
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<{
     image?: number;
     video?: number;
@@ -139,11 +141,6 @@ export function useArticleForm({
 
   const handleFileUpload = async (file: File, type: "image" | "video") => {
     try {
-      setUploadProgress((prev) => ({
-        ...prev,
-        [type]: 0,
-      }));
-
       if (type === "image" && !file.type.startsWith("image/")) {
         toast.error("Please select an image file");
         return;
@@ -162,38 +159,18 @@ export function useArticleForm({
         return;
       }
 
-      const result = await uploadToCloudinary(
-        file,
-        type === "video" ? "video" : "image"
-      );
-
-      if (!result.success || !result.url) {
-        toast.error(`Failed to upload ${type}: ${result.error}`);
-        return;
-      }
-
-      setUploadProgress((prev) => ({
-        ...prev,
-        [type]: 100,
-      }));
-
       if (type === "image") {
-        setImageUrl(result.url);
-        setValue("image", result.url);
+        setSelectedImageFile(file);
+        setImageUrl(URL.createObjectURL(file));
       } else {
-        setVideoUrl(result.url);
-        setValue("video", result.url);
+        setSelectedVideoFile(file);
+        setVideoUrl(URL.createObjectURL(file));
       }
 
-      toast.success(`${type} uploaded successfully`);
+      toast.success(`${type} selected successfully`);
     } catch (error) {
-      toast.error(`Error uploading ${type}`);
-      console.error(`Error uploading ${type}:`, error);
-    } finally {
-      setUploadProgress((prev) => ({
-        ...prev,
-        [type]: undefined,
-      }));
+      toast.error(`Error selecting ${type}`);
+      console.error(`Error selecting ${type}:`, error);
     }
   };
 
@@ -206,8 +183,32 @@ export function useArticleForm({
   };
 
   const onSubmit = async (data: ArticleFormData) => {
-    setIsSubmitting(true);
     try {
+      setIsSubmitting(true);
+
+      // Upload files if they exist
+      if (selectedImageFile) {
+        const imageResult = await uploadToCloudinary(
+          selectedImageFile,
+          "image"
+        );
+        if (!imageResult.success || !imageResult.url) {
+          throw new Error(imageResult.error || "Failed to upload image");
+        }
+        data.image = imageResult.url;
+      }
+
+      if (selectedVideoFile) {
+        const videoResult = await uploadToCloudinary(
+          selectedVideoFile,
+          "video"
+        );
+        if (!videoResult.success || !videoResult.url) {
+          throw new Error(videoResult.error || "Failed to upload video");
+        }
+        data.video = videoResult.url;
+      }
+
       const now = new Date();
       const articleData: Article = {
         id: article?.id || 0,
@@ -217,8 +218,8 @@ export function useArticleForm({
         author_id: data.author_id,
         user_id: data.user_id,
         sub_category_id: data.sub_category_id,
-        image: imageUrl || undefined,
-        video: videoUrl || undefined,
+        image: data.image || undefined,
+        video: data.video || undefined,
         is_featured: data.is_featured,
         headline_priority: data.headline_priority,
         is_trending: data.is_trending,

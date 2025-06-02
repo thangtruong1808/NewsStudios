@@ -47,6 +47,7 @@ export default function TagsTable({
       field: "sequence",
       label: "#",
       sortable: false,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     {
       field: "name",
@@ -54,7 +55,11 @@ export default function TagsTable({
       sortable: true,
       render: (value) => (
         <div className="w-48">
-          <ExpandableContent content={value} maxWords={20} />
+          <ExpandableContent
+            content={value}
+            maxWords={20}
+            className="text-sm text-gray-500"
+          />
         </div>
       ),
     },
@@ -67,6 +72,7 @@ export default function TagsTable({
           <ExpandableContent
             content={value || "No description"}
             maxWords={10}
+            className="text-sm text-gray-500"
           />
         </div>
       ),
@@ -77,7 +83,7 @@ export default function TagsTable({
       sortable: true,
       render: (value) => (
         <div className="w-20">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {value || 0}
           </span>
         </div>
@@ -89,7 +95,7 @@ export default function TagsTable({
       sortable: true,
       render: (value) => (
         <div className="w-20">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {value || 0}
           </span>
         </div>
@@ -101,7 +107,7 @@ export default function TagsTable({
       sortable: true,
       render: (value) => (
         <div className="w-20">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {value || 0}
           </span>
         </div>
@@ -119,7 +125,7 @@ export default function TagsTable({
               style={{ backgroundColor: value }}
             />
           )}
-          <span>{value || "No color"}</span>
+          <span className="text-sm text-gray-500">{value || "No color"}</span>
         </div>
       ),
     },
@@ -127,13 +133,25 @@ export default function TagsTable({
       field: "created_at",
       label: "Created At",
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) => (
+        <div className="w-32">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
+            {new Date(value).toLocaleDateString()}
+          </span>
+        </div>
+      ),
     },
     {
       field: "updated_at",
       label: "Updated At",
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) => (
+        <div className="w-32">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
+            {new Date(value).toLocaleDateString()}
+          </span>
+        </div>
+      ),
     },
     {
       field: "actions",

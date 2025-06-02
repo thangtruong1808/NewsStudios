@@ -13,12 +13,12 @@ interface UsersTableProps {
   totalPages: number;
   itemsPerPage: number;
   totalItems: number;
-  sortField: keyof User;
+  sortField: keyof (User & { sequence?: number });
   sortDirection: "asc" | "desc";
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: (field: keyof User) => void;
+  onSort: (field: keyof (User & { sequence?: number })) => void;
   onPageChange: (page: number) => void;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
@@ -50,6 +50,7 @@ export default function UsersTable({
       field: "sequence",
       label: "#",
       sortable: false,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     // User image column with fallback to initials if no image
     {
@@ -81,16 +82,19 @@ export default function UsersTable({
       field: "firstname",
       label: "First Name",
       sortable: true,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     {
       field: "lastname",
       label: "Last Name",
       sortable: true,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     {
       field: "email",
       label: "Email",
       sortable: true,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     // Description column with expandable content for long text
     {
@@ -102,6 +106,7 @@ export default function UsersTable({
           <ExpandableContent
             content={value || "No description"}
             maxWords={12}
+            className="text-sm text-gray-500"
           />
         </div>
       ),
@@ -110,6 +115,7 @@ export default function UsersTable({
       field: "role",
       label: "Role",
       sortable: true,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     // Status column with color-coded badges for active/inactive states
     {
@@ -118,7 +124,7 @@ export default function UsersTable({
       sortable: true,
       render: (value: string) => (
         <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm ${
             value === "active"
               ? "bg-green-100 text-green-800"
               : "bg-red-100 text-red-800"
@@ -135,7 +141,7 @@ export default function UsersTable({
       sortable: true,
       render: (value: string) => (
         <div className="w-24">
-          <span className="text-xs whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>
@@ -148,7 +154,7 @@ export default function UsersTable({
       sortable: true,
       render: (value: string) => (
         <div className="w-24">
-          <span className="text-xs whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>
@@ -185,7 +191,10 @@ export default function UsersTable({
   return (
     <div className="mt-5">
       <Table
-        data={users}
+        data={users.map((user, index) => ({
+          ...user,
+          sequence: (currentPage - 1) * itemsPerPage + index + 1,
+        }))}
         columns={columns}
         currentPage={currentPage}
         totalPages={totalPages}

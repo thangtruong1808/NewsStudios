@@ -363,7 +363,7 @@ export async function uploadToCloudinary(
         if (i === totalChunks - 1) {
           return {
             success: true,
-            url: data,
+            url: data.secure_url,
           };
         }
       }
@@ -404,7 +404,7 @@ export async function uploadToCloudinary(
     const data = await response.json();
     return {
       success: true,
-      url: data,
+      url: data.secure_url,
     };
   } catch (error) {
     console.error("Error uploading file:", error);

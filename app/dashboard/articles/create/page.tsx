@@ -35,7 +35,7 @@ export default function CreateArticlePage() {
           getAuthors(1, 1000), // Get all authors
           getSubcategories(1, 1000), // Get all subcategories
           getUsers({ page: 1, limit: 1000 }), // Get all users
-          getAllTags({ page: 1, limit: 1000 }), // Get all tags
+          getAllTags(), // Get all tags
         ]);
 
         // Check for errors

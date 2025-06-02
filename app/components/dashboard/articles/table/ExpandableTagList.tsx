@@ -4,11 +4,13 @@ import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 interface ExpandableTagListProps {
   tags: string[];
   tagColors: string[];
+  className?: string;
 }
 
 export default function ExpandableTagList({
   tags,
   tagColors,
+  className = "",
 }: ExpandableTagListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const tagsPerRow = 2;
@@ -41,7 +43,7 @@ export default function ExpandableTagList({
   };
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className={`flex flex-col gap-1 ${className}`}>
       <div className="flex flex-wrap gap-1">
         {visibleTags.map((tag, index) => {
           const bgColor = tagColors[index] || "#e0e0e0";
@@ -50,7 +52,7 @@ export default function ExpandableTagList({
           return (
             <span
               key={index}
-              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xxs font-medium"
+              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
               style={{
                 backgroundColor: bgColor,
                 color: textColor,
@@ -64,7 +66,7 @@ export default function ExpandableTagList({
       {hasMoreTags && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="self-start inline-flex items-center gap-1 rounded border border-zinc-300 px-2 py-0.5 text-xxs font-medium hover:bg-zinc-50 transition-colors duration-200 mt-2"
+          className="self-start inline-flex items-center gap-1 rounded border border-zinc-300 px-2 py-0.5 text-xs font-medium hover:bg-zinc-50 transition-colors duration-200 mt-2"
         >
           {isExpanded ? (
             <>

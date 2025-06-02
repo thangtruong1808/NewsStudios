@@ -216,32 +216,32 @@ export async function createArticle(article: Article, tag_ids: number[]) {
       `INSERT INTO Articles (
         title, content, category_id, user_id, author_id, 
         sub_category_id, image, video, published_at, updated_at,
-        is_featured, headline_priority, headline_image_url, 
-        headline_video_url, is_trending
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?, ?, ?, ?, ?)`,
+        is_featured, headline_priority, is_trending
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?, ?, ?)`,
       [
-        article.title,
-        article.content,
-        article.category_id,
-        article.user_id,
-        article.author_id,
-        article.sub_category_id || null,
-        article.image || null,
-        article.video || null,
-        article.is_featured || false,
-        article.headline_priority || 0,
-        article.headline_image_url || null,
-        article.headline_video_url || null,
-        article.is_trending || false,
+        String(article.title),
+        String(article.content),
+        Number(article.category_id),
+        Number(article.user_id),
+        Number(article.author_id),
+        article.sub_category_id ? Number(article.sub_category_id) : null,
+        article.image ? String(article.image) : null,
+        article.video ? String(article.video) : null,
+        Boolean(article.is_featured),
+        Number(article.headline_priority),
+        Boolean(article.is_trending),
       ]
     );
 
     const newArticleId = (articleResult as any).insertId;
 
     // Insert article tags
-    if (tag_ids.length > 0) {
+    if (tag_ids && tag_ids.length > 0) {
       const placeholders = tag_ids.map(() => "(?, ?)").join(",");
-      const values = tag_ids.flatMap((tagId) => [newArticleId, tagId]);
+      const values = tag_ids.flatMap((tagId) => [
+        Number(newArticleId),
+        Number(tagId),
+      ]);
 
       await connection.execute(
         `INSERT INTO Article_Tags (article_id, tag_id) VALUES ${placeholders}`,
@@ -254,7 +254,7 @@ export async function createArticle(article: Article, tag_ids: number[]) {
       await connection.execute(
         `INSERT INTO Images (article_id, image_url, created_at) 
          VALUES (?, ?, NOW())`,
-        [newArticleId, article.image]
+        [Number(newArticleId), String(article.image)]
       );
     }
 
@@ -263,7 +263,7 @@ export async function createArticle(article: Article, tag_ids: number[]) {
       await connection.execute(
         `INSERT INTO Videos (article_id, video_url, created_at) 
          VALUES (?, ?, NOW())`,
-        [newArticleId, article.video]
+        [Number(newArticleId), String(article.video)]
       );
     }
 

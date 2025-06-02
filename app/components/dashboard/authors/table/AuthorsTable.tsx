@@ -47,11 +47,13 @@ export default function AuthorsTable({
       field: "sequence",
       label: "#",
       sortable: false,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     {
       field: "name",
       label: "Name",
       sortable: true,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     {
       field: "description",
@@ -62,6 +64,7 @@ export default function AuthorsTable({
           <ExpandableContent
             content={value || "No description"}
             maxWords={20}
+            className="text-sm text-gray-500"
           />
         </div>
       ),
@@ -72,7 +75,7 @@ export default function AuthorsTable({
       sortable: true,
       render: (value: string) => (
         <div className="w-20">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {parseInt(value) || 0}
           </span>
         </div>
@@ -84,7 +87,11 @@ export default function AuthorsTable({
       sortable: true,
       render: (value) => (
         <div className="w-64">
-          <ExpandableContent content={value || "No bio"} maxWords={20} />
+          <ExpandableContent
+            content={value || "No bio"}
+            maxWords={20}
+            className="text-sm text-gray-500"
+          />
         </div>
       ),
     },
@@ -94,7 +101,7 @@ export default function AuthorsTable({
       sortable: true,
       render: (value: string) => (
         <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>
@@ -106,7 +113,7 @@ export default function AuthorsTable({
       sortable: true,
       render: (value: string) => (
         <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>

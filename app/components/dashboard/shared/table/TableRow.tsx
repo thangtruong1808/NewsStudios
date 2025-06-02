@@ -38,12 +38,15 @@ export default function TableRow<T extends { id: number }>({
       {displayColumns.map((column) => (
         <td
           key={String(column.field)}
-          className="whitespace-nowrap px-2 py-2 text-xs "
+          className="whitespace-nowrap px-2 py-2 text-sm"
         >
-          {column.field === "sequence" && sequence !== undefined
-            ? sequence
-            : column.render
-            ? column.render(item[column.field as keyof T] as string, item)
+          {column.render
+            ? column.render(
+                column.field === "sequence"
+                  ? String(sequence)
+                  : (item[column.field as keyof T] as string),
+                item
+              )
             : String(item[column.field as keyof T])}
         </td>
       ))}
@@ -53,7 +56,7 @@ export default function TableRow<T extends { id: number }>({
             {onEdit && (
               <button
                 onClick={() => onEdit(item)}
-                className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1 text-xs font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+                className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
               >
                 <PencilIcon className="h-3.5 w-3.5" />
                 Edit
@@ -63,7 +66,7 @@ export default function TableRow<T extends { id: number }>({
               <button
                 onClick={() => onDelete(item)}
                 disabled={isDeleting}
-                className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+                className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
               >
                 <TrashIcon className="h-3.5 w-3.5" />
                 Delete

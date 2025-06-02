@@ -24,13 +24,13 @@ export default function ExpandableContent({
   return (
     <div className={`relative ${className}`}>
       <div className="flex flex-col gap-2">
-        <span className="text-xs  break-words whitespace-normal text-left">
+        <span className="text-sm text-gray-500 break-words whitespace-normal text-left">
           {displayContent}
         </span>
         {shouldShowButton && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="self-start inline-flex items-center gap-1 rounded border border-zinc-400 px-2 py-1 text-xxs font-medium hover:bg-blue-100 transition-colors duration-200"
+            className="self-start inline-flex items-center gap-1 rounded border border-zinc-400 px-2 py-1 text-xs font-medium hover:bg-blue-100 transition-colors duration-200"
           >
             {isExpanded ? (
               <>

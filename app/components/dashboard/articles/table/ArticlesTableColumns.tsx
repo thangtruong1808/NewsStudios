@@ -35,6 +35,7 @@ export function getArticlesTableColumns({
       field: "sequence",
       label: "#",
       sortable: false,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     {
       field: "title",
@@ -42,7 +43,11 @@ export function getArticlesTableColumns({
       sortable: true,
       render: (value) => (
         <div className="w-48">
-          <ExpandableContent content={value} maxWords={20} />
+          <ExpandableContent
+            content={value}
+            maxWords={20}
+            className="text-sm text-gray-500"
+          />
         </div>
       ),
     },
@@ -52,7 +57,11 @@ export function getArticlesTableColumns({
       sortable: true,
       render: (value) => (
         <div className="w-64">
-          <ExpandableContent content={value} maxWords={20} />
+          <ExpandableContent
+            content={value}
+            maxWords={20}
+            className="text-sm text-gray-500"
+          />
         </div>
       ),
     },
@@ -65,6 +74,7 @@ export function getArticlesTableColumns({
           <ExpandableContent
             content={article.category_name || "Uncategorized"}
             maxWords={20}
+            className="text-sm text-gray-500"
           />
         </div>
       ),
@@ -78,6 +88,7 @@ export function getArticlesTableColumns({
           <ExpandableContent
             content={article.sub_category_name || "None"}
             maxWords={20}
+            className="text-sm text-gray-500"
           />
         </div>
       ),
@@ -91,6 +102,7 @@ export function getArticlesTableColumns({
           <ExpandableTagList
             tags={Array.isArray(value) ? value : []}
             tagColors={article.tag_colors || []}
+            className="text-sm text-gray-500"
           />
         </div>
       ),
@@ -101,7 +113,7 @@ export function getArticlesTableColumns({
       sortable: true,
       render: (value) => (
         <div className="w-32">
-          <span className="text-xs whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>
@@ -114,10 +126,10 @@ export function getArticlesTableColumns({
       render: (value) => (
         <div className="w-24">
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs  ${
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm ${
               value
                 ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
+                : "bg-gray-100 text-gray-500"
             }`}
           >
             {value ? "Yes" : "No"}
@@ -132,10 +144,10 @@ export function getArticlesTableColumns({
       render: (value) => (
         <div className="w-24">
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs  ${
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm ${
               value
                 ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
+                : "bg-gray-100 text-gray-500"
             }`}
           >
             {value ? "Yes" : "No"}

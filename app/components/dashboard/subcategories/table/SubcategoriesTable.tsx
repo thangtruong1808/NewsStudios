@@ -48,11 +48,13 @@ export default function SubcategoriesTable({
       field: "sequence",
       label: "#",
       sortable: false,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     {
       field: "name",
       label: "Name",
       sortable: true,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     {
       field: "description",
@@ -63,6 +65,7 @@ export default function SubcategoriesTable({
           <ExpandableContent
             content={value || "No description"}
             maxWords={20}
+            className="text-sm text-gray-500"
           />
         </div>
       ),
@@ -71,6 +74,7 @@ export default function SubcategoriesTable({
       field: "category_name",
       label: "Category",
       sortable: true,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     {
       field: "articles_count",
@@ -78,7 +82,7 @@ export default function SubcategoriesTable({
       sortable: true,
       render: (value: string) => (
         <div className="w-20">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {parseInt(value) || 0}
           </span>
         </div>
@@ -90,7 +94,7 @@ export default function SubcategoriesTable({
       sortable: true,
       render: (value: string) => (
         <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>
@@ -102,7 +106,7 @@ export default function SubcategoriesTable({
       sortable: true,
       render: (value: string) => (
         <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>

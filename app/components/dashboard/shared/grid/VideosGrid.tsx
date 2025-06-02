@@ -70,82 +70,82 @@ export default function VideosGrid({
         {videos.map((video) => (
           <div
             key={video.id}
-            className="group relative bg-white rounded-lg shadow-sm overflow-hidden"
+            className="group relative bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200"
           >
             {/* Video container with error handling */}
-            <div className="relative aspect-[4/3]">
-              <div className="w-full h-full relative">
-                <video
-                  src={video.video_url}
-                  className="w-full h-full object-cover"
-                  controls
-                  onError={(e) => {
-                    const target = e.target as HTMLVideoElement;
-                    target.style.display = "none";
-                    const parent = target.parentElement;
-                    if (parent) {
-                      const fallback = document.createElement("div");
-                      fallback.className =
-                        "w-full h-full flex flex-col items-center justify-center bg-gray-50 border border-gray-200 ";
-                      fallback.innerHTML = `
-                        <div class="flex flex-col items-center justify-center text-red-400">
-                          <svg class="w-10 h-10 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                          <span class="text-xs text-center font-medium">Video not available on server</span>
-                        </div>
-                      `;
-                      parent.appendChild(fallback);
-                    }
-                  }}
-                />
-              </div>
+            <div className="relative w-full h-48 bg-gray-50 border-b border-gray-200">
+              <video
+                src={video.video_url}
+                className="absolute inset-0 w-full h-full object-cover"
+                controls
+                onError={(e) => {
+                  const target = e.target as HTMLVideoElement;
+                  target.style.display = "none";
+                  const parent = target.parentElement;
+                  if (parent) {
+                    const fallback = document.createElement("div");
+                    fallback.className =
+                      "absolute inset-0 flex flex-col items-center justify-center";
+                    fallback.innerHTML = `
+                      <div class="flex flex-col items-center justify-center">
+                        <svg class="w-12 h-12 text-red-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-xs text-red-500 text-center">The video could not find on server</span>
+                      </div>
+                    `;
+                    parent.appendChild(fallback);
+                  }
+                }}
+              />
+            </div>
 
-              {/* Hover overlay with action buttons */}
-              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => onEdit(video)}
-                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-blue-100 transition-colors"
-                  title="Edit"
-                >
-                  <PencilIcon className="w-5 h-5 text-gray-700" />
-                </button>
-                <button
-                  onClick={() => handleDelete(video)}
-                  disabled={isDeleting}
-                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-blue-200 transition-colors"
-                  title="Delete"
-                >
-                  <TrashIcon className="w-5 h-5 text-red-500" />
-                </button>
-              </div>
+            {/* Hover overlay with action buttons */}
+            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={() => onEdit(video)}
+                className="p-1.5 bg-white rounded-full shadow-sm hover:bg-blue-100 transition-colors"
+                title="Edit"
+              >
+                <PencilIcon className="w-5 h-5 text-gray-700" />
+              </button>
+              <button
+                onClick={() => handleDelete(video)}
+                disabled={isDeleting}
+                className="p-1.5 bg-white rounded-full shadow-sm hover:bg-blue-200 transition-colors"
+                title="Delete"
+              >
+                <TrashIcon className="w-5 h-5 text-red-500" />
+              </button>
             </div>
 
             {/* Video metadata section */}
-            <div className="p-3 border border-gray-200">
+            <div className="p-3">
               {video.article_id && (
                 <div className="text-xs mb-1">
                   <span className="font-medium mr-1">Article ID:</span>{" "}
-                  <span className="">{video.article_id}</span>
+                  <span className="text-gray-500">{video.article_id}</span>
                 </div>
               )}
               {video.article_title && (
                 <div className="text-xs mb-1">
                   <span className="font-medium mr-1">Article Title:</span>{" "}
-                  <span className="">{video.article_title}</span>
+                  <span className="text-gray-500">{video.article_title}</span>
                 </div>
               )}
-              {video.description && (
-                <div className="text-xs mb-1 line-clamp-2">
-                  <span className="font-medium mr-1">Description:</span>{" "}
-                  <span className="">{video.description}</span>
-                </div>
-              )}
+              <div className="text-xs mb-1 line-clamp-2 min-h-[2.5rem]">
+                <span className="font-medium mr-1">Description:</span>{" "}
+                <span className="text-gray-500">
+                  {video.description || "No description available"}
+                </span>
+              </div>
               <p className="text-xs flex items-center gap-1">
-                <span className="mr-1 font-medium">Updated:</span>{" "}
-                <span>{new Date(video.updated_at).toLocaleDateString()}</span>
+                <span className="mr-1 font-medium">Last updated:</span>{" "}
+                <span className="text-gray-500">
+                  {new Date(video.updated_at).toLocaleDateString()}
+                </span>
                 <span>
-                  <ClockIcon className="w-3 h-3" />
+                  <ClockIcon className="w-3 h-3 text-gray-500" />
                 </span>
               </p>
             </div>

@@ -67,11 +67,11 @@ export default function TabletView<T extends { id: number }>({
                       {column.label}:
                     </div>
                     <div className="w-2/3 text-xs">
-                      {column.field === "sequence"
-                        ? sequence
-                        : column.render
+                      {column.render
                         ? column.render(
-                            item[column.field as keyof T] as string,
+                            column.field === "sequence"
+                              ? String(sequence)
+                              : (item[column.field as keyof T] as string),
                             item
                           )
                         : String(item[column.field as keyof T])}

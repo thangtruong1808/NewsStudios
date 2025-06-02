@@ -45,11 +45,13 @@ export default function CategoriesTable({
       field: "sequence",
       label: "#",
       sortable: false,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     {
       field: "name",
       label: "Name",
       sortable: true,
+      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
     },
     {
       field: "description",
@@ -60,6 +62,7 @@ export default function CategoriesTable({
           <ExpandableContent
             content={value || "No description"}
             maxWords={12}
+            className="text-sm text-gray-500"
           />
         </div>
       ),
@@ -70,7 +73,7 @@ export default function CategoriesTable({
       sortable: true,
       render: (value) => (
         <div className="w-24">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {value || 0}
           </span>
         </div>
@@ -82,7 +85,7 @@ export default function CategoriesTable({
       sortable: true,
       render: (value) => (
         <div className="w-24">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {value || 0}
           </span>
         </div>
@@ -94,7 +97,7 @@ export default function CategoriesTable({
       sortable: true,
       render: (value) => (
         <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>
@@ -106,7 +109,7 @@ export default function CategoriesTable({
       sortable: true,
       render: (value) => (
         <div className="w-32">
-          <span className="text-sm text-zinc-500 whitespace-nowrap text-left">
+          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
             {new Date(value).toLocaleDateString()}
           </span>
         </div>
