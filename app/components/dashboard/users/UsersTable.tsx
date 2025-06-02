@@ -6,7 +6,10 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 
-// Interface defining the props required for the UsersTable component
+/**
+ * Props interface for UsersTable component
+ * Defines the required data and callbacks for the table functionality
+ */
 interface UsersTableProps {
   users: User[];
   currentPage: number;
@@ -25,7 +28,16 @@ interface UsersTableProps {
   onItemsPerPageChange: (limit: number) => void;
 }
 
-// Main UsersTable component that renders a data table with user information
+/**
+ * UsersTable Component
+ * Renders a data table for user management with features:
+ * - Row numbering and user image display
+ * - Sortable columns for user data
+ * - Expandable description content
+ * - Status badges with color coding
+ * - Formatted date displays
+ * - Action buttons for edit and delete operations
+ */
 export default function UsersTable({
   users,
   currentPage,

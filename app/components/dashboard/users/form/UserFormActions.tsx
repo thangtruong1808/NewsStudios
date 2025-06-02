@@ -1,46 +1,45 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
-
+/**
+ * Props interface for UserFormActions component
+ */
 interface UserFormActionsProps {
-  isLoading: boolean;
   isSubmitting: boolean;
   isEditMode: boolean;
+  isSubmitDisabled: boolean;
+  onCancel: () => void;
 }
 
+/**
+ * UserFormActions Component
+ * Renders the form action buttons (Cancel and Submit)
+ * with appropriate styling and states
+ */
 export default function UserFormActions({
-  isLoading,
   isSubmitting,
   isEditMode,
+  isSubmitDisabled,
+  onCancel,
 }: UserFormActionsProps) {
-  const router = useRouter();
-
   return (
-    <div className="flex justify-end gap-4">
+    <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
       <button
         type="button"
-        onClick={() => window.history.back()}
-        className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-        disabled={isLoading || isSubmitting}
+        onClick={onCancel}
+        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
       >
         Cancel
       </button>
       <button
         type="submit"
-        className="rounded-md bg-violet-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={isLoading || isSubmitting}
+        disabled={isSubmitDisabled}
+        className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-400 border border-transparent rounded-md shadow-sm hover:from-blue-700 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isSubmitting ? (
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-            <span>Saving...</span>
-          </div>
-        ) : isEditMode ? (
-          "Update User"
-        ) : (
-          "Create User"
-        )}
+        {isSubmitting
+          ? "Saving..."
+          : isEditMode
+          ? "Update User"
+          : "Create User"}
       </button>
     </div>
   );

@@ -51,7 +51,7 @@ export default function TagsPage({ searchParams }: TagsPageProps) {
 
   // Extract and parse URL parameters for pagination and sorting
   const currentPage = Number(searchParams.page) || 1;
-  const itemsPerPage = Number(searchParams.limit) || 5;
+  const itemsPerPage = Number(searchParams.limit) || 10;
   const searchQuery = searchParams.query || "";
   const sortField = (searchParams.sortField as keyof Tag) || "created_at";
   const sortDirection = searchParams.sortDirection || "desc";
