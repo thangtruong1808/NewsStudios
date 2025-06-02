@@ -5,6 +5,7 @@ import { User } from "../../../lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
+import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
 
 /**
  * Props interface for UsersTable component
@@ -154,7 +155,7 @@ export default function UsersTable({
       render: (value: string) => (
         <div className="w-24">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {new Date(value).toLocaleDateString()}
+            {formatDateWithMonth(value)}
           </span>
         </div>
       ),
@@ -167,7 +168,7 @@ export default function UsersTable({
       render: (value: string) => (
         <div className="w-24">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {new Date(value).toLocaleDateString()}
+            {formatDateWithMonth(value)}
           </span>
         </div>
       ),
