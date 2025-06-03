@@ -5,6 +5,7 @@ import type { Column } from "@/app/components/dashboard/shared/table/TableTypes"
 import { SubCategory } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
+import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
 
 interface SubcategoriesTableProps {
   subcategories: SubCategory[];
@@ -95,7 +96,7 @@ export default function SubcategoriesTable({
       render: (value: string) => (
         <div className="w-32">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {new Date(value).toLocaleDateString()}
+            {formatDateWithMonth(value)}
           </span>
         </div>
       ),
@@ -107,7 +108,7 @@ export default function SubcategoriesTable({
       render: (value: string) => (
         <div className="w-32">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {new Date(value).toLocaleDateString()}
+            {formatDateWithMonth(value)}
           </span>
         </div>
       ),

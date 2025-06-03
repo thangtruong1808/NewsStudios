@@ -14,24 +14,17 @@ export default function AuthorsSearch({ onSearch }: AuthorsSearchProps) {
   const { replace } = useRouter();
 
   // Get current search value from URL
-  const currentSearch = searchParams.get("query") || "";
+  const currentSearch = searchParams.get("search") || "";
 
   // Handle search with debounce to prevent too many requests
   const handleSearch = useDebouncedCallback((term: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (term) {
-      params.set("query", term);
-    } else {
-      params.delete("query");
-    }
-    params.set("page", "1");
-    replace(`${pathname}?${params.toString()}`);
+    onSearch(term);
   }, 300);
 
   return (
     <SearchWrapper
       placeholder="Search authors by name, or bio..."
-      onSearch={onSearch}
+      onSearch={handleSearch}
       defaultValue={currentSearch}
     />
   );

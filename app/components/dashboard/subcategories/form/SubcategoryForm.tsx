@@ -52,7 +52,7 @@ export default function SubcategoryForm({
   // Fetch categories on component mount
   useEffect(() => {
     const fetchCategories = async () => {
-      const result = await getCategories();
+      const result = await getCategories({});
       if (result.data) {
         setCategories(result.data as Category[]);
       }

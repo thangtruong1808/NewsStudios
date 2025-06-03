@@ -34,7 +34,16 @@ export async function getCategories({
       ? `WHERE c.name LIKE ? OR c.description LIKE ?`
       : "";
     const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
-    const orderBy = `ORDER BY c.${sortField} ${sortDirection}`;
+
+    // Handle special sorting for computed fields
+    let orderBy;
+    if (sortField === "subcategories_count") {
+      orderBy = `ORDER BY (SELECT COUNT(*) FROM SubCategories sc WHERE sc.category_id = c.id) ${sortDirection}`;
+    } else if (sortField === "articles_count") {
+      orderBy = `ORDER BY (SELECT COUNT(*) FROM Articles a WHERE a.category_id = c.id) ${sortDirection}`;
+    } else {
+      orderBy = `ORDER BY c.${sortField} ${sortDirection}`;
+    }
 
     // Get total count for pagination
     const countQuery = `
@@ -68,8 +77,17 @@ export async function getCategories({
       throw new Error(result.error || "Failed to fetch data");
     }
 
+    // Convert the counts to numbers and ensure proper data types
+    const categories = (result.data as any[]).map((category) => ({
+      ...category,
+      subcategories_count: parseInt(category.subcategories_count) || 0,
+      articles_count: parseInt(category.articles_count) || 0,
+      created_at: new Date(category.created_at),
+      updated_at: new Date(category.updated_at),
+    })) as Category[];
+
     return {
-      data: result.data as Category[],
+      data: categories,
       error: null,
       totalItems,
       totalPages,

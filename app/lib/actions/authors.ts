@@ -51,55 +51,88 @@ export async function getAuthorById(
   }
 }
 
-export async function getAuthors(page = 1, limit = 10) {
+export async function getAuthors({
+  page = 1,
+  limit = 10,
+  search = "",
+  sortField = "created_at",
+  sortDirection = "desc",
+}: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortField?: string;
+  sortDirection?: "asc" | "desc";
+} = {}) {
   try {
-    // Get total count
-    const countResult = await query(`
-      SELECT COUNT(*) as total 
-      FROM Authors
-    `);
+    const offset = (page - 1) * limit;
+    const searchCondition = search
+      ? `WHERE a.name LIKE ? OR a.description LIKE ? OR a.bio LIKE ?`
+      : "";
+    const searchParams = search
+      ? [`%${search}%`, `%${search}%`, `%${search}%`]
+      : [];
 
-    if (countResult.error || !countResult.data) {
-      return {
-        data: null,
-        total: 0,
-        error: countResult.error || "Failed to get total count",
-      };
+    // Handle special sorting for computed fields
+    let orderBy;
+    if (sortField === "articles_count") {
+      orderBy = `ORDER BY (SELECT COUNT(*) FROM Articles ar WHERE ar.author_id = a.id) ${sortDirection}`;
+    } else {
+      orderBy = `ORDER BY a.${sortField} ${sortDirection}`;
     }
 
+    // Get total count for pagination
+    const countQuery = `
+      SELECT COUNT(*) as count
+      FROM Authors a
+      ${searchCondition}
+    `;
+    const countResult = await query(countQuery, searchParams);
+    if (countResult.error || !countResult.data) {
+      throw new Error(countResult.error || "Failed to get count");
+    }
+    const totalItems = parseInt(countResult.data[0].count);
+    const totalPages = Math.ceil(totalItems / limit);
+
     // Get paginated data with articles count
-    const result = await query(
-      `
+    const dataQuery = `
       SELECT 
         a.*,
         (SELECT COUNT(*) FROM Articles ar WHERE ar.author_id = a.id) as articles_count
       FROM Authors a
-      ORDER BY a.name ASC
-      LIMIT ? OFFSET ?
-    `,
-      [limit, (page - 1) * limit]
-    );
+      ${searchCondition}
+      ${orderBy}
+      LIMIT ? 
+      OFFSET ?
+    `;
+
+    const result = await query(dataQuery, [...searchParams, limit, offset]);
 
     if (result.error || !result.data) {
-      return {
-        data: null,
-        total: 0,
-        error: result.error || "No data found",
-      };
+      throw new Error(result.error || "Failed to fetch data");
     }
 
-    const total = (countResult.data[0] as { total: number }).total;
+    // Convert the counts to numbers and ensure proper data types
+    const authors = (result.data as any[]).map((author) => ({
+      ...author,
+      articles_count: parseInt(author.articles_count) || 0,
+      created_at: new Date(author.created_at),
+      updated_at: new Date(author.updated_at),
+    })) as Author[];
+
     return {
-      data: result.data as Author[],
-      total,
+      data: authors,
       error: null,
+      totalItems,
+      totalPages,
     };
   } catch (error) {
-    console.error("Error fetching authors:", error);
+    console.error("Database Error:", error);
     return {
       data: null,
-      total: 0,
-      error: "Failed to fetch authors",
+      error: "Failed to fetch authors.",
+      totalItems: 0,
+      totalPages: 0,
     };
   }
 }
@@ -213,61 +246,84 @@ export async function deleteAuthor(id: number) {
   }
 }
 
-export async function searchAuthors(searchQuery: string, page = 1, limit = 10) {
+export async function searchAuthors({
+  search,
+  page = 1,
+  limit = 10,
+  sortField = "created_at",
+  sortDirection = "desc",
+}: {
+  search: string;
+  page?: number;
+  limit?: number;
+  sortField?: string;
+  sortDirection?: "asc" | "desc";
+}) {
   try {
-    if (!searchQuery.trim()) {
-      return getAuthors(page, limit);
+    const offset = (page - 1) * limit;
+    const searchCondition = `WHERE a.name LIKE ? OR a.description LIKE ? OR a.bio LIKE ?`;
+    const searchParams = [`%${search}%`, `%${search}%`, `%${search}%`];
+
+    // Handle special sorting for computed fields
+    let orderBy;
+    if (sortField === "articles_count") {
+      orderBy = `ORDER BY (SELECT COUNT(*) FROM Articles ar WHERE ar.author_id = a.id) ${sortDirection}`;
+    } else {
+      orderBy = `ORDER BY a.${sortField} ${sortDirection}`;
     }
 
-    // Get total count for search results
-    const countResult = await query(
-      "SELECT COUNT(*) as total FROM Authors WHERE name LIKE ? OR description LIKE ? OR bio LIKE ?",
-      [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
-    );
-
+    // Get total count for pagination
+    const countQuery = `
+      SELECT COUNT(*) as count
+      FROM Authors a
+      ${searchCondition}
+    `;
+    const countResult = await query(countQuery, searchParams);
     if (countResult.error || !countResult.data) {
-      return {
-        data: [],
-        error: countResult.error || "Failed to get total count",
-      };
+      throw new Error(countResult.error || "Failed to get count");
     }
+    const totalItems = parseInt(countResult.data[0].count);
+    const totalPages = Math.ceil(totalItems / limit);
 
-    // Get paginated search results
-    const result = await query(
-      "SELECT * FROM Authors WHERE name LIKE ? OR description LIKE ? OR bio LIKE ? ORDER BY name LIMIT ? OFFSET ?",
-      [
-        `%${searchQuery}%`,
-        `%${searchQuery}%`,
-        `%${searchQuery}%`,
-        limit,
-        (page - 1) * limit,
-      ]
-    );
+    // Get paginated data with articles count
+    const dataQuery = `
+      SELECT 
+        a.*,
+        (SELECT COUNT(*) FROM Articles ar WHERE ar.author_id = a.id) as articles_count
+      FROM Authors a
+      ${searchCondition}
+      ${orderBy}
+      LIMIT ? 
+      OFFSET ?
+    `;
+
+    const result = await query(dataQuery, [...searchParams, limit, offset]);
 
     if (result.error || !result.data) {
-      return {
-        data: [],
-        error: result.error || "Failed to get search results",
-      };
+      throw new Error(result.error || "Failed to fetch data");
     }
 
-    const authors = result.data as AuthorRow[];
-    const total = (countResult.data[0] as { total: number }).total;
+    // Convert the counts to numbers and ensure proper data types
+    const authors = (result.data as any[]).map((author) => ({
+      ...author,
+      articles_count: parseInt(author.articles_count) || 0,
+      created_at: new Date(author.created_at),
+      updated_at: new Date(author.updated_at),
+    })) as Author[];
 
     return {
-      data: authors.map((author) => ({
-        id: author.id,
-        name: author.name,
-        description: author.description || undefined,
-        bio: author.bio || undefined,
-        created_at: author.created_at.toISOString(),
-        updated_at: author.updated_at.toISOString(),
-      })),
-      total,
+      data: authors,
       error: null,
+      totalItems,
+      totalPages,
     };
   } catch (error) {
-    console.error("Error searching authors:", error);
-    return { data: [], error: "Failed to search authors" };
+    console.error("Database Error:", error);
+    return {
+      data: null,
+      error: "Failed to search authors.",
+      totalItems: 0,
+      totalPages: 0,
+    };
   }
 }
