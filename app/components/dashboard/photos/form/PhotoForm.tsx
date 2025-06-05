@@ -1,153 +1,226 @@
 "use client";
 
-import { useState } from "react";
+import { Article, Image } from "@/app/lib/definition";
+import { ArrowPathIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
-import Image from "next/image";
 
+/**
+ * Props interface for PhotoForm component
+ */
 interface PhotoFormProps {
-  initialData?: {
-    id?: number;
-    title: string;
+  articles: Article[];
+  image?: Image;
+  isSubmitting: boolean;
+  uploadProgress: number;
+  isImageProcessing: boolean;
+  selectedFile: File | null;
+  previewUrl: string | null;
+  formValues: {
     description: string;
-    image_url: string;
+    articleId: string;
   };
-  onSubmit: (formData: FormData) => Promise<void>;
-  isEditing?: boolean;
+  isFormEmpty: boolean;
+  isImageAvailable: boolean;
+  onInputChange: (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => void;
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onClearFile: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  onCancel: () => void;
 }
 
 /**
  * PhotoForm Component
- *
- * A form component for creating and editing photos that:
- * - Handles image upload and preview
- * - Manages form state and validation
- * - Provides feedback via toast notifications
- * - Maintains consistent styling with other form components
+ * Form component for creating and editing photos
  */
-export default function PhotoForm({
-  initialData,
+export function PhotoForm({
+  articles,
+  image,
+  isSubmitting,
+  uploadProgress,
+  isImageProcessing,
+  selectedFile,
+  previewUrl,
+  formValues,
+  isFormEmpty,
+  isImageAvailable,
+  onInputChange,
+  onFileChange,
+  onClearFile,
   onSubmit,
-  isEditing = false,
+  onCancel,
 }: PhotoFormProps) {
   const router = useRouter();
-  const [previewUrl, setPreviewUrl] = useState<string>(
-    initialData?.image_url || ""
-  );
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isEditMode = !!image;
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const formData = new FormData(e.currentTarget);
-      await onSubmit(formData);
-      toast.success(
-        isEditing ? "Photo updated successfully" : "Photo created successfully"
-      );
-      router.push("/dashboard/photos");
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("Failed to save photo. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleCancel = () => {
+    router.push("/dashboard/photos");
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label
-          htmlFor="title"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Title
-        </label>
-        <input
-          type="text"
-          name="title"
-          id="title"
-          defaultValue={initialData?.title}
-          required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
+    <form onSubmit={onSubmit} className="space-y-8">
+      {/* Form Header */}
+      <div className="border-b border-gray-900/10 pb-8">
+        <h2 className="text-base font-semibold leading-7 text-gray-900">
+          {isEditMode ? "Edit Photo" : "Create New Photo"}
+        </h2>
+        <p className="mt-1 text-sm leading-6 text-gray-600">
+          {isEditMode
+            ? "Update photo details and associated article"
+            : "Upload a new photo and associate it with an article"}
+        </p>
       </div>
 
-      <div>
+      {/* Image Upload Section */}
+      <div className="col-span-full">
         <label
-          htmlFor="description"
-          className="block text-sm font-medium text-gray-700"
+          htmlFor="file"
+          className="block text-sm font-medium leading-6 text-gray-900"
         >
-          Description
+          Photo
         </label>
-        <textarea
-          name="description"
-          id="description"
-          rows={3}
-          defaultValue={initialData?.description}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
+        <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
+          <div className="text-center">
+            {isImageProcessing ? (
+              <div className="flex flex-col items-center">
+                <ArrowPathIcon className="h-12 w-12 animate-spin text-gray-400" />
+                <div className="mt-2 text-sm text-gray-500">
+                  Processing image... {uploadProgress}%
+                </div>
+              </div>
+            ) : previewUrl ? (
+              <div className="relative">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="mx-auto h-32 w-32 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={onClearFile}
+                  className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            ) : isEditMode && image?.image_url && isImageAvailable ? (
+              <div className="relative">
+                <img
+                  src={image.image_url}
+                  alt="Current"
+                  className="mx-auto h-32 w-32 object-cover"
+                />
+              </div>
+            ) : (
+              <PhotoIcon
+                className="mx-auto h-12 w-12 text-gray-300"
+                aria-hidden="true"
+              />
+            )}
+            <div className="mt-4 flex text-sm leading-6 text-gray-600">
+              <label
+                htmlFor="file"
+                className="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
+              >
+                <span>Upload a file</span>
+                <input
+                  id="file"
+                  name="file"
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={onFileChange}
+                  disabled={isImageProcessing}
+                />
+              </label>
+              <p className="pl-1">or drag and drop</p>
+            </div>
+            <p className="text-xs leading-5 text-gray-600">
+              PNG, JPG, GIF up to 10MB
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label
-          htmlFor="image"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Image
-        </label>
-        <input
-          type="file"
-          name="image"
-          id="image"
-          accept="image/*"
-          onChange={handleImageChange}
-          required={!isEditing}
-          className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-        />
-      </div>
-
-      {previewUrl && (
-        <div className="mt-2">
-          <div className="relative w-40 h-40">
-            <Image
-              src={previewUrl}
-              alt="Preview"
-              fill
-              className="object-cover rounded-md"
+      {/* Description and Article Association */}
+      <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+        <div className="col-span-full">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium leading-6 text-gray-900"
+          >
+            Description
+          </label>
+          <div className="mt-2">
+            <textarea
+              id="description"
+              name="description"
+              rows={3}
+              value={formValues?.description || ""}
+              onChange={onInputChange}
+              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             />
           </div>
         </div>
-      )}
 
-      <div className="flex justify-end space-x-3">
+        <div className="col-span-full">
+          <label
+            htmlFor="article_id"
+            className="block text-sm font-medium leading-6 text-gray-900"
+          >
+            Associated Article
+          </label>
+          <div className="mt-2">
+            <select
+              id="article_id"
+              name="article_id"
+              value={formValues?.articleId || ""}
+              onChange={onInputChange}
+              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            >
+              <option value="">Select an article (optional)</option>
+              {articles?.map((article) => (
+                <option key={article.id} value={article.id}>
+                  {article.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Form Actions */}
+      <div className="mt-6 flex items-center justify-end gap-x-6">
         <button
           type="button"
-          onClick={() => router.back()}
-          className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          onClick={handleCancel}
+          className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
           type="submit"
-          disabled={isSubmitting}
-          className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+          disabled={isSubmitting || isImageProcessing || isFormEmpty}
+          className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting
             ? "Saving..."
-            : isEditing
+            : isEditMode
             ? "Update Photo"
             : "Create Photo"}
         </button>

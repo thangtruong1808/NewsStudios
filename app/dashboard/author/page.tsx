@@ -5,6 +5,7 @@ import AuthorsHeader from "@/app/components/dashboard/authors/header/AuthorsHead
 import AuthorsSearch from "@/app/components/dashboard/authors/search/AuthorsSearch";
 import AuthorsTable from "@/app/components/dashboard/authors/table/AuthorsTable";
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
+import { Author } from "@/app/lib/definition";
 
 interface AuthorsPageProps {
   searchParams: {
@@ -15,6 +16,25 @@ interface AuthorsPageProps {
     query?: string;
     limit?: string;
   };
+}
+
+interface AuthorsStateProps {
+  authors: Author[];
+  totalPages: number;
+  totalItems: number;
+  isLoading: boolean;
+  isDeleting: boolean;
+  currentPage: number;
+  itemsPerPage: number;
+  sortField: keyof Author;
+  sortDirection: "asc" | "desc";
+  searchQuery: string;
+  handlePageChange: (page: number) => void;
+  handleSort: (field: keyof Author) => void;
+  handleEdit: (author: Author) => void;
+  handleDelete: (author: Author) => void;
+  handleSearch: (term: string) => void;
+  handleItemsPerPageChange: (limit: number) => void;
 }
 
 export default function AuthorsPage({ searchParams }: AuthorsPageProps) {
@@ -37,7 +57,7 @@ export default function AuthorsPage({ searchParams }: AuthorsPageProps) {
         handleDelete,
         handleSearch,
         handleItemsPerPageChange,
-      }) => (
+      }: AuthorsStateProps) => (
         <div className="">
           <AuthorsHeader />
 

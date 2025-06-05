@@ -40,7 +40,18 @@ export async function getTags({
       ? `WHERE t.name LIKE ? OR t.description LIKE ?`
       : "";
     const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
-    const orderBy = `ORDER BY t.${sortField} ${sortDirection}`;
+
+    // Handle sorting for count columns
+    let orderBy = "";
+    if (
+      ["articles_count", "categories_count", "subcategories_count"].includes(
+        sortField
+      )
+    ) {
+      orderBy = `ORDER BY ${sortField} ${sortDirection}`;
+    } else {
+      orderBy = `ORDER BY t.${sortField} ${sortDirection}`;
+    }
 
     // Get total count for pagination
     const countQuery = `

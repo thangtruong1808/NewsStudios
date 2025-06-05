@@ -1,25 +1,18 @@
 "use client";
 
-import { Image as ImageType } from "@/app/lib/definition";
-import NextImage from "next/image";
-import {
-  PencilIcon,
-  TrashIcon,
-  ClockIcon,
-  PhotoIcon,
-} from "@heroicons/react/24/outline";
-import { useState, useEffect } from "react";
-import {
-  showErrorToast,
-  showConfirmationToast,
-} from "@/app/components/dashboard/shared/toast/Toast";
+import { Image } from "@/app/lib/definition";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { PhotoCard } from "@/app/components/dashboard/photos/card/PhotoCard";
 
-// Props interface for PhotosGrid component
 interface PhotosGridProps {
-  photos: ImageType[]; // Array of image objects to display
-  onEdit: (photo: ImageType) => void; // Callback for edit action
-  onDelete: (photo: ImageType) => void; // Callback for delete action
-  isLoading?: boolean; // Loading state indicator
+  photos: Image[];
+  onEdit: (photo: Image) => void;
+  onDelete: (photo: Image) => void;
+  isLoading?: boolean;
+  isDeleting?: boolean;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
+  onLoadMore?: () => void;
 }
 
 export default function PhotosGrid({
@@ -27,61 +20,11 @@ export default function PhotosGrid({
   onEdit,
   onDelete,
   isLoading = false,
+  isDeleting = false,
+  hasMore = false,
+  isLoadingMore = false,
+  onLoadMore,
 }: PhotosGridProps) {
-  const [hoveredPhoto, setHoveredPhoto] = useState<number | null>(null);
-  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
-
-  // Check for failed images on mount and when photos change
-  useEffect(() => {
-    const checkImages = async () => {
-      const newFailedImages = new Set<number>();
-
-      for (const photo of photos) {
-        try {
-          // Create a new image object to check if the image loads
-          const img = new Image();
-
-          // Create a promise that resolves when the image loads or rejects when it fails
-          const imageLoadPromise = new Promise((resolve, reject) => {
-            img.onload = () => resolve(true);
-            img.onerror = () => reject(new Error("Image failed to load"));
-
-            // Set a timeout to reject if the image takes too long to load
-            setTimeout(() => reject(new Error("Image load timeout")), 5000);
-          });
-
-          // Try to load the image
-          img.src = photo.image_url;
-          await imageLoadPromise;
-        } catch (error) {
-          console.log(`Image check failed for photo ${photo.id}:`, error);
-          newFailedImages.add(photo.id);
-        }
-      }
-
-      setFailedImages(newFailedImages);
-    };
-
-    checkImages();
-  }, [photos]);
-
-  // Handle photo deletion with confirmation
-  const handleDelete = async (photo: ImageType) => {
-    try {
-      await onDelete(photo);
-    } catch (error) {
-      console.error("Error deleting photo:", error);
-      showErrorToast({ message: "Failed to delete photo" });
-    }
-  };
-
-  // Handle image loading error
-  const handleImageError = (photoId: number) => {
-    if (!failedImages.has(photoId)) {
-      setFailedImages((prev) => new Set([...prev, photoId]));
-    }
-  };
-
   // Loading skeleton UI
   if (isLoading) {
     return (
@@ -106,111 +49,73 @@ export default function PhotosGrid({
     );
   }
 
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-      {photos.map((photo) => (
-        <div
-          key={photo.id}
-          className={`bg-white rounded-lg shadow-sm overflow-hidden group relative ${
-            failedImages.has(photo.id)
-              ? "ring-2 ring-gray-300 ring-opacity-50"
-              : ""
-          }`}
-          onMouseEnter={() => setHoveredPhoto(photo.id)}
-          onMouseLeave={() => setHoveredPhoto(null)}
-        >
-          {/* Photo container with fixed dimensions */}
-          <div className="relative w-full h-48">
-            {failedImages.has(photo.id) ? (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 border-b border-gray-200">
-                <PhotoIcon className="w-12 h-12 text-red-400 mb-2" />
-                <span className="text-xs text-red-500 text-center">
-                  The Image could not find on server
-                </span>
-              </div>
-            ) : (
-              <img
-                src={photo.image_url}
-                alt={photo.description || "Photo"}
-                className="absolute inset-0 w-full h-full object-cover"
-                onError={() => handleImageError(photo.id)}
-              />
-            )}
-            {/* Action buttons in top right corner */}
-            <div
-              className={`absolute top-2 right-2 flex gap-2 transition-opacity duration-200 ${
-                hoveredPhoto === photo.id ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              <button
-                onClick={() => onEdit(photo)}
-                className="p-2 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
-                title="Edit photo"
-              >
-                <PencilIcon className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => handleDelete(photo)}
-                className="p-2 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
-                title="Delete photo"
-              >
-                <TrashIcon className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Photo metadata */}
-          <div className="p-4 space-y-2">
-            <div className="flex items-center gap-1">
-              <span className="text-xs font-medium">Article ID:</span>
-              <span className="text-xs text-gray-500">
-                {photo.article_id || "No article associated"}
-              </span>
-            </div>
-            {photo.article_title && (
-              <div className="mt-1">
-                <div className="flex items-start gap-1">
-                  <span className="text-xs font-medium whitespace-nowrap">
-                    Article Title:
-                  </span>
-                  <div
-                    className={`text-xs text-gray-500 line-clamp-2 ${
-                      photo.article_title.length < 50
-                        ? "min-h-[1rem]"
-                        : "min-h-[2rem]"
-                    }`}
-                  >
-                    {photo.article_title}
-                  </div>
-                </div>
-              </div>
-            )}
-            {photo.description && (
-              <div className="mt-1">
-                <div className="flex items-start gap-1">
-                  <span className="text-xs font-medium whitespace-nowrap">
-                    Description:
-                  </span>
-                  <div className="text-xs text-gray-500 line-clamp-2">
-                    {photo.description}
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="mt-1 flex items-center gap-1">
-              <span className="text-xs font-medium">Last updated:</span>
-              <span className="text-xs text-gray-500">
-                {new Date(photo.updated_at).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </span>
-              <ClockIcon className="h-4 w-4 text-gray-400" />
-            </div>
-          </div>
+  // Empty state when no photos are found
+  if (photos.length === 0 && !isLoading) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-gray-500 mb-2">
+          <svg
+            className="mx-auto h-12 w-12"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
         </div>
-      ))}
+        <h3 className="text-lg font-medium text-gray-900 mb-1">
+          No Photos Found
+        </h3>
+        <p className="text-gray-500">
+          It seems the photos are not available. They might have been
+          accidentally deleted from the storage.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        {photos.map((photo) => (
+          <PhotoCard
+            key={photo.id}
+            photo={photo}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            isDeleting={isDeleting}
+          />
+        ))}
+      </div>
+
+      {/* Load More button */}
+      {hasMore && onLoadMore && (
+        <div className="flex justify-center">
+          <button
+            onClick={onLoadMore}
+            disabled={isLoadingMore}
+            className="inline-flex h-10 items-center gap-2 rounded-md bg-gradient-to-r from-blue-600 to-blue-400 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-blue-700 hover:to-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoadingMore ? (
+              <>
+                <ArrowPathIcon className="h-5 w-5 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <ArrowPathIcon className="h-5 w-5" />
+                Load More
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

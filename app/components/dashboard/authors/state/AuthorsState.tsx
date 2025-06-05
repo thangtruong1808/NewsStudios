@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getAuthors, searchAuthors } from "@/app/lib/actions/authors";
-import type { Author } from "@/app/lib/definition";
+import {
+  getAuthors,
+  searchAuthors,
+  deleteAuthor,
+} from "@/app/lib/actions/authors";
+import { Author } from "@/app/lib/definition";
 import AuthorsTable from "../table/AuthorsTable";
 import AuthorsHeader from "../header/AuthorsHeader";
 import AuthorsSearch from "../search/AuthorsSearch";
@@ -14,7 +18,28 @@ import {
   showConfirmationToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 
-export default function AuthorsState() {
+interface AuthorsStateProps {
+  children: (props: {
+    authors: Author[];
+    totalPages: number;
+    totalItems: number;
+    isLoading: boolean;
+    isDeleting: boolean;
+    currentPage: number;
+    itemsPerPage: number;
+    sortField: keyof Author;
+    sortDirection: "asc" | "desc";
+    searchQuery: string;
+    handlePageChange: (page: number) => void;
+    handleSort: (field: keyof Author) => void;
+    handleEdit: (author: Author) => void;
+    handleDelete: (author: Author) => void;
+    handleSearch: (term: string) => void;
+    handleItemsPerPageChange: (limit: number) => void;
+  }) => React.ReactNode;
+}
+
+export default function AuthorsState({ children }: AuthorsStateProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isDeleting, setIsDeleting] = useState(false);
