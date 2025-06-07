@@ -2,6 +2,7 @@
 
 import { ViewProps } from "../TableTypes";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useSession } from "next-auth/react";
 
 interface MobileViewProps<T extends { id: number }> extends ViewProps<T> {
   currentPage?: number;
@@ -22,6 +23,9 @@ export default function MobileView<T extends { id: number }>({
   onDelete,
   isDeleting,
 }: MobileViewProps<T>) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
   // Filter out the actions column
   const displayColumns = columns.filter((column) => column.field !== "actions");
 
@@ -67,18 +71,18 @@ export default function MobileView<T extends { id: number }>({
                       {column.label}:
                     </div>
                     <div className="w-2/3 text-xs">
-                      {column.field === "sequence"
-                        ? sequence
-                        : column.render
+                      {column.render
                         ? column.render(
-                            item[column.field as keyof T] as string,
+                            column.field === "sequence"
+                              ? String(sequence)
+                              : (item[column.field as keyof T] as string),
                             item
                           )
                         : String(item[column.field as keyof T])}
                     </div>
                   </div>
                 ))}
-                {(onEdit || onDelete) && (
+                {isAdmin && (onEdit || onDelete) && (
                   <div className="flex justify-start space-x-2 pt-2 border-t">
                     {onEdit && (
                       <button

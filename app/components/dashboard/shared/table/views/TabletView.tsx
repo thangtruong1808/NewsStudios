@@ -2,6 +2,7 @@
 
 import { ViewProps } from "../TableTypes";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useSession } from "next-auth/react";
 
 interface TabletViewProps<T extends { id: number }> extends ViewProps<T> {
   currentPage?: number;
@@ -22,6 +23,9 @@ export default function TabletView<T extends { id: number }>({
   onDelete,
   isDeleting,
 }: TabletViewProps<T>) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
   // Filter out the actions column
   const displayColumns = columns.filter((column) => column.field !== "actions");
 
@@ -78,7 +82,7 @@ export default function TabletView<T extends { id: number }>({
                     </div>
                   </div>
                 ))}
-                {(onEdit || onDelete) && (
+                {isAdmin && (onEdit || onDelete) && (
                   <div className="flex justify-start space-x-2 pt-2 border-t">
                     {onEdit && (
                       <button

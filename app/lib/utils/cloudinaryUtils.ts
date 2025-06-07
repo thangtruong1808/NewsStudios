@@ -323,59 +323,14 @@ export async function uploadToCloudinary(
       );
     }
 
-    // For large files (over 100MB), use chunked upload
-    if (file.size > 100 * 1024 * 1024) {
-      const chunkSize = 20 * 1024 * 1024; // 20MB chunks
-      const totalChunks = Math.ceil(file.size / chunkSize);
-      let uploadId = null;
-
-      for (let i = 0; i < totalChunks; i++) {
-        const start = i * chunkSize;
-        const end = Math.min(start + chunkSize, file.size);
-        const chunk = file.slice(start, end);
-
-        const formData = new FormData();
-        formData.append("file", chunk);
-        formData.append("upload_preset", uploadPreset);
-        formData.append("cloud_name", cloudName);
-        formData.append("folder", "NewsHub");
-
-        if (uploadId) {
-          formData.append("upload_id", uploadId);
-        }
-
-        const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${type}/upload`;
-        const response = await fetch(uploadUrl, {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error?.message || "Upload failed");
-        }
-
-        const data = await response.json();
-        if (!uploadId) {
-          uploadId = data.upload_id;
-        }
-
-        if (i === totalChunks - 1) {
-          return {
-            success: true,
-            url: data.secure_url,
-          };
-        }
-      }
-    }
-
-    // For smaller files, use regular upload
+    // Create form data
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", uploadPreset);
     formData.append("cloud_name", cloudName);
     formData.append("folder", "NewsHub");
 
+    // Upload to Cloudinary
     const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${type}/upload`;
     console.log("Uploading to:", uploadUrl);
 
@@ -391,20 +346,22 @@ export async function uploadToCloudinary(
         statusText: response.statusText,
         error: errorData,
       });
-
-      // Handle specific Cloudinary errors
-      if (errorData.error?.message?.includes("Upload preset")) {
-        throw new Error(
-          `Upload preset "${uploadPreset}" not found in your Cloudinary account. Please verify the preset name in your Cloudinary dashboard.`
-        );
-      }
       throw new Error(errorData.error?.message || "Upload failed");
     }
 
     const data = await response.json();
+    console.log("Cloudinary upload response:", data);
+
+    if (!data.secure_url) {
+      throw new Error("No secure URL returned from Cloudinary");
+    }
+
     return {
       success: true,
-      url: data.secure_url,
+      url: {
+        secure_url: data.secure_url,
+        public_id: data.public_id,
+      },
     };
   } catch (error) {
     console.error("Error uploading file:", error);

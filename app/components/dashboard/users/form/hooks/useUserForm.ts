@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { User } from "@/app/lib/definition";
 import { UserFormValues } from "../userSchema";
 import { createUser, updateUser } from "@/app/lib/actions/users";
@@ -70,35 +70,14 @@ export function useUserForm(user?: User, isEditMode = false) {
       setProcessingFileName(file.name);
       setUploadProgress(0);
 
-      const uploadResult = await uploadToCloudinary(file, "image");
-      if (!uploadResult.success || !uploadResult.url) {
-        throw new Error(uploadResult.error || "Failed to upload image");
-      }
-
-      const cloudinaryUrl = uploadResult.url.secure_url;
-      if (!cloudinaryUrl) {
-        throw new Error("Failed to get image URL from Cloudinary");
-      }
-
-      const publicId = getPublicIdFromUrl(cloudinaryUrl);
-      if (!publicId) {
-        throw new Error("Failed to extract public ID from URL");
-      }
-
-      setImagePreview(cloudinaryUrl);
-      setCloudinaryPublicId(publicId);
+      // Create a local preview URL instead of uploading to Cloudinary
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
       setSelectedFile(file);
-
-      if (isEditMode && user?.user_image) {
-        const oldPublicId = getPublicIdFromUrl(user.user_image);
-        if (oldPublicId) {
-          setPreviousImagePublicId(oldPublicId);
-        }
-      }
     } catch (error) {
       showErrorToast({
         message:
-          error instanceof Error ? error.message : "Failed to upload image",
+          error instanceof Error ? error.message : "Failed to process image",
       });
     } finally {
       setIsImageProcessing(false);
@@ -110,38 +89,34 @@ export function useUserForm(user?: User, isEditMode = false) {
   // Handle form submission
   const handleSubmit = async (data: UserFormValues) => {
     try {
-      if (isEditMode && user) {
-        let imageUrl = user.user_image;
-        let newPublicId: string | null = null;
+      let imageUrl = data.user_image;
 
-        if (selectedFile) {
-          const uploadResult = await uploadToCloudinary(selectedFile, "image");
-          if (!uploadResult.success || !uploadResult.url) {
-            throw new Error(uploadResult.error || "Failed to upload image");
-          }
+      // Only upload to Cloudinary if there's a selected file
+      if (selectedFile) {
+        console.log("Uploading selected file to Cloudinary:", selectedFile);
+        const uploadResult = await uploadToCloudinary(selectedFile, "image");
+        console.log("Cloudinary upload result:", uploadResult);
 
-          const cloudinaryUrl = uploadResult.url.secure_url;
-          if (!cloudinaryUrl) {
-            throw new Error("Failed to get image URL from Cloudinary");
-          }
-
-          const publicId = getPublicIdFromUrl(cloudinaryUrl);
-          if (!publicId) {
-            throw new Error("Failed to extract public ID from URL");
-          }
-
-          imageUrl = cloudinaryUrl;
-          newPublicId = publicId;
-          setCloudinaryPublicId(publicId);
+        if (!uploadResult.success) {
+          throw new Error(uploadResult.error || "Failed to upload image");
         }
 
+        if (!uploadResult.url || !uploadResult.url.secure_url) {
+          throw new Error("Failed to get image URL from Cloudinary");
+        }
+
+        imageUrl = uploadResult.url.secure_url;
+        console.log("Image URL set to:", imageUrl);
+      }
+
+      if (isEditMode && user) {
         const success = await updateUser(user.id, {
           ...data,
           user_image: imageUrl,
         });
 
         if (success) {
-          if (previousImagePublicId && previousImagePublicId !== newPublicId) {
+          if (previousImagePublicId) {
             try {
               const deleteResult = await deleteImage(previousImagePublicId);
               if (!deleteResult.success) {
@@ -151,52 +126,46 @@ export function useUserForm(user?: User, isEditMode = false) {
               showErrorToast({ message: "Failed to delete old image" });
             }
           }
-          await updateSession({
-            ...session,
-            user: {
-              ...session?.user,
-              ...data,
-              id: user.id.toString(),
-            },
-          });
-          showSuccessToast({ message: "User updated successfully" });
-          router.push("/dashboard/users");
-          router.refresh();
-        } else {
-          if (newPublicId) {
-            try {
-              await deleteImage(newPublicId);
-            } catch (error) {
-              showErrorToast({ message: "Failed to clean up new image" });
-            }
+
+          // Check if the updated user is the current user
+          const isCurrentUser = session?.user?.id === user.id.toString();
+          const isAdminUpdatingAdmin =
+            session?.user?.role === "admin" && user.role === "admin";
+
+          if (isCurrentUser) {
+            // If updating own profile, sign out and redirect to login
+            showSuccessToast({
+              message: "Profile updated. Please log in again.",
+            });
+            // Sign out and redirect to login with callback to users list
+            await signOut({
+              redirect: true,
+              callbackUrl: "/dashboard/users",
+            });
+          } else {
+            // For all other cases (admin updating other users), just redirect
+            showSuccessToast({ message: "User updated successfully" });
+            router.push("/dashboard/users");
+            router.refresh();
           }
+        } else {
           showErrorToast({ message: "Failed to update user" });
         }
       } else {
-        const success = await createUser(data);
+        const success = await createUser({
+          ...data,
+          user_image: imageUrl,
+        });
         if (success) {
           showSuccessToast({ message: "User created successfully" });
           router.push("/dashboard/users");
           router.refresh();
         } else {
-          if (cloudinaryPublicId) {
-            try {
-              await deleteImage(cloudinaryPublicId);
-            } catch (error) {
-              showErrorToast({ message: "Failed to clean up image" });
-            }
-          }
           showErrorToast({ message: "Failed to create user" });
         }
       }
     } catch (error) {
-      if (cloudinaryPublicId) {
-        try {
-          await deleteImage(cloudinaryPublicId);
-        } catch (error) {
-          showErrorToast({ message: "Failed to clean up image" });
-        }
-      }
+      console.error("Error in handleSubmit:", error);
       showErrorToast({
         message: error instanceof Error ? error.message : "An error occurred",
       });

@@ -12,17 +12,23 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Please enter your email and password");
+        }
 
         const user = await getUserByEmail(credentials.email);
 
-        if (!user) return null;
+        if (!user) {
+          throw new Error("Invalid email or password. Please try again.");
+        }
 
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password
         );
-        if (!isPasswordValid) return null;
+        if (!isPasswordValid) {
+          throw new Error("Invalid email or password. Please try again.");
+        }
 
         return {
           id: user.id.toString(),
@@ -43,52 +49,41 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  pages: {
+    signIn: "/login",
+    error: "/login",
+  },
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
-      if (trigger === "update" && session) {
-        // When session is updated, merge the new session data with the token
-        return {
-          ...token,
-          ...session.user,
-          role: session.user.role,
-          firstname: session.user.firstname,
-          lastname: session.user.lastname,
-          user_image: session.user.user_image,
-          status: session.user.status,
-        };
-      }
-
+    async jwt({ token, user }) {
       if (user) {
-        // Initial sign in
         token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.user_image = user.user_image;
+        token.role = user.role;
         token.firstname = user.firstname;
         token.lastname = user.lastname;
-        token.role = user.role;
-        token.user_image = user.user_image;
         token.status = user.status;
         token.created_at = user.created_at;
         token.updated_at = user.updated_at;
       }
-
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        // Always use the latest token data for the session
+      if (token) {
         session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.name = token.name;
+        session.user.user_image = token.user_image;
+        session.user.role = token.role;
         session.user.firstname = token.firstname;
         session.user.lastname = token.lastname;
-        session.user.role = token.role;
-        session.user.user_image = token.user_image as string | undefined;
         session.user.status = token.status;
         session.user.created_at = token.created_at;
         session.user.updated_at = token.updated_at;
       }
       return session;
     },
-  },
-  pages: {
-    signIn: "/login",
   },
 };
 

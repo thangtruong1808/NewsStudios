@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { getUsers, searchUsers, deleteUser } from "@/app/lib/actions/users";
 import { User } from "@/app/lib/definition";
 import {
@@ -13,6 +14,7 @@ import {
 export function useUsers() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
   const searchQuery = searchParams.get("query") || "";
   const currentPage = Number(searchParams.get("page")) || 1;
   const itemsPerPage = Number(searchParams.get("limit")) || 10;
@@ -25,9 +27,11 @@ export function useUsers() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasUsers, setHasUsers] = useState(false);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
+  const fetchUsers = async () => {
+    try {
       setIsLoading(true);
       const result = searchQuery
         ? await searchUsers(searchQuery, {
@@ -43,15 +47,30 @@ export function useUsers() {
             sortDirection,
           });
 
-      if (!result.error) {
-        setUsers(result.data || []);
-        if ("totalItems" in result) {
-          setTotalItems(result.totalItems);
-        }
+      if (result.error) {
+        showErrorToast({ message: result.error });
+        return;
       }
-      setIsLoading(false);
-    };
 
+      setUsers(result.data || []);
+      if ("totalItems" in result) {
+        setTotalItems(result.totalItems);
+      }
+      if ("totalPages" in result) {
+        setTotalPages(result.totalPages);
+      }
+      setHasUsers(result.data.length > 0);
+    } catch (error) {
+      showErrorToast({
+        message:
+          error instanceof Error ? error.message : "Failed to fetch users",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUsers();
   }, [searchQuery, currentPage, itemsPerPage, sortField, sortDirection]);
 
@@ -75,11 +94,17 @@ export function useUsers() {
   };
 
   const handleDelete = async (user: User) => {
+    // Check if the user is trying to delete themselves
+    const isSelfDeletion = session?.user?.id === user.id.toString();
+
+    const confirmMessage = isSelfDeletion
+      ? "You are about to delete your own account. This action cannot be undone. Are you sure you want to proceed?"
+      : "Are you sure you want to delete this user? This action cannot be undone.";
+
     const confirmPromise = new Promise<boolean>((resolve) => {
       showConfirmationToast({
         title: "Delete User",
-        message:
-          "Are you sure you want to delete this user? This action cannot be undone.",
+        message: confirmMessage,
         onConfirm: () => resolve(true),
         onCancel: () => resolve(false),
       });
@@ -90,34 +115,33 @@ export function useUsers() {
 
     setIsDeleting(true);
     try {
-      const { success, error } = await deleteUser(user.id);
-      if (success) {
-        const result = searchQuery
-          ? await searchUsers(searchQuery, {
-              page: currentPage,
-              limit: itemsPerPage,
-              sortField,
-              sortDirection,
-            })
-          : await getUsers({
-              page: currentPage,
-              limit: itemsPerPage,
-              sortField,
-              sortDirection,
-            });
+      const result = await deleteUser(user.id);
+      if (result.success) {
+        showSuccessToast({ message: "User deleted successfully" });
 
-        if (!result.error) {
-          setUsers(result.data || []);
-          if ("totalItems" in result) {
-            setTotalItems(result.totalItems);
+        if (isSelfDeletion) {
+          // If self-deletion, sign out and redirect to login
+          await signOut({
+            redirect: true,
+            callbackUrl: "/login",
+          });
+        } else {
+          // For other deletions, fetch updated data
+          await fetchUsers();
+
+          // If current page is empty after deletion, go to previous page
+          if (users.length === 1 && currentPage > 1) {
+            handlePageChange(currentPage - 1);
           }
         }
-        showSuccessToast({ message: "User deleted successfully" });
       } else {
-        showErrorToast({ message: error || "Failed to delete user" });
+        showErrorToast({ message: result.error || "Failed to delete user" });
       }
     } catch (error) {
-      showErrorToast({ message: "Failed to delete user" });
+      showErrorToast({
+        message:
+          error instanceof Error ? error.message : "Failed to delete user",
+      });
     } finally {
       setIsDeleting(false);
     }
@@ -126,12 +150,9 @@ export function useUsers() {
   const handleItemsPerPageChange = (limit: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("limit", limit.toString());
-    params.set("page", "1");
+    params.set("page", "1"); // Reset to first page when changing items per page
     router.push(`?${params.toString()}`);
   };
-
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const hasUsers = users.length > 0;
 
   return {
     users,

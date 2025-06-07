@@ -6,6 +6,7 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
+import { useSession } from "next-auth/react";
 
 /**
  * Props interface for UsersTable component
@@ -37,7 +38,7 @@ interface UsersTableProps {
  * - Expandable description content
  * - Status badges with color coding
  * - Formatted date displays
- * - Action buttons for edit and delete operations
+ * - Action buttons for edit and delete operations (admin only)
  */
 export default function UsersTable({
   users,
@@ -56,6 +57,9 @@ export default function UsersTable({
   onDelete,
   onItemsPerPageChange,
 }: UsersTableProps) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
   // Define table columns with their properties and custom render functions
   const columns: Column<User & { sequence?: number; actions?: never }>[] = [
     // Sequence number column for row numbering
@@ -173,31 +177,38 @@ export default function UsersTable({
         </div>
       ),
     },
-    // Actions column with Edit and Delete buttons
-    {
-      field: "actions",
-      label: "Actions",
-      sortable: false,
-      render: (_: unknown, user: User) => (
-        <div className="flex justify-start items-start space-x-2">
-          <button
-            onClick={() => onEdit(user)}
-            className="inline-flex items-center gap-1 rounded border border-blue-500 px-2 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-          >
-            <PencilIcon className="h-5 w-5" />
-            Edit
-          </button>
-          <button
-            onClick={() => onDelete(user)}
-            disabled={isDeleting}
-            className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
-          >
-            <TrashIcon className="h-5 w-5" />
-            Delete
-          </button>
-        </div>
-      ),
-    },
+    // Actions column with Edit and Delete buttons (only for admin)
+    ...(isAdmin
+      ? [
+          {
+            field: "actions" as keyof (User & {
+              sequence?: number;
+              actions?: never;
+            }),
+            label: "Actions",
+            sortable: false,
+            render: (_: unknown, user: User) => (
+              <div className="flex justify-start items-start space-x-2">
+                <button
+                  onClick={() => onEdit(user)}
+                  className="inline-flex items-center gap-1 rounded border border-blue-500 px-2 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+                >
+                  <PencilIcon className="h-5 w-5" />
+                  Edit
+                </button>
+                <button
+                  onClick={() => onDelete(user)}
+                  disabled={isDeleting}
+                  className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+                >
+                  <TrashIcon className="h-5 w-5" />
+                  Delete
+                </button>
+              </div>
+            ),
+          },
+        ]
+      : []),
   ];
 
   // Render the table component with all configured columns and data

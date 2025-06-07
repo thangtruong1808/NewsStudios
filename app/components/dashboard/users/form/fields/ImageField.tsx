@@ -80,7 +80,7 @@ export default function ImageField({
           <p className="text-sm font-medium text-gray-700">Preview:</p>
           <div className="mt-1 relative h-24 w-24 overflow-hidden rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center bg-gray-50">
             <PhotoIcon className="h-10 w-10 text-gray-500" />
-            <span className="text-xs text-gray-500 text-center ">
+            <span className="text-xs text-gray-500 text-center">
               No profile image selected
             </span>
           </div>

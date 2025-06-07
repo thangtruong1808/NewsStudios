@@ -2,6 +2,7 @@
 
 import { Column } from "./TableTypes";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useSession } from "next-auth/react";
 
 interface TableRowProps<T extends { id: number }> {
   item: T;
@@ -24,6 +25,9 @@ export default function TableRow<T extends { id: number }>({
   currentPage = 1,
   itemsPerPage = 10,
 }: TableRowProps<T>) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
   // Calculate sequence number
   const sequence =
     index !== undefined
@@ -50,7 +54,7 @@ export default function TableRow<T extends { id: number }>({
             : String(item[column.field as keyof T])}
         </td>
       ))}
-      {(onEdit || onDelete) && (
+      {isAdmin && (
         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
           <div className="flex justify-start space-x-2">
             {onEdit && (
