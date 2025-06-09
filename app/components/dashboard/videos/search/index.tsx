@@ -38,7 +38,7 @@ export default function VideosSearch({ onSearch }: VideosSearchProps) {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="peer block w-full rounded-lg border border-gray-200 py-[10px] pl-10 pr-10 ring-1 ring-inset ring-gray-400 text-sm outline-1 placeholder:text-gray-500"
-          placeholder="Search videos by title, description, or URL..."
+          placeholder="Search videos by article ID, title or description..."
         />
         {searchTerm && (
           <button

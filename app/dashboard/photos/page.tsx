@@ -46,7 +46,7 @@ export default function PhotosPage() {
       <div className="my-6">
         <div className="w-full">
           <SearchWrapper
-            placeholder="Search by photo description or article title..."
+            placeholder="Search by photo description or article ID, title..."
             onSearch={handleSearch}
           />
         </div>

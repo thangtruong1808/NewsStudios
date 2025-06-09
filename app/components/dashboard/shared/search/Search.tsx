@@ -2,7 +2,7 @@
 
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 
 interface SearchProps {
   placeholder: string;
@@ -37,6 +37,7 @@ const Search = ({ placeholder, onSearch, defaultValue = "" }: SearchProps) => {
   const { replace } = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const isFirstRender = useRef(true);
+  const [searchValue, setSearchValue] = useState(defaultValue);
 
   // Get the current search query from the URL
   const currentQuery = searchParams.get("query")?.toString() || defaultValue;
@@ -45,6 +46,7 @@ const Search = ({ placeholder, onSearch, defaultValue = "" }: SearchProps) => {
   useEffect(() => {
     if (!isFirstRender.current && inputRef.current) {
       inputRef.current.value = currentQuery;
+      setSearchValue(currentQuery);
     }
     isFirstRender.current = false;
   }, [currentQuery]);
@@ -70,6 +72,7 @@ const Search = ({ placeholder, onSearch, defaultValue = "" }: SearchProps) => {
   }, 300);
 
   const handleSearch = (term: string) => {
+    setSearchValue(term);
     debouncedSearch(term);
   };
 
@@ -77,6 +80,7 @@ const Search = ({ placeholder, onSearch, defaultValue = "" }: SearchProps) => {
     if (inputRef.current) {
       inputRef.current.value = "";
     }
+    setSearchValue("");
     if (onSearch) {
       onSearch(""); // Call onSearch with empty string to trigger data refresh
     } else {
@@ -97,7 +101,7 @@ const Search = ({ placeholder, onSearch, defaultValue = "" }: SearchProps) => {
         defaultValue={currentQuery}
       />
       <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
-      {currentQuery && (
+      {searchValue && (
         <button
           type="button"
           onClick={handleClear}

@@ -297,7 +297,7 @@ export async function searchVideos(searchQuery: string) {
       `SELECT v.*, a.title as article_title 
        FROM Videos v
        LEFT JOIN Articles a ON v.article_id = a.id
-       WHERE a.title LIKE ? OR v.description LIKE ? OR v.video_url LIKE ?
+       WHERE a.id LIKE ? OR a.title LIKE ? OR v.description LIKE ?
        ORDER BY v.created_at DESC`,
       [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
     );
