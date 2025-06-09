@@ -5,6 +5,7 @@ import { Article } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import ExpandableTagList from "./ExpandableTagList";
+import { useSession } from "next-auth/react";
 
 /**
  * Interface for the column configuration props
@@ -30,7 +31,13 @@ export function getArticlesTableColumns({
 }: ArticlesTableColumnsProps): Column<
   Article & { sequence?: number; actions?: never }
 >[] {
-  return [
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
+  // Define base columns without actions
+  const baseColumns: Column<
+    Article & { sequence?: number; actions?: never }
+  >[] = [
     {
       field: "sequence",
       label: "#",
@@ -96,7 +103,7 @@ export function getArticlesTableColumns({
     {
       field: "tag_names",
       label: "Tags",
-      sortable: false,
+      sortable: true,
       render: (value, article) => (
         <div className="w-48">
           <ExpandableTagList
@@ -155,29 +162,38 @@ export function getArticlesTableColumns({
         </div>
       ),
     },
-    {
-      field: "actions",
-      label: "Actions",
-      sortable: false,
-      render: (_, article) => (
-        <div className="flex justify-start items-start space-x-2">
-          <button
-            onClick={() => onEdit(article)}
-            className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-          >
-            <PencilIcon className="h-4 w-4" />
-            Edit
-          </button>
-          <button
-            onClick={() => onDelete(article)}
-            disabled={isDeleting}
-            className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
-          >
-            <TrashIcon className="h-4 w-4" />
-            Delete
-          </button>
-        </div>
-      ),
-    },
   ];
+
+  // Add actions column only for admin users
+  const columns = isAdmin
+    ? [
+        ...baseColumns,
+        {
+          field: "actions" as keyof (Article & { sequence?: number }),
+          label: "Actions",
+          sortable: false,
+          render: (_: unknown, article: Article) => (
+            <div className="flex justify-start items-start space-x-2">
+              <button
+                onClick={() => onEdit(article)}
+                className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+              >
+                <PencilIcon className="h-4 w-4" />
+                Edit
+              </button>
+              <button
+                onClick={() => onDelete(article)}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+              >
+                <TrashIcon className="h-4 w-4" />
+                Delete
+              </button>
+            </div>
+          ),
+        },
+      ]
+    : baseColumns;
+
+  return columns;
 }

@@ -3,6 +3,16 @@
 import { Article, Image } from "@/app/lib/definition";
 import { ArrowPathIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const photoSchema = z.object({
+  description: z.string().min(1, "Description is required"),
+  articleId: z.string().optional(),
+});
+
+type PhotoFormData = z.infer<typeof photoSchema>;
 
 /**
  * Props interface for PhotoForm component
@@ -16,6 +26,7 @@ interface PhotoFormProps {
   selectedFile: File | null;
   previewUrl: string | null;
   formValues: {
+    file: File | null;
     description: string;
     articleId: string;
   };
@@ -36,7 +47,7 @@ interface PhotoFormProps {
  * PhotoForm Component
  * Form component for creating and editing photos
  */
-export function PhotoForm({
+export default function PhotoForm({
   articles,
   image,
   isSubmitting,
@@ -56,24 +67,23 @@ export function PhotoForm({
   const router = useRouter();
   const isEditMode = !!image;
 
+  const {
+    register,
+    formState: { errors },
+  } = useForm<PhotoFormData>({
+    resolver: zodResolver(photoSchema),
+    defaultValues: {
+      description: formValues.description,
+      articleId: formValues.articleId,
+    },
+  });
+
   const handleCancel = () => {
     router.push("/dashboard/photos");
   };
 
   return (
     <form onSubmit={onSubmit} className="space-y-8">
-      {/* Form Header */}
-      <div className="border-b border-gray-900/10 pb-8">
-        <h2 className="text-base font-semibold leading-7 text-gray-900">
-          {isEditMode ? "Edit Photo" : "Create New Photo"}
-        </h2>
-        <p className="mt-1 text-sm leading-6 text-gray-600">
-          {isEditMode
-            ? "Update photo details and associated article"
-            : "Upload a new photo and associate it with an article"}
-        </p>
-      </div>
-
       {/* Image Upload Section */}
       <div className="col-span-full">
         <label
@@ -140,7 +150,6 @@ export function PhotoForm({
                 <span>Upload a file</span>
                 <input
                   id="file"
-                  name="file"
                   type="file"
                   accept="image/*"
                   className="sr-only"
@@ -169,29 +178,32 @@ export function PhotoForm({
           <div className="mt-2">
             <textarea
               id="description"
-              name="description"
-              rows={3}
-              value={formValues?.description || ""}
+              rows={5}
+              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-2"
+              {...register("description")}
               onChange={onInputChange}
-              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             />
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.description.message}
+              </p>
+            )}
           </div>
         </div>
 
         <div className="col-span-full">
           <label
-            htmlFor="article_id"
+            htmlFor="articleId"
             className="block text-sm font-medium leading-6 text-gray-900"
           >
             Associated Article
           </label>
           <div className="mt-2">
             <select
-              id="article_id"
-              name="article_id"
-              value={formValues?.articleId || ""}
+              id="articleId"
+              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-2"
+              {...register("articleId")}
               onChange={onInputChange}
-              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             >
               <option value="">Select an article (optional)</option>
               {articles?.map((article) => (

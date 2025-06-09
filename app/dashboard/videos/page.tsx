@@ -65,49 +65,17 @@ export default function VideosPage() {
         setIsLoading(true);
       }
       try {
-        console.log("Fetching videos with params:", {
-          currentPage,
-          itemsPerPage,
+        const result = await getVideos({
+          page: currentPage,
+          limit: itemsPerPage,
+          sortField: "createdAt",
+          sortDirection: "desc",
           searchQuery,
         });
 
-        // Use searchVideos if search query exists, otherwise use getVideos with pagination
-        const result = searchQuery
-          ? await searchVideos(searchQuery)
-          : await getVideos(currentPage, itemsPerPage);
-
-        console.log("Received result:", {
-          hasError: !!result.error,
-          dataLength: result.data?.length,
-          firstItem: result.data?.[0],
-          totalItems: (result as VideoResult).totalItems,
-        });
-
-        if (result.error) {
-          showErrorToast({ message: result.error });
-          if (currentPage === 1) {
-            setVideos([]);
-            setTotalItems(0);
-          }
-          setHasMore(false);
-          return;
-        }
-
-        // Update videos list based on pagination
-        if (result.data && (result.data.length > 0 || currentPage === 1)) {
-          if (currentPage === 1) {
-            setVideos(result.data);
-          } else {
-            setVideos((prev) => [...prev, ...result.data!]);
-          }
-          // For search results, use the length of the data array as totalItems
-          const totalItems =
-            (result as VideoResult).totalItems || result.data.length;
-          setTotalItems(totalItems);
-          setHasMore(totalItems > currentPage * itemsPerPage);
-        } else {
-          setHasMore(false);
-        }
+        setVideos(result.videos);
+        setTotalItems(result.totalItems);
+        setHasMore(result.totalItems > currentPage * itemsPerPage);
       } catch (error) {
         console.error("Error fetching videos:", error);
         showErrorToast({ message: "Failed to fetch videos" });

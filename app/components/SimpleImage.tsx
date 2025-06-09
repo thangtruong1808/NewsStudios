@@ -36,83 +36,39 @@ const SimpleImage: React.FC<SimpleImageProps> = ({
   const [iframeKey, setIframeKey] = useState<number>(0);
 
   useEffect(() => {
-    setLoading(true);
-    setError(false);
-    setDebugInfo("");
-    setIframeKey((prev) => prev + 1);
+    const processImage = async () => {
+      try {
+        if (!src) {
+          setError("No image source provided");
+          return;
+        }
 
-    try {
-      console.log("SimpleImage: Processing source:", src);
+        if (isCloudinaryUrl(src)) {
+          const shouldUseProxy = useProxy && !isBase64Url(src);
+          if (shouldUseProxy) {
+            const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(src)}`;
+            setImgSrc(proxyUrl);
+            return;
+          }
+          setImgSrc(src);
+          return;
+        }
 
-      // Check if it's a Cloudinary URL
-      if (isCloudinaryUrl(src)) {
-        console.log("SimpleImage: Detected Cloudinary URL");
-        setImgSrc(src);
-        setDebugInfo(`Using Cloudinary URL: ${src}`);
-        return;
-      }
+        if (isBase64Url(src)) {
+          const base64Url = `/api/base64-image?data=${encodeURIComponent(src)}`;
+          setImgSrc(base64Url);
+          return;
+        }
 
-      // Determine if we should use the proxy
-      const shouldUseProxy = useProxy && isExternalUrl(src);
-      console.log("SimpleImage: Should use proxy:", shouldUseProxy);
-
-      if (shouldUseProxy) {
-        // For external URLs, use the proxy API
-        const encodedUrl = encodeURIComponent(src);
-        const proxyUrl = `/api/proxy-image?url=${encodedUrl}`;
-        console.log("SimpleImage: Using proxy URL:", proxyUrl);
-        setImgSrc(proxyUrl);
-        setDebugInfo(`Using proxy for external URL: ${src}`);
-      } else if (useBase64 && isExternalUrl(src)) {
-        // For external URLs, use the image-to-base64 API
-        const encodedUrl = encodeURIComponent(src);
-        const base64Url = `/api/image-to-base64?url=${encodedUrl}`;
-        console.log("SimpleImage: Using base64 API URL:", base64Url);
-
-        // Fetch the base64 data
-        fetch(base64Url)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.error) {
-              throw new Error(data.error);
-            }
-            console.log("SimpleImage: Received base64 data");
-            setImgSrc(data.dataUrl);
-            setDebugInfo(`Using base64 data for URL: ${src}`);
-            setLoading(false);
-          })
-          .catch((err) => {
-            console.error("SimpleImage: Error fetching base64 data:", err);
-            setError(true);
-            setImgSrc(placeholderImage);
-            setDebugInfo(`Error: ${err.message}`);
-            setLoading(false);
-          });
-
-        // Set a temporary placeholder while loading
-        setImgSrc(placeholderImage);
-        setDebugInfo(`Loading base64 data for URL: ${src}`);
-      } else {
-        // For local paths or when proxy is disabled, use constructImageUrl
         const constructedUrl = constructImageUrl(src);
-        console.log("SimpleImage: Using constructed URL:", constructedUrl);
         setImgSrc(constructedUrl);
-        setDebugInfo(`Using direct URL: ${constructedUrl}`);
+      } catch (error) {
+        setError("Error processing image");
       }
-    } catch (err) {
-      console.error("SimpleImage: Error processing image source:", err);
-      setError(true);
-      setImgSrc(placeholderImage);
-      setDebugInfo(
-        `Error: ${err instanceof Error ? err.message : "Unknown error"}`
-      );
-    }
-  }, [src, useProxy, useBase64]);
+    };
+
+    processImage();
+  }, [src, useProxy]);
 
   const handleError = () => {
     console.error("SimpleImage: Error loading image:", imgSrc);

@@ -40,16 +40,10 @@ export default function ImageCleanupHandler({
     try {
       setIsCleaning(true);
       cleanupAttempted.current = true;
-      console.log("Starting cleanup for image:", previousImageUrl);
 
       const publicId = getPublicIdFromUrl(previousImageUrl);
-      console.log("Extracted public ID:", publicId);
 
       if (!publicId) {
-        console.error(
-          "Failed to extract public ID from URL:",
-          previousImageUrl
-        );
         if (isMounted.current) {
           showErrorToast({ message: "Failed to extract image ID for cleanup" });
         }
@@ -57,12 +51,9 @@ export default function ImageCleanupHandler({
         return;
       }
 
-      console.log("Attempting to delete image with public ID:", publicId);
       const result = await deleteImage(publicId);
-      console.log("Delete result:", result);
 
       if (!result.success) {
-        console.error("Failed to delete image:", result.error);
         if (isMounted.current) {
           showErrorToast({ message: "Failed to clean up old image" });
         }
@@ -70,13 +61,10 @@ export default function ImageCleanupHandler({
         return;
       }
 
-      console.log("Successfully cleaned up old image");
-      // Only call onCleanupComplete if component is still mounted
       if (isMounted.current) {
         onCleanupComplete();
       }
     } catch (error) {
-      console.error("Error during cleanup:", error);
       if (isMounted.current) {
         showErrorToast({ message: "Failed to clean up old image" });
       }
@@ -91,7 +79,6 @@ export default function ImageCleanupHandler({
   // Automatically trigger cleanup when component mounts
   useEffect(() => {
     if (previousImageUrl && !isCleaning && !cleanupAttempted.current) {
-      console.log("Triggering cleanup for image:", previousImageUrl);
       cleanupImage();
     }
   }, [previousImageUrl, isCleaning, cleanupImage]);

@@ -94,7 +94,7 @@ export default function VideoForm({ video, mode, articles }: VideoFormProps) {
         return;
       }
 
-      let videoUrl = formData.video_url || "";
+      let videoUrl = formData.video_url;
 
       // If there's a new file selected, upload it to Cloudinary
       if (selectedFile) {
@@ -102,7 +102,7 @@ export default function VideoForm({ video, mode, articles }: VideoFormProps) {
         if (!result.success || !result.url) {
           throw new Error(result.error || "Failed to upload video");
         }
-        videoUrl = result.url.secure_url;
+        videoUrl = result.url;
 
         // Clean up old video if in edit mode
         if (mode === "edit" && video?.video_url) {
@@ -110,20 +110,27 @@ export default function VideoForm({ video, mode, articles }: VideoFormProps) {
         }
       }
 
+      if (!videoUrl) {
+        throw new Error("Video URL is required");
+      }
+
       if (mode === "create") {
         // For create, we need to provide all required fields
         const createData = {
-          article_id: formData.article_id!,
-          video_url: videoUrl!,
+          article_id: formData.article_id,
+          video_url: videoUrl,
           description: formData.description || undefined,
         };
-        await createVideo(createData);
+        const result = await createVideo(createData);
+        if (!result.success) {
+          throw new Error(result.error || "Failed to create video");
+        }
         showSuccessToast({ message: "Video created successfully" });
       } else if (video?.id) {
         // For update, we can provide partial data
         const updateData = {
-          article_id: formData.article_id!,
-          video_url: videoUrl!,
+          article_id: formData.article_id,
+          video_url: videoUrl,
           description: formData.description || undefined,
         };
         await updateVideo(video.id, updateData);

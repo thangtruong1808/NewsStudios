@@ -3,22 +3,26 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { Article, Image } from "@/app/lib/definition";
-import { uploadImageToServer, updateImage } from "@/app/lib/actions/images";
+import { createImage, updateImage } from "@/app/lib/actions/images";
 import {
   showSuccessToast,
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 import ImageCleanupHandler from "./ImageCleanupHandler";
-import { PhotoForm } from "./PhotoForm";
+import PhotoForm from "./PhotoForm";
+import { PhotoIcon } from "@heroicons/react/24/outline";
+import { uploadToCloudinary } from "@/app/lib/utils/cloudinaryUtils";
 
 /**
  * Props interface for PhotoFormContainer component
  * @property articles - List of available articles for photo association
  * @property image - Optional image data for edit mode
+ * @property mode - The mode of the form ("create" or "edit")
  */
 interface PhotoFormContainerProps {
   articles: Article[];
   image?: Image;
+  mode: "create" | "edit";
 }
 
 /**
@@ -28,6 +32,7 @@ interface PhotoFormContainerProps {
 export default function PhotoFormContainer({
   articles,
   image,
+  mode,
 }: PhotoFormContainerProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,171 +40,121 @@ export default function PhotoFormContainer({
   const [isImageProcessing, setIsImageProcessing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previousImageUrl, setPreviousImageUrl] = useState<string | null>(null);
+  const [isCleanupComplete, setIsCleanupComplete] = useState(true);
   const [formValues, setFormValues] = useState({
-    file: "",
+    file: null as File | null,
     description: image?.description || "",
     articleId: image?.article_id?.toString() || "",
   });
-  const [previousImageUrl, setPreviousImageUrl] = useState<string | null>(null);
-  const [isCleanupComplete, setIsCleanupComplete] = useState(false);
-  const [isImageAvailable, setIsImageAvailable] = useState(true);
 
-  // Determine if component is in edit mode
-  const isEditMode = !!image;
+  // Check if form is empty
+  const isFormEmpty = !formValues.file && !image?.image_url;
 
-  // Check if form is empty (required for create mode)
-  const isFormEmpty = !selectedFile;
+  // Check if image is available
+  const isImageAvailable = !!image?.image_url;
 
-  // Check if the current image is available
+  // Debug log for initial form values
   useEffect(() => {
-    const checkImageAvailability = async () => {
-      if (isEditMode && image?.image_url) {
-        try {
-          const img = new Image();
-          const imageLoadPromise = new Promise((resolve, reject) => {
-            img.onload = () => resolve(true);
-            img.onerror = () => reject(new Error("Image failed to load"));
-            setTimeout(() => reject(new Error("Image load timeout")), 5000);
-          });
-
-          img.src = image.image_url;
-          await imageLoadPromise;
-          setIsImageAvailable(true);
-        } catch (error) {
-          console.log("Image not available:", error);
-          setIsImageAvailable(false);
-        }
-      }
-    };
-
-    checkImageAvailability();
-  }, [isEditMode, image?.image_url]);
-
-  // Cleanup preview URL when component unmounts
-  useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl]);
-
-  // Set previous image URL when in edit mode
-  useEffect(() => {
-    if (isEditMode && image?.image_url) {
-      setPreviousImageUrl(image.image_url);
-    }
-  }, [isEditMode, image?.image_url]);
+    console.log("Initial form values:", formValues);
+  }, []);
 
   // Update form values when image changes
   useEffect(() => {
     if (image) {
-      setFormValues((prev) => ({
-        ...prev,
+      setFormValues({
         description: image.description || "",
         articleId: image.article_id?.toString() || "",
-      }));
+        file: null,
+      });
     }
   }, [image]);
-
-  // Handle cleanup completion
-  const handleCleanupComplete = useCallback(() => {
-    setIsCleanupComplete(true);
-    setPreviousImageUrl(null);
-  }, []);
 
   /**
    * Form submission handler
    * Processes form data for both create and edit modes
    */
-  const handleSubmit = async (e: React.FormEvent<Element>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const formData = new FormData(form);
+    setIsSubmitting(true);
 
     try {
-      setIsSubmitting(true);
+      // Validate required fields
+      if (!formValues.description) {
+        showErrorToast({ message: "Please provide a description" });
+        return;
+      }
 
-      if (isEditMode && image) {
-        // If a new file is selected, upload it first
-        let imageUrl = image.image_url;
-        if (selectedFile) {
-          const uploadFormData = new FormData();
-          uploadFormData.append("file", selectedFile);
-          uploadFormData.append(
-            "description",
-            formData.get("description") as string
-          );
-          uploadFormData.append(
-            "article_id",
-            formData.get("article_id") as string
-          );
+      if (mode === "create" && !selectedFile) {
+        showErrorToast({ message: "Please select an image file" });
+        return;
+      }
 
-          const uploadResult = await uploadImageToServer(
-            uploadFormData,
-            true,
-            image.id
-          );
+      let imageUrl = image?.image_url;
 
-          if (uploadResult.error || !uploadResult.url) {
-            throw new Error(uploadResult.error || "Failed to upload image");
-          }
+      // If there's a new file selected, upload it to Cloudinary
+      if (selectedFile) {
+        const result = await uploadToCloudinary(selectedFile, "image");
+        if (!result.success || !result.url) {
+          throw new Error(result.error || "Failed to upload image");
+        }
+        imageUrl = result.url;
 
-          // Set the new image URL and trigger cleanup of the old one
-          imageUrl = uploadResult.url;
+        // Store previous image URL for cleanup
+        if (mode === "edit" && image?.image_url) {
           setPreviousImageUrl(image.image_url);
           setIsCleanupComplete(false);
         }
+      }
 
-        const articleId = formData.get("article_id")
-          ? parseInt(formData.get("article_id") as string)
-          : undefined;
+      if (!imageUrl) {
+        throw new Error("Image URL is required");
+      }
 
-        // Update the image record
-        const updateResult = await updateImage(image.id, {
+      const entityId = formValues.articleId
+        ? parseInt(formValues.articleId)
+        : 0;
+
+      if (mode === "create") {
+        const result = await createImage({
           image_url: imageUrl,
-          description: formData.get("description") as string,
+          description: formValues.description,
           type: "gallery",
-          entity_type: articleId ? "article" : image.entity_type,
-          entity_id: articleId || image.entity_id,
+          entity_type: "article",
+          entity_id: entityId,
           is_featured: false,
           display_order: 0,
+          article_id: formValues.articleId
+            ? parseInt(formValues.articleId)
+            : null,
         });
 
-        if (!updateResult.success) {
-          throw new Error(
-            updateResult.error || "Failed to update photo record"
-          );
+        if (!result.success) {
+          throw new Error(result.error || "Failed to create photo");
         }
-
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        showSuccessToast({ message: "Photo updated successfully" });
-        router.refresh();
-        router.push("/dashboard/photos");
-      } else {
-        const result = await uploadImageToServer(formData);
-
-        if (result.error || !result.url) {
-          throw new Error(result.error || "Failed to upload image");
-        }
-
         showSuccessToast({ message: "Photo created successfully" });
-        router.refresh();
-        router.push("/dashboard/photos");
+      } else if (image?.id) {
+        await updateImage(image.id, {
+          image_url: imageUrl,
+          description: formValues.description,
+          type: "gallery",
+          entity_type: "article",
+          entity_id: entityId,
+          is_featured: false,
+          display_order: 0,
+          article_id: formValues.articleId
+            ? parseInt(formValues.articleId)
+            : null,
+        });
+        showSuccessToast({ message: "Photo updated successfully" });
       }
+
+      router.push("/dashboard/photos");
+      router.refresh();
     } catch (error) {
-      console.error(
-        `Error ${isEditMode ? "updating" : "creating"} photo:`,
-        error
-      );
+      console.error("Error submitting form:", error);
       showErrorToast({
-        message:
-          error instanceof Error
-            ? error.message
-            : isEditMode
-            ? "Failed to update photo"
-            : "Failed to create photo",
+        message: error instanceof Error ? error.message : "An error occurred",
       });
     } finally {
       setIsSubmitting(false);
@@ -224,12 +179,47 @@ export default function PhotoFormContainer({
   /**
    * File change handler
    */
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
+    if (!file) return;
+
+    setIsImageProcessing(true);
+    setUploadProgress(0);
+
+    try {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Please select an image file");
+      }
+
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error("Image size should be less than 10MB");
+      }
+
+      // Create preview URL
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+
+      // Update form values
+      setFormValues((prev) => ({
+        ...prev,
+        file,
+      }));
+
+      setSelectedFile(file);
+      showSuccessToast({ message: "Image selected successfully" });
+    } catch (error) {
+      console.error("Error processing image:", error);
+      showErrorToast({
+        message:
+          error instanceof Error ? error.message : "Failed to process image",
+      });
+      setSelectedFile(null);
+      setPreviewUrl(null);
+    } finally {
+      setIsImageProcessing(false);
+      setUploadProgress(0);
     }
   };
 
@@ -239,35 +229,55 @@ export default function PhotoFormContainer({
   const handleClearFile = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
+    setFormValues((prev) => ({
+      ...prev,
+      file: null,
+    }));
   };
 
   return (
-    <div className="w-full">
-      <PhotoForm
-        articles={articles}
-        image={image}
-        isSubmitting={isSubmitting}
-        uploadProgress={uploadProgress}
-        isImageProcessing={isImageProcessing}
-        selectedFile={selectedFile}
-        previewUrl={previewUrl}
-        formValues={formValues}
-        isFormEmpty={isFormEmpty}
-        isImageAvailable={isImageAvailable}
-        onInputChange={handleInputChange}
-        onFileChange={handleFileChange}
-        onClearFile={handleClearFile}
-        onSubmit={handleSubmit}
-        onCancel={() => router.push("/dashboard/photos")}
-      />
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      {/* Form header with gradient background */}
+      <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
+        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+          <PhotoIcon className="h-8 w-8" />
+          {mode === "create" ? "Create New Photo" : "Edit Photo"}
+        </h2>
+        <p className="mt-1 text-sm text-white/80">
+          {mode === "edit"
+            ? "Update the photo's information below."
+            : "Fill in the photo's information below."}
+        </p>
+      </div>
+
+      {/* Main form content */}
+      <div className="p-6">
+        <p className="text-xs mb-6">
+          Fields marked with an asterisk (*) are required
+        </p>
+        <PhotoForm
+          articles={articles}
+          image={image}
+          isSubmitting={isSubmitting}
+          uploadProgress={uploadProgress}
+          isImageProcessing={isImageProcessing}
+          selectedFile={selectedFile}
+          previewUrl={previewUrl}
+          formValues={formValues}
+          isFormEmpty={isFormEmpty}
+          isImageAvailable={isImageAvailable}
+          onInputChange={handleInputChange}
+          onFileChange={handleFileChange}
+          onClearFile={handleClearFile}
+          onSubmit={handleSubmit}
+          onCancel={() => router.push("/dashboard/photos")}
+        />
+      </div>
 
       {previousImageUrl && !isCleanupComplete && (
         <ImageCleanupHandler
           previousImageUrl={previousImageUrl}
-          onCleanupComplete={handleCleanupComplete}
+          onCleanupComplete={() => setIsCleanupComplete(true)}
         />
       )}
     </div>

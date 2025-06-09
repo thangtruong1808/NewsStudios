@@ -18,129 +18,28 @@ interface ImageRow extends RowDataPacket {
 }
 
 // Function to upload image to server and get the URL
-export async function uploadImageToServer(
-  formData: FormData,
-  isUpdate: boolean = false,
-  existingImageId?: number
-) {
+export async function uploadImageToServer(file: File) {
   try {
-    const file = formData.get("file") as File;
-    const article_id = formData.get("article_id");
-    const description = formData.get("description");
-
     if (!file) {
-      return { error: "No file provided" };
+      throw new Error("No file provided");
     }
 
-    // Log file details for debugging
-    console.log("File details for upload:", {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      article_id: article_id,
-      description: description,
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
     });
 
-    // Check if file is valid
-    if (!file.type.startsWith("image/")) {
-      return { error: "File must be an image" };
+    if (!response.ok) {
+      throw new Error("Failed to upload image");
     }
 
-    // Check file size (limit to 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      return { error: "File size must be less than 10MB" };
-    }
-
-    // Use transaction to handle both upload and database insert/update
-    const result = await transaction(async (connection) => {
-      // Upload to Cloudinary
-      console.log("Uploading image to Cloudinary...");
-      const uploadResult = await uploadImageToCloudinary(
-        file,
-        "newshub_photos"
-      );
-
-      if (!uploadResult.success || !uploadResult.url) {
-        throw new Error(
-          uploadResult.error || "Failed to upload image to Cloudinary"
-        );
-      }
-
-      if (isUpdate && existingImageId) {
-        // Update existing record
-        const [rows] = await connection.execute(
-          `UPDATE Images 
-           SET image_url = ?,
-               description = ?,
-               type = ?,
-               entity_type = ?,
-               entity_id = ?,
-               article_id = ?,
-               is_featured = ?,
-               display_order = ?,
-               updated_at = NOW()
-           WHERE id = ?`,
-          [
-            uploadResult.url,
-            description || null,
-            "gallery",
-            "article",
-            article_id ? parseInt(article_id.toString(), 10) : 0,
-            article_id ? parseInt(article_id.toString(), 10) : null,
-            false,
-            0,
-            existingImageId,
-          ]
-        );
-        return {
-          success: true,
-          url: uploadResult.url,
-          id: existingImageId,
-        };
-      } else {
-        // Insert new record
-        const [rows] = await connection.execute(
-          `INSERT INTO Images (
-            image_url,
-            description,
-            type,
-            entity_type,
-            entity_id,
-            article_id,
-            is_featured,
-            display_order,
-            created_at,
-            updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-          [
-            uploadResult.url,
-            description || null,
-            "gallery",
-            "article",
-            article_id ? parseInt(article_id.toString(), 10) : 0,
-            article_id ? parseInt(article_id.toString(), 10) : null,
-            false,
-            0,
-          ]
-        );
-        return {
-          success: true,
-          url: uploadResult.url,
-          id: (rows as any).insertId,
-        };
-      }
-    });
-
-    if (!result.success) {
-      return { error: "Failed to process image" };
-    }
-
-    return { url: result.url };
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error("Error uploading image:", error);
-    return {
-      error: error instanceof Error ? error.message : "Failed to upload image",
-    };
+    throw error;
   }
 }
 
@@ -153,6 +52,7 @@ export async function createImage(data: {
   entity_id: number;
   is_featured?: boolean;
   display_order?: number;
+  article_id?: number | null;
 }) {
   try {
     const result = await transaction(async (connection) => {
@@ -163,17 +63,19 @@ export async function createImage(data: {
           type,
           entity_type,
           entity_id,
+          article_id,
           is_featured,
           display_order,
           created_at,
           updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
         [
           data.image_url,
           data.description || null,
           data.type,
           data.entity_type,
           data.entity_id,
+          data.article_id || null,
           data.is_featured || false,
           data.display_order || 0,
         ]
@@ -190,129 +92,63 @@ export async function createImage(data: {
 }
 
 // Function to get all images
-export async function getImages(
-  page: number = 1,
-  limit: number = 12,
-  searchQuery: string = ""
-) {
+export async function getImages({
+  page = 1,
+  limit = 10,
+  sortField = "created_at",
+  sortDirection = "desc",
+  searchQuery = "",
+}: {
+  page?: number;
+  limit?: number;
+  sortField?: string;
+  sortDirection?: "asc" | "desc";
+  searchQuery?: string;
+}) {
   try {
-    // Build the query with search
-    let queryStr = `
-      SELECT 
-        i.id,
-        i.article_id,
-        i.image_url,
-        i.description,
-        i.type,
-        i.entity_type,
-        i.entity_id,
-        i.is_featured,
-        i.display_order,
-        i.created_at,
-        i.updated_at,
-        a.title as article_title,
-        a.slug as article_slug,
-        COUNT(*) OVER() as total_count
+    const offset = (page - 1) * limit;
+    let query = `
+      SELECT i.*, a.title as article_title, c.name as category_name
       FROM Images i
       LEFT JOIN Articles a ON i.article_id = a.id
-      WHERE 1=1
+      LEFT JOIN Categories c ON i.category_id = c.id
     `;
+
     const queryParams: any[] = [];
 
     if (searchQuery) {
-      queryStr += ` AND (
-        i.description LIKE ? OR
-        a.title LIKE ?
-      )`;
-      queryParams.push(`%${searchQuery}%`, `%${searchQuery}%`);
+      query += `
+        WHERE i.description LIKE ? 
+        OR a.title LIKE ? 
+        OR c.name LIKE ?
+      `;
+      const searchParam = `%${searchQuery}%`;
+      queryParams.push(searchParam, searchParam, searchParam);
     }
 
-    // Add pagination
-    const offset = (page - 1) * limit;
-    queryStr += ` ORDER BY i.created_at DESC LIMIT ? OFFSET ?`;
+    query += `
+      ORDER BY i.${sortField} ${sortDirection}
+      LIMIT ? OFFSET ?
+    `;
     queryParams.push(limit, offset);
 
-    console.log("Executing query:", {
-      query: queryStr,
-      params: queryParams,
-    });
+    const [rows] = await pool.query(query, queryParams);
+    const [totalRows] = await pool.query(
+      "SELECT COUNT(*) as total FROM Images" +
+        (searchQuery ? " WHERE description LIKE ?" : ""),
+      searchQuery ? [`%${searchQuery}%`] : []
+    );
 
-    const result = await query(queryStr, queryParams);
-    console.log("Raw query result:", {
-      success: !result.error,
-      dataLength: result.data?.length,
-      firstItem: result.data?.[0],
-      error: result.error,
-    });
-
-    if (result.error) {
-      console.error("Database error:", result.error);
-      return {
-        data: [],
-        error: result.error,
-        pagination: {
-          total: 0,
-          totalPages: 0,
-          currentPage: page,
-          itemsPerPage: limit,
-        },
-      };
-    }
-
-    // Get total count from the first row
-    const total = result.data?.[0]?.total_count || 0;
-    console.log("Total count from query:", total);
-
-    // Process images to ensure they have proper URLs
-    const processedImages = result.data?.map((img: any) => {
-      // Ensure image_url is a full URL
-      if (img.image_url && !img.image_url.startsWith("http")) {
-        img.image_url = `${process.env.NEXT_PUBLIC_API_URL}${img.image_url}`;
-      }
-      return {
-        id: img.id,
-        article_id: img.article_id,
-        image_url: img.image_url,
-        description: img.description,
-        type: img.type,
-        entity_type: img.entity_type,
-        entity_id: img.entity_id,
-        is_featured: img.is_featured,
-        display_order: img.display_order,
-        created_at: img.created_at,
-        updated_at: img.updated_at,
-        article_title: img.article_title,
-        article_slug: img.article_slug,
-      };
-    });
-
-    console.log("Final processed images:", {
-      count: processedImages?.length,
-      firstImage: processedImages?.[0],
-    });
+    const total = (totalRows as any[])[0].total;
+    const totalPages = Math.ceil(total / limit);
 
     return {
-      data: processedImages || [],
-      error: null,
-      pagination: {
-        total,
-        totalPages: Math.ceil(total / limit),
-        currentPage: page,
-        itemsPerPage: limit,
-      },
+      images: rows,
+      totalPages,
+      totalItems: total,
     };
   } catch (error) {
-    console.error("Error in getImages:", error);
-    return {
-      data: [],
-      error: error instanceof Error ? error.message : "Failed to fetch images",
-      pagination: {
-        total: 0,
-        totalPages: 0,
-        currentPage: page,
-        itemsPerPage: limit,
-      },
-    };
+    throw error;
   }
 }
 

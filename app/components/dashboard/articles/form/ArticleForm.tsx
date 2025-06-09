@@ -69,6 +69,7 @@ export default function ArticleForm({
     handleTagChange,
     handleFileUpload,
     handleCategoryChange,
+    handleRemoveMedia,
     onSubmit,
     isFormEmpty,
     isEditMode,
@@ -134,6 +135,7 @@ export default function ArticleForm({
               videoUrl={videoUrl}
               uploadProgress={uploadProgress}
               onFileUpload={handleFileUpload}
+              onRemoveMedia={handleRemoveMedia}
             />
           )}
 

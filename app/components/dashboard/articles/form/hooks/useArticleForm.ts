@@ -174,6 +174,19 @@ export function useArticleForm({
     }
   };
 
+  const handleRemoveMedia = (type: "image" | "video") => {
+    if (type === "image") {
+      setImageUrl(null);
+      setSelectedImageFile(null);
+      setValue("image", undefined);
+    } else {
+      setVideoUrl(null);
+      setSelectedVideoFile(null);
+      setValue("video", undefined);
+    }
+    toast.success(`${type} removed successfully`);
+  };
+
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const categoryId = e.target.value;
     setSelectedCategory(categoryId);
@@ -218,8 +231,8 @@ export function useArticleForm({
         author_id: data.author_id,
         user_id: data.user_id,
         sub_category_id: data.sub_category_id,
-        image: data.image || undefined,
-        video: data.video || undefined,
+        image: data.image,
+        video: data.video,
         is_featured: data.is_featured,
         headline_priority: data.headline_priority,
         is_trending: data.is_trending,
@@ -233,6 +246,13 @@ export function useArticleForm({
       };
 
       if (article?.id) {
+        // If media was removed, ensure it's passed as undefined
+        if (imageUrl === null) {
+          articleData.image = undefined;
+        }
+        if (videoUrl === null) {
+          articleData.video = undefined;
+        }
         await updateArticle(article.id, articleData, selectedTags);
         toast.success("Article updated successfully");
       } else {
@@ -272,6 +292,7 @@ export function useArticleForm({
     handleTagChange,
     handleFileUpload,
     handleCategoryChange,
+    handleRemoveMedia,
     onSubmit,
     isFormEmpty,
     isEditMode: !!article,

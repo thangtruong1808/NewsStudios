@@ -105,9 +105,16 @@ export async function getArticles(params?: {
   const totalItems = countData?.[0]?.total || 0;
 
   // Add sorting and pagination
+  let orderBy;
+  if (sortField === "tag_names") {
+    orderBy = `ORDER BY GROUP_CONCAT(t.name) ${sortDirection}`;
+  } else {
+    orderBy = `ORDER BY a.${sortField} ${sortDirection}`;
+  }
+
   sqlQuery += `
     GROUP BY a.id, c.name, sc.name, u.firstname, u.lastname
-    ORDER BY a.${sortField} ${sortDirection}
+    ${orderBy}
     LIMIT ? OFFSET ?
   `;
 
@@ -320,59 +327,151 @@ export async function updateArticle(
     );
 
     // Handle image update
-    if (article.image) {
-      // Get the previous main image URL from Articles table
-      const [previousImage] = await connection.execute(
+    if (article.image !== undefined) {
+      if (article.image) {
+        // Get the previous main image URL from Articles table
+        const [previousImage] = await connection.execute(
+          "SELECT image FROM Articles WHERE id = ?",
+          [id]
+        );
+        const previousImageUrl = (previousImage as any[])[0]?.image;
+
+        // Update the main article image in the Articles table
+        await connection.execute("UPDATE Articles SET image = ? WHERE id = ?", [
+          article.image,
+          id,
+        ]);
+
+        // Always insert the new main image as a new record in the Images table
+        await connection.execute(
+          "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
+          [id, article.image]
+        );
+
+        // If there was a previous main image, ensure it exists in the Images table
+        if (previousImageUrl) {
+          const [existingImage] = await connection.execute(
+            "SELECT id FROM Images WHERE article_id = ? AND image_url = ?",
+            [id, previousImageUrl]
+          );
+
+          // If the previous main image doesn't exist in the Images table, add it
+          if ((existingImage as any[]).length === 0) {
+            await connection.execute(
+              "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
+              [id, previousImageUrl]
+            );
+          }
+        }
+      } else {
+        // If image is undefined, null, or empty string, delete the image from both tables
+        // First get the current image URL
+        const [currentImage] = await connection.execute(
+          "SELECT image FROM Articles WHERE id = ?",
+          [id]
+        );
+        const currentImageUrl = (currentImage as any[])[0]?.image;
+
+        // Set the image field to NULL in Articles table
+        await connection.execute(
+          "UPDATE Articles SET image = NULL WHERE id = ?",
+          [id]
+        );
+
+        // Only delete the specific image record that matches the current image URL
+        if (currentImageUrl) {
+          await connection.execute(
+            "DELETE FROM Images WHERE article_id = ? AND image_url = ?",
+            [id, currentImageUrl]
+          );
+        }
+      }
+    } else if (article.image === undefined) {
+      // If image field is explicitly set to undefined, delete the image from both tables
+      // First get the current image URL
+      const [currentImage] = await connection.execute(
         "SELECT image FROM Articles WHERE id = ?",
         [id]
       );
-      const previousImageUrl = (previousImage as any[])[0]?.image;
+      const currentImageUrl = (currentImage as any[])[0]?.image;
 
-      // Update the main article image in the Articles table
-      await connection.execute("UPDATE Articles SET image = ? WHERE id = ?", [
-        article.image,
-        id,
-      ]);
-
-      // Always insert the new main image as a new record in the Images table
+      // Set the image field to NULL in Articles table
       await connection.execute(
-        "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
-        [id, article.image]
+        "UPDATE Articles SET image = NULL WHERE id = ?",
+        [id]
       );
 
-      // If there was a previous main image, ensure it exists in the Images table
-      if (previousImageUrl) {
-        const [existingImage] = await connection.execute(
-          "SELECT id FROM Images WHERE article_id = ? AND image_url = ?",
-          [id, previousImageUrl]
+      // Only delete the specific image record that matches the current image URL
+      if (currentImageUrl) {
+        await connection.execute(
+          "DELETE FROM Images WHERE article_id = ? AND image_url = ?",
+          [id, currentImageUrl]
         );
-
-        // If the previous main image doesn't exist in the Images table, add it
-        if ((existingImage as any[]).length === 0) {
-          await connection.execute(
-            "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
-            [id, previousImageUrl]
-          );
-        }
       }
     }
 
     // Handle video update
-    if (article.video) {
-      const [existingVideo] = await connection.execute(
-        "SELECT id FROM Videos WHERE article_id = ?",
+    if (article.video !== undefined) {
+      if (article.video) {
+        const [existingVideo] = await connection.execute(
+          "SELECT id FROM Videos WHERE article_id = ?",
+          [id]
+        );
+
+        if ((existingVideo as any[]).length > 0) {
+          await connection.execute(
+            "UPDATE Videos SET video_url = ?, updated_at = NOW() WHERE article_id = ?",
+            [article.video, id]
+          );
+        } else {
+          await connection.execute(
+            "INSERT INTO Videos (article_id, video_url, created_at) VALUES (?, ?, NOW())",
+            [id, article.video]
+          );
+        }
+      } else {
+        // If video is undefined, null, or empty string, delete the video from both tables
+        // First get the current video URL
+        const [currentVideo] = await connection.execute(
+          "SELECT video FROM Articles WHERE id = ?",
+          [id]
+        );
+        const currentVideoUrl = (currentVideo as any[])[0]?.video;
+
+        // Set the video field to NULL in Articles table
+        await connection.execute(
+          "UPDATE Articles SET video = NULL WHERE id = ?",
+          [id]
+        );
+
+        // Only delete the specific video record that matches the current video URL
+        if (currentVideoUrl) {
+          await connection.execute(
+            "DELETE FROM Videos WHERE article_id = ? AND video_url = ?",
+            [id, currentVideoUrl]
+          );
+        }
+      }
+    } else if (article.video === undefined) {
+      // If video field is explicitly set to undefined, delete the video from both tables
+      // First get the current video URL
+      const [currentVideo] = await connection.execute(
+        "SELECT video FROM Articles WHERE id = ?",
+        [id]
+      );
+      const currentVideoUrl = (currentVideo as any[])[0]?.video;
+
+      // Set the video field to NULL in Articles table
+      await connection.execute(
+        "UPDATE Articles SET video = NULL WHERE id = ?",
         [id]
       );
 
-      if ((existingVideo as any[]).length > 0) {
+      // Only delete the specific video record that matches the current video URL
+      if (currentVideoUrl) {
         await connection.execute(
-          "UPDATE Videos SET video_url = ?, updated_at = NOW() WHERE article_id = ?",
-          [article.video, id]
-        );
-      } else {
-        await connection.execute(
-          "INSERT INTO Videos (article_id, video_url, created_at) VALUES (?, ?, NOW())",
-          [id, article.video]
+          "DELETE FROM Videos WHERE article_id = ? AND video_url = ?",
+          [id, currentVideoUrl]
         );
       }
     }
