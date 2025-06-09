@@ -107,47 +107,50 @@ export async function getImages({
 }) {
   try {
     const offset = (page - 1) * limit;
-    let query = `
-      SELECT i.*, a.title as article_title, c.name as category_name
+    let queryStr = `
+      SELECT i.*, a.title as article_title
       FROM Images i
       LEFT JOIN Articles a ON i.article_id = a.id
-      LEFT JOIN Categories c ON i.category_id = c.id
     `;
 
     const queryParams: any[] = [];
 
     if (searchQuery) {
-      query += `
+      queryStr += `
         WHERE i.description LIKE ? 
-        OR a.title LIKE ? 
-        OR c.name LIKE ?
+        OR a.title LIKE ?
       `;
       const searchParam = `%${searchQuery}%`;
-      queryParams.push(searchParam, searchParam, searchParam);
+      queryParams.push(searchParam, searchParam);
     }
 
-    query += `
+    queryStr += `
       ORDER BY i.${sortField} ${sortDirection}
       LIMIT ? OFFSET ?
     `;
     queryParams.push(limit, offset);
 
-    const [rows] = await pool.query(query, queryParams);
-    const [totalRows] = await pool.query(
+    const result = await query(queryStr, queryParams);
+    const countResult = await query(
       "SELECT COUNT(*) as total FROM Images" +
         (searchQuery ? " WHERE description LIKE ?" : ""),
       searchQuery ? [`%${searchQuery}%`] : []
     );
 
-    const total = (totalRows as any[])[0].total;
+    if (result.error || countResult.error) {
+      throw new Error(result.error || countResult.error);
+    }
+
+    const total = countResult.data?.[0]?.total || 0;
     const totalPages = Math.ceil(total / limit);
 
     return {
-      images: rows,
+      images: result.data || [],
       totalPages,
       totalItems: total,
     };
   } catch (error) {
+    console.error("Error fetching images:", error);
     throw error;
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getVideos, searchVideos, deleteVideo } from "@/app/lib/actions/videos";
 import VideosHeader from "@/app/components/dashboard/videos/header/index";
@@ -18,8 +18,8 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
  * Interface for video query results with pagination metadata
  * @property data - Array of video objects or null
  * @property error - Error message or null
- * @property totalItems - Total number of videos
- * @property totalPages - Total number of pages
+ * @property totalItems - Total number of videos (optional for search results)
+ * @property totalPages - Total number of pages (optional for search results)
  */
 interface VideoResult {
   data: Video[] | null;
@@ -40,17 +40,24 @@ interface VideoResult {
  */
 export default function VideosPage() {
   const router = useRouter();
+  const videosRef = useRef<Video[]>([]);
 
   // State management for videos list, loading states, and pagination
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
   const [searchQuery, setSearchQuery] = useState("");
   const [hasMore, setHasMore] = useState(true);
+
+  // Update ref when videos change
+  useEffect(() => {
+    videosRef.current = videos;
+  }, [videos]);
 
   /**
    * Fetch videos with pagination and search support
@@ -64,18 +71,39 @@ export default function VideosPage() {
       } else {
         setIsLoading(true);
       }
-      try {
-        const result = await getVideos({
-          page: currentPage,
-          limit: itemsPerPage,
-          sortField: "createdAt",
-          sortDirection: "desc",
-          searchQuery,
-        });
 
-        setVideos(result.videos);
-        setTotalItems(result.totalItems);
-        setHasMore(result.totalItems > currentPage * itemsPerPage);
+      try {
+        const result = searchQuery
+          ? await searchVideos(searchQuery)
+          : await getVideos(currentPage, itemsPerPage);
+
+        if (result.data) {
+          if (currentPage === 1) {
+            setVideos(result.data);
+          } else {
+            // Filter out any duplicates before appending
+            const newVideos = result.data.filter(
+              (video) => !videosRef.current.some((v) => v.id === video.id)
+            );
+            setVideos((prev) => [...prev, ...newVideos]);
+          }
+
+          const totalVideos = result.totalItems || 0;
+          setTotalItems(totalVideos);
+
+          // Calculate if there are more videos to load
+          const currentTotal =
+            currentPage === 1
+              ? result.data.length
+              : videosRef.current.length + result.data.length;
+          setHasMore(currentTotal < totalVideos);
+        } else {
+          if (currentPage === 1) {
+            setVideos([]);
+            setTotalItems(0);
+          }
+          setHasMore(false);
+        }
       } catch (error) {
         console.error("Error fetching videos:", error);
         showErrorToast({ message: "Failed to fetch videos" });
@@ -172,14 +200,22 @@ export default function VideosPage() {
     }
   };
 
-  // Refresh videos list
+  // Handle refreshing the videos list
   const handleRefresh = useCallback(() => {
     setCurrentPage(1);
+    setSearchQuery("");
+    setVideos([]);
+    setTotalItems(0);
+    setHasMore(true);
     fetchVideos(true);
   }, [fetchVideos]);
 
+  // Effect to fetch videos when page changes
+  useEffect(() => {
+    fetchVideos(false);
+  }, [currentPage, fetchVideos]);
+
   return (
-    // px-4 sm:px-6 lg:px-8
     <div className="">
       {/* Header section with title and actions */}
       <VideosHeader />
@@ -201,62 +237,18 @@ export default function VideosPage() {
         </div>
       </div>
 
-      <div className="mt-4">
-        {/* Display total videos count */}
-        <p className="text-sm mb-4">Total Videos: {totalItems}</p>
-
-        {/* Empty state when no videos are found */}
-        {videos.length === 0 && !isLoading && totalItems === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-500 mb-2">
-              <svg
-                className="mx-auto h-12 w-12"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">
-              No Videos Found
-            </h3>
-            <p className="rounded-md bg-gray-50 p-6 text-center text-red-500">
-              {searchQuery
-                ? "No videos match your search criteria."
-                : "It seems the videos are not available. They might have been accidentally deleted from the storage."}
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Video grid with edit and delete actions */}
-            <VideosGrid
-              videos={videos}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              isLoading={isLoading}
-            />
-
-            {/* Load more button for pagination */}
-            {hasMore && !isLoading && (
-              <div className="mt-8 flex justify-center">
-                <button
-                  onClick={handleLoadMore}
-                  disabled={isLoading}
-                  className="inline-flex justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-600 to-blue-400 px-4 py-2 text-sm font-medium text-white shadow-sm hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? "Loading..." : "Load More"}
-                </button>
-              </div>
-            )}
-          </>
-        )}
+      {/* Videos grid with infinite scroll */}
+      <div className="mt-6">
+        <VideosGrid
+          videos={videos}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          isLoading={isLoading}
+          isDeleting={isDeleting}
+          hasMore={hasMore}
+          isLoadingMore={isLoadingMore}
+          onLoadMore={handleLoadMore}
+        />
       </div>
     </div>
   );

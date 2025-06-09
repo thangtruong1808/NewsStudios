@@ -27,8 +27,15 @@ interface ImageRow {
 }
 
 // Interface for paginated API response
-interface PaginatedResult {
-  data: ImageRow[];
+interface ImagesResult {
+  images: Image[];
+  totalPages: number;
+  totalItems: number;
+}
+
+// Interface for search API response
+interface SearchResult {
+  data: Image[];
   error: string | null;
   pagination: {
     total: number;
@@ -72,40 +79,75 @@ export function usePhotos() {
       try {
         const result = searchQuery
           ? await searchImages(searchQuery)
-          : await getImages(currentPage, itemsPerPage);
+          : await getImages({
+              page: currentPage,
+              limit: itemsPerPage,
+              sortField: "created_at",
+              sortDirection: "desc",
+              searchQuery: "",
+            });
 
-        if (result.error) {
-          showErrorToast({ message: result.error });
-          if (currentPage === 1) {
-            setPhotos([]);
-            setTotalItems(0);
+        if (searchQuery) {
+          const searchResult = result as SearchResult;
+          if (searchResult.error) {
+            showErrorToast({ message: searchResult.error });
+            if (currentPage === 1) {
+              setPhotos([]);
+              setTotalItems(0);
+            }
+            setHasMore(false);
+            return;
           }
-          setHasMore(false);
-          return;
-        }
 
-        const paginatedResult = result as PaginatedResult;
-        const convertedPhotos = paginatedResult.data.map(
-          convertImageRowToImage
-        );
+          const convertedPhotos = searchResult.data.map((img) => ({
+            ...img,
+            created_at: new Date(img.created_at).toISOString(),
+            updated_at: new Date(img.updated_at).toISOString(),
+          }));
 
-        // Update photos list based on pagination
-        if (convertedPhotos.length > 0 || currentPage === 1) {
-          if (currentPage === 1) {
-            setPhotos(convertedPhotos);
+          if (convertedPhotos.length > 0 || currentPage === 1) {
+            if (currentPage === 1) {
+              setPhotos(convertedPhotos);
+            } else {
+              setPhotos((prev) => [...prev, ...convertedPhotos]);
+            }
+            setTotalItems(searchResult.pagination.total);
+            setHasMore(
+              searchResult.pagination.total > currentPage * itemsPerPage
+            );
           } else {
-            setPhotos((prev) => [...prev, ...convertedPhotos]);
+            setHasMore(false);
           }
-          setTotalItems(paginatedResult.pagination.total);
-          setHasMore(
-            paginatedResult.pagination.total > currentPage * itemsPerPage
-          );
         } else {
-          setHasMore(false);
+          const imagesResult = result as ImagesResult;
+          if (!imagesResult.images) {
+            throw new Error("No images data received");
+          }
+
+          const convertedPhotos = imagesResult.images.map((img) => ({
+            ...img,
+            created_at: new Date(img.created_at).toISOString(),
+            updated_at: new Date(img.updated_at).toISOString(),
+          }));
+
+          if (convertedPhotos.length > 0 || currentPage === 1) {
+            if (currentPage === 1) {
+              setPhotos(convertedPhotos);
+            } else {
+              setPhotos((prev) => [...prev, ...convertedPhotos]);
+            }
+            setTotalItems(imagesResult.totalItems);
+            setHasMore(imagesResult.totalItems > currentPage * itemsPerPage);
+          } else {
+            setHasMore(false);
+          }
         }
       } catch (error) {
         console.error("Error fetching photos:", error);
-        showErrorToast({ message: "Failed to fetch photos" });
+        showErrorToast({
+          message:
+            error instanceof Error ? error.message : "Failed to fetch photos",
+        });
         if (currentPage === 1) {
           setPhotos([]);
           setTotalItems(0);

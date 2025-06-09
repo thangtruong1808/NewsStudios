@@ -2,6 +2,7 @@
 
 import { Image } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useSession } from "next-auth/react";
 
 interface PhotoActionsProps {
   photo: Image;
@@ -18,6 +19,13 @@ export function PhotoActions({
   isDeleting,
   isVisible,
 }: PhotoActionsProps) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
+  if (!isAdmin) {
+    return null;
+  }
+
   return (
     <div
       className={`absolute top-2 right-2 flex gap-2 transition-opacity duration-200 ${

@@ -35,15 +35,20 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
   try {
     const offset = (page - 1) * itemsPerPage;
 
-    // Get total count
-    const countResult = await query("SELECT COUNT(*) as total FROM Videos");
+    // Get total count with the same conditions as the main query
+    const countQuery = `
+      SELECT COUNT(*) as total 
+      FROM Videos v
+      LEFT JOIN Articles a ON v.article_id = a.id
+    `;
+    const countResult = await query(countQuery);
 
-    // Get paginated videos
+    // Get paginated videos with consistent ordering
     const sqlQuery = `
       SELECT v.*, a.title as article_title 
       FROM Videos v
       LEFT JOIN Articles a ON v.article_id = a.id
-      ORDER BY v.created_at DESC
+      ORDER BY v.created_at DESC, v.id DESC
       LIMIT ? OFFSET ?
     `;
 
@@ -54,9 +59,15 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
     }
 
     const totalItems = countResult.data?.[0]?.total || 0;
+    const videos = result.data || [];
+
+    // Log pagination details for debugging
+    console.log(
+      `Page ${page}: Fetched ${videos.length} videos, Total: ${totalItems}, Offset: ${offset}`
+    );
 
     return {
-      data: result.data || [],
+      data: videos,
       error: null,
       totalItems,
       totalPages: Math.ceil(totalItems / itemsPerPage),
@@ -292,11 +303,22 @@ export async function searchVideos(searchQuery: string) {
     );
 
     if (result.error) {
-      return { data: [], error: result.error };
+      return { data: [], error: result.error, totalItems: 0, totalPages: 0 };
     }
 
-    return { data: result.data as Video[], error: null };
+    const videos = result.data as Video[];
+    return {
+      data: videos,
+      error: null,
+      totalItems: videos.length,
+      totalPages: 1,
+    };
   } catch (error) {
-    return { data: [], error: "Failed to search videos" };
+    return {
+      data: [],
+      error: "Failed to search videos",
+      totalItems: 0,
+      totalPages: 0,
+    };
   }
 }

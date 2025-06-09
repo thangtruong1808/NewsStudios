@@ -1,12 +1,18 @@
 "use client";
 
 import { Video } from "@/app/lib/definition";
-import { PencilIcon, TrashIcon, ClockIcon } from "@heroicons/react/24/outline";
+import {
+  PencilIcon,
+  TrashIcon,
+  ClockIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
 import { useState } from "react";
 import {
   showConfirmationToast,
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
+import { useSession } from "next-auth/react";
 
 // Props interface for VideosGrid component
 interface VideosGridProps {
@@ -14,6 +20,10 @@ interface VideosGridProps {
   onEdit: (video: Video) => void; // Callback for edit action
   onDelete: (video: Video) => void; // Callback for delete action
   isLoading?: boolean; // Loading state indicator
+  isDeleting?: boolean; // Deleting state indicator
+  hasMore?: boolean; // Whether there are more videos to load
+  isLoadingMore?: boolean; // Loading state for pagination
+  onLoadMore?: () => void; // Callback for loading more videos
 }
 
 export default function VideosGrid({
@@ -21,13 +31,19 @@ export default function VideosGrid({
   onEdit,
   onDelete,
   isLoading = false,
+  isDeleting = false,
+  hasMore = false,
+  isLoadingMore = false,
+  onLoadMore,
 }: VideosGridProps) {
   // State to track deletion process
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeletingLocal, setIsDeletingLocal] = useState(false);
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
 
   // Handle video deletion with confirmation
   const handleDelete = async (video: Video) => {
-    setIsDeleting(true);
+    setIsDeletingLocal(true);
     try {
       await onDelete(video);
     } catch (error) {
@@ -35,7 +51,7 @@ export default function VideosGrid({
       // Let the parent component handle the error toast
       throw error; // Re-throw the error to be handled by the parent
     } finally {
-      setIsDeleting(false);
+      setIsDeletingLocal(false);
     }
   };
 
@@ -78,6 +94,8 @@ export default function VideosGrid({
                 src={video.video_url}
                 className="absolute inset-0 w-full h-full object-cover"
                 controls
+                preload="metadata"
+                crossOrigin="anonymous"
                 onError={(e) => {
                   const target = e.target as HTMLVideoElement;
                   target.style.display = "none";
@@ -85,39 +103,58 @@ export default function VideosGrid({
                   if (parent) {
                     const fallback = document.createElement("div");
                     fallback.className =
-                      "absolute inset-0 flex flex-col items-center justify-center";
+                      "absolute inset-0 flex flex-col items-center justify-center bg-gray-100";
                     fallback.innerHTML = `
-                      <div class="flex flex-col items-center justify-center">
+                      <div class="flex flex-col items-center justify-center p-4">
                         <svg class="w-12 h-12 text-red-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
-                        <span class="text-xs text-red-500 text-center">The video could not find on server</span>
+                        <span class="text-xs text-red-500 text-center">Video not available</span>
+                        <a href="${video.video_url}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-500 hover:text-blue-600 mt-2">
+                          Open video in new tab
+                        </a>
                       </div>
                     `;
                     parent.appendChild(fallback);
+                  }
+                }}
+                onLoadedMetadata={(e) => {
+                  const target = e.target as HTMLVideoElement;
+                  target.style.display = "block";
+                  // Remove any existing fallback
+                  const parent = target.parentElement;
+                  if (parent) {
+                    const fallback = parent.querySelector(
+                      "div[class*='flex flex-col items-center']"
+                    );
+                    if (fallback) {
+                      fallback.remove();
+                    }
                   }
                 }}
               />
             </div>
 
             {/* Hover overlay with action buttons */}
-            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={() => onEdit(video)}
-                className="p-1.5 bg-white rounded-full shadow-sm hover:bg-blue-100 transition-colors"
-                title="Edit"
-              >
-                <PencilIcon className="w-5 h-5 text-gray-700" />
-              </button>
-              <button
-                onClick={() => handleDelete(video)}
-                disabled={isDeleting}
-                className="p-1.5 bg-white rounded-full shadow-sm hover:bg-blue-200 transition-colors"
-                title="Delete"
-              >
-                <TrashIcon className="w-5 h-5 text-red-500" />
-              </button>
-            </div>
+            {isAdmin && (
+              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => onEdit(video)}
+                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-blue-100 transition-colors"
+                  title="Edit"
+                >
+                  <PencilIcon className="w-5 h-5 text-gray-700" />
+                </button>
+                <button
+                  onClick={() => handleDelete(video)}
+                  disabled={isDeleting || isDeletingLocal}
+                  className="p-1.5 bg-white rounded-full shadow-sm hover:bg-blue-200 transition-colors"
+                  title="Delete"
+                >
+                  <TrashIcon className="w-5 h-5 text-red-500" />
+                </button>
+              </div>
+            )}
 
             {/* Video metadata section */}
             <div className="p-3">
@@ -152,6 +189,29 @@ export default function VideosGrid({
           </div>
         ))}
       </div>
+
+      {/* Load More button */}
+      {hasMore && onLoadMore && (
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={onLoadMore}
+            disabled={isLoadingMore}
+            className="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-blue-600 to-blue-400 px-5 py-2 text-sm font-medium text-white transition-colors hover:from-blue-700 hover:to-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoadingMore ? (
+              <>
+                <ArrowPathIcon className="h-5 w-5 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <ArrowPathIcon className="h-5 w-5" />
+                Load More
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
