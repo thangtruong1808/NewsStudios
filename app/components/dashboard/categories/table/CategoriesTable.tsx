@@ -3,6 +3,7 @@
 import { Table } from "@/app/components/dashboard/shared/table";
 import { Category } from "@/app/lib/definition";
 import { getTableColumns } from "./TableColumns";
+import { useSession } from "next-auth/react";
 
 interface CategoriesTableProps {
   categories: Category[];
@@ -39,6 +40,7 @@ export default function CategoriesTable({
   isLoading,
   onItemsPerPageChange,
 }: CategoriesTableProps) {
+  const { data: session } = useSession();
   const columns = getTableColumns();
 
   return (
@@ -54,8 +56,8 @@ export default function CategoriesTable({
       onSort={onSort}
       onPageChange={onPageChange}
       onItemsPerPageChange={onItemsPerPageChange}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      onEdit={session?.user?.role === "admin" ? onEdit : undefined}
+      onDelete={session?.user?.role === "admin" ? onDelete : undefined}
       isDeleting={isDeleting}
       searchQuery={searchQuery}
       isLoading={isLoading}

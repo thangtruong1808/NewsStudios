@@ -295,7 +295,7 @@ export function getPublicIdFromUrl(url: string): string | null {
 export async function uploadToCloudinary(
   file: File,
   type: "image" | "video" = "image"
-): Promise<{ success: boolean; url?: any; error?: string }> {
+): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
     // Get environment variables from .env
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -358,10 +358,7 @@ export async function uploadToCloudinary(
 
     return {
       success: true,
-      url: {
-        secure_url: data.secure_url,
-        public_id: data.public_id,
-      },
+      url: data.secure_url,
     };
   } catch (error) {
     console.error("Error uploading file:", error);

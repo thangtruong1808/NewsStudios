@@ -33,7 +33,7 @@ export default function UsersSearch() {
   };
 
   return (
-    <div className="mt-8">
+    <div className="">
       <SearchWrapper
         placeholder="Search users by name, email, or role . . ."
         onSearch={handleSearch}
