@@ -5,10 +5,19 @@ import { useCallback, useState, useEffect } from "react";
 
 interface VideosSearchProps {
   onSearch: (term: string) => void;
+  defaultValue?: string;
 }
 
-export default function VideosSearch({ onSearch }: VideosSearchProps) {
-  const [searchTerm, setSearchTerm] = useState("");
+export default function VideosSearch({
+  onSearch,
+  defaultValue = "",
+}: VideosSearchProps) {
+  const [searchTerm, setSearchTerm] = useState(defaultValue);
+
+  // Update searchTerm when defaultValue changes
+  useEffect(() => {
+    setSearchTerm(defaultValue);
+  }, [defaultValue]);
 
   // Debounce search to avoid too many requests
   useEffect(() => {

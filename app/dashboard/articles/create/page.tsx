@@ -32,8 +32,8 @@ export default function CreateArticlePage() {
           tagsResult,
         ] = await Promise.all([
           getCategories({ page: 1, limit: 1000 }), // Get all categories
-          getAuthors(1, 1000), // Get all authors
-          getSubcategories(1, 1000), // Get all subcategories
+          getAuthors({ page: 1, limit: 1000 }), // Get all authors
+          getSubcategories({ page: 1, limit: 1000 }), // Get all subcategories
           getUsers({ page: 1, limit: 1000 }), // Get all users
           getAllTags(), // Get all tags
         ]);

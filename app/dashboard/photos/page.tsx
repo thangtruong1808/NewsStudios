@@ -48,6 +48,7 @@ export default function PhotosPage() {
           <SearchWrapper
             placeholder="Search by photo description, article ID or title..."
             onSearch={handleSearch}
+            defaultValue={searchQuery}
           />
         </div>
         <div className="flex justify-end mt-4">

@@ -192,6 +192,7 @@ export function usePhotos() {
   // Refresh photos list
   const handleRefresh = useCallback(() => {
     setCurrentPage(1);
+    setSearchQuery("");
     fetchPhotos(true);
   }, [fetchPhotos]);
 

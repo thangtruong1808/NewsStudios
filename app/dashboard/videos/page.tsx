@@ -222,7 +222,7 @@ export default function VideosPage() {
 
       {/* Search bar for filtering videos */}
       <div className="mt-6 space-y-4">
-        <VideosSearch onSearch={handleSearch} />
+        <VideosSearch onSearch={handleSearch} defaultValue={searchQuery} />
         <div className="flex justify-end">
           <button
             onClick={handleRefresh}

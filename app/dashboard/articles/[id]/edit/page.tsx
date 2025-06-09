@@ -42,8 +42,8 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
         ] = await Promise.all([
           getArticleById(parseInt(params.id)),
           getCategories({ page: 1, limit: 1000 }),
-          getAuthors(1, 1000),
-          getSubcategories(1, 1000),
+          getAuthors({ page: 1, limit: 1000 }),
+          getSubcategories({ page: 1, limit: 1000 }),
           getUsers({ page: 1, limit: 1000 }),
           getAllTags(),
         ]);

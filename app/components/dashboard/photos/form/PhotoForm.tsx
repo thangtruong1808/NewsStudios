@@ -90,7 +90,7 @@ export default function PhotoForm({
           htmlFor="file"
           className="block text-sm font-medium leading-6 text-gray-900"
         >
-          Photo
+          Photo <span className="text-red-500">(*)</span>
         </label>
         <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
           <div className="text-center">
@@ -173,7 +173,7 @@ export default function PhotoForm({
             htmlFor="description"
             className="block text-sm font-medium leading-6 text-gray-900"
           >
-            Description
+            Description <span className="text-red-500">(*)</span>
           </label>
           <div className="mt-2">
             <textarea
