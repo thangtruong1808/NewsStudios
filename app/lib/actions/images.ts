@@ -395,9 +395,9 @@ export async function searchImages(searchQuery: string) {
         a.slug as article_slug
        FROM Images i
        LEFT JOIN Articles a ON i.article_id = a.id
-       WHERE i.description LIKE ? OR a.title LIKE ?
+       WHERE a.id LIKE ? OR a.title LIKE ? OR i.description LIKE ?
        ORDER BY i.created_at DESC`,
-      [`%${searchQuery}%`, `%${searchQuery}%`]
+      [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
     );
 
     if (result.error) {
