@@ -134,16 +134,24 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
 
     setIsDeleting(true);
     try {
-      const result = await getAuthors({
+      const result = await deleteAuthor(author.id);
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete author");
+      }
+
+      // Refresh the authors list after successful deletion
+      const updatedResult = await getAuthors({
         page: currentPage,
         limit: itemsPerPage,
         sortField,
         sortDirection,
       });
-      if (result.data) {
-        setAuthors(result.data);
-        setTotalPages(result.totalPages || 1);
-        setTotalItems(result.totalItems || 0);
+
+      if (updatedResult.data) {
+        setAuthors(updatedResult.data);
+        setTotalPages(updatedResult.totalPages || 1);
+        setTotalItems(updatedResult.totalItems || 0);
       }
 
       showSuccessToast({ message: "Author deleted successfully" });

@@ -44,7 +44,7 @@ export default function CategoriesState({ children }: CategoriesStateProps) {
 
   // Extract and parse URL parameters
   const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("limit")) || 5;
+  const itemsPerPage = Number(searchParams.get("limit")) || 10;
   const searchQuery = searchParams.get("query") || "";
   const sortField =
     (searchParams.get("sortField") as keyof Category) || "created_at";

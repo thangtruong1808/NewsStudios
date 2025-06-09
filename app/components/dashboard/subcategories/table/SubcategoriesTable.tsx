@@ -6,6 +6,7 @@ import { SubCategory } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
+import { useSession } from "next-auth/react";
 
 interface SubcategoriesTableProps {
   subcategories: SubCategory[];
@@ -42,6 +43,9 @@ export default function SubcategoriesTable({
   onDelete,
   onItemsPerPageChange,
 }: SubcategoriesTableProps) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
   const columns: Column<
     SubCategory & { sequence?: number; actions?: never }
   >[] = [
@@ -65,7 +69,7 @@ export default function SubcategoriesTable({
         <div className="w-64">
           <ExpandableContent
             content={value || "No description"}
-            maxWords={20}
+            maxWords={5}
             className="text-sm text-gray-500"
           />
         </div>
@@ -113,7 +117,11 @@ export default function SubcategoriesTable({
         </div>
       ),
     },
-    {
+  ];
+
+  // Only add the actions column if the user is an admin
+  if (isAdmin) {
+    columns.push({
       field: "actions",
       label: "Actions",
       sortable: false,
@@ -136,8 +144,8 @@ export default function SubcategoriesTable({
           </button>
         </div>
       ),
-    },
-  ];
+    });
+  }
 
   return (
     <div className="">

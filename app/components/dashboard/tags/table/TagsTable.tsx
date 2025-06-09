@@ -6,6 +6,7 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Column } from "@/app/components/dashboard/shared/table/TableTypes";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
+import { useSession } from "next-auth/react";
 
 interface TagsTableProps {
   tags: Tag[];
@@ -42,8 +43,11 @@ export default function TagsTable({
   onDelete,
   onItemsPerPageChange,
 }: TagsTableProps) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
   // Define table columns with sorting and rendering options
-  const columns: Column<Tag & { sequence?: number; actions?: never }>[] = [
+  const baseColumns: Column<Tag & { sequence?: number }>[] = [
     {
       field: "sequence",
       label: "#",
@@ -58,7 +62,7 @@ export default function TagsTable({
         <div className="w-48">
           <ExpandableContent
             content={value}
-            maxWords={20}
+            maxWords={5}
             className="text-sm text-gray-500"
           />
         </div>
@@ -72,7 +76,7 @@ export default function TagsTable({
         <div className="w-64">
           <ExpandableContent
             content={value || "No description"}
-            maxWords={10}
+            maxWords={5}
             className="text-sm text-gray-500"
           />
         </div>
@@ -154,29 +158,36 @@ export default function TagsTable({
         </div>
       ),
     },
-    {
-      field: "actions",
-      label: "Actions",
-      sortable: false,
-      render: (_, tag) => (
-        <div className="flex space-x-2">
-          <button
-            onClick={() => onEdit(tag)}
-            className="text-blue-600 hover:text-blue-800"
-          >
-            <PencilIcon className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => onDelete(tag)}
-            disabled={isDeleting}
-            className="text-red-600 hover:text-red-800 disabled:opacity-50"
-          >
-            <TrashIcon className="h-5 w-5" />
-          </button>
-        </div>
-      ),
-    },
   ];
+
+  // Add actions column only for admin users
+  const columns = isAdmin
+    ? [
+        ...baseColumns,
+        {
+          field: "actions" as keyof (Tag & { sequence?: number }),
+          label: "Actions",
+          sortable: false,
+          render: (_: unknown, tag: Tag) => (
+            <div className="flex space-x-2">
+              <button
+                onClick={() => onEdit(tag)}
+                className="text-blue-600 hover:text-blue-800"
+              >
+                <PencilIcon className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => onDelete(tag)}
+                disabled={isDeleting}
+                className="text-red-600 hover:text-red-800 disabled:opacity-50"
+              >
+                <TrashIcon className="h-5 w-5" />
+              </button>
+            </div>
+          ),
+        },
+      ]
+    : baseColumns;
 
   // Add sequence numbers to tags
   const tagsWithSequence = tags.map((tag, index) => ({

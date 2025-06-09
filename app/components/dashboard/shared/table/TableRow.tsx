@@ -3,6 +3,7 @@
 import { Column } from "./TableTypes";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
 interface TableRowProps<T extends { id: number }> {
   item: T;
@@ -27,6 +28,8 @@ export default function TableRow<T extends { id: number }>({
 }: TableRowProps<T>) {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
+  const pathname = usePathname();
+  const isTagsTable = pathname.includes("/dashboard/tags");
 
   // Calculate sequence number
   const sequence =
@@ -38,11 +41,13 @@ export default function TableRow<T extends { id: number }>({
   const displayColumns = columns.filter((column) => column.field !== "actions");
 
   return (
-    <tr className="hover:bg-gray-100">
+    <tr className={`hover:bg-gray-100 ${isTagsTable ? "py-4" : ""}`}>
       {displayColumns.map((column) => (
         <td
           key={String(column.field)}
-          className="whitespace-nowrap px-2 py-2 text-sm"
+          className={`whitespace-nowrap px-2 ${
+            isTagsTable ? "py-4" : "py-2"
+          } text-sm`}
         >
           {column.render
             ? column.render(
@@ -54,8 +59,12 @@ export default function TableRow<T extends { id: number }>({
             : String(item[column.field as keyof T])}
         </td>
       ))}
-      {isAdmin && (
-        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+      {isAdmin && (onEdit || onDelete) && (
+        <td
+          className={`whitespace-nowrap px-3 ${
+            isTagsTable ? "py-4" : "py-4"
+          } text-sm text-gray-500`}
+        >
           <div className="flex justify-start space-x-2">
             {onEdit && (
               <button

@@ -6,6 +6,7 @@ import { Author } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
+import { useSession } from "next-auth/react";
 
 interface AuthorsTableProps {
   authors: Author[];
@@ -42,6 +43,9 @@ export default function AuthorsTable({
   onDelete,
   onItemsPerPageChange,
 }: AuthorsTableProps) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
   const columns: Column<Author & { sequence?: number; actions?: never }>[] = [
     {
       field: "sequence",
@@ -60,10 +64,10 @@ export default function AuthorsTable({
       label: "Description",
       sortable: true,
       render: (value: string) => (
-        <div className="w-64">
+        <div className="w-fit max-w-[300px]">
           <ExpandableContent
             content={value || "No description"}
-            maxWords={20}
+            maxWords={5}
             className="text-sm text-gray-500"
           />
         </div>
@@ -86,10 +90,10 @@ export default function AuthorsTable({
       label: "Bio",
       sortable: true,
       render: (value: string) => (
-        <div className="w-64">
+        <div className="w-fit max-w-[300px]">
           <ExpandableContent
             content={value || "No bio"}
-            maxWords={20}
+            maxWords={5}
             className="text-sm text-gray-500"
           />
         </div>
@@ -119,7 +123,11 @@ export default function AuthorsTable({
         </div>
       ),
     },
-    {
+  ];
+
+  // Only add the actions column if the user is an admin
+  if (isAdmin) {
+    columns.push({
       field: "actions",
       label: "Actions",
       sortable: false,
@@ -142,8 +150,8 @@ export default function AuthorsTable({
           </button>
         </div>
       ),
-    },
-  ];
+    });
+  }
 
   return (
     <div className="flow-root">
