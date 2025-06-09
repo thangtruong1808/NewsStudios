@@ -62,7 +62,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
   // Loading state with skeleton UI
   if (isLoading && !isSearching && !isSorting) {
     return (
-      <div className="">
+      <div className="bg-gray-50">
         <ArticlesHeader />
         <div className="my-6">
           <div className="w-full">
@@ -79,7 +79,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
 
   // Main render with full table functionality
   return (
-    <div className="">
+    <div className="bg-gray-50">
       <ArticlesHeader />
 
       <div className="my-6">

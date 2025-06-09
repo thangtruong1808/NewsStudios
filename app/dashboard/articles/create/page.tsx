@@ -113,12 +113,14 @@ export default function CreateArticlePage() {
   }
 
   return (
-    <ArticleFormContainer
-      categories={data.categories}
-      authors={data.authors}
-      subcategories={data.subcategories}
-      users={data.users}
-      tags={data.tags}
-    />
+    <div className="bg-gray-50">
+      <ArticleFormContainer
+        categories={data.categories}
+        authors={data.authors}
+        subcategories={data.subcategories}
+        users={data.users}
+        tags={data.tags}
+      />
+    </div>
   );
 }

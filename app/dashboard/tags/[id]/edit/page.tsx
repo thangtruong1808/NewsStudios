@@ -58,7 +58,7 @@ export default function EditTagPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="bg-gray-50">
       <TagForm tag={tag} isEditMode={true} tagId={parseInt(tagId)} />
     </div>
   );

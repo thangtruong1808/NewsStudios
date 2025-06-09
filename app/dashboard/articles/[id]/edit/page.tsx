@@ -130,13 +130,15 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
   }
 
   return (
-    <ArticleFormContainer
-      article={data.article}
-      categories={data.categories}
-      authors={data.authors}
-      subcategories={data.subcategories}
-      users={data.users}
-      tags={data.tags}
-    />
+    <div className="bg-gray-50">
+      <ArticleFormContainer
+        article={data.article}
+        categories={data.categories}
+        authors={data.authors}
+        subcategories={data.subcategories}
+        users={data.users}
+        tags={data.tags}
+      />
+    </div>
   );
 }

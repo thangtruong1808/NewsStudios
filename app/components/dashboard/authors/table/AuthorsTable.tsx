@@ -67,7 +67,7 @@ export default function AuthorsTable({
         <div className="w-fit max-w-[300px]">
           <ExpandableContent
             content={value || "No description"}
-            maxWords={5}
+            maxWords={10}
             className="text-sm text-gray-500"
           />
         </div>
@@ -93,7 +93,7 @@ export default function AuthorsTable({
         <div className="w-fit max-w-[300px]">
           <ExpandableContent
             content={value || "No bio"}
-            maxWords={5}
+            maxWords={10}
             className="text-sm text-gray-500"
           />
         </div>

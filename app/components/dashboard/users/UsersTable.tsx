@@ -122,7 +122,7 @@ export default function UsersTable({
         <div className="w-64">
           <ExpandableContent
             content={value || "No description"}
-            maxWords={5}
+            maxWords={10}
             className="text-sm text-gray-500"
           />
         </div>

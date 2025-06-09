@@ -79,7 +79,7 @@ export default function UsersPage() {
   } = useUsers();
 
   return (
-    <div className="">
+    <div className="bg-gray-50">
       {/* Header section with title and create button */}
       <UsersHeader />
 

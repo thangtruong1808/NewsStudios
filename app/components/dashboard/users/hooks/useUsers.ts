@@ -17,7 +17,7 @@ export function useUsers() {
   const { data: session } = useSession();
   const searchQuery = searchParams.get("query") || "";
   const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("limit")) || 10;
+  const itemsPerPage = Number(searchParams.get("limit")) || 5;
   const sortField =
     (searchParams.get("sortField") as keyof User) || "created_at";
   const sortDirection =

@@ -56,7 +56,7 @@ export default function EditSubcategoryPage({
   }
 
   return (
-    <div className="w-full">
+    <div className="bg-gray-50">
       <SubcategoryForm subcategoryId={params.id} />
     </div>
   );

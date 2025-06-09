@@ -50,7 +50,7 @@ export default function SubcategoriesState({
 
   // Extract and parse URL parameters
   const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("limit")) || 10;
+  const itemsPerPage = Number(searchParams.get("limit")) || 5;
   const searchQuery = searchParams.get("query") || "";
   const sortField =
     (searchParams.get("sortField") as keyof SubCategory) || "created_at";

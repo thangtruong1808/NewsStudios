@@ -28,7 +28,7 @@ export default function SubcategoriesPage() {
         handleSearch,
         handleItemsPerPageChange,
       }) => (
-        <div className="">
+        <div className="bg-gray-50">
           {/* Header section with title and create button */}
           <SubcategoriesHeader />
 

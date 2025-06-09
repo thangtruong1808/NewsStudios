@@ -28,7 +28,7 @@ export default function CategoriesPage() {
         handleSearch,
         handleItemsPerPageChange,
       }) => (
-        <div className="">
+        <div className="bg-gray-50">
           {/* Header section with title and create button */}
           <CategoriesHeader />
 

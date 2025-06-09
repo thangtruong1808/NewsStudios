@@ -52,7 +52,7 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
 
   // Get URL parameters
   const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("itemsPerPage")) || 10;
+  const itemsPerPage = Number(searchParams.get("itemsPerPage")) || 5;
   const searchQuery = searchParams.get("search") || "";
   const sortField = searchParams.get("sortField") || "created_at";
   const sortDirection =

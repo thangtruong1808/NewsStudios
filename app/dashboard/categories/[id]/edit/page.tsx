@@ -56,7 +56,7 @@ export default function EditCategoryPage({
   }
 
   return (
-    <div className="w-full">
+    <div className="bg-gray-50">
       <CategoryForm categoryId={params.id} />
     </div>
   );

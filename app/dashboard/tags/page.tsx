@@ -80,7 +80,7 @@ export default function TagsPage({ searchParams }: TagsPageProps) {
         handleSearch,
         handleItemsPerPageChange,
       }) => (
-        <div className="">
+        <div className="bg-gray-50">
           {/* Header section with title and create button */}
           <TagsHeader />
 

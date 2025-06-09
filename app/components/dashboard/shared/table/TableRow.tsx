@@ -41,13 +41,11 @@ export default function TableRow<T extends { id: number }>({
   const displayColumns = columns.filter((column) => column.field !== "actions");
 
   return (
-    <tr className={`hover:bg-gray-100 ${isTagsTable ? "py-4" : ""}`}>
+    <tr className="hover:bg-gray-100">
       {displayColumns.map((column) => (
         <td
           key={String(column.field)}
-          className={`whitespace-nowrap px-2 ${
-            isTagsTable ? "py-4" : "py-2"
-          } text-sm`}
+          className="whitespace-nowrap px-2 py-4 text-sm"
         >
           {column.render
             ? column.render(
@@ -60,11 +58,7 @@ export default function TableRow<T extends { id: number }>({
         </td>
       ))}
       {isAdmin && (onEdit || onDelete) && (
-        <td
-          className={`whitespace-nowrap px-3 ${
-            isTagsTable ? "py-4" : "py-4"
-          } text-sm text-gray-500`}
-        >
+        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
           <div className="flex justify-start space-x-2">
             {onEdit && (
               <button

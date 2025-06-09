@@ -94,32 +94,34 @@ export default function SideNav({ onCollapse }: SideNavProps) {
             isCollapsed && "justify-center"
           )}
         >
-          {/* User avatar with gradient background and fallback icon */}
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 flex items-center justify-center shadow-md ring-2 ring-white/50 overflow-hidden">
-            {session?.user?.user_image ? (
-              <Image
-                src={session.user.user_image}
-                alt={session.user.firstname || ""}
-                width={64}
-                height={64}
-                className="h-full w-full object-cover"
-                priority
-              />
-            ) : (
-              <UserCircleIcon className="h-10 w-10 text-white" />
+          <div className="flex flex-col items-center gap-2">
+            {/* User avatar with gradient background and fallback icon */}
+            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 flex items-center justify-center shadow-md ring-2 ring-white/50 overflow-hidden">
+              {session?.user?.user_image ? (
+                <Image
+                  src={session.user.user_image}
+                  alt={session.user.firstname || ""}
+                  width={64}
+                  height={64}
+                  className="h-full w-full object-cover"
+                  priority
+                />
+              ) : (
+                <UserCircleIcon className="h-10 w-10 text-white" />
+              )}
+            </div>
+            {/* User name and role display (always visible) */}
+            {session?.user && (
+              <div className="text-center">
+                <p className="text-sm font-medium text-blue-600">
+                  {session.user.firstname} {session.user.lastname}
+                </p>
+                <p className="text-sm text-blue-400 capitalize mt-1 text-uppercase">
+                  {session.user.role}
+                </p>
+              </div>
             )}
           </div>
-          {/* User name and role display (hidden when collapsed) */}
-          {!isCollapsed && session?.user && (
-            <div className="text-center">
-              <p className="text-sm font-medium text-blue-600">
-                {session.user.firstname} {session.user.lastname}
-              </p>
-              <p className="text-xs text-blue-400 capitalize mt-1">
-                {session.user.role}
-              </p>
-            </div>
-          )}
         </div>
       </div>
 

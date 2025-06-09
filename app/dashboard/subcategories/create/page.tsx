@@ -4,7 +4,7 @@ import SubcategoryForm from "../../../components/dashboard/subcategories/form/Su
 
 export default function CreateSubcategoryPage() {
   return (
-    <div className="w-full">
+    <div className="bg-gray-50">
       <SubcategoryForm />
     </div>
   );

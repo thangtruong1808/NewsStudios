@@ -53,7 +53,7 @@ export default function EditUserPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="bg-gray-50">
       <UserForm user={user} isEditMode={true} />
     </div>
   );
