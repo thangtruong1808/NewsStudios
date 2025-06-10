@@ -81,8 +81,8 @@ export default function UsersTable({
               src={value}
               alt="User"
               fill
-              className="object-cover"
-              sizes="(max-width: 40px) 100vw, 40px"
+              className="object-cover rounded-full"
+              sizes="(max-width: 60px) 100vw, 60px"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-blue-400 to-blue-300 flex items-center justify-center">

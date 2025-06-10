@@ -22,6 +22,12 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid email or password. Please try again.");
         }
 
+        if (user.status === "inactive") {
+          throw new Error(
+            "Your account is inactive. Please contact the administrator."
+          );
+        }
+
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password

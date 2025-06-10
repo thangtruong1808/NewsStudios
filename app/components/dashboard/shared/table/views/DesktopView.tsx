@@ -3,6 +3,7 @@
 import { ViewProps } from "../TableTypes";
 import TableHeader from "../TableHeader";
 import TableRow from "../TableRow";
+import { DocumentIcon } from "@heroicons/react/24/outline";
 
 interface DesktopViewProps<T extends { id: number }> extends ViewProps<T> {
   currentPage?: number;
@@ -58,11 +59,16 @@ export default function DesktopView<T extends { id: number }>({
             <tr>
               <td
                 colSpan={columns.length}
-                className="rounded-md bg-gray-50 p-6 text-center text-red-500"
+                className="rounded-md bg-gray-50 p-6 text-center"
               >
-                {searchQuery
-                  ? "No items found matching your search criteria."
-                  : "No items found."}
+                <div className="flex flex-col items-center justify-center space-y-3">
+                  <DocumentIcon className="h-12 w-12 text-red-400" />
+                  <p className="text-sm text-red-500">
+                    {searchQuery
+                      ? "No items found matching your search criteria."
+                      : "No items found from the database."}
+                  </p>
+                </div>
               </td>
             </tr>
           ) : (

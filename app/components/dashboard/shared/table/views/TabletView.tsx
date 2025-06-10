@@ -1,7 +1,11 @@
 "use client";
 
 import { ViewProps } from "../TableTypes";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  PencilIcon,
+  TrashIcon,
+  DocumentIcon,
+} from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 
 interface TabletViewProps<T extends { id: number }> extends ViewProps<T> {
@@ -51,10 +55,15 @@ export default function TabletView<T extends { id: number }>({
           </div>
         ))
       ) : data.length === 0 ? (
-        <div className="rounded-md bg-gray-50 p-6 text-center text-red-500">
-          {searchQuery
-            ? "No items found matching your search criteria."
-            : "No items found."}
+        <div className="rounded-md bg-gray-50 p-6 text-center">
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <DocumentIcon className="h-12 w-12 text-red-400" />
+            <p className="text-sm text-red-500">
+              {searchQuery
+                ? "No items found matching your search criteria."
+                : "No items found from the database."}
+            </p>
+          </div>
         </div>
       ) : (
         data.map((item, index) => {

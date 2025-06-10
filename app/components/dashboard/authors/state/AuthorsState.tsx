@@ -17,6 +17,7 @@ import {
   showErrorToast,
   showConfirmationToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
+import { toast } from "react-hot-toast";
 
 interface AuthorsStateProps {
   children: (props: {
@@ -154,7 +155,19 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
         setTotalItems(updatedResult.totalItems || 0);
       }
 
-      showSuccessToast({ message: "Author deleted successfully" });
+      // Show success toast with explicit duration
+      toast.success("Author deleted successfully", {
+        duration: 3000,
+        position: "top-right",
+        style: {
+          background: "#FFFFFF",
+          color: "#6B7280",
+          padding: "12px 16px",
+          borderRadius: "8px",
+          fontSize: "14px",
+        },
+        icon: "✅",
+      });
     } catch (error) {
       console.error("Error deleting author:", error);
       showErrorToast({

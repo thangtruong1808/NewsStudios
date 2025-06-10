@@ -53,9 +53,9 @@ export default function PhotosGrid({
   if (photos.length === 0 && !isLoading) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 mb-2">
+        <div className="text-red-500 mb-2">
           <svg
-            className="mx-auto h-12 w-12"
+            className="mx-auto h-12 w-12 text-red-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -69,10 +69,10 @@ export default function PhotosGrid({
             />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-1">
+        <h3 className="text-lg font-medium text-red-500 mb-1">
           No Photos Found
         </h3>
-        <p className="text-gray-500">
+        <p className="text-red-500">
           It seems the photos are not available. They might have been
           accidentally deleted from the storage.
         </p>

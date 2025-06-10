@@ -101,11 +101,11 @@ export function useUserForm(user?: User, isEditMode = false) {
           throw new Error(uploadResult.error || "Failed to upload image");
         }
 
-        if (!uploadResult.url || !uploadResult.url.secure_url) {
+        if (!uploadResult.url) {
           throw new Error("Failed to get image URL from Cloudinary");
         }
 
-        imageUrl = uploadResult.url.secure_url;
+        imageUrl = uploadResult.url;
         console.log("Image URL set to:", imageUrl);
       }
 

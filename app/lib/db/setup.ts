@@ -88,11 +88,12 @@ export async function setupDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS Tags (
         id INT(11) PRIMARY KEY AUTO_INCREMENT,
-        name VARCHAR(255) NOT NULL UNIQUE,
-        description TEXT,
-        color VARCHAR(50),
+        name VARCHAR(255) NOT NULL,
+        color VARCHAR(50) NOT NULL,
+        sub_category_id INT(11),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (sub_category_id) REFERENCES SubCategories(id) ON DELETE SET NULL
       )
     `);
 
