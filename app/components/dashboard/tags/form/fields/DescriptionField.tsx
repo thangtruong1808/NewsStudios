@@ -15,7 +15,7 @@ export default function DescriptionField({
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700">
-        Description <span className="text-xs text-gray-500">(optional)</span>
+        Description <span className="text-xs">(optional)</span>
       </label>
       <textarea
         {...register("description")}

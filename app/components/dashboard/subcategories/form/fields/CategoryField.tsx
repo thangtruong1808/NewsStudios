@@ -21,7 +21,7 @@ export default function CategoryField({
         htmlFor="category_id"
         className="block text-sm font-medium text-gray-700"
       >
-        Category <span className="text-red-500">*</span>
+        Category <span className="text-xs">(*)</span>
       </label>
       <select
         id="category_id"

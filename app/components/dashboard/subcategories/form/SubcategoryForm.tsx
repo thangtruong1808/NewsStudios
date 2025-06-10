@@ -120,7 +120,9 @@ export default function SubcategoryForm({
         const response = await createSubcategory(data);
         if (!response.success) {
           setError(response.error);
-          showErrorToast({ message: response.error });
+          showErrorToast({
+            message: response.error || "Failed to create subcategory",
+          });
         } else {
           showSuccessToast({ message: "Subcategory created successfully" });
           router.push("/dashboard/subcategories");
@@ -142,11 +144,16 @@ export default function SubcategoryForm({
           <FolderIcon className="h-8 w-8" />
           {subcategoryId ? "Edit Subcategory" : "Create New Subcategory"}
         </h2>
+        <p className="mt-1 text-sm text-white/80">
+          {subcategoryId
+            ? "Update the subcategory's information below."
+            : "Fill in the subcategory's information below."}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
         {/* Required Fields Note */}
-        <p className="text-xs text-gray-500">
+        <p className="text-xs">
           Fields marked with an asterisk (*) are required
         </p>
 

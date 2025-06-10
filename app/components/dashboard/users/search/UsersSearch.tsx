@@ -35,7 +35,7 @@ export default function UsersSearch() {
   return (
     <div className="">
       <SearchWrapper
-        placeholder="Search users by name, email, or role . . ."
+        placeholder="Search users by first name, last name or email..."
         onSearch={handleSearch}
       />
     </div>

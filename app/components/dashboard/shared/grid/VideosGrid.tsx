@@ -70,8 +70,9 @@ export default function VideosGrid({
               </div>
               <div className="p-3 space-y-2">
                 <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
-                <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-                <div className="h-3 bg-gray-200 rounded animate-pulse w-1/3" />
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-full" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-full" />
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4" />
               </div>
             </div>
           ))}
@@ -140,10 +141,8 @@ export default function VideosGrid({
                         <svg class="w-12 h-12 text-red-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
-                        <span class="text-xs text-red-500 text-center">Video not available</span>
-                        <a href="${video.video_url}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-500 hover:text-blue-600 mt-2">
-                          Open video in new tab
-                        </a>
+                        <span class="text-xs text-red-500 text-center">The video could not find on server</span>
+                        
                       </div>
                     `;
                     parent.appendChild(fallback);
@@ -188,26 +187,26 @@ export default function VideosGrid({
             )}
 
             {/* Video metadata section */}
-            <div className="p-3">
+            <div className="p-2 space-y-2">
               {video.article_id && (
-                <div className="text-xs mb-1">
+                <div className="text-xs mb-1 truncate">
                   <span className="font-medium mr-1">Article ID:</span>{" "}
                   <span className="text-gray-500">{video.article_id}</span>
                 </div>
               )}
               {video.article_title && (
-                <div className="text-xs mb-1">
+                <div className="text-xs mb-1 truncate">
                   <span className="font-medium mr-1">Article Title:</span>{" "}
                   <span className="text-gray-500">{video.article_title}</span>
                 </div>
               )}
-              <div className="text-xs mb-1 line-clamp-2 min-h-[2.5rem]">
+              <div className="text-xs mb-1 truncate">
                 <span className="font-medium mr-1">Description:</span>{" "}
                 <span className="text-gray-500">
                   {video.description || "No description available"}
                 </span>
               </div>
-              <p className="text-xs flex items-center gap-1">
+              <p className="text-xs flex items-center gap-1 truncate">
                 <span className="mr-1 font-medium">Last updated:</span>{" "}
                 <span className="text-gray-500">
                   {new Date(video.updated_at).toLocaleDateString()}

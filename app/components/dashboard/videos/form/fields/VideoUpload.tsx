@@ -103,7 +103,7 @@ export default function VideoUpload({
   return (
     <div>
       <label htmlFor="video" className="block text-sm font-medium">
-        Video *
+        Video <span className="text-xs">(*)</span>
       </label>
       <div className="mt-2">
         <input

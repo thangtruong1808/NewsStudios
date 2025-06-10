@@ -11,7 +11,7 @@ const FormHeader: React.FC<FormHeaderProps> = ({ isEdit }) => (
       <DocumentTextIcon className="h-8 w-8" />
       {isEdit ? "Edit Article" : "Create New Article"}
     </h2>
-    <p className="mt-1 text-sm text-white/80">
+    <p className="mt-1 text-sm text-white/80 ">
       {isEdit
         ? "Update the details of your article."
         : "Fill in the details to create a new article."}

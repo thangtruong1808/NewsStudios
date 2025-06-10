@@ -9,7 +9,7 @@ interface PhotoMetadataProps {
 
 export function PhotoMetadata({ photo }: PhotoMetadataProps) {
   return (
-    <div className="p-4 space-y-2">
+    <div className="p-2 space-y-2">
       <div className="flex items-center gap-1">
         <span className="text-xs font-medium">Article ID:</span>
         <span className="text-xs text-gray-500">
@@ -23,7 +23,7 @@ export function PhotoMetadata({ photo }: PhotoMetadataProps) {
               Article Title:
             </span>
             <div
-              className={`text-xs text-gray-500 line-clamp-2 ${
+              className={`text-xs text-gray-500 truncate ${
                 photo.article_title.length < 50
                   ? "min-h-[1rem]"
                   : "min-h-[2rem]"
@@ -34,18 +34,16 @@ export function PhotoMetadata({ photo }: PhotoMetadataProps) {
           </div>
         </div>
       )}
-      {photo.description && (
-        <div className="mt-1">
-          <div className="flex items-start gap-1">
-            <span className="text-xs font-medium whitespace-nowrap">
-              Description:
-            </span>
-            <div className="text-xs text-gray-500 line-clamp-2">
-              {photo.description}
-            </div>
+      <div className="mt-1">
+        <div className="flex items-start gap-1">
+          <span className="text-xs font-medium whitespace-nowrap">
+            Description:
+          </span>
+          <div className="text-xs text-gray-500 truncate">
+            {photo.description || "No description available"}
           </div>
         </div>
-      )}
+      </div>
       <div className="mt-1 flex items-center gap-1">
         <span className="text-xs font-medium">Last updated:</span>
         <span className="text-xs text-gray-500">

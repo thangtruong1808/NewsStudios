@@ -20,7 +20,7 @@ export default function DescriptionField({
         htmlFor="description"
         className="block text-sm font-medium text-gray-700"
       >
-        Description
+        Description <span className="text-xs">(optional)</span>
       </label>
       <div className="mt-1">
         <textarea

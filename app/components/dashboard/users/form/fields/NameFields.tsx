@@ -13,7 +13,7 @@ export default function NameFields({ register, errors }: NameFieldsProps) {
     <>
       <div>
         <label htmlFor="firstname" className="block text-sm font-medium">
-          First Name <span className="text-red-500">*</span>
+          First Name <span className="text-xs">(*)</span>
         </label>
         <input
           type="text"
@@ -31,7 +31,7 @@ export default function NameFields({ register, errors }: NameFieldsProps) {
 
       <div>
         <label htmlFor="lastname" className="block text-sm font-medium">
-          Last Name <span className="text-red-500">*</span>
+          Last Name <span className="text-xs">(*)</span>
         </label>
         <input
           type="text"

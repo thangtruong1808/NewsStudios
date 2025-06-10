@@ -12,7 +12,7 @@ export default function RoleField({ register, errors }: RoleFieldProps) {
   return (
     <div>
       <label htmlFor="role" className="block text-sm font-medium">
-        Role <span className="text-red-500">*</span>
+        Role <span className="text-xs">(*)</span>
       </label>
       <select
         id="role"

@@ -17,7 +17,7 @@ export default function NameField({
   return (
     <div>
       <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-        Name <span className="text-red-500">*</span>
+        Name <span className="text-xs">(*)</span>
       </label>
       <div className="mt-1">
         <input

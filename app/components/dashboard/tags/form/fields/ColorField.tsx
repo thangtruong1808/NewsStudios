@@ -20,7 +20,9 @@ export default function ColorField({
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">Color</label>
+      <label className="block text-sm font-medium text-gray-700">
+        Color <span className="text-xs">(optional)</span>
+      </label>
       <div className="mt-1 flex items-center space-x-2">
         <input
           type="color"

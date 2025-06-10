@@ -29,7 +29,7 @@ export default function PasswordField({
         {isEditMode ? (
           <span className="text-gray-500">(leave blank to keep current)</span>
         ) : (
-          <span className="text-red-500">*</span>
+          <span className="text-xs">(*)</span>
         )}
       </label>
       <div className="relative">

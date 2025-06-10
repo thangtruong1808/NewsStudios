@@ -37,7 +37,7 @@ export default function ImageField({
     <div className="col-span-full">
       {/* Image upload label */}
       <label htmlFor="user_image" className="block text-sm font-medium">
-        Profile Image
+        Profile Image <span className="text-xs">(optional)</span>
       </label>
 
       {/* File input with custom styling */}

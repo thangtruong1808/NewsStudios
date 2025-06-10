@@ -12,7 +12,7 @@ export default function StatusField({ register, errors }: StatusFieldProps) {
   return (
     <div>
       <label htmlFor="status" className="block text-sm font-medium">
-        Status <span className="text-red-500">*</span>
+        Status <span className="text-xs">(*)</span>
       </label>
       <select
         id="status"

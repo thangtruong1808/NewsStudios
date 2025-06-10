@@ -22,12 +22,12 @@ export default function TagFields({
   return (
     <div className="space-y-2">
       <label htmlFor="tag_ids" className="block text-sm font-medium">
-        Tags <span className="text-red-500">*</span>
+        Tags <span className="text-xs">(*)</span>
       </label>
       <select
         id="tag_ids"
         multiple
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-xs border px-3 py-2"
+        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-xs border px-3 py-2 [&>option:checked]:bg-gray-200 [&>option:checked]:text-black"
         onChange={onTagChange}
         value={Array.isArray(selectedTags) ? selectedTags.map(String) : []}
       >
@@ -35,9 +35,7 @@ export default function TagFields({
           <option
             key={tag.id}
             value={tag.id}
-            className={`py-2 hover:bg-blue-100 ${
-              selectedTags.includes(tag.id) ? "bg-blue-100 rounded-md " : ""
-            }`}
+            className="py-2 px-2 hover:bg-gray-100 rounded-md mt-1"
           >
             {tag.name}
           </option>

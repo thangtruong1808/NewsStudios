@@ -14,7 +14,7 @@ export default function EditPhotoPageClient({
 }: EditPhotoPageClientProps) {
   return (
     <div className="w-full">
-      <PhotoFormContainer articles={articles} image={photo} />
+      <PhotoFormContainer articles={articles} image={photo} mode="edit" />
     </div>
   );
 }

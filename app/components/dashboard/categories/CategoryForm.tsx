@@ -159,10 +159,15 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
           <FolderIcon className="h-8 w-8" />
           {categoryId ? "Edit Category" : "Create New Category"}
         </h2>
+        <p className="mt-1 text-sm text-white/80">
+          {categoryId
+            ? "Update the category's information below."
+            : "Fill in the category's information below."}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs">
           Fields marked with an asterisk (*) are required
         </p>
 
@@ -178,7 +183,7 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
               htmlFor="name"
               className="block text-sm font-medium text-gray-700"
             >
-              Name <span className="text-red-500">*</span>
+              Name <span className="text-xs">(*)</span>
             </label>
             <input
               type="text"
@@ -197,8 +202,7 @@ export default function CategoryForm({ categoryId }: CategoryFormProps) {
               htmlFor="description"
               className="block text-sm font-medium text-gray-700"
             >
-              Description{" "}
-              <span className="text-xs text-gray-500">(optional)</span>
+              Description <span className="text-xs ">(optional)</span>
             </label>
             <textarea
               id="description"

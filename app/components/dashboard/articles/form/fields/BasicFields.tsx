@@ -37,7 +37,7 @@ export default function BasicFields({
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-medium ">
-          Title <span className="text-red-500">*</span>
+          Title <span className="text-xs">(*)</span>
         </label>
         <input
           type="text"
@@ -52,7 +52,7 @@ export default function BasicFields({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label className="block text-sm font-medium">
-            Category <span className="text-red-500">*</span>
+            Category <span className="text-xs">(*)</span>
           </label>
           <select
             {...register("category_id")}
@@ -103,7 +103,7 @@ export default function BasicFields({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label className="block text-sm font-medium">
-            Author <span className="text-red-500">*</span>
+            Author <span className="text-xs">(*)</span>
           </label>
           <select
             {...register("author_id")}
@@ -125,7 +125,7 @@ export default function BasicFields({
 
         <div>
           <label className="block text-sm font-medium ">
-            User <span className="text-red-500">*</span>
+            User <span className="text-xs">(*)</span>
           </label>
           <select
             {...register("user_id")}

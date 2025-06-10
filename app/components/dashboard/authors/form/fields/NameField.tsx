@@ -10,7 +10,7 @@ export function NameField({ register, errors }: NameFieldProps) {
   return (
     <div>
       <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-        Name <span className="text-red-500">*</span>
+        Name <span className="text-xs">(*)</span>
       </label>
       <input
         type="text"

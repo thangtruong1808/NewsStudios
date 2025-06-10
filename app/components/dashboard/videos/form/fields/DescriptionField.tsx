@@ -17,7 +17,7 @@ export default function DescriptionField({
       <div className="mt-2">
         <textarea
           id="description"
-          rows={8}
+          rows={5}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Enter video description"

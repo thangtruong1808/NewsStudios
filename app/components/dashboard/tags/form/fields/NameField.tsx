@@ -1,7 +1,7 @@
 "use client";
 
 import { UseFormRegister, FieldErrors } from "react-hook-form";
-import { TagFormValues } from "../../../types";
+import { TagFormValues } from "../../types";
 
 interface NameFieldProps {
   register: UseFormRegister<TagFormValues>;
@@ -12,7 +12,7 @@ export default function NameField({ register, errors }: NameFieldProps) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700">
-        Name <span className="text-red-500">*</span>
+        Name <span className="text-xs">(*)</span>
       </label>
       <input
         type="text"

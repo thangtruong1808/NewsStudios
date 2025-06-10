@@ -91,11 +91,16 @@ export default function TagForm({
           <TagIcon className="h-8 w-8" />
           {isEditMode ? "Edit Tag" : "Create New Tag"}
         </h2>
+        <p className="mt-1 text-sm text-white/80">
+          {isEditMode
+            ? "Update the tag's information below."
+            : "Fill in the tag's information below."}
+        </p>
       </div>
 
       {/* Main form content */}
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs">
           Fields marked with an asterisk (*) are required
         </p>
 

@@ -12,7 +12,7 @@ export default function EmailField({ register, errors }: EmailFieldProps) {
   return (
     <div>
       <label htmlFor="email" className="block text-sm font-medium">
-        Email Address <span className="text-red-500">*</span>
+        Email Address <span className="text-xs">(*)</span>
       </label>
       <input
         type="email"

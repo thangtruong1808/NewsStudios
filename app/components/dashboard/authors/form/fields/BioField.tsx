@@ -10,7 +10,7 @@ export function BioField({ register, errors }: BioFieldProps) {
   return (
     <div>
       <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-        Bio <span className="text-xs text-gray-500">(optional)</span>
+        Bio <span className="text-xs">(optional)</span>
       </label>
       <textarea
         id="bio"

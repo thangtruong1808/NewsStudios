@@ -66,9 +66,14 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
         <h2 className="text-lg font-semibold text-white flex items-center gap-2">
           <UserGroupIcon className="h-8 w-8" />
           {isEditMode
-            ? `Edit User: ${user?.firstname} ${user?.lastname}`
+            ? `Edit User: ${user?.firstname} - ${user?.lastname}`
             : "Create New User"}
         </h2>
+        <p className="mt-1 text-sm text-white/80">
+          {isEditMode
+            ? "Update the user's information below."
+            : "Fill in the user's information below."}
+        </p>
       </div>
 
       {/* Main form content */}
