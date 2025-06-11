@@ -139,7 +139,7 @@ export default function LoginForm() {
               className="block text-gray-500 text-sm mb-2"
               htmlFor="username"
             >
-              Username:<span className="px-3">user@nextmail.com</span>
+              Username:<span className="px-3">thang.t@gmail.com</span>
             </label>
           </p>
           <p>
@@ -147,7 +147,8 @@ export default function LoginForm() {
               className="block text-gray-500 text-sm mb-2"
               htmlFor="password"
             >
-              Password:<span className="px-3">25Thang!@</span>
+              Password:
+              <span className="px-3">()_+Thang!@#$%^&</span>
             </label>
           </p>
         </div>

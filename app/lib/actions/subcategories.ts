@@ -16,6 +16,7 @@ interface GetSubcategoriesParams {
   search?: string;
   sortField?: string;
   sortDirection?: "asc" | "desc";
+  categoryId?: number;
 }
 
 interface GetSubcategoriesResult {
@@ -30,15 +31,29 @@ export async function getSubcategories({
   search = "",
   sortField = "created_at",
   sortDirection = "desc",
+  categoryId,
 }: GetSubcategoriesParams = {}): Promise<GetSubcategoriesResult> {
   try {
     const offset = (page - 1) * limit;
-    const searchCondition = search
-      ? `WHERE s.name LIKE ? OR s.description LIKE ? OR c.name LIKE ?`
-      : "";
-    const searchParams = search
-      ? [`%${search}%`, `%${search}%`, `%${search}%`]
-      : [];
+    let conditions = [];
+    let params = [];
+
+    // Add search condition if search term exists
+    if (search) {
+      conditions.push(
+        `(s.name LIKE ? OR s.description LIKE ? OR c.name LIKE ?)`
+      );
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    // Add category filter if categoryId exists
+    if (categoryId) {
+      conditions.push(`s.category_id = ?`);
+      params.push(categoryId);
+    }
+
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     // Handle special sorting for computed fields
     let orderBy;
@@ -55,9 +70,9 @@ export async function getSubcategories({
       SELECT COUNT(*) as count
       FROM SubCategories s
       LEFT JOIN Categories c ON s.category_id = c.id
-      ${searchCondition}
+      ${whereClause}
     `;
-    const countResult = await query(countQuery, searchParams);
+    const countResult = await query(countQuery, params);
     if (countResult.error || !countResult.data) {
       throw new Error(countResult.error || "Failed to get count");
     }
@@ -71,13 +86,13 @@ export async function getSubcategories({
         (SELECT COUNT(*) FROM Articles a WHERE a.sub_category_id = s.id) as articles_count
       FROM SubCategories s
       LEFT JOIN Categories c ON s.category_id = c.id
-      ${searchCondition}
+      ${whereClause}
       ${orderBy}
       LIMIT ? 
       OFFSET ?
     `;
 
-    const result = await query(dataQuery, [...searchParams, limit, offset]);
+    const result = await query(dataQuery, [...params, limit, offset]);
 
     if (result.error || !result.data) {
       throw new Error(result.error || "Failed to fetch data");

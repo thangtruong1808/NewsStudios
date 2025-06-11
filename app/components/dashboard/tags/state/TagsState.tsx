@@ -44,8 +44,8 @@ export default function TagsState({ children }: TagsStateProps) {
 
   // Extract and parse URL parameters
   const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("limit")) || 10;
-  const searchQuery = searchParams.get("query") || "";
+  const itemsPerPage = Number(searchParams.get("itemsPerPage")) || 10;
+  const searchQuery = searchParams.get("search") || "";
   const sortField =
     (searchParams.get("sortField") as keyof Tag) || "created_at";
   const sortDirection =
@@ -57,8 +57,21 @@ export default function TagsState({ children }: TagsStateProps) {
         if (!isSearching && !isSorting) {
           setIsLoading(true);
         }
+        console.log("TagsState fetching data with params:", {
+          searchQuery,
+          currentPage,
+          itemsPerPage,
+          sortField,
+          sortDirection,
+        });
+
         const result = searchQuery
-          ? await searchTags(searchQuery)
+          ? await searchTags(searchQuery, {
+              page: currentPage,
+              limit: itemsPerPage,
+              sortField,
+              sortDirection,
+            })
           : await getTags({
               page: currentPage,
               limit: itemsPerPage,
@@ -66,9 +79,17 @@ export default function TagsState({ children }: TagsStateProps) {
               sortDirection,
             });
 
+        console.log("TagsState received result:", result);
+
         setTags(result.data || []);
         if (result.totalItems !== undefined) {
-          setTotalPages(Math.ceil(result.totalItems / itemsPerPage));
+          const newTotalPages = Math.ceil(result.totalItems / itemsPerPage);
+          console.log("TagsState calculating pages:", {
+            totalItems: result.totalItems,
+            itemsPerPage,
+            newTotalPages,
+          });
+          setTotalPages(newTotalPages);
           setTotalItems(result.totalItems);
         }
       } catch (error) {
@@ -172,9 +193,9 @@ export default function TagsState({ children }: TagsStateProps) {
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
     if (term) {
-      params.set("query", term);
+      params.set("search", term);
     } else {
-      params.delete("query");
+      params.delete("search");
     }
     router.push(`/dashboard/tags?${params.toString()}`);
   };
@@ -182,7 +203,7 @@ export default function TagsState({ children }: TagsStateProps) {
   const handleItemsPerPageChange = (limit: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
-    params.set("limit", limit.toString());
+    params.set("itemsPerPage", limit.toString());
     router.push(`/dashboard/tags?${params.toString()}`);
   };
 

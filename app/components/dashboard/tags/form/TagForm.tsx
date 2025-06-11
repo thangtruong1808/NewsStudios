@@ -11,6 +11,7 @@ import {
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 import { TagIcon } from "@heroicons/react/24/outline";
+import { useEffect } from "react";
 
 /**
  * Props interface for TagForm component
@@ -50,12 +51,25 @@ export default function TagForm({
     setValue,
   } = useForm<TagFormValues>({
     resolver: zodResolver(tagSchema),
-    defaultValues: tag || {
-      name: "",
-      description: "",
-      color: "",
+    defaultValues: {
+      name: tag?.name || "",
+      description: tag?.description || "",
+      color: tag?.color || "",
+      category_id: tag?.category_id || 0,
+      sub_category_id: tag?.sub_category_id || 0,
     },
   });
+
+  // Set initial values when tag data is available
+  useEffect(() => {
+    if (tag) {
+      setValue("name", tag.name || "");
+      setValue("description", tag.description || "");
+      setValue("color", tag.color || "");
+      setValue("category_id", tag.category_id || 0);
+      setValue("sub_category_id", tag.sub_category_id || 0);
+    }
+  }, [tag, setValue]);
 
   // Watch form values for button disable state
   const formValues = watch();
@@ -109,6 +123,8 @@ export default function TagForm({
           register={register}
           errors={errors}
           setValue={setValue}
+          watch={watch}
+          isEditMode={isEditMode}
         />
 
         {/* Form action buttons */}

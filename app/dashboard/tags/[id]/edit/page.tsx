@@ -23,11 +23,13 @@ export default function EditTagPage() {
           return;
         }
         if (data) {
+          console.log("Fetched tag data:", data); // Debug log
           setTag(data);
         } else {
           setError("Tag not found");
         }
       } catch (err) {
+        console.error("Error fetching tag:", err); // Debug log
         setError("Failed to fetch tag data");
       } finally {
         setIsLoading(false);
@@ -59,7 +61,15 @@ export default function EditTagPage() {
 
   return (
     <div className="bg-gray-50">
-      <TagForm tag={tag} isEditMode={true} tagId={parseInt(tagId)} />
+      <TagForm
+        tag={{
+          ...tag,
+          category_id: tag.category_id || 0,
+          sub_category_id: tag.sub_category_id || 0,
+        }}
+        isEditMode={true}
+        tagId={parseInt(tagId)}
+      />
     </div>
   );
 }

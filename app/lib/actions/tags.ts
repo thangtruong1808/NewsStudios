@@ -30,91 +30,74 @@ interface GetTagsParams {
 export async function getTags({
   page = 1,
   limit = 10,
-  search = "",
-  sortField = "name",
-  sortDirection = "asc",
-}: GetTagsParams = {}) {
+  sortField = "created_at",
+  sortDirection = "desc",
+}: {
+  page?: number;
+  limit?: number;
+  sortField?: keyof Tag;
+  sortDirection?: "asc" | "desc";
+} = {}) {
   try {
+    console.log("getTags called with params:", {
+      page,
+      limit,
+      sortField,
+      sortDirection,
+    });
     const offset = (page - 1) * limit;
-    const searchCondition = search
-      ? `WHERE t.name LIKE ? OR t.description LIKE ?`
-      : "";
-    const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
 
-    // Handle sorting for count columns
-    let orderBy = "";
-    if (
-      ["articles_count", "categories_count", "subcategories_count"].includes(
-        sortField
-      )
-    ) {
-      orderBy = `ORDER BY ${sortField} ${sortDirection}`;
-    } else {
-      orderBy = `ORDER BY t.${sortField} ${sortDirection}`;
-    }
+    // First, get the total count of tags using a direct query
+    const countQuery = `SELECT COUNT(*) as count FROM Tags`;
+    console.log("getTags countQuery:", countQuery);
+    const countResult = await query<{ count: number }>(countQuery);
+    console.log("getTags countResult:", countResult);
 
-    // Get total count for pagination
-    const countQuery = `
-      SELECT COUNT(*) as count
-      FROM Tags t
-      ${searchCondition}
-    `;
-    const countResult = await query(countQuery, searchParams);
-    if (countResult.error || !countResult.data) {
+    if (!countResult.data || countResult.error) {
       throw new Error(countResult.error || "Failed to get count");
     }
-    const totalItems = parseInt(countResult.data[0].count);
-    const totalPages = Math.ceil(totalItems / limit);
 
-    // Get paginated data with counts
+    const totalItems = Number(countResult.data[0]?.count) || 0;
+    console.log("getTags totalItems:", totalItems);
+
+    // Then get the paginated data with counts
     const dataQuery = `
       SELECT 
-        t.id, 
-        t.name, 
-        t.description, 
-        t.color,
-        DATE_FORMAT(t.created_at, '%Y-%m-%d %H:%i:%s') as created_at,
-        DATE_FORMAT(t.updated_at, '%Y-%m-%d %H:%i:%s') as updated_at,
-        COUNT(DISTINCT at.article_id) as articles_count,
-        COUNT(DISTINCT a.category_id) as categories_count,
-        COUNT(DISTINCT a.sub_category_id) as subcategories_count
+        t.*,
+        (SELECT COUNT(*) FROM Article_Tags WHERE tag_id = t.id) as articles_count,
+        (SELECT COUNT(*) FROM Categories WHERE id = t.category_id) as categories_count,
+        (SELECT COUNT(*) FROM SubCategories WHERE id = t.sub_category_id) as subcategories_count
       FROM Tags t
-      LEFT JOIN Article_Tags at ON t.id = at.tag_id
-      LEFT JOIN Articles a ON at.article_id = a.id
-      ${searchCondition}
-      GROUP BY t.id, t.name, t.description, t.color, t.created_at, t.updated_at
-      ${orderBy}
-      LIMIT ? 
-      OFFSET ?
+      ORDER BY ${sortField} ${sortDirection}
+      LIMIT ? OFFSET ?
     `;
+    console.log("getTags dataQuery:", dataQuery);
+    const result = await query<Tag>(dataQuery, [limit, offset]);
+    console.log("getTags result:", result);
 
-    const result = await query(dataQuery, [...searchParams, limit, offset]);
-
-    if (result.error || !result.data) {
-      throw new Error(result.error || "Failed to fetch data");
+    if (!result.data || result.error) {
+      throw new Error(result.error || "Failed to fetch tags data");
     }
 
-    // Convert the dates to proper Date objects
-    const tags = (result.data as any[]).map((tag) => ({
-      ...tag,
-      created_at: new Date(tag.created_at),
-      updated_at: new Date(tag.updated_at),
-      articles_count: parseInt(tag.articles_count) || 0,
-      categories_count: parseInt(tag.categories_count) || 0,
-      subcategories_count: parseInt(tag.subcategories_count) || 0,
-    })) as Tag[];
-
-    return {
-      data: tags,
-      error: null,
+    const response = {
+      data: result.data.map((tag) => ({
+        ...tag,
+        created_at: new Date(tag.created_at),
+        updated_at: new Date(tag.updated_at),
+        articles_count: Number(tag.articles_count) || 0,
+        categories_count: Number(tag.categories_count) || 0,
+        subcategories_count: Number(tag.subcategories_count) || 0,
+      })),
       totalItems,
-      totalPages,
+      totalPages: Math.ceil(totalItems / limit),
     };
+    console.log("getTags response:", response);
+    return response;
   } catch (error) {
-    console.error("Database Error:", error);
+    console.error("Error in getTags:", error);
     return {
-      data: null,
-      error: "Failed to fetch tags.",
+      error: "Failed to fetch tags",
+      data: [],
       totalItems: 0,
       totalPages: 0,
     };
@@ -125,11 +108,21 @@ export async function getTagById(id: number) {
   try {
     const result = await query(
       `
-      SELECT id, name, description, color, 
-             DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as created_at,
-             DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s') as updated_at
-      FROM Tags
-      WHERE id = ?
+      SELECT 
+        t.id, 
+        t.name, 
+        t.description, 
+        t.color, 
+        t.category_id, 
+        t.sub_category_id,
+        DATE_FORMAT(t.created_at, '%Y-%m-%d %H:%i:%s') as created_at,
+        DATE_FORMAT(t.updated_at, '%Y-%m-%d %H:%i:%s') as updated_at,
+        c.name as category_name,
+        sc.name as sub_category_name
+      FROM Tags t
+      LEFT JOIN Categories c ON t.category_id = c.id
+      LEFT JOIN SubCategories sc ON t.sub_category_id = sc.id
+      WHERE t.id = ?
     `,
       [id]
     );
@@ -148,6 +141,8 @@ export async function getTagById(id: number) {
         ...tag,
         created_at: new Date(tag.created_at),
         updated_at: new Date(tag.updated_at),
+        category_id: tag.category_id || 0,
+        sub_category_id: tag.sub_category_id || 0,
       },
       error: null,
     };
@@ -161,10 +156,16 @@ export async function createTag(tagData: TagFormData) {
   try {
     const result = await query(
       `
-      INSERT INTO Tags (name, description, color)
-      VALUES (?, ?, ?)
+      INSERT INTO Tags (name, description, color, category_id, sub_category_id)
+      VALUES (?, ?, ?, ?, ?)
     `,
-      [tagData.name, tagData.description, tagData.color]
+      [
+        tagData.name,
+        tagData.description,
+        tagData.color,
+        tagData.category_id || null,
+        tagData.sub_category_id || null,
+      ]
     );
 
     if (result.error) {
@@ -195,10 +196,17 @@ export async function updateTag(id: number, tagData: TagFormData) {
     await query(
       `
       UPDATE Tags
-      SET name = ?, description = ?, color = ?
+      SET name = ?, description = ?, color = ?, category_id = ?, sub_category_id = ?
       WHERE id = ?
     `,
-      [tagData.name, tagData.description, tagData.color, id]
+      [
+        tagData.name,
+        tagData.description,
+        tagData.color,
+        tagData.category_id || null,
+        tagData.sub_category_id || null,
+        id,
+      ]
     );
 
     const { data: tag } = await getTagById(id);
@@ -280,53 +288,74 @@ export async function deleteTag(id: number) {
   }
 }
 
-export async function searchTags(searchQuery: string) {
+export async function searchTags(
+  searchQuery: string,
+  {
+    page = 1,
+    limit = 10,
+    sortField = "created_at",
+    sortDirection = "desc",
+  }: {
+    page?: number;
+    limit?: number;
+    sortField?: keyof Tag;
+    sortDirection?: "asc" | "desc";
+  } = {}
+) {
   try {
-    if (!searchQuery.trim()) {
-      return getTags();
+    if (!searchQuery) {
+      return getTags({ page, limit, sortField, sortDirection });
     }
 
-    const result = await query(
-      `
-      SELECT 
-        t.id, 
-        t.name, 
-        t.description, 
-        t.color,
-        DATE_FORMAT(t.created_at, '%Y-%m-%d %H:%i:%s') as created_at,
-        DATE_FORMAT(t.updated_at, '%Y-%m-%d %H:%i:%s') as updated_at,
-        COUNT(DISTINCT at.article_id) as articles_count,
-        COUNT(DISTINCT a.category_id) as categories_count,
-        COUNT(DISTINCT a.sub_category_id) as subcategories_count
+    const offset = (page - 1) * limit;
+
+    // First, get the total count of tags matching the search
+    const countResult = await query<{ count: number }>(
+      `SELECT COUNT(*) as count 
       FROM Tags t
-      LEFT JOIN Article_Tags at ON t.id = at.tag_id
-      LEFT JOIN Articles a ON at.article_id = a.id
-      WHERE t.name LIKE ? OR t.description LIKE ?
-      GROUP BY t.id, t.name, t.description, t.color, t.created_at, t.updated_at
-      ORDER BY t.name ASC
-    `,
+      WHERE t.name LIKE ? OR t.description LIKE ?`,
       [`%${searchQuery}%`, `%${searchQuery}%`]
     );
+    const totalItems = countResult.data?.[0]?.count || 0;
 
-    if (result.error) {
-      console.error("Error searching tags:", result.error);
-      return { data: null, error: result.error, totalItems: 0 };
+    // Then get the paginated data with counts
+    const result = await query<Tag>(
+      `SELECT 
+        t.*,
+        (SELECT COUNT(*) FROM Article_Tags WHERE tag_id = t.id) as articles_count,
+        (SELECT COUNT(*) FROM Categories WHERE id = t.category_id) as categories_count,
+        (SELECT COUNT(*) FROM SubCategories WHERE id = t.sub_category_id) as subcategories_count
+      FROM Tags t
+      WHERE t.name LIKE ? OR t.description LIKE ?
+      ORDER BY ${sortField} ${sortDirection}
+      LIMIT ? OFFSET ?`,
+      [`%${searchQuery}%`, `%${searchQuery}%`, limit, offset]
+    );
+
+    if (!result.data) {
+      throw new Error("Failed to fetch tags data");
     }
 
-    // Convert the dates to proper Date objects and parse counts
-    const tags = (result.data as any[]).map((tag) => ({
-      ...tag,
-      created_at: new Date(tag.created_at),
-      updated_at: new Date(tag.updated_at),
-      articles_count: parseInt(tag.articles_count) || 0,
-      categories_count: parseInt(tag.categories_count) || 0,
-      subcategories_count: parseInt(tag.subcategories_count) || 0,
-    })) as Tag[];
-
-    return { data: tags, error: null, totalItems: tags.length };
+    return {
+      data: result.data.map((tag) => ({
+        ...tag,
+        created_at: new Date(tag.created_at),
+        updated_at: new Date(tag.updated_at),
+        articles_count: Number(tag.articles_count) || 0,
+        categories_count: Number(tag.categories_count) || 0,
+        subcategories_count: Number(tag.subcategories_count) || 0,
+      })),
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+    };
   } catch (error) {
-    console.error("Error searching tags:", error);
-    return { data: null, error: "Failed to search tags", totalItems: 0 };
+    console.error("Error in searchTags:", error);
+    return {
+      error: "Failed to search tags",
+      data: [],
+      totalItems: 0,
+      totalPages: 0,
+    };
   }
 }
 
