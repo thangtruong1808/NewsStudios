@@ -386,28 +386,6 @@ export async function updateArticle(
           );
         }
       }
-    } else if (article.image === undefined) {
-      // If image field is explicitly set to undefined, delete the image from both tables
-      // First get the current image URL
-      const [currentImage] = await connection.execute(
-        "SELECT image FROM Articles WHERE id = ?",
-        [id]
-      );
-      const currentImageUrl = (currentImage as any[])[0]?.image;
-
-      // Set the image field to NULL in Articles table
-      await connection.execute(
-        "UPDATE Articles SET image = NULL WHERE id = ?",
-        [id]
-      );
-
-      // Only delete the specific image record that matches the current image URL
-      if (currentImageUrl) {
-        await connection.execute(
-          "DELETE FROM Images WHERE article_id = ? AND image_url = ?",
-          [id, currentImageUrl]
-        );
-      }
     }
 
     // Handle video update
@@ -451,28 +429,6 @@ export async function updateArticle(
             [id, currentVideoUrl]
           );
         }
-      }
-    } else if (article.video === undefined) {
-      // If video field is explicitly set to undefined, delete the video from both tables
-      // First get the current video URL
-      const [currentVideo] = await connection.execute(
-        "SELECT video FROM Articles WHERE id = ?",
-        [id]
-      );
-      const currentVideoUrl = (currentVideo as any[])[0]?.video;
-
-      // Set the video field to NULL in Articles table
-      await connection.execute(
-        "UPDATE Articles SET video = NULL WHERE id = ?",
-        [id]
-      );
-
-      // Only delete the specific video record that matches the current video URL
-      if (currentVideoUrl) {
-        await connection.execute(
-          "DELETE FROM Videos WHERE article_id = ? AND video_url = ?",
-          [id, currentVideoUrl]
-        );
       }
     }
 

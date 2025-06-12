@@ -27,15 +27,25 @@ export default function TagFields({
       <select
         id="tag_ids"
         multiple
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-xs border px-3 py-2 [&>option:checked]:bg-gray-200 [&>option:checked]:text-black"
+        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm border px-3 py-2 [&>option:checked]:bg-gray-200 [&>option:checked]:text-black  "
         onChange={onTagChange}
-        value={Array.isArray(selectedTags) ? selectedTags.map(String) : []}
+        value={selectedTags.map(String)}
       >
         {tags.map((tag) => (
           <option
             key={tag.id}
             value={tag.id}
-            className="py-2 px-2 hover:bg-gray-100 rounded-md mt-1"
+            className={`py-2 px-2 rounded-md mt-1 ${
+              selectedTags.includes(tag.id)
+                ? "bg-gray-200"
+                : "hover:bg-blue-500 hover:text-white"
+            }`}
+            style={{
+              backgroundColor: selectedTags.includes(tag.id)
+                ? "#e5e7eb"
+                : "#ffffff",
+              color: selectedTags.includes(tag.id) ? "#000000" : "#000000",
+            }}
           >
             {tag.name}
           </option>

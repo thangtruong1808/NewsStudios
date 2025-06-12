@@ -1,8 +1,7 @@
-import NavBar from "../components/front-end/NavBar";
+import NavBar from "../components/front-end/navbar/NavBar";
 import QuickLinks from "../components/front-end/QuickLinks";
 import RightSidebar from "../components/front-end/RightSidebar";
 import Footer from "../components/front-end/Footer";
-import Sponsors from "../components/front-end/Sponsors";
 import LatestArticles from "../components/front-end/LatestArticles";
 
 export default function MainLayout({
@@ -11,10 +10,10 @@ export default function MainLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-white">
       {/* NavBar with full width but centered content */}
-      <div className="w-full bg-white border-b border-gray-200">
-        <div className="max-w-[1536px] mx-auto px-4">
+      <div className="w-full bg-white border-b border-gray-100">
+        <div className="max-w-[1536px] mx-auto px-6">
           <NavBar />
         </div>
       </div>
@@ -38,12 +37,6 @@ export default function MainLayout({
               <LatestArticles />
             </div>
           </div>
-        </div>
-      </div>
-      {/* Sponsors Section */}
-      <div className="mb-12 bg-white rounded-lg shadow-sm">
-        <div className="p-6">
-          <Sponsors />
         </div>
       </div>
 

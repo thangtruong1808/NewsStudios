@@ -207,19 +207,6 @@ export interface Bookmark {
   created_at: Date;
 }
 
-export interface Sponsor {
-  id: number;
-  name: string;
-  contact_email?: string;
-  contact_phone?: string;
-  website_url?: string;
-  image_url?: string;
-  video_url?: string;
-  description?: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
 export interface Advertisement {
   id: number;
   sponsor_id: number;

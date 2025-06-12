@@ -7,17 +7,13 @@ import { getAuthors } from "@/app/lib/actions/authors";
 import { getSubcategories } from "@/app/lib/actions/subcategories";
 import { getUsers } from "@/app/lib/actions/users";
 import { getAllTags } from "@/app/lib/actions/tags";
+import { getTagsBySubcategory } from "@/app/lib/actions/tags";
 import ArticleFormContainer from "@/app/components/dashboard/articles/form/ArticleFormContainer";
 import FormSkeleton from "@/app/components/dashboard/shared/skeleton/FormSkeleton";
-import { notFound } from "next/navigation";
+import { useParams } from "next/navigation";
 
-interface EditArticlePageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function EditArticlePage({ params }: EditArticlePageProps) {
+export default function EditArticlePage() {
+  const params = useParams();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<{
@@ -32,27 +28,39 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // First fetch the article to get its subcategory_id
+        const articleResult = await getArticleById(Number(params.id));
+        if (articleResult.error) {
+          setError(articleResult.error);
+          return;
+        }
+
+        const article = articleResult.data;
+        if (!article) {
+          setError("Article not found");
+          return;
+        }
+
+        // Fetch all other data in parallel
         const [
-          articleResult,
           categoriesResult,
           authorsResult,
           subcategoriesResult,
           usersResult,
-          tagsResult,
+          allTagsResult,
+          subcategoryTagsResult,
         ] = await Promise.all([
-          getArticleById(parseInt(params.id)),
           getCategories({ page: 1, limit: 1000 }),
           getAuthors({ page: 1, limit: 1000 }),
           getSubcategories({ page: 1, limit: 1000 }),
           getUsers({ page: 1, limit: 1000 }),
           getAllTags(),
+          article.sub_category_id
+            ? getTagsBySubcategory(article.sub_category_id)
+            : Promise.resolve({ data: [], error: null }),
         ]);
 
-        if (articleResult.error || !articleResult.data) {
-          setError("Article not found");
-          return;
-        }
-
+        // Check for errors
         if (categoriesResult.error) {
           setError(categoriesResult.error);
           return;
@@ -73,21 +81,28 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
           return;
         }
 
-        if (tagsResult.error) {
-          setError(tagsResult.error);
+        if (allTagsResult.error) {
+          setError(allTagsResult.error);
           return;
         }
 
+        if (subcategoryTagsResult.error) {
+          setError(subcategoryTagsResult.error);
+          return;
+        }
+
+        // Set the data
         setData({
-          article: articleResult.data,
+          article,
           categories: categoriesResult.data || [],
           authors: authorsResult.data || [],
           subcategories: subcategoriesResult.data || [],
           users: usersResult.data || [],
-          tags: tagsResult.data || [],
+          tags: subcategoryTagsResult.data || [],
         });
       } catch (err) {
         setError("Failed to fetch data");
+        console.error("Error fetching data:", err);
       } finally {
         setIsLoading(false);
       }
@@ -99,11 +114,7 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
   if (isLoading) {
     return (
       <div className="w-full">
-        <FormSkeleton
-          fields={8} // Number of fields in the article form: title, content, category, author, subcategory, user, image, video
-          showHeader={true}
-          showActions={true}
-        />
+        <FormSkeleton fields={8} showHeader={true} showActions={true} />
       </div>
     );
   }

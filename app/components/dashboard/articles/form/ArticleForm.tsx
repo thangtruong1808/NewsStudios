@@ -13,6 +13,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   User,
   Category as CategoryType,
@@ -37,7 +38,6 @@ interface ArticleFormProps {
   categories: CategoryType[];
   authors: AuthorType[];
   subcategories: SubCategory[];
-  users: User[];
   tags: Tag[];
 }
 
@@ -46,10 +46,11 @@ export default function ArticleForm({
   categories = [],
   authors = [],
   subcategories = [],
-  users = [],
-  tags = [],
+  tags: initialTags = [],
 }: ArticleFormProps) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const userId = session?.user?.id ? Number(session.user.id) : undefined;
 
   // Custom hook that manages all form logic and state
   const {
@@ -63,6 +64,7 @@ export default function ArticleForm({
     selectedCategory,
     selectedTags,
     filteredSubcategories,
+    tags,
     imageUrl,
     videoUrl,
     uploadProgress,
@@ -78,8 +80,8 @@ export default function ArticleForm({
     categories,
     authors,
     subcategories,
-    users,
-    tags,
+    tags: initialTags,
+    userId,
   });
 
   return (
@@ -105,7 +107,6 @@ export default function ArticleForm({
                 control={control}
                 categories={categories}
                 authors={authors}
-                users={users}
                 subcategories={subcategories}
                 selectedCategory={selectedCategory}
                 onCategoryChange={handleCategoryChange}
@@ -148,8 +149,8 @@ export default function ArticleForm({
         {/* Form action buttons with conditional rendering */}
         <FormActions
           isSubmitting={isSubmitting}
-          isEditMode={isEditMode}
           isFormEmpty={isFormEmpty}
+          isEditMode={isEditMode}
           onCancel={() => router.push("/dashboard/articles")}
         />
       </form>

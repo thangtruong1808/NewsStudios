@@ -5,7 +5,7 @@ export const articleSchema = z.object({
   content: z.string().min(1, "Content is required"),
   category_id: z.coerce.number().min(1, "Category is required"),
   author_id: z.coerce.number().min(1, "Author is required"),
-  user_id: z.coerce.number().min(1, "User is required"),
+  user_id: z.coerce.number().optional(),
   sub_category_id: z.coerce.number().optional(),
   image: z.string().optional(),
   video: z.string().optional(),

@@ -1,6 +1,5 @@
 import Button from "../components/Button";
 import Advertisements from "../components/front-end/Advertisements";
-import Sponsors from "../components/front-end/Sponsors";
 import LatestArticles from "../components/front-end/LatestArticles";
 import LatestSingleArticle from "../components/front-end/LatestSingleArticle";
 import ArticlesTrending from "../components/front-end/ArticlesTrending";

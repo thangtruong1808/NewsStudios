@@ -398,3 +398,45 @@ export async function getAllTags() {
     };
   }
 }
+
+export async function getTagsBySubcategory(subcategoryId: number) {
+  try {
+    const result = await query(
+      `
+      SELECT 
+        t.id, 
+        t.name, 
+        t.description, 
+        t.color,
+        DATE_FORMAT(t.created_at, '%Y-%m-%d %H:%i:%s') as created_at,
+        DATE_FORMAT(t.updated_at, '%Y-%m-%d %H:%i:%s') as updated_at
+      FROM Tags t
+      WHERE t.sub_category_id = ?
+      ORDER BY t.name ASC
+    `,
+      [subcategoryId]
+    );
+
+    if (result.error || !result.data) {
+      throw new Error(result.error || "Failed to fetch data");
+    }
+
+    // Convert the dates to proper Date objects
+    const tags = (result.data as any[]).map((tag) => ({
+      ...tag,
+      created_at: new Date(tag.created_at),
+      updated_at: new Date(tag.updated_at),
+    })) as Tag[];
+
+    return {
+      data: tags,
+      error: null,
+    };
+  } catch (error) {
+    console.error("Database Error:", error);
+    return {
+      data: null,
+      error: "Failed to fetch tags.",
+    };
+  }
+}
