@@ -15,154 +15,81 @@ export interface ArticleWithJoins extends Article, RowDataPacket {
   user_lastname?: string;
 }
 
-export async function getArticles(params?: {
+interface GetArticlesParams {
   page?: number;
   limit?: number;
   search?: string;
   sortField?: string;
   sortDirection?: "asc" | "desc";
-  subcategoryId?: string;
-  tag?: string;
-  type?: "trending";
-}) {
-  const page = params?.page || 1;
-  const limit = params?.limit || 10;
-  const offset = (page - 1) * limit;
-  const search = params?.search || "";
-  const sortField = params?.sortField || "published_at";
-  const sortDirection = params?.sortDirection || "desc";
+}
 
-  let sqlQuery = `
-    SELECT 
-      a.id,
-      a.title,
-      a.content,
-      a.category_id,
-      a.user_id,
-      a.author_id,
-      a.sub_category_id,
-      a.image,
-      a.video,
-      a.published_at,
-      a.is_featured,
-      a.headline_priority,
-      a.headline_image_url,
-      a.headline_video_url,
-      a.is_trending,
-      a.updated_at,
-      c.name as category_name,
-      sc.name as sub_category_name,
-      CONCAT(u.firstname, ' ', u.lastname) as author_name,
-      GROUP_CONCAT(t.name) as tag_names,
-      GROUP_CONCAT(t.id) as tag_ids,
-      GROUP_CONCAT(t.color) as tag_colors
-    FROM Articles a
-    LEFT JOIN Categories c ON a.category_id = c.id
-    LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-    LEFT JOIN Users u ON a.user_id = u.id
-    LEFT JOIN Article_Tags at ON a.id = at.article_id
-    LEFT JOIN Tags t ON at.tag_id = t.id
-  `;
-
-  const conditions = [];
-  const values = [];
-
-  if (search) {
-    conditions.push("(a.title LIKE ? OR a.content LIKE ?)");
-    values.push(`%${search}%`, `%${search}%`);
-  }
-
-  if (params?.subcategoryId) {
-    conditions.push("a.sub_category_id = ?");
-    values.push(params.subcategoryId);
-  }
-
-  if (params?.tag) {
-    conditions.push("t.name = ?");
-    values.push(params.tag);
-  }
-
-  if (params?.type === "trending") {
-    conditions.push("a.is_trending = true");
-  }
-
-  if (conditions.length > 0) {
-    sqlQuery += " WHERE " + conditions.join(" AND ");
-  }
-
-  // Get total count for pagination
-  const countQuery = `
-    SELECT COUNT(DISTINCT a.id) as total
-    FROM Articles a
-    LEFT JOIN Categories c ON a.category_id = c.id
-    LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-    LEFT JOIN Users u ON a.user_id = u.id
-    LEFT JOIN Article_Tags at ON a.id = at.article_id
-    LEFT JOIN Tags t ON at.tag_id = t.id
-    ${conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : ""}
-  `;
-  const { data: countData } = await query(countQuery, values);
-  const totalItems = countData?.[0]?.total || 0;
-
-  // Add sorting and pagination
-  let orderBy;
-  if (sortField === "tag_names") {
-    orderBy = `ORDER BY GROUP_CONCAT(t.name) ${sortDirection}`;
-  } else {
-    orderBy = `ORDER BY a.${sortField} ${sortDirection}`;
-  }
-
-  sqlQuery += `
-    GROUP BY a.id, c.name, sc.name, u.firstname, u.lastname
-    ${orderBy}
-    LIMIT ? OFFSET ?
-  `;
-
-  values.push(limit, offset);
-
+export async function getArticles({
+  page = 1,
+  limit = 10,
+  sortField = "created_at",
+  sortDirection = "desc",
+}: GetArticlesParams = {}) {
   try {
-    const { data, error } = await query(sqlQuery, values);
+    const offset = (page - 1) * limit;
+    const result = await query(
+      `
+      SELECT 
+        a.*,
+        c.name as category_name,
+        sc.name as subcategory_name,
+        au.name as author_name,
+        GROUP_CONCAT(t.name) as tag_names,
+        GROUP_CONCAT(t.color) as tag_colors,
+        (SELECT COUNT(*) FROM Articles) as total_count
+      FROM Articles a
+      LEFT JOIN Categories c ON a.category_id = c.id
+      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
+      LEFT JOIN Authors au ON a.author_id = au.id
+      LEFT JOIN Article_Tags at ON a.id = at.article_id
+      LEFT JOIN Tags t ON at.tag_id = t.id
+      GROUP BY a.id
+      ORDER BY a.${sortField} ${sortDirection}
+      LIMIT ? OFFSET ?
+    `,
+      [limit, offset]
+    );
 
-    if (error) {
-      console.error("Error in getArticles:", error);
-      return { data: [], error, totalItems: 0, totalPages: 0 };
+    if (!result.data || result.data.length === 0) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+      };
     }
 
-    // Ensure data is an array
-    const articlesData = Array.isArray(data) ? data : [];
-
-    // Transform the data to ensure all required fields are present
-    const articles = articlesData.map((article: any) => ({
+    const totalCount = result.data[0].total_count;
+    const articles = result.data.map((article) => ({
       ...article,
-      published_at: new Date(article.published_at),
-      updated_at: new Date(article.updated_at),
-      is_featured: Boolean(article.is_featured),
-      is_trending: Boolean(article.is_trending),
-      headline_priority: Number(article.headline_priority),
       tag_names: article.tag_names ? article.tag_names.split(",") : [],
-      tag_ids: article.tag_ids ? article.tag_ids.split(",").map(Number) : [],
       tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
+      likes_count: article.likes_count || 0,
+      comments_count: article.comments_count || 0,
+      views_count: article.views_count || 0,
     }));
 
-    // Ensure totalItems and totalPages are at least 1 when there's data
-    const finalTotalItems = articles.length > 0 ? totalItems : 0;
-    const finalTotalPages =
-      articles.length > 0 ? Math.max(1, Math.ceil(finalTotalItems / limit)) : 0;
+    const start = offset + 1;
+    const end = Math.min(offset + limit, totalCount);
+    const totalPages = Math.ceil(totalCount / limit);
 
     return {
       data: articles,
-      error: null,
-      totalItems: finalTotalItems,
-      totalPages: finalTotalPages,
+      totalCount,
+      start,
+      end,
+      currentPage: page,
+      totalPages,
     };
   } catch (error) {
-    console.error("Error in getArticles:", error);
-    return {
-      data: [],
-      error: "Failed to fetch articles",
-      totalItems: 0,
-      totalPages: 0,
-    };
+    console.error("Error fetching articles:", error);
+    return { error: "Failed to fetch articles" };
   }
 }
 

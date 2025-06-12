@@ -57,13 +57,6 @@ export default function TagsState({ children }: TagsStateProps) {
         if (!isSearching && !isSorting) {
           setIsLoading(true);
         }
-        console.log("TagsState fetching data with params:", {
-          searchQuery,
-          currentPage,
-          itemsPerPage,
-          sortField,
-          sortDirection,
-        });
 
         const result = searchQuery
           ? await searchTags(searchQuery, {
@@ -79,18 +72,10 @@ export default function TagsState({ children }: TagsStateProps) {
               sortDirection,
             });
 
-        console.log("TagsState received result:", result);
-
         setTags(result.data || []);
-        if (result.totalItems !== undefined) {
-          const newTotalPages = Math.ceil(result.totalItems / itemsPerPage);
-          console.log("TagsState calculating pages:", {
-            totalItems: result.totalItems,
-            itemsPerPage,
-            newTotalPages,
-          });
-          setTotalPages(newTotalPages);
-          setTotalItems(result.totalItems);
+        if (result.totalCount !== undefined) {
+          setTotalItems(result.totalCount);
+          setTotalPages(Math.ceil(result.totalCount / itemsPerPage));
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -152,7 +137,12 @@ export default function TagsState({ children }: TagsStateProps) {
 
       // Fetch fresh data after successful deletion
       const result = searchQuery
-        ? await searchTags(searchQuery)
+        ? await searchTags(searchQuery, {
+            page: currentPage,
+            limit: itemsPerPage,
+            sortField,
+            sortDirection,
+          })
         : await getTags({
             page: currentPage,
             limit: itemsPerPage,
@@ -166,9 +156,9 @@ export default function TagsState({ children }: TagsStateProps) {
 
       // Update the state with the new data
       setTags(result.data || []);
-      if (result.totalItems !== undefined) {
-        setTotalPages(Math.ceil(result.totalItems / itemsPerPage));
-        setTotalItems(result.totalItems);
+      if (result.totalCount !== undefined) {
+        setTotalItems(result.totalCount);
+        setTotalPages(Math.ceil(result.totalCount / itemsPerPage));
       }
 
       // If we're on the last page and it's now empty, go to the previous page

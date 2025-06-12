@@ -66,6 +66,7 @@ export async function setupDatabase() {
         title VARCHAR(255) NOT NULL,
         content TEXT NOT NULL,
         category_id INT(11),
+        sub_category_id INT(11),
         author_id INT(11),
         user_id INT(11),
         image VARCHAR(255),

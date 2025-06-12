@@ -1,45 +1,44 @@
 import Button from "../components/Button";
-import Advertisements from "../components/front-end/Advertisements";
-import LatestArticles from "../components/front-end/LatestArticles";
-import LatestSingleArticle from "../components/front-end/LatestSingleArticle";
-import ArticlesTrending from "../components/front-end/ArticlesTrending";
+import { ArticlesTrending } from "@/app/components/front-end/trending-articles/ArticlesTrending";
+import HighlightArticles from "../components/front-end/highlight-articles/HighlightArticles";
+import { QuickLinks } from "@/app/components/front-end/quick-links/QuickLinks";
+import FeaturedArticles from "@/app/components/front-end/FeaturedArticles/FeaturedArticles";
+import RelatedArticles from "../components/front-end/articles/RelatedArticles";
+import Tags from "../components/front-end/Tags/Tags";
 
 export default function Home() {
   return (
     <>
-      {/* Get LatestArticle */}
-      <div>
-        <LatestSingleArticle />
+      {/* Quick Links Section */}
+      <div className="mb-12">
+        <QuickLinks />
+      </div>
+      {/* Featured Articles Section */}
+      <div className="m-12">
+        <FeaturedArticles />
+      </div>
+      {/* <div>
+        <hr className="my-12 bg-gray-200 py-8 relative left-1/2 right-1/2 -mx-[50vw]" />
+      </div> */}
+      {/* Highlight Articles Section */}
+      <div className="m-12">
+        <HighlightArticles />
       </div>
 
       {/* Trending Articles Section */}
-      <div className="mt-12">
+      <div className="m-12">
         <ArticlesTrending />
       </div>
 
-      {/* LatestArticles Section
-      <div className="rounded-lg shadow-sm">
-        <div className="p-6">
-          <LatestArticles />
-        </div>
-      </div> */}
+      {/* Related Articles Section */}
+      <div className="m-12">
+        <RelatedArticles />
+      </div>
 
-      {/* Advertisements Section */}
-      {/* <div className="mb-12 bg-white rounded-lg shadow-sm">
-        <div className="p-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            Featured Advertisements
-          </h2>
-          <Advertisements />
-        </div>
-      </div> */}
-
-      {/* Sponsors Section */}
-      {/* <div className="mb-12 bg-white rounded-lg shadow-sm">
-        <div className="p-6">
-          <Sponsors />
-        </div>
-      </div> */}
+      {/* Tags Section */}
+      <div className="m-12">
+        <Tags />
+      </div>
     </>
   );
 }

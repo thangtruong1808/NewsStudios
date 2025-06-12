@@ -79,6 +79,8 @@ export default function DesktopMenu({
       <div className="flex items-center justify-center w-1/4 ">
         <Link
           href="/login"
+          target="_blank"
+          rel="noopener noreferrer"
           className={`text-md font-medium  ${
             isActive("/login")
               ? "text-black"

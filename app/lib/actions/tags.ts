@@ -32,75 +32,129 @@ export async function getTags({
   limit = 10,
   sortField = "created_at",
   sortDirection = "desc",
-}: {
-  page?: number;
-  limit?: number;
-  sortField?: keyof Tag;
-  sortDirection?: "asc" | "desc";
-} = {}) {
+}: GetTagsParams = {}) {
   try {
-    console.log("getTags called with params:", {
-      page,
-      limit,
-      sortField,
-      sortDirection,
-    });
     const offset = (page - 1) * limit;
 
-    // First, get the total count of tags using a direct query
-    const countQuery = `SELECT COUNT(*) as count FROM Tags`;
-    console.log("getTags countQuery:", countQuery);
-    const countResult = await query<{ count: number }>(countQuery);
-    console.log("getTags countResult:", countResult);
+    // First, get the total count
+    const countResult = await query(`SELECT COUNT(*) as total_count FROM Tags`);
+    const totalCount = countResult.data?.[0]?.total_count || 0;
 
-    if (!countResult.data || countResult.error) {
-      throw new Error(countResult.error || "Failed to get count");
-    }
-
-    const totalItems = Number(countResult.data[0]?.count) || 0;
-    console.log("getTags totalItems:", totalItems);
-
-    // Then get the paginated data with counts
-    const dataQuery = `
+    // Then get the paginated data
+    const result = await query(
+      `
       SELECT 
         t.*,
-        (SELECT COUNT(*) FROM Article_Tags WHERE tag_id = t.id) as articles_count,
-        (SELECT COUNT(*) FROM Categories WHERE id = t.category_id) as categories_count,
-        (SELECT COUNT(*) FROM SubCategories WHERE id = t.sub_category_id) as subcategories_count
+        (SELECT COUNT(*) FROM Article_Tags WHERE tag_id = t.id) as article_count
       FROM Tags t
-      ORDER BY ${sortField} ${sortDirection}
+      ORDER BY t.${sortField} ${sortDirection}
       LIMIT ? OFFSET ?
-    `;
-    console.log("getTags dataQuery:", dataQuery);
-    const result = await query<Tag>(dataQuery, [limit, offset]);
-    console.log("getTags result:", result);
+    `,
+      [limit, offset]
+    );
 
-    if (!result.data || result.error) {
-      throw new Error(result.error || "Failed to fetch tags data");
+    if (!result.data || result.data.length === 0) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+      };
     }
 
-    const response = {
-      data: result.data.map((tag) => ({
-        ...tag,
-        created_at: new Date(tag.created_at),
-        updated_at: new Date(tag.updated_at),
-        articles_count: Number(tag.articles_count) || 0,
-        categories_count: Number(tag.categories_count) || 0,
-        subcategories_count: Number(tag.subcategories_count) || 0,
-      })),
-      totalItems,
-      totalPages: Math.ceil(totalItems / limit),
-    };
-    console.log("getTags response:", response);
-    return response;
-  } catch (error) {
-    console.error("Error in getTags:", error);
+    const tags = result.data.map((tag) => ({
+      ...tag,
+      article_count: Number(tag.article_count) || 0,
+    }));
+
+    const start = offset + 1;
+    const end = Math.min(offset + limit, totalCount);
+    const totalPages = Math.ceil(totalCount / limit);
+
     return {
-      error: "Failed to fetch tags",
-      data: [],
-      totalItems: 0,
-      totalPages: 0,
+      data: tags,
+      totalCount,
+      start,
+      end,
+      currentPage: page,
+      totalPages,
     };
+  } catch (error) {
+    console.error("Error fetching tags:", error);
+    return { error: "Failed to fetch tags" };
+  }
+}
+
+export async function getFilteredTags(
+  categoryId?: string,
+  subcategoryId?: string,
+  page: number = 1,
+  limit: number = 8
+) {
+  try {
+    const conditions = [];
+    const values = [];
+
+    // Add category condition if it's provided
+    if (categoryId) {
+      conditions.push("t.category_id = ?");
+      values.push(Number(categoryId));
+    }
+
+    // Add subcategory condition only if subcategory is provided
+    if (subcategoryId) {
+      conditions.push("t.sub_category_id = ?");
+      values.push(Number(subcategoryId));
+    }
+
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    // Calculate offset for pagination
+    const offset = (page - 1) * limit;
+
+    // First, get the total count of all tags
+    const countQuery = `
+      SELECT COUNT(*) as total_count
+      FROM Tags t
+      ${whereClause}
+    `;
+
+    const countResult = await query(countQuery, values);
+    const totalCount = countResult.data?.[0]?.total_count || 0;
+
+    // Then get the paginated data with article counts
+    const result = await query(
+      `
+      SELECT 
+        t.*,
+        COUNT(DISTINCT at.article_id) as article_count
+      FROM Tags t
+      LEFT JOIN Article_Tags at ON t.id = at.tag_id
+      ${whereClause}
+      GROUP BY t.id
+      ORDER BY article_count DESC, t.name ASC
+      LIMIT ? OFFSET ?
+    `,
+      [...values, limit, offset]
+    );
+
+    if (!result.data || result.data.length === 0) {
+      console.log("No tags found");
+      return { data: [], totalCount: 0 };
+    }
+
+    const tags = result.data.map((tag) => ({
+      ...tag,
+      article_count: Number(tag.article_count) || 0,
+    }));
+
+    return { data: tags, totalCount };
+  } catch (error) {
+    console.error("Error fetching tags:", error);
+    return { error: "Failed to fetch tags" };
   }
 }
 
@@ -295,12 +349,7 @@ export async function searchTags(
     limit = 10,
     sortField = "created_at",
     sortDirection = "desc",
-  }: {
-    page?: number;
-    limit?: number;
-    sortField?: keyof Tag;
-    sortDirection?: "asc" | "desc";
-  } = {}
+  }: GetTagsParams = {}
 ) {
   try {
     if (!searchQuery) {
@@ -316,7 +365,7 @@ export async function searchTags(
       WHERE t.name LIKE ? OR t.description LIKE ?`,
       [`%${searchQuery}%`, `%${searchQuery}%`]
     );
-    const totalItems = countResult.data?.[0]?.count || 0;
+    const totalCount = countResult.data?.[0]?.count || 0;
 
     // Then get the paginated data with counts
     const result = await query<Tag>(
@@ -327,7 +376,7 @@ export async function searchTags(
         (SELECT COUNT(*) FROM SubCategories WHERE id = t.sub_category_id) as subcategories_count
       FROM Tags t
       WHERE t.name LIKE ? OR t.description LIKE ?
-      ORDER BY ${sortField} ${sortDirection}
+      ORDER BY t.${sortField} ${sortDirection}
       LIMIT ? OFFSET ?`,
       [`%${searchQuery}%`, `%${searchQuery}%`, limit, offset]
     );
@@ -335,6 +384,10 @@ export async function searchTags(
     if (!result.data) {
       throw new Error("Failed to fetch tags data");
     }
+
+    const start = offset + 1;
+    const end = Math.min(offset + limit, totalCount);
+    const totalPages = Math.ceil(totalCount / limit);
 
     return {
       data: result.data.map((tag) => ({
@@ -345,15 +398,21 @@ export async function searchTags(
         categories_count: Number(tag.categories_count) || 0,
         subcategories_count: Number(tag.subcategories_count) || 0,
       })),
-      totalItems,
-      totalPages: Math.ceil(totalItems / limit),
+      totalCount,
+      start,
+      end,
+      currentPage: page,
+      totalPages,
     };
   } catch (error) {
     console.error("Error in searchTags:", error);
     return {
       error: "Failed to search tags",
       data: [],
-      totalItems: 0,
+      totalCount: 0,
+      start: 0,
+      end: 0,
+      currentPage: page,
       totalPages: 0,
     };
   }

@@ -1,8 +1,5 @@
 import NavBar from "../components/front-end/navbar/NavBar";
-import QuickLinks from "../components/front-end/QuickLinks";
-import RightSidebar from "../components/front-end/RightSidebar";
 import Footer from "../components/front-end/Footer";
-import LatestArticles from "../components/front-end/LatestArticles";
 
 export default function MainLayout({
   children,
@@ -18,25 +15,11 @@ export default function MainLayout({
         </div>
       </div>
 
-      {/* Main content with sidebars */}
+      {/* Main content */}
       <div className="flex-1">
         <div className="max-w-[1536px] mx-auto px-4 py-8">
-          <div className="flex gap-8">
-            {/* Main Content */}
-            <main className="flex-1 min-w-0 w-full lg:w-auto">{children}</main>
-
-            {/* Right Sidebar */}
-            <div className="hidden lg:block w-72 flex-shrink-0">
-              <QuickLinks />
-              <RightSidebar />
-            </div>
-          </div>
-          {/* LatestArticles Section */}
-          <div className="rounded-lg shadow-sm">
-            <div className="p-6">
-              <LatestArticles />
-            </div>
-          </div>
+          {/* Main Content */}
+          <main className="w-full">{children}</main>
         </div>
       </div>
 

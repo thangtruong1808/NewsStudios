@@ -48,17 +48,21 @@ export function useArticles() {
         if (!isSearching && !isSorting) {
           setIsLoading(true);
         }
-        const { data, totalItems, totalPages } = await getArticles({
-          page: currentPage,
-          limit: itemsPerPage,
+        const result = await getArticles({
+          page: Number(currentPage),
+          limit: Number(itemsPerPage),
           search: searchQuery,
-          sortField: sortField as string,
+          sortField: String(sortField),
           sortDirection,
         });
 
-        setArticles(data);
-        setTotalPages(totalPages);
-        setTotalItems(totalItems);
+        if (result.error) {
+          throw new Error(result.error);
+        }
+
+        setArticles(result.data || []);
+        setTotalPages(result.totalPages || 1);
+        setTotalItems(result.totalCount || 0);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -108,7 +112,7 @@ export function useArticles() {
 
     setIsDeleting(true);
     try {
-      const success = await deleteArticle(article.id);
+      const success = await deleteArticle(Number(article.id));
 
       if (!success) {
         throw new Error("Failed to delete article");
@@ -119,10 +123,10 @@ export function useArticles() {
 
       // Refresh the data after successful deletion
       const result = await getArticles({
-        page: currentPage,
-        limit: itemsPerPage,
+        page: Number(currentPage),
+        limit: Number(itemsPerPage),
         search: searchQuery,
-        sortField: sortField as string,
+        sortField: String(sortField),
         sortDirection,
       });
 
@@ -132,10 +136,8 @@ export function useArticles() {
 
       // Update the state with the new data
       setArticles(result.data || []);
-      if (result.totalItems !== undefined) {
-        setTotalPages(Math.ceil(result.totalItems / itemsPerPage));
-        setTotalItems(result.totalItems);
-      }
+      setTotalPages(result.totalPages || 1);
+      setTotalItems(result.totalCount || 0);
 
       // If we're on the last page and it's now empty, go to the previous page
       if (result.data?.length === 0 && currentPage > 1) {
