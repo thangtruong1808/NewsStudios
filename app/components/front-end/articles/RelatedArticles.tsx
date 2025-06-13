@@ -61,7 +61,17 @@ export default function RelatedArticles({
           setRelatedArticles((prev) => [...prev, ...newArticles]);
         }
         setTotalCount(result.totalCount || 0);
-        setHasMore(result.totalCount > page * ITEMS_PER_PAGE);
+
+        // Calculate total loaded articles
+        const totalLoaded =
+          page === 1
+            ? newArticles.length
+            : relatedArticles.length + newArticles.length;
+        // Only show Load More if we have more articles to load and we received a full page
+        setHasMore(
+          result.totalCount > totalLoaded &&
+            newArticles.length === ITEMS_PER_PAGE
+        );
       } catch (error) {
         console.error("Error fetching related articles:", error);
         setError("Failed to load related articles");

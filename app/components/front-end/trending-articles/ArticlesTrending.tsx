@@ -9,47 +9,68 @@ import { ImageCarousel } from "@/app/components/front-end/shared/ImageCarousel";
 import Grid from "@/app/components/front-end/shared/Grid";
 import Card from "@/app/components/front-end/shared/Card";
 
-export const ArticlesTrending = () => {
+export function ArticlesTrending() {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [displayCount, setDisplayCount] = useState(10); // Initial display count (2 rows of 5)
+  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const ITEMS_PER_PAGE = 10; // 5 columns × 2 rows
 
-  const fetchTrendingArticles = async () => {
-    try {
-      setLoading(true);
-      const result = await getFrontEndArticles({ type: "trending" });
+  // Fetch trending articles on component mount
+  useEffect(() => {
+    const fetchTrendingArticles = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      if (result.error) {
-        throw new Error(result.error);
+        const result = await getFrontEndArticles({
+          type: "trending",
+          page,
+          itemsPerPage: ITEMS_PER_PAGE,
+        });
+
+        if (result.error) {
+          throw new Error(result.error);
+        }
+
+        console.log("Trending articles result:", result);
+        const newArticles = result.data || [];
+        if (page === 1) {
+          setArticles(newArticles);
+        } else {
+          setArticles((prev) => [...prev, ...newArticles]);
+        }
+        setTotalCount(result.totalCount || 0);
+
+        // Calculate total loaded articles
+        const totalLoaded =
+          page === 1
+            ? newArticles.length
+            : articles.length + newArticles.length;
+        // Only show Load More if we have more articles to load and we received a full page
+        setHasMore(
+          result.totalCount > totalLoaded &&
+            newArticles.length === ITEMS_PER_PAGE
+        );
+      } catch (error) {
+        console.error("Error fetching trending articles:", error);
+        setError("Failed to load trending articles");
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      const fetchedArticles = result.data || [];
-      setArticles(fetchedArticles);
-      setHasMore(fetchedArticles.length > 10); // Set hasMore if there are more than 10 articles
-      setError(null);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to fetch trending articles"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchTrendingArticles();
+  }, [page]);
 
   // Handle load more click
   const handleLoadMore = () => {
-    setIsLoading(true);
-    setDisplayCount((prev) => prev + 10); // Load 10 more articles (2 more rows)
+    setPage((prev) => prev + 1);
   };
 
-  useEffect(() => {
-    fetchTrendingArticles();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <LoadingSpinner />
@@ -126,7 +147,7 @@ export const ArticlesTrending = () => {
 
         {/* Articles Grid */}
         <Grid columns={5} gap="md">
-          {articles.slice(0, displayCount).map((article) => (
+          {articles.map((article) => (
             <Card
               key={article.id}
               title={article.title}
@@ -161,4 +182,4 @@ export const ArticlesTrending = () => {
       </div>
     </>
   );
-};
+}

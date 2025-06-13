@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Card from "../shared/Card";
 import Grid from "../shared/Grid";
 import { ImageCarousel } from "../shared/ImageCarousel";
@@ -28,12 +28,13 @@ interface Article {
 }
 
 export default function FeaturedArticles() {
-  const [articles, setArticles] = React.useState<Article[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const [displayCount, setDisplayCount] = React.useState(8); // Initial display count (2 rows of 4)
-  const [hasMore, setHasMore] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const ITEMS_PER_PAGE = 8; // 4 columns × 2 rows
 
   // Handle view click
   const handleViewClick = (articleId: number) => {
@@ -59,47 +60,55 @@ export default function FeaturedArticles() {
     // Add your share handling logic here
   };
 
-  // Handle load more click
-  const handleLoadMore = () => {
-    setIsLoading(true);
-    setDisplayCount((prev) => prev + 8); // Load 8 more articles (2 more rows)
-  };
-
-  React.useEffect(() => {
+  // Fetch featured articles on component mount
+  useEffect(() => {
     const fetchFeaturedArticles = async () => {
       try {
-        const result = await getFeaturedArticles(1, 16); // Fetch first page with 16 items
+        setIsLoading(true);
+        setError(null);
+
+        const result = await getFeaturedArticles(page, ITEMS_PER_PAGE);
 
         if (result.error) {
           throw new Error(result.error);
         }
 
-        // Ensure each article has an images array
-        const processedArticles = (result.data || []).map((article) => ({
-          ...article,
-          images: article.images?.length > 0 ? article.images : [article.image], // Use main image if no additional images
-        }));
+        console.log("Featured articles result:", result);
+        const newArticles = result.data || [];
+        if (page === 1) {
+          setArticles(newArticles);
+        } else {
+          setArticles((prev) => [...prev, ...newArticles]);
+        }
+        setTotalCount(result.totalCount || 0);
 
-        setArticles(processedArticles);
-        setHasMore(processedArticles.length > 8); // Set hasMore if there are more than 8 articles
-        setError(null);
+        // Calculate total loaded articles
+        const totalLoaded =
+          page === 1
+            ? newArticles.length
+            : articles.length + newArticles.length;
+        // Only show Load More if we have more articles to load and we received a full page
+        setHasMore(
+          result.totalCount > totalLoaded &&
+            newArticles.length === ITEMS_PER_PAGE
+        );
       } catch (error) {
         console.error("Error fetching featured articles:", error);
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch featured articles"
-        );
+        setError("Failed to load featured articles");
       } finally {
-        setLoading(false);
         setIsLoading(false);
       }
     };
 
     fetchFeaturedArticles();
-  }, []);
+  }, [page]);
 
-  if (loading) {
+  // Handle load more click
+  const handleLoadMore = () => {
+    setPage((prev) => prev + 1);
+  };
+
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <LoadingSpinner />
@@ -179,7 +188,7 @@ export default function FeaturedArticles() {
 
         {/* Articles Grid */}
         <Grid columns={4} gap="md">
-          {articles.slice(0, displayCount).map((article) => (
+          {articles.slice(0, page * ITEMS_PER_PAGE).map((article) => (
             <Card
               key={article.id}
               title={article.title}

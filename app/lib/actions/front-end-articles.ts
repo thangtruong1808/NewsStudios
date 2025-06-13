@@ -3,8 +3,18 @@
 import { query } from "../db/db";
 import { Article } from "../definition";
 
-export async function getFrontEndArticles({ type }: { type?: string } = {}) {
+export async function getFrontEndArticles({
+  type,
+  page = 1,
+  itemsPerPage = 10,
+}: {
+  type?: string;
+  page?: number;
+  itemsPerPage?: number;
+} = {}) {
   try {
+    const offset = (page - 1) * itemsPerPage;
+
     const result = await query(
       `
       SELECT 
@@ -29,14 +39,17 @@ export async function getFrontEndArticles({ type }: { type?: string } = {}) {
       ${type === "trending" ? "AND a.is_trending = 1" : ""}
       GROUP BY a.id
       ORDER BY a.published_at DESC
-    `
+      LIMIT ? OFFSET ?
+    `,
+      [itemsPerPage, offset]
     );
 
     if (!result.data || result.data.length === 0) {
       console.log("No articles found");
-      return { data: [] };
+      return { data: [], totalCount: 0 };
     }
 
+    const totalCount = result.data[0].total_count;
     const articles = result.data.map((article) => ({
       ...article,
       tag_names: article.tag_names ? article.tag_names.split(",") : [],
@@ -46,7 +59,7 @@ export async function getFrontEndArticles({ type }: { type?: string } = {}) {
       views_count: 0, // Set default value since Views table doesn't exist
     }));
 
-    return { data: articles };
+    return { data: articles, totalCount };
   } catch (error) {
     console.error("Error fetching articles:", error);
     return { error: "Failed to fetch articles" };

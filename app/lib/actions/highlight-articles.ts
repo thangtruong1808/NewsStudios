@@ -3,9 +3,18 @@
 import { query } from "../db/db";
 import { Article } from "../definition";
 
-export async function getHighlightArticles() {
+export async function getHighlightArticles({
+  page = 1,
+  itemsPerPage = 6,
+}: {
+  page?: number;
+  itemsPerPage?: number;
+} = {}) {
   try {
-    const { data, error } = await query(`
+    const offset = (page - 1) * itemsPerPage;
+
+    const { data, error } = await query(
+      `
       SELECT 
         a.*,
         c.name as category_name,
@@ -14,7 +23,8 @@ export async function getHighlightArticles() {
         GROUP_CONCAT(t.id) as tag_ids,
         GROUP_CONCAT(t.color) as tag_colors,
         (SELECT COUNT(*) FROM Likes WHERE article_id = a.id) as likes_count,
-        (SELECT COUNT(*) FROM Comments WHERE article_id = a.id) as comments_count
+        (SELECT COUNT(*) FROM Comments WHERE article_id = a.id) as comments_count,
+        (SELECT COUNT(*) FROM Articles WHERE headline_priority != 0) as total_count
       FROM Articles a
       LEFT JOIN Categories c ON a.category_id = c.id
       LEFT JOIN Users u ON a.user_id = u.id
@@ -23,11 +33,14 @@ export async function getHighlightArticles() {
       WHERE a.headline_priority != 0
       GROUP BY a.id, c.name, u.firstname, u.lastname
       ORDER BY a.headline_priority DESC, a.published_at DESC
-    `);
+      LIMIT ? OFFSET ?
+    `,
+      [itemsPerPage, offset]
+    );
 
     if (error) {
       console.error("Error in getHighlightArticles:", error);
-      return { data: [], error };
+      return { data: [], error, totalCount: 0 };
     }
 
     // Transform the data to ensure all required fields are present
@@ -50,9 +63,14 @@ export async function getHighlightArticles() {
         }))
       : [];
 
-    return { data: articles, error: null };
+    const totalCount = data?.[0]?.total_count || 0;
+    return { data: articles, error: null, totalCount };
   } catch (error) {
     console.error("Error in getHighlightArticles:", error);
-    return { data: [], error: "Failed to fetch highlight articles" };
+    return {
+      data: [],
+      error: "Failed to fetch highlight articles",
+      totalCount: 0,
+    };
   }
 }

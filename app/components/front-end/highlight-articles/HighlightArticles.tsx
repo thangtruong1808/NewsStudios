@@ -13,48 +13,66 @@ import { ImageCarousel } from "@/app/components/front-end/shared/ImageCarousel";
 export default function HighlightArticles() {
   // State management for articles, loading state, and error handling
   const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [displayCount, setDisplayCount] = useState(6); // Initial display count (2 rows of 3)
+  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const ITEMS_PER_PAGE = 6; // 3 columns × 2 rows
 
   // Fetch highlight articles on component mount
-  const fetchHighlightArticles = async () => {
-    try {
-      setLoading(true);
-      const result = await getHighlightArticles();
+  useEffect(() => {
+    const fetchHighlightArticles = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      if (result.error) {
-        throw new Error(result.error);
+        const result = await getHighlightArticles({
+          page,
+          itemsPerPage: ITEMS_PER_PAGE,
+        });
+
+        if (result.error) {
+          throw new Error(result.error);
+        }
+
+        console.log("Highlight articles result:", result);
+        const newArticles = result.data || [];
+        if (page === 1) {
+          setArticles(newArticles);
+        } else {
+          setArticles((prev) => [...prev, ...newArticles]);
+        }
+        setTotalCount(result.totalCount || 0);
+
+        // Calculate total loaded articles
+        const totalLoaded =
+          page === 1
+            ? newArticles.length
+            : articles.length + newArticles.length;
+        // Only show Load More if we have more articles to load and we received a full page
+        setHasMore(
+          result.totalCount > totalLoaded &&
+            newArticles.length === ITEMS_PER_PAGE
+        );
+      } catch (error) {
+        console.error("Error fetching highlight articles:", error);
+        setError("Failed to load highlight articles");
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      setArticles(result.data || []);
-      setHasMore((result.data || []).length > 6); // Set hasMore if there are more than 6 articles
-      setError(null);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to fetch highlight articles"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchHighlightArticles();
+  }, [page]);
 
   // Handle load more click
   const handleLoadMore = () => {
-    setIsLoading(true);
-    setDisplayCount((prev) => prev + 6); // Load 6 more articles (2 more rows)
+    setPage((prev) => prev + 1);
   };
 
-  useEffect(() => {
-    fetchHighlightArticles();
-  }, []);
-
   // Loading state display
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <LoadingSpinner />
@@ -133,7 +151,7 @@ export default function HighlightArticles() {
 
         {/* Articles Grid */}
         <Grid columns={3} gap="lg">
-          {articles.slice(0, displayCount).map((article) => (
+          {articles.slice(0, page * ITEMS_PER_PAGE).map((article) => (
             <Card
               key={article.id}
               title={article.title}
@@ -159,9 +177,8 @@ export default function HighlightArticles() {
             <button
               onClick={handleLoadMore}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              disabled={isLoading}
             >
-              {isLoading ? "Loading..." : "Load More"}
+              Load More
             </button>
           </div>
         )}
