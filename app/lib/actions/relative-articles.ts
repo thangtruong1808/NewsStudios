@@ -6,7 +6,7 @@ import { Article } from "../definition";
 export async function getRelativeArticles(
   currentArticleId?: number,
   page: number = 1,
-  limit: number = 4
+  limit: number = 10
 ) {
   try {
     // Calculate offset for MySQL pagination
@@ -43,8 +43,12 @@ export async function getRelativeArticles(
           a.category_id = ? 
           OR a.sub_category_id = ?
           OR at.tag_id IN (${tagIds.length > 0 ? tagIds.join(",") : "0"})
-        )`
-      : "";
+        ) AND a.is_featured = FALSE 
+          AND a.headline_priority = 0 
+          AND a.is_trending = FALSE`
+      : `WHERE a.is_featured = FALSE 
+          AND a.headline_priority = 0 
+          AND a.is_trending = FALSE`;
 
     // Build the query to find related articles
     const result = await query(
@@ -63,6 +67,9 @@ export async function getRelativeArticles(
           FROM Articles a2
           LEFT JOIN Article_Tags at2 ON a2.id = at2.article_id
           ${currentArticleId ? `WHERE a2.id != ?` : ""}
+          AND a2.is_featured = FALSE 
+          AND a2.headline_priority = 0 
+          AND a2.is_trending = FALSE
         ) as total_count
       FROM Articles a
       LEFT JOIN Categories c ON a.category_id = c.id

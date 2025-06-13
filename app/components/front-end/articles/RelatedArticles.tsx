@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 import { getRelativeArticles } from "@/app/lib/actions/relative-articles";
 import { Article } from "@/app/lib/definition";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
-import Link from "next/link";
-import Image from "next/image";
+import Grid from "@/app/components/front-end/shared/Grid";
+import Card from "@/app/components/front-end/shared/Card";
 import {
   UserIcon,
   ClockIcon,
@@ -27,6 +27,10 @@ export default function RelatedArticles({
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const ITEMS_PER_PAGE = 10;
 
   // Fetch and filter related articles on component mount or when currentArticleId changes
   useEffect(() => {
@@ -40,7 +44,9 @@ export default function RelatedArticles({
         );
 
         const result = await getRelativeArticles(
-          currentArticleId ? Number(currentArticleId) : undefined
+          currentArticleId ? Number(currentArticleId) : undefined,
+          page,
+          ITEMS_PER_PAGE
         );
 
         if (result.error) {
@@ -48,7 +54,14 @@ export default function RelatedArticles({
         }
 
         console.log("Related articles result:", result);
-        setRelatedArticles(result.data || []);
+        const newArticles = result.data || [];
+        if (page === 1) {
+          setRelatedArticles(newArticles);
+        } else {
+          setRelatedArticles((prev) => [...prev, ...newArticles]);
+        }
+        setTotalCount(result.totalCount || 0);
+        setHasMore(result.totalCount > page * ITEMS_PER_PAGE);
       } catch (error) {
         console.error("Error fetching related articles:", error);
         setError("Failed to load related articles");
@@ -58,7 +71,12 @@ export default function RelatedArticles({
     };
 
     fetchRelatedArticles();
-  }, [currentArticleId]);
+  }, [currentArticleId, page]);
+
+  // Handle load more click
+  const handleLoadMore = () => {
+    setPage((prev) => prev + 1);
+  };
 
   // Error state display
   if (error) {
@@ -112,103 +130,47 @@ export default function RelatedArticles({
       {/* Main content section */}
       <section className="mt-8">
         <div className="bg-white rounded-xl shadow-sm p-6">
-          {isLoading ? (
+          {isLoading && page === 1 ? (
             <div className="flex justify-center py-8">
               <LoadingSpinner />
             </div>
           ) : relatedArticles.length > 0 ? (
-            // Grid layout for related articles with responsive columns
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedArticles.map((article) => (
-                // Article card with image, title, and metadata
-                <Link
-                  key={article.id}
-                  href={`/article/${article.id}`}
-                  className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-gray-100"
-                >
-                  {article.image && (
-                    <div className="relative aspect-video">
-                      <Image
-                        src={article.image}
-                        alt={article.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    {/* Category and Subcategory badges */}
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {article.category_name && (
-                        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                          {article.category_name}
-                        </span>
-                      )}
-                      {article.subcategory_name && (
-                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                          {article.subcategory_name}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
-                      {article.title}
-                    </h3>
-                    {/* Article content preview */}
-                    {article.content && (
-                      <p className="mt-2 text-sm text-gray-600 line-clamp-3">
-                        {article.content}
-                      </p>
-                    )}
-                    {/* Article metadata */}
-                    <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <HeartIcon className="h-4 w-4" />
-                        {article.likes_count}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <ChatBubbleLeftIcon className="h-4 w-4" />
-                        {article.comments_count}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <EyeIcon className="h-4 w-4" />
-                        {article.views_count}
-                      </span>
-                    </div>
-                    <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <ClockIcon className="h-4 w-4" />
-                        {article.published_at
-                          ? new Date(article.published_at).toLocaleDateString()
-                          : "No date"}
-                      </span>
-                      {article.author_name && (
-                        <span className="flex items-center gap-1">
-                          <UserIcon className="h-4 w-4" />
-                          {article.author_name}
-                        </span>
-                      )}
-                    </div>
-                    {/* Tags */}
-                    {article.tag_names && article.tag_names.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {article.tag_names.map((tag, index) => (
-                          <span
-                            key={tag}
-                            className="px-2 py-1 text-xs font-medium rounded-full"
-                            style={{
-                              backgroundColor: `${article.tag_colors?.[index]}20`,
-                              color: article.tag_colors?.[index] || "#6B7280",
-                            }}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <>
+              {/* Grid layout for related articles using shared Grid component */}
+              <Grid columns={5} gap="lg">
+                {relatedArticles.map((article) => (
+                  <Card
+                    key={article.id}
+                    title={article.title}
+                    description={article.content}
+                    imageUrl={article.image}
+                    link={`/article/${article.id}`}
+                    category={article.category_name}
+                    subcategory={article.subcategory_name}
+                    author={article.author_name}
+                    date={article.published_at}
+                    viewsCount={article.views_count}
+                    likesCount={article.likes_count}
+                    commentsCount={article.comments_count}
+                    tags={article.tag_names}
+                    tagColors={article.tag_colors}
+                  />
+                ))}
+              </Grid>
+
+              {/* Load More Button */}
+              {hasMore && relatedArticles.length >= 5 && (
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={handleLoadMore}
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Loading..." : "Load More"}
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             // Empty state display
             <div className="text-center py-8 text-gray-500">

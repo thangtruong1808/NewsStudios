@@ -20,6 +20,7 @@ interface ImageCarouselProps {
   className?: string; // Optional additional CSS classes
   autoSlide?: boolean; // Enable/disable auto-sliding
   slideInterval?: number; // Time between slides in milliseconds
+  titles?: string[]; // Add titles array prop
 }
 
 /**
@@ -35,8 +36,11 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   className = "",
   autoSlide = true,
   slideInterval = 5000, // Default 5 seconds between slides
+  titles = [], // Add titles prop with default empty array
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(autoSlide);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Function to handle next slide
   const nextSlide = useCallback(() => {
@@ -62,8 +66,6 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   }, [autoSlide, slideInterval, nextSlide]);
 
   // Pause auto-sliding when hovering over the carousel
-  const [isHovered, setIsHovered] = useState(false);
-
   useEffect(() => {
     if (!autoSlide || isHovered) return;
 
@@ -80,7 +82,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
 
   return (
     <div
-      className={`relative w-full h-full ${className}`}
+      className={`relative w-full h-full bg-gray-100 ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -90,9 +92,18 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
           src={currentImage}
           alt={`${alt} ${currentIndex + 1}`}
           fill
-          className="object-cover"
+          sizes="100vw"
+          className="object-contain w-full h-full"
           priority={currentIndex === 0}
         />
+        {/* Title Overlay */}
+        {titles[currentIndex] && (
+          <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-2">
+            <p className="text-white text-sm font-medium truncate">
+              {titles[currentIndex]}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Navigation buttons */}

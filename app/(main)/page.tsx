@@ -5,6 +5,7 @@ import { QuickLinks } from "@/app/components/front-end/quick-links/QuickLinks";
 import FeaturedArticles from "@/app/components/front-end/FeaturedArticles/FeaturedArticles";
 import RelatedArticles from "../components/front-end/articles/RelatedArticles";
 import Tags from "../components/front-end/Tags/Tags";
+import TopButton from "@/app/components/front-end/shared/TopButton";
 
 export default function Home() {
   return (
@@ -39,6 +40,9 @@ export default function Home() {
       <div className="m-12">
         <Tags />
       </div>
+
+      {/* Top Button */}
+      <TopButton />
     </>
   );
 }
