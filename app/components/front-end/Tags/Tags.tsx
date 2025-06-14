@@ -5,6 +5,7 @@ import { getFilteredTags } from "@/app/lib/actions/front-end-tags";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import { TagIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import TagsSkeleton from "./TagsSkeleton";
 import {
   categories,
   subcategories,
@@ -24,7 +25,7 @@ export default function Tags() {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [totalTags, setTotalTags] = useState(0);
-  const ITEMS_PER_PAGE = 8;
+  const ITEMS_PER_PAGE = 12;
 
   // Update available subcategories when category changes
   useEffect(() => {
@@ -86,11 +87,7 @@ export default function Tags() {
   };
 
   if (loading && tags.length === 0) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <LoadingSpinner />
-      </div>
-    );
+    return <TagsSkeleton />;
   }
 
   if (error) {
@@ -179,7 +176,7 @@ export default function Tags() {
         </div>
 
         {/* Tags Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
           {tags.map((tag) => (
             <Link
               key={tag.id}

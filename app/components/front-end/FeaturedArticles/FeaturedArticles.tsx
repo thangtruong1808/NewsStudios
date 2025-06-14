@@ -7,6 +7,7 @@ import { ImageCarousel } from "../shared/ImageCarousel";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import { getFeaturedArticles } from "@/app/lib/actions/featured-articles";
+import FeaturedArticlesSkeleton from "./FeaturedArticlesSkeleton";
 
 interface Article {
   id: number;
@@ -109,11 +110,7 @@ export default function FeaturedArticles() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <LoadingSpinner />
-      </div>
-    );
+    return <FeaturedArticlesSkeleton />;
   }
 
   if (error) {

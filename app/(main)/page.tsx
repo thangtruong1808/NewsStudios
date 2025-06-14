@@ -3,7 +3,7 @@ import { ArticlesTrending } from "@/app/components/front-end/trending-articles/A
 import HighlightArticles from "../components/front-end/highlight-articles/HighlightArticles";
 import { QuickLinks } from "@/app/components/front-end/quick-links/QuickLinks";
 import FeaturedArticles from "@/app/components/front-end/FeaturedArticles/FeaturedArticles";
-import RelatedArticles from "../components/front-end/articles/RelatedArticles";
+import RelativeArticles from "@/app/components/front-end/relative-articles/RelativeArticles";
 import Tags from "../components/front-end/Tags/Tags";
 import TopButton from "@/app/components/front-end/shared/TopButton";
 
@@ -33,7 +33,7 @@ export default function Home() {
 
       {/* Related Articles Section */}
       <div className="m-12">
-        <RelatedArticles />
+        <RelativeArticles />
       </div>
 
       {/* Tags Section */}

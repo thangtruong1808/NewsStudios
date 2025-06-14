@@ -8,6 +8,7 @@ import { StarIcon } from "@heroicons/react/24/outline";
 import Grid from "@/app/components/front-end/shared/Grid";
 import Card from "@/app/components/front-end/shared/Card";
 import { ImageCarousel } from "@/app/components/front-end/shared/ImageCarousel";
+import HighlightArticlesSkeleton from "./HighlightArticlesSkeleton";
 
 // Component to display highlight articles in a grid layout
 export default function HighlightArticles() {
@@ -73,11 +74,7 @@ export default function HighlightArticles() {
 
   // Loading state display
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <LoadingSpinner />
-      </div>
-    );
+    return <HighlightArticlesSkeleton />;
   }
 
   // Error state display

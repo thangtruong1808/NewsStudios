@@ -1,9 +1,9 @@
 "use client";
 
 import SingleArticle from "@/app/components/front-end/articles/SingleArticle";
-import NavBar from "@/app/components/front-end/NavBar";
+import NavBar from "@/app/components/front-end/navbar/NavBar";
 import Footer from "@/app/components/front-end/Footer";
-import RelatedArticles from "@/app/components/front-end/articles/RelatedArticles";
+import RelatedArticles from "@/app/components/front-end/relative-articles/RelativeArticles";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 
 interface ArticlePageProps {
@@ -25,7 +25,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
         </div>
 
         {/* Related Articles Section */}
-        <RelatedArticles currentArticleId={articleId} />
+        {/* <RelatedArticles currentArticleId={articleId} /> */}
 
         {/* Comments Section */}
         <section className="mb-16">

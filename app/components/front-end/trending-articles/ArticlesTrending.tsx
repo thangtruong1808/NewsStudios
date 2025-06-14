@@ -8,6 +8,7 @@ import { FireIcon } from "@heroicons/react/24/outline";
 import { ImageCarousel } from "@/app/components/front-end/shared/ImageCarousel";
 import Grid from "@/app/components/front-end/shared/Grid";
 import Card from "@/app/components/front-end/shared/Card";
+import ArticlesTrendingSkeleton from "./ArticlesTrendingSkeleton";
 
 export function ArticlesTrending() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -71,11 +72,7 @@ export function ArticlesTrending() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <LoadingSpinner />
-      </div>
-    );
+    return <ArticlesTrendingSkeleton />;
   }
 
   if (error) {
