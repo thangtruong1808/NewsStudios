@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { MenuProps } from "./types";
 import { subcategories } from "@/app/lib/data/categories";
-import { HomeIcon, UserIcon } from "@heroicons/react/24/outline";
+import { UserIcon } from "@heroicons/react/24/outline";
+import Logo from "../shared/Logo";
 
 export default function DesktopMenu({
   categories,
@@ -24,7 +25,7 @@ export default function DesktopMenu({
             isActive("/") ? "text-black" : "text-gray-500 hover:text-gray-900"
           }`}
         >
-          <HomeIcon className="h-8 w-8" />
+          <Logo />
         </Link>
       </div>
 

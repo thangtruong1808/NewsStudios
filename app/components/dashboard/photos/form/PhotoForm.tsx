@@ -128,7 +128,7 @@ export default function PhotoForm({
                   </svg>
                 </button>
               </div>
-            ) : isEditMode && image?.image_url && isImageAvailable ? (
+            ) : isImageAvailable ? (
               <div className="relative">
                 <img
                   src={image.image_url}
@@ -206,11 +206,17 @@ export default function PhotoForm({
               onChange={onInputChange}
             >
               <option value="">Select an article (optional)</option>
-              {articles?.map((article) => (
-                <option key={article.id} value={article.id}>
-                  {article.title}
+              {articles && articles.length > 0 ? (
+                articles.map((article) => (
+                  <option key={article.id} value={article.id}>
+                    [{article.id}] {article.title}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>
+                  No articles available
                 </option>
-              ))}
+              )}
             </select>
           </div>
         </div>

@@ -15,24 +15,24 @@ export default function Home() {
         <QuickLinks />
       </div>
       {/* Featured Articles Section */}
-      <div className="m-12">
+      <div id="featured-articles" className="m-12">
         <FeaturedArticles />
       </div>
       {/* <div>
         <hr className="my-12 bg-gray-200 py-8 relative left-1/2 right-1/2 -mx-[50vw]" />
       </div> */}
       {/* Highlight Articles Section */}
-      <div className="m-12">
+      <div id="highlight-articles" className="m-12">
         <HighlightArticles />
       </div>
 
       {/* Trending Articles Section */}
-      <div className="m-12">
+      <div id="trending-articles" className="m-12">
         <ArticlesTrending />
       </div>
 
       {/* Related Articles Section */}
-      <div className="m-12">
+      <div id="related-articles" className="m-12">
         <RelativeArticles />
       </div>
 

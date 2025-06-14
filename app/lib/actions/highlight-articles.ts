@@ -19,7 +19,7 @@ export async function getHighlightArticles({
         a.*,
         c.name as category_name,
         sc.name as subcategory_name,
-        CONCAT(u.firstname, ' ', u.lastname) as author_name,
+        au.name as author_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.id) as tag_ids,
         GROUP_CONCAT(t.color) as tag_colors,
@@ -29,11 +29,11 @@ export async function getHighlightArticles({
       FROM Articles a
       LEFT JOIN Categories c ON a.category_id = c.id
       LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-      LEFT JOIN Users u ON a.user_id = u.id
+      LEFT JOIN Authors au ON a.author_id = au.id
       LEFT JOIN Article_Tags at ON a.id = at.article_id
       LEFT JOIN Tags t ON at.tag_id = t.id
       WHERE a.headline_priority != 0
-      GROUP BY a.id, c.name, sc.name, u.firstname, u.lastname
+      GROUP BY a.id, c.name, sc.name, au.name
       ORDER BY a.headline_priority DESC, a.published_at DESC
       LIMIT ? OFFSET ?
     `,

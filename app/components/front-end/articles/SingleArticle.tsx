@@ -2,22 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { getArticleById } from "@/app/lib/actions/articles";
-import { getImages } from "@/app/lib/actions/images";
-import { getVideos } from "@/app/lib/actions/videos";
+import { getImagesByArticleId } from "@/app/lib/actions/front-end-images";
+import { getVideosByArticleId } from "@/app/lib/actions/front-end-videos";
 import { Article } from "@/app/lib/definition";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
-import {
-  CalendarIcon,
-  UserIcon,
-  TagIcon,
-  FolderIcon,
-  BookmarkIcon,
-} from "@heroicons/react/24/outline";
-import Link from "next/link";
-import Image from "next/image";
-import { AdditionalMediaSection } from "../latest-articles/AdditionalMediaSection";
-import { VideoModal } from "../latest-articles/VideoModal";
 import { AdditionalMedia, MediaItem } from "../latest-articles/types";
+import { Image } from "@/app/lib/definition";
+
+// Import subcomponents
+import ArticleHeader from "./components/ArticleHeader";
+import ArticleMetadata from "./components/ArticleMetadata";
+import ArticleMedia from "./components/ArticleMedia";
+import ArticleContent from "./components/ArticleContent";
+import ArticleTags from "./components/ArticleTags";
+import ArticleActions from "./components/ArticleActions";
 
 // Define the props interface for the SingleArticle component
 interface SingleArticleProps {
@@ -49,34 +47,64 @@ export default function SingleArticle({
     try {
       // Fetch both images and videos for the specific article
       const [imagesResult, videosResult] = await Promise.all([
-        getImages(articleId),
-        getVideos(articleId),
+        getImagesByArticleId(articleId),
+        getVideosByArticleId(articleId),
       ]);
 
       let articleImages: MediaItem[] = [];
+      let articleVideos: MediaItem[] = [];
 
       // Handle images
       if (imagesResult.data) {
-        // Include all images, including the main image
-        articleImages = imagesResult.data.map((img) => ({
-          id: img.id,
-          url: img.image_url,
-          description: img.description || undefined,
-          isMainImage: img.image_url === mainImage,
-        }));
+        // Create a Set to track unique image URLs
+        const uniqueUrls = new Set<string>();
 
-        setAdditionalMedia((prev) => ({ ...prev, images: articleImages }));
+        // Filter out duplicate images and map to MediaItem format
+        articleImages = imagesResult.data
+          .filter((img: Image) => {
+            // Skip if we've seen this URL before
+            if (uniqueUrls.has(img.image_url)) {
+              return false;
+            }
+            // Add URL to set and include the image
+            uniqueUrls.add(img.image_url);
+            return true;
+          })
+          .map((img: Image) => ({
+            id: img.id,
+            url: img.image_url,
+            description: img.description || undefined,
+            isMainImage: false,
+          }));
       }
 
       // Handle videos
       if (videosResult.data) {
-        const articleVideos = videosResult.data.map((vid) => ({
-          id: vid.id,
-          url: vid.video_url,
-        }));
+        // Create a Set to track unique video URLs
+        const uniqueVideoUrls = new Set<string>();
 
-        setAdditionalMedia((prev) => ({ ...prev, videos: articleVideos }));
+        // Filter out duplicate videos and map to MediaItem format
+        articleVideos = videosResult.data
+          .filter((vid: { id: number; video_url: string }) => {
+            // Skip if we've seen this URL before
+            if (uniqueVideoUrls.has(vid.video_url)) {
+              return false;
+            }
+            // Add URL to set and include the video
+            uniqueVideoUrls.add(vid.video_url);
+            return true;
+          })
+          .map((vid: { id: number; video_url: string }) => ({
+            id: vid.id,
+            url: vid.video_url,
+          }));
       }
+
+      // Update the additional media state with both unique images and videos
+      setAdditionalMedia({
+        images: articleImages,
+        videos: articleVideos,
+      });
     } catch (error) {
       console.error("Error fetching additional media:", error);
     }
@@ -135,7 +163,7 @@ export default function SingleArticle({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
+      <div className="flex justify-center items-center min-h-[400px] bg-gray-50 rounded-xl">
         <LoadingSpinner />
       </div>
     );
@@ -143,148 +171,62 @@ export default function SingleArticle({
 
   if (error) {
     return (
-      <div className="bg-red-50 p-6 rounded-xl">
-        <p className="text-red-700 text-center">{error}</p>
+      <div className="bg-red-50 p-8 rounded-xl shadow-sm border border-red-100">
+        <p className="text-red-700 text-center">
+          {error === "Article not found" ? (
+            <>
+              <h2 className="text-2xl font-bold mb-4">
+                404 - Article Not Found
+              </h2>
+              <p className="text-gray-600">
+                The article you're looking for doesn't exist or has been
+                removed.
+              </p>
+            </>
+          ) : (
+            error
+          )}
+        </p>
       </div>
     );
   }
 
   if (!article) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">Article not found.</p>
+      <div className="text-center py-12 bg-gray-50 rounded-xl">
+        <p className="text-gray-500 text-lg">Article not found.</p>
       </div>
     );
   }
 
   return (
-    <article className="max-w-4xl mx-auto">
-      {/* Article Header */}
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          {article.title}
-        </h1>
-
-        {/* Article Metadata */}
-        <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-6">
-          <div className="flex items-center gap-1">
-            <CalendarIcon className="h-4 w-4" />
-            <span>
-              {article.published_at
-                ? new Date(article.published_at).toLocaleDateString()
-                : "No date"}
-            </span>
-          </div>
-
-          {article.author_name && (
-            <div className="flex items-center gap-1">
-              <UserIcon className="h-4 w-4" />
-              <span>{article.author_name}</span>
-            </div>
-          )}
-
-          {article.category_name && (
-            <Link
-              href={`/explore?category=${article.category_name}`}
-              className="flex items-center gap-1 hover:text-indigo-600 transition-colors"
-            >
-              <FolderIcon className="h-4 w-4" />
-              <span>{article.category_name}</span>
-            </Link>
-          )}
-        </div>
-
-        {/* Media Section with Two Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          {/* Main Image Column */}
-          <div className="md:col-span-3">
-            {selectedImage && (
-              <div className="relative aspect-[16/9] rounded-xl overflow-hidden max-h-[400px]">
-                <Image
-                  src={selectedImage}
-                  alt={article.title}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Additional Media Column */}
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Media Gallery
-              </h3>
-              <div className="max-h-[400px] overflow-y-auto">
-                <AdditionalMediaSection
-                  media={additionalMedia}
-                  onImageClick={handleImageClick}
-                  onVideoClick={handleVideoClick}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Article Content */}
-      <div className="prose prose-lg max-w-none">
-        <div dangerouslySetInnerHTML={{ __html: article.content }} />
-      </div>
-
-      {/* Article Tags */}
-      {article.tag_names && article.tag_names.length > 0 && (
-        <div className="border-t border-gray-200 pt-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <TagIcon className="h-5 w-5" />
-            Tags
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {article.tag_names.map((tag) => (
-              <Link
-                key={tag}
-                href={`/explore?tag=${encodeURIComponent(tag)}`}
-                className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors"
-              >
-                {tag}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Article Actions */}
-      <div className="border-t border-gray-200 pt-6 mt-8">
-        <div className="flex items-center justify-between">
-          {showBackButton && (
-            <Link
-              href="/explore"
-              className="text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              ← Back to Explore
-            </Link>
-          )}
-          <button
-            onClick={handleBookmark}
-            className={`inline-flex items-center gap-2 ${
-              isBookmarked
-                ? "text-indigo-600"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-            aria-label="Bookmark article"
-          >
-            <BookmarkIcon className="h-5 w-5" />
-            <span>{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Video Modal */}
-      {selectedVideo && (
-        <VideoModal videoUrl={selectedVideo} onClose={closeVideoModal} />
-      )}
+    <article className="max-w-6xl mx-auto bg-white rounded-xl shadow-sm p-6 md:p-8">
+      <ArticleHeader article={article} />
+      <ArticleMetadata article={article} />
+      <ArticleMedia
+        selectedImage={selectedImage}
+        articleTitle={article.title}
+        additionalMedia={additionalMedia}
+        onImageClick={handleImageClick}
+        onVideoClick={handleVideoClick}
+        selectedVideo={selectedVideo}
+        onCloseVideoModal={closeVideoModal}
+        articleId={Number(article.id)}
+      />
+      <ArticleContent content={article.content} />
+      <ArticleTags
+        tags={
+          article.tag_names?.map((name, index) => ({
+            name,
+            color: article.tag_colors?.[index] || "#6B7280", // Fallback to gray if no color
+          })) || []
+        }
+      />
+      <ArticleActions
+        showBackButton={showBackButton}
+        isBookmarked={isBookmarked}
+        onBookmark={handleBookmark}
+      />
     </article>
   );
 }

@@ -7,11 +7,26 @@ export default async function CreatePhotoPage() {
   let error: string | null = null;
 
   try {
-    const result = await getArticles({ limit: 1000 });
+    console.log("Fetching articles for photo creation...");
+    const result = await getArticles({
+      limit: 1000,
+      sortField: "title",
+      sortDirection: "asc",
+    });
+
+    console.log("Articles fetch result:", result);
+
     if (result.error) {
       throw new Error(result.error);
     }
-    articles = result.data;
+
+    if (!result.data || result.data.length === 0) {
+      console.log("No articles found in the database");
+    } else {
+      console.log(`Found ${result.data.length} articles`);
+    }
+
+    articles = result.data || [];
   } catch (err) {
     console.error("Error fetching articles:", err);
     error = err instanceof Error ? err.message : "Failed to fetch articles";

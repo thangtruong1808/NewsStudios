@@ -34,6 +34,8 @@ export default function PhotoFormContainer({
   image,
   mode,
 }: PhotoFormContainerProps) {
+  console.log("PhotoFormContainer received articles:", articles);
+
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -57,7 +59,8 @@ export default function PhotoFormContainer({
   // Debug log for initial form values
   useEffect(() => {
     console.log("Initial form values:", formValues);
-  }, []);
+    console.log("Available articles:", articles);
+  }, [articles, formValues]);
 
   // Update form values when image changes
   useEffect(() => {

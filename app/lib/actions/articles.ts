@@ -26,11 +26,33 @@ interface GetArticlesParams {
 export async function getArticles({
   page = 1,
   limit = 10,
+  search,
   sortField = "created_at",
   sortDirection = "desc",
 }: GetArticlesParams = {}) {
   try {
+    console.log("getArticles called with params:", {
+      page,
+      limit,
+      search,
+      sortField,
+      sortDirection,
+    });
+
     const offset = (page - 1) * limit;
+
+    // Build the WHERE clause based on search parameter
+    const whereClause = search
+      ? `WHERE a.title LIKE ? OR a.content LIKE ?`
+      : "";
+
+    // Build the query parameters
+    const queryParams = search
+      ? [`%${search}%`, `%${search}%`, limit, offset]
+      : [limit, offset];
+
+    console.log("Executing query with params:", queryParams);
+
     const result = await query(
       `
       SELECT 
@@ -40,21 +62,25 @@ export async function getArticles({
         au.name as author_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors,
-        (SELECT COUNT(*) FROM Articles) as total_count
+        (SELECT COUNT(*) FROM Articles ${whereClause}) as total_count
       FROM Articles a
       LEFT JOIN Categories c ON a.category_id = c.id
       LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
       LEFT JOIN Authors au ON a.author_id = au.id
       LEFT JOIN Article_Tags at ON a.id = at.article_id
       LEFT JOIN Tags t ON at.tag_id = t.id
+      ${whereClause}
       GROUP BY a.id
       ORDER BY a.${sortField} ${sortDirection}
       LIMIT ? OFFSET ?
     `,
-      [limit, offset]
+      queryParams
     );
 
+    console.log("Query result:", result);
+
     if (!result.data || result.data.length === 0) {
+      console.log("No articles found in query result");
       return {
         data: [],
         totalCount: 0,
@@ -75,6 +101,8 @@ export async function getArticles({
       views_count: article.views_count || 0,
     }));
 
+    console.log(`Processed ${articles.length} articles`);
+
     const start = offset + 1;
     const end = Math.min(offset + limit, totalCount);
     const totalPages = Math.ceil(totalCount / limit);
@@ -88,7 +116,7 @@ export async function getArticles({
       totalPages,
     };
   } catch (error) {
-    console.error("Error fetching articles:", error);
+    console.error("Error in getArticles:", error);
     return { error: "Failed to fetch articles" };
   }
 }
@@ -99,16 +127,21 @@ export async function getArticleById(id: number) {
     SELECT 
       a.*,
       c.name as category_name,
-      CONCAT(u.firstname, ' ', u.lastname) as author_name,
+      sc.name as subcategory_name,
+      au.name as author_name,
       GROUP_CONCAT(t.name) as tag_names,
-      GROUP_CONCAT(t.id) as tag_ids
+      GROUP_CONCAT(t.id) as tag_ids,
+      GROUP_CONCAT(t.color) as tag_colors,
+      (SELECT COUNT(*) FROM Likes WHERE article_id = a.id) as likes_count,
+      (SELECT COUNT(*) FROM Comments WHERE article_id = a.id) as comments_count
     FROM Articles a
     LEFT JOIN Categories c ON a.category_id = c.id
-    LEFT JOIN Users u ON a.user_id = u.id
+    LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
+    LEFT JOIN Authors au ON a.author_id = au.id
     LEFT JOIN Article_Tags at ON a.id = at.article_id
     LEFT JOIN Tags t ON at.tag_id = t.id
     WHERE a.id = ?
-    GROUP BY a.id, c.name, u.firstname, u.lastname
+    GROUP BY a.id, c.name, sc.name, au.name
   `,
     [id]
   );
@@ -128,12 +161,16 @@ export async function getArticleById(id: number) {
         headline_priority: Number(article.headline_priority),
         tag_names: article.tag_names ? article.tag_names.split(",") : [],
         tag_ids: article.tag_ids ? article.tag_ids.split(",").map(Number) : [],
+        tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
+        likes_count: Number(article.likes_count) || 0,
+        comments_count: Number(article.comments_count) || 0,
+        views_count: 0, // Set default value since Views table doesn't exist
       },
       error: null,
     };
   }
 
-  return { data: null, error: null };
+  return { data: null, error: "Article not found" };
 }
 
 type CreateArticleData = Omit<Article, "id" | "published_at" | "updated_at"> & {

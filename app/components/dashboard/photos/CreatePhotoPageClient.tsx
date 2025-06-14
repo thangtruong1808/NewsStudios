@@ -21,6 +21,8 @@ export default function CreatePhotoPageClient({
   articles,
   image,
 }: CreatePhotoPageClientProps) {
+  console.log("CreatePhotoPageClient received articles:", articles);
+
   return (
     <div className="w-full">
       <PhotoFormContainer

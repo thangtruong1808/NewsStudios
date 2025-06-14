@@ -3,7 +3,6 @@
 import SingleArticle from "@/app/components/front-end/articles/SingleArticle";
 import NavBar from "@/app/components/front-end/navbar/NavBar";
 import Footer from "@/app/components/front-end/Footer";
-import RelatedArticles from "@/app/components/front-end/relative-articles/RelativeArticles";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 
 interface ArticlePageProps {
@@ -13,7 +12,24 @@ interface ArticlePageProps {
 }
 
 export default function ArticlePage({ params }: ArticlePageProps) {
+  // Ensure id is a valid number
   const articleId = parseInt(params.id);
+  if (isNaN(articleId)) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <NavBar />
+        <main className="container mx-auto px-4 py-8">
+          <div className="bg-red-50 p-6 rounded-xl">
+            <p className="text-red-700 text-center">
+              <h2 className="text-2xl font-bold mb-2">Invalid Article ID</h2>
+              <p>The article ID must be a valid number.</p>
+            </p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -23,9 +39,6 @@ export default function ArticlePage({ params }: ArticlePageProps) {
         <div className="mb-16">
           <SingleArticle articleId={articleId} />
         </div>
-
-        {/* Related Articles Section */}
-        {/* <RelatedArticles currentArticleId={articleId} /> */}
 
         {/* Comments Section */}
         <section className="mb-16">
