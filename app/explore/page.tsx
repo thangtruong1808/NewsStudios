@@ -9,18 +9,14 @@ export default function ExplorePage() {
   const type = searchParams.get("type");
   const tag = searchParams.get("tag");
   const subcategory = searchParams.get("subcategoryId");
-
-  // Handle different content types
-  if (type === "trending") {
-    return <ExploreContent type="trending" />;
-  }
-
-  if (tag) {
-    return <ExploreContent tag={tag} />;
-  }
+  const categoryId = searchParams.get("categoryId");
 
   if (subcategory) {
     return <ExploreContent subcategory={subcategory} />;
+  }
+
+  if (categoryId) {
+    return <ExploreContent categoryId={categoryId} />;
   }
 
   return <NotFound message="Please select a view from the navbar." />;

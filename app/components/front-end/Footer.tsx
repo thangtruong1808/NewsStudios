@@ -93,7 +93,7 @@ export default function Footer() {
                   {firstColumn.map((category) => (
                     <li key={category.id}>
                       <Link
-                        href={`/category/${category.id}`}
+                        href={`/explore?categoryId=${category.id}`}
                         className="text-base text-gray-500 hover:text-gray-900"
                       >
                         {category.name}
@@ -108,7 +108,7 @@ export default function Footer() {
                   {secondColumn.map((category) => (
                     <li key={category.id}>
                       <Link
-                        href={`/category/${category.id}`}
+                        href={`/explore?categoryId=${category.id}`}
                         className="text-base text-gray-500 hover:text-gray-900"
                       >
                         {category.name}

@@ -1,6 +1,6 @@
 "use client";
 
-import NavBar from "../components/front-end/NavBar";
+import NavBar from "../components/front-end/navbar/NavBar";
 import Footer from "../components/front-end/Footer";
 
 export default function ExploreLayout({
@@ -9,11 +9,9 @@ export default function ExploreLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="w-full bg-white min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <NavBar />
-      <main className="flex-1">
-        <div className="max-w-[1536px] mx-auto px-4">{children}</div>
-      </main>
+      <main className="flex-grow">{children}</main>
       <Footer />
     </div>
   );

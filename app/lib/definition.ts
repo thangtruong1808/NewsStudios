@@ -75,28 +75,24 @@ export interface Author {
 }
 
 export interface Article {
-  id: string;
+  id: number;
   title: string;
   content: string;
-  image?: string;
-  video?: string;
-  published_at?: string;
-  category_id?: string;
-  sub_category_id?: string;
-  author_id?: string;
-  user_id?: string;
-  headline_priority?: number;
-  is_featured?: boolean;
-  is_trending?: boolean;
-  likes_count?: number;
-  comments_count?: number;
-  views_count?: number;
+  description?: string;
+  image: string | null;
+  video: string | null;
+  published_at: string;
+  category_id: number;
+  subcategory_id: number;
+  author_id: number;
   category_name?: string;
   subcategory_name?: string;
   author_name?: string;
   tag_names?: string[];
   tag_colors?: string[];
-  tag_ids?: string[];
+  likes_count?: number;
+  comments_count?: number;
+  views_count?: number;
 }
 
 export type CreateArticleData = Omit<
