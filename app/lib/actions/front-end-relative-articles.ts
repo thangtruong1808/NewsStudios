@@ -57,8 +57,8 @@ export async function getFrontEndRelativeArticles(
         c.name as category_name,
         sc.name as subcategory_name,
         au.name as author_name,
-        GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ',') as tag_names,
-        GROUP_CONCAT(DISTINCT t.color ORDER BY t.name SEPARATOR ',') as tag_colors,
+        GROUP_CONCAT(t.name ORDER BY t.id SEPARATOR ',') as tag_names,
+        GROUP_CONCAT(t.color ORDER BY t.id SEPARATOR ',') as tag_colors,
         (SELECT COUNT(*) FROM Likes WHERE article_id = a.id) as likes_count,
         (SELECT COUNT(*) FROM Comments WHERE article_id = a.id) as comments_count,
         (
@@ -117,18 +117,40 @@ export async function getFrontEndRelativeArticles(
     }
 
     const totalCount = result.data[0].total_count;
-    const articles = result.data.map((article) => ({
-      ...article,
-      tag_names: article.tag_names
+    const articles = result.data.map((article) => {
+      // Ensure tag_names and tag_colors are arrays and have the same length
+      const tagNames = article.tag_names
         ? article.tag_names.split(",").filter(Boolean)
-        : [],
-      tag_colors: article.tag_colors
+        : [];
+      const tagColors = article.tag_colors
         ? article.tag_colors.split(",").filter(Boolean)
-        : [],
-      likes_count: Number(article.likes_count) || 0,
-      comments_count: Number(article.comments_count) || 0,
-      views_count: 0,
-    }));
+        : [];
+
+      // If we have more tag names than colors, duplicate the last color
+      const adjustedTagColors = tagNames.map(
+        (_: string, index: number) =>
+          tagColors[index] || tagColors[tagColors.length - 1] || "#6B7280"
+      );
+
+      // Log the tag data for debugging
+      console.log("Article tag data in getFrontEndRelativeArticles:", {
+        id: article.id,
+        title: article.title,
+        tag_names: tagNames,
+        tag_colors: adjustedTagColors,
+        tag_names_length: tagNames.length,
+        tag_colors_length: adjustedTagColors.length,
+      });
+
+      return {
+        ...article,
+        tag_names: tagNames,
+        tag_colors: adjustedTagColors,
+        likes_count: Number(article.likes_count) || 0,
+        comments_count: Number(article.comments_count) || 0,
+        views_count: 0,
+      };
+    });
 
     return { data: articles, totalCount };
   } catch (error) {

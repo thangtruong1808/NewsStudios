@@ -187,9 +187,9 @@ export default function Tags() {
                 className="p-4 rounded-lg border border-gray-200 hover:border-blue-500 transition-colors"
                 style={{ backgroundColor: tag.color + "20" }}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                   <span
-                    className="text-sm font-medium truncate"
+                    className="text-sm font-medium truncate text-white"
                     style={{ color: tag.color }}
                   >
                     {tag.name}

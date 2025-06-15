@@ -150,14 +150,20 @@ export default function RelativeArticles({
               {/* Grid layout for related articles using shared Grid component */}
               <Grid columns={5} gap="lg">
                 {relatedArticles.map((article) => {
+                  // Ensure tag_names and tag_colors are arrays and have the same length
+                  const tagNames = article.tag_names || [];
+                  const tagColors = article.tag_colors || [];
+
+                  // Log the tag data for debugging
                   console.log("Article tag data:", {
                     id: article.id,
                     title: article.title,
-                    tag_names: article.tag_names,
-                    tag_colors: article.tag_colors,
-                    tag_names_length: article.tag_names?.length,
-                    tag_colors_length: article.tag_colors?.length,
+                    tag_names: tagNames,
+                    tag_colors: tagColors,
+                    tag_names_length: tagNames.length,
+                    tag_colors_length: tagColors.length,
                   });
+
                   return (
                     <Card
                       key={article.id}
@@ -172,8 +178,8 @@ export default function RelativeArticles({
                       viewsCount={article.views_count}
                       likesCount={article.likes_count}
                       commentsCount={article.comments_count}
-                      tags={article.tag_names}
-                      tagColors={article.tag_colors}
+                      tags={tagNames}
+                      tagColors={tagColors}
                     />
                   );
                 })}
