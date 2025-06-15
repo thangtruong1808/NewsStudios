@@ -170,8 +170,6 @@ export async function getExploreArticles({
   }
 }
 
-
-
 /**
  * Fetches articles for a specific subcategory
  * Used in subcategory-specific article listings
@@ -487,3 +485,111 @@ export async function getCategoryArticles({
 //     return { error: "Failed to fetch articles" };
 //   }
 // }
+
+export async function getArticlesByTag({
+  tagId,
+  page = 1,
+  itemsPerPage = 10,
+}: {
+  tagId: string;
+  page?: number;
+  itemsPerPage?: number;
+}): Promise<{
+  data: Article[] | null;
+  totalCount: number;
+  error: string | null;
+}> {
+  try {
+    const offset = (page - 1) * itemsPerPage;
+    
+    // First get the total count of articles with this tag
+    const countResult = await query(`
+      SELECT COUNT(DISTINCT a.id) as total
+      FROM Articles a
+      INNER JOIN Article_Tags at ON a.id = at.article_id
+      WHERE at.tag_id = ?
+    `, [tagId]);
+
+    if (!countResult.data || countResult.data.length === 0) {
+      return {
+        data: [],
+        totalCount: 0,
+        error: null
+      };
+    }
+
+    // Then get the articles with their related data
+    const result = await query(`
+      WITH FilteredArticles AS (
+        SELECT DISTINCT a.id
+        FROM Articles a
+        INNER JOIN Article_Tags at ON a.id = at.article_id
+        WHERE at.tag_id = ?
+      )
+      SELECT 
+        a.*,
+        c.name as category_name,
+        sc.name as subcategory_name,
+        au.name as author_name,
+        GROUP_CONCAT(DISTINCT t.name ORDER BY t.id) as tag_names,
+        GROUP_CONCAT(DISTINCT t.color ORDER BY t.id) as tag_colors,
+        COUNT(DISTINCT l.id) as likes_count,
+        COUNT(DISTINCT cm.id) as comments_count,
+        COUNT(DISTINCT v.id) as views_count
+      FROM FilteredArticles fa
+      INNER JOIN Articles a ON fa.id = a.id
+      LEFT JOIN Categories c ON a.category_id = c.id
+      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
+      LEFT JOIN Authors au ON a.author_id = au.id
+      LEFT JOIN Article_Tags at ON a.id = at.article_id
+      LEFT JOIN Tags t ON at.tag_id = t.id
+      LEFT JOIN Likes l ON a.id = l.article_id
+      LEFT JOIN Comments cm ON a.id = cm.article_id
+      LEFT JOIN Views v ON a.id = v.article_id
+      GROUP BY a.id
+      ORDER BY a.published_at DESC
+      LIMIT ? OFFSET ?
+    `, [tagId, itemsPerPage, offset]);
+
+    if (!result.data || result.data.length === 0) {
+      return {
+        data: [],
+        totalCount: 0,
+        error: null
+      };
+    }
+
+    const articles = result.data.map((article) => {
+      // Ensure tag names and colors are arrays and have the same length
+      const tagNames = article.tag_names ? article.tag_names.split(",").filter(Boolean) : [];
+      const tagColors = article.tag_colors ? article.tag_colors.split(",").filter(Boolean) : [];
+
+      // If we have more tag names than colors, duplicate the last color
+      const adjustedTagColors = tagNames.map((_: string, index: number) => 
+        tagColors[index] || tagColors[tagColors.length - 1] || "#6B7280"
+      );
+
+      return {
+        ...article,
+        tag_names: tagNames,
+        tag_colors: adjustedTagColors,
+        likes_count: Number(article.likes_count) || 0,
+        comments_count: Number(article.comments_count) || 0,
+        views_count: Number(article.views_count) || 0
+      };
+    });
+
+    return {
+      data: articles,
+      totalCount: countResult.data[0].total || 0,
+      error: null
+    };
+  } catch (error) {
+    console.error('Error fetching articles by tag:', error);
+    return {
+      data: null,
+      totalCount: 0,
+      error: 'Failed to fetch articles'
+    };
+  }
+}

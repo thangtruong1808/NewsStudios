@@ -201,6 +201,19 @@ export async function setupDatabase() {
       )
     `);
 
+    // Create Views table
+    await query(`
+      CREATE TABLE IF NOT EXISTS Views (
+        id INT(11) PRIMARY KEY AUTO_INCREMENT,
+        article_id INT(11) NOT NULL,
+        user_id INT(11) NULL,
+        ip_address VARCHAR(45) NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (article_id) REFERENCES Articles(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE SET NULL
+      )
+    `);
+
     return { success: true };
   } catch (error) {
     console.error("Error setting up database:", error);

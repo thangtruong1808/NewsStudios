@@ -29,7 +29,12 @@ const AdditionalMediaSection = ({
 }: AdditionalMediaSectionProps) => {
   const { images, videos } = additionalMedia;
 
-  if (images.length === 0 && videos.length === 0) return null;
+  // Filter out duplicate image URLs
+  const uniqueImages = images.filter((image, index, self) =>
+    index === self.findIndex((img) => img.url === image.url)
+  );
+
+  if (uniqueImages.length === 0 && videos.length === 0) return null;
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-4">
@@ -39,7 +44,7 @@ const AdditionalMediaSection = ({
       <div className="max-h-[600px] overflow-y-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Images */}
-          {images.map((item) => (
+          {uniqueImages.map((item) => (
             <div
               key={`image-${item.id}`}
               className="relative aspect-[4/3] rounded-lg overflow-hidden group hover:shadow-lg transition-shadow duration-300"
@@ -98,10 +103,18 @@ export default function ArticleMedia({
   onCloseVideoModal,
   articleId,
 }: ArticleMediaProps) {
+  // Filter out duplicate image URLs from additionalMedia
+  const filteredAdditionalMedia = {
+    ...additionalMedia,
+    images: additionalMedia.images.filter((image, index, self) =>
+      index === self.findIndex((img) => img.url === image.url)
+    )
+  };
+
   const hasMedia =
     selectedImage ||
-    additionalMedia.images.length > 0 ||
-    additionalMedia.videos.length > 0;
+    filteredAdditionalMedia.images.length > 0 ||
+    filteredAdditionalMedia.videos.length > 0;
 
   if (!hasMedia) {
     return null;
@@ -110,11 +123,11 @@ export default function ArticleMedia({
   // Check if there's only one image (same as main image) and no videos
   const isSingleImage =
     selectedImage &&
-    ((additionalMedia.images.length === 0 &&
-      additionalMedia.videos.length === 0) ||
-      (additionalMedia.images.length === 1 &&
-        additionalMedia.images[0].url === selectedImage &&
-        additionalMedia.videos.length === 0));
+    ((filteredAdditionalMedia.images.length === 0 &&
+      filteredAdditionalMedia.videos.length === 0) ||
+      (filteredAdditionalMedia.images.length === 1 &&
+        filteredAdditionalMedia.images[0].url === selectedImage &&
+        filteredAdditionalMedia.videos.length === 0));
 
   return (
     <div
@@ -139,7 +152,7 @@ export default function ArticleMedia({
       {!isSingleImage && (
         <div className="md:col-span-1">
           <AdditionalMediaSection
-            additionalMedia={additionalMedia}
+            additionalMedia={filteredAdditionalMedia}
             onImageClick={onImageClick}
             onVideoClick={onVideoClick}
           />

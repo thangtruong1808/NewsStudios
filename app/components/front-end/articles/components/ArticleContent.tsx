@@ -4,11 +4,16 @@ interface ArticleContentProps {
 
 export default function ArticleContent({ content }: ArticleContentProps) {
   return (
-    <div className="prose prose-lg max-w-none mb-8">
-      <div
-        className="text-gray-700 leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
+    <div className="w-full">
+      <article className="prose prose-lg prose-indigo max-w-none">
+        <div className="text-gray-700 leading-relaxed space-y-6">
+          {content.split('\n').map((paragraph, index) => (
+            <p key={index} className="mb-4">
+              {paragraph}
+            </p>
+          ))}
+        </div>
+      </article>
     </div>
   );
 }

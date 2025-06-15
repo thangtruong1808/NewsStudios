@@ -31,7 +31,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand section with logo and description */}
           <div className="col-span-1 md:col-span-1">
+            <Link href="/">
             <BrandName />
+            </Link>
           </div>
 
           {/* Quick navigation links */}

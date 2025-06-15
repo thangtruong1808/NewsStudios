@@ -150,9 +150,17 @@ export default function RelativeArticles({
               {/* Grid layout for related articles using shared Grid component */}
               <Grid columns={5} gap="lg">
                 {relatedArticles.map((article) => {
-                  // Ensure tag_names and tag_colors are arrays and have the same length
-                  const tagNames = article.tag_names || [];
-                  const tagColors = article.tag_colors || [];
+                  // Split tag strings into arrays safely
+                  const tagNames = typeof article.tag_names === "string"
+                    ? article.tag_names.split(",")
+                    : Array.isArray(article.tag_names)
+                      ? article.tag_names
+                      : [];
+                  const tagColors = typeof article.tag_colors === "string"
+                    ? article.tag_colors.split(",")
+                    : Array.isArray(article.tag_colors)
+                      ? article.tag_colors
+                      : [];
 
                   // Log the tag data for debugging
                   console.log("Article tag data:", {
@@ -170,7 +178,7 @@ export default function RelativeArticles({
                       title={article.title}
                       description={article.content}
                       imageUrl={article.image || undefined}
-                      link={`/article/${article.id}`}
+                      link={`/articles/${article.id}`}
                       category={article.category_name}
                       subcategory={article.subcategory_name}
                       author={article.author_name}

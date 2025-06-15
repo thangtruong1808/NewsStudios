@@ -79,20 +79,28 @@ export interface Article {
   title: string;
   content: string;
   description?: string;
-  image: string | null;
-  video: string | null;
+  category_id?: number;
+  sub_category_id?: number;
+  author_id?: number;
+  user_id?: number;
+  image?: string;
+  video?: string;
   published_at: string;
-  category_id: number;
-  subcategory_id: number;
-  author_id: number;
+  is_featured: boolean;
+  headline_priority: number;
+  headline_image_url?: string;
+  headline_video_url?: string;
+  is_trending: boolean;
+  updated_at: string;
   category_name?: string;
   subcategory_name?: string;
   author_name?: string;
-  tag_names?: string[];
-  tag_colors?: string[];
-  likes_count?: number;
-  comments_count?: number;
-  views_count?: number;
+  tag_names: string[];
+  tag_ids: number[];
+  tag_colors: string[];
+  likes_count: number;
+  comments_count: number;
+  views_count: number;
 }
 
 export type CreateArticleData = Omit<

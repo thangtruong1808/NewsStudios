@@ -148,24 +148,38 @@ export default function HighlightArticles() {
 
         {/* Articles Grid */}
         <Grid columns={3} gap="lg">
-          {articles.slice(0, page * ITEMS_PER_PAGE).map((article) => (
-            <Card
-              key={article.id}
-              title={article.title}
-              description={article.content}
-              imageUrl={article.image || undefined}
-              link={`/articles/${article.id}`}
-              category={article.category_name}
-              subcategory={article.subcategory_name}
-              author={article.author_name}
-              date={article.published_at}
-              viewsCount={article.views_count}
-              likesCount={article.likes_count}
-              commentsCount={article.comments_count}
-              tags={article.tag_names}
-              tagColors={article.tag_colors}
-            />
-          ))}
+          {articles.slice(0, page * ITEMS_PER_PAGE).map((article) => {
+            // Split tag strings into arrays safely
+            const tagNames = typeof article.tag_names === "string"
+              ? article.tag_names.split(",")
+              : Array.isArray(article.tag_names)
+                ? article.tag_names
+                : [];
+            const tagColors = typeof article.tag_colors === "string"
+              ? article.tag_colors.split(",")
+              : Array.isArray(article.tag_colors)
+                ? article.tag_colors
+                : [];
+
+            return (
+              <Card
+                key={article.id}
+                title={article.title}
+                description={article.content}
+                imageUrl={article.image || undefined}
+                link={`/articles/${article.id}`}
+                category={article.category_name}
+                subcategory={article.subcategory_name}
+                author={article.author_name}
+                date={article.published_at}
+                viewsCount={article.views_count}
+                likesCount={article.likes_count}
+                commentsCount={article.comments_count}
+                tags={tagNames}
+                tagColors={tagColors}
+              />
+            );
+          })}
         </Grid>
 
         {/* Load More Button */}
