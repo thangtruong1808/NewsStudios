@@ -1,5 +1,6 @@
 import NavBar from "../components/front-end/navbar/NavBar";
 import Footer from "../components/front-end/Footer";
+import TopButton from "../components/front-end/shared/TopButton";
 
 export default function MainLayout({
   children,
@@ -29,6 +30,9 @@ export default function MainLayout({
           <Footer />
         </div>
       </div>
+
+      {/* Top Button */}
+      <TopButton />
     </div>
   );
 }

@@ -11,6 +11,13 @@ export default function ExplorePage() {
   const subcategory = searchParams.get("subcategoryId");
   const categoryId = searchParams.get("categoryId");
 
+  console.log("ExplorePage URL params:", {
+    type,
+    tag,
+    subcategory,
+    categoryId,
+  });
+
   if (subcategory) {
     return <ExploreContent subcategory={subcategory} />;
   }

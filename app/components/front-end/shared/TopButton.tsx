@@ -1,32 +1,71 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 
 export default function TopButton() {
-  const [isVisible, setIsVisible] = useState(true);
   const [isAtTop, setIsAtTop] = useState(true);
+  const [hasScroll, setHasScroll] = useState(false);
+  const observerRef = useRef<MutationObserver | null>(null);
 
-  // Show button when page is scrolled up to given distance
-  const toggleVisibility = () => {
-    if (window.pageYOffset > 300) {
-      setIsVisible(true);
-    } else {
-      setIsVisible(true);
-    }
-    // Check if we're at the top of the page
+  // Check if page has scroll
+  const checkHasScroll = () => {
+    const body = document.body;
+    const html = document.documentElement;
+    
+    // Get the maximum height between body and html
+    const height = Math.max(
+      body.scrollHeight,
+      body.offsetHeight,
+      html.clientHeight,
+      html.scrollHeight,
+      html.offsetHeight
+    );
+    
+    // Check if the height is greater than the viewport height
+    const hasVerticalScroll = height > window.innerHeight;
+    setHasScroll(hasVerticalScroll);
+  };
+
+  // Check scroll position
+  const checkScrollPosition = () => {
     setIsAtTop(window.pageYOffset < 100);
   };
 
-  // Set the scroll event listener
+  // Set up event listeners and observer
   useEffect(() => {
-    window.addEventListener("scroll", toggleVisibility);
     // Initial check
-    toggleVisibility();
+    checkHasScroll();
+
+    // Set up MutationObserver to watch for content changes
+    observerRef.current = new MutationObserver(() => {
+      checkHasScroll();
+    });
+
+    // Start observing the document body for changes
+    observerRef.current.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
+
+    // Add event listeners
+    window.addEventListener("load", checkHasScroll);
+    window.addEventListener("resize", checkHasScroll);
+    if (hasScroll) {
+      window.addEventListener("scroll", checkScrollPosition);
+    }
+
+    // Cleanup
     return () => {
-      window.removeEventListener("scroll", toggleVisibility);
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+      window.removeEventListener("load", checkHasScroll);
+      window.removeEventListener("resize", checkHasScroll);
+      window.removeEventListener("scroll", checkScrollPosition);
     };
-  }, []);
+  }, [hasScroll]);
 
   // Scroll to top smoothly
   const scrollToTop = () => {
@@ -43,6 +82,9 @@ export default function TopButton() {
       behavior: "smooth",
     });
   };
+
+  // Don't render if there's no scroll
+  if (!hasScroll) return null;
 
   return (
     <>

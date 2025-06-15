@@ -167,6 +167,11 @@ export default function Tags() {
                 </option>
               ))}
             </select>
+            {selectedCategory === "" && (
+              <span className="text-gray-500 text-sm mt-1">
+                Please select a category first
+              </span>
+            )}
           </div>
         </div>
 
@@ -176,7 +181,7 @@ export default function Tags() {
         </div>
 
         {/* Tags Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-2">
           {tags.map((tag) => (
             <Link
               key={tag.id}
@@ -185,16 +190,16 @@ export default function Tags() {
             >
               <div
                 className="p-4 rounded-lg border border-gray-200 hover:border-blue-500 transition-colors"
-                style={{ backgroundColor: tag.color + "20" }}
+                style={{ backgroundColor: tag.color }}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                   <span
-                    className="text-sm font-medium truncate text-white"
-                    style={{ color: tag.color }}
+                    className="text-xs font-medium truncate text-white"
+                    // style={{ color: tag.color }}
                   >
                     {tag.name}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-white">
                     {tag.article_count} articles
                   </span>
                 </div>

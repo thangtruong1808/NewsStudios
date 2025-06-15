@@ -36,7 +36,7 @@ export default function DesktopMenu({
             <div key={category.id} className="relative group">
               <div className="flex items-center">
                 <Link
-                  href={`/category/${category.id}`}
+                  href={`/explore?categoryId=${category.id}`}
                   className={`text-md font-medium px-2 ${
                     isActive(`/category/${category.id}`)
                       ? "text-black"

@@ -255,26 +255,17 @@ const Card: React.FC<CardProps> = ({
             {/* Tag badges */}
             {tags && tags.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {tags.map((tag, index) => {
-                  console.log("Tag data in Card:", {
-                    tag,
-                    color: tagColors?.[index],
-                    index,
-                    total_tags: tags.length,
-                    total_colors: tagColors?.length,
-                  });
-                  return (
-                    <span
-                      key={index}
-                      className="px-1.5 py-0.5 text-[10px] font-medium text-white rounded"
-                      style={{
-                        backgroundColor: tagColors?.[index],
-                      }}
-                    >
-                      {tag}
-                    </span>
-                  );
-                })}
+                {tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-1.5 py-0.5 text-[10px] font-medium text-white rounded"
+                    style={{
+                      backgroundColor: tagColors?.[index],
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
             )}
           </div>
