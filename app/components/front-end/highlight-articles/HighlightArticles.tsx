@@ -153,7 +153,7 @@ export default function HighlightArticles() {
               key={article.id}
               title={article.title}
               description={article.content}
-              imageUrl={article.image}
+              imageUrl={article.image || undefined}
               link={`/articles/${article.id}`}
               category={article.category_name}
               subcategory={article.subcategory_name}

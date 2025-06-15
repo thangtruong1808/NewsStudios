@@ -1,13 +1,14 @@
 "use client";
 
 // Component to display articles filtered by category in a 5x5 grid layout
-import { useState, useEffect } from "react";
-import { getFrontEndCategoryArticles } from "@/app/lib/actions/front-end-articles";
+import { useState, useEffect, useRef } from "react";
+import { getCategoryArticles } from "@/app/lib/actions/front-end-articles";
 import { Article } from "@/app/lib/definition";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import Grid from "@/app/components/front-end/shared/Grid";
 import Card from "@/app/components/front-end/shared/Card";
 import { FolderIcon } from "@heroicons/react/24/outline";
+import DebugDialog from "@/app/components/front-end/shared/DebugDialog";
 
 // Props interface for category filtering
 type Props = {
@@ -24,23 +25,64 @@ export default function CategoryArticles({ category }: Props) {
   const [categoryInfo, setCategoryInfo] = useState<{
     name: string;
   } | null>(null);
-  const initialItemsPerPage = 10; // 5 columns * 2 rows
-  const loadMoreItemsPerPage = 5; // Load 5 more items at a time
+  const itemsPerPage = 10; // Use same itemsPerPage for both initial load and load more
   const [hasMore, setHasMore] = useState(false);
+  const [isDebugOpen, setIsDebugOpen] = useState(false);
+  const [stateChanges, setStateChanges] = useState<string[]>([]);
+  const articlesRef = useRef<Article[]>([]);
 
-  // Fetch articles when category or page changes
+  // Function to add state change to debug log
+  const addStateChange = (change: string) => {
+    setStateChanges((prev) => [
+      ...prev,
+      `${new Date().toLocaleTimeString()}: ${change}`,
+    ]);
+  };
+
+  // Handle load more click
+  const handleLoadMore = () => {
+    if (isLoading) return;
+    addStateChange(
+      `Load More clicked: page ${currentPage} -> ${
+        currentPage + 1
+      }, articles: ${articles.length}`
+    );
+    setCurrentPage((prev) => prev + 1);
+  };
+
+  // Single useEffect to handle both initial load and pagination
   useEffect(() => {
     const fetchArticles = async () => {
       if (!category) return;
 
       try {
+        addStateChange(`Fetching articles for page ${currentPage}`);
         setIsLoading(true);
-        const result = await getFrontEndCategoryArticles({
+
+        // Reset state when category changes
+        if (currentPage === 1) {
+          setArticles([]);
+          articlesRef.current = [];
+          setStateChanges([]);
+          setHasMore(false);
+          console.log("you are here");
+        }
+
+        addStateChange(
+          `Fetching with page: ${currentPage}, itemsPerPage: ${itemsPerPage}`
+        );
+
+        const result = await getCategoryArticles({
           categoryId: category,
           page: currentPage,
-          itemsPerPage:
-            currentPage === 1 ? initialItemsPerPage : loadMoreItemsPerPage,
+          itemsPerPage: itemsPerPage,
         });
+
+        addStateChange(
+          `API Response: ${result.data?.length || 0} articles, total: ${
+            result.totalCount
+          }`
+        );
 
         if (result.error) {
           throw new Error(result.error);
@@ -49,25 +91,38 @@ export default function CategoryArticles({ category }: Props) {
         const newArticles = result.data || [];
 
         if (currentPage === 1) {
+          // For page 1, just set the articles directly
+          addStateChange(`Setting initial articles: ${newArticles.length}`);
           setArticles(newArticles);
+          articlesRef.current = newArticles;
         } else {
-          // Filter out any potential duplicates before adding new articles
-          const existingIds = new Set(articles.map((article) => article.id));
-          const uniqueNewArticles = newArticles.filter(
-            (article) => !existingIds.has(article.id)
+          // For page 2+, simply append the new articles
+          addStateChange(`Adding ${newArticles.length} new articles`);
+          const updatedArticles = [...articlesRef.current, ...newArticles];
+          articlesRef.current = updatedArticles;
+          setArticles(updatedArticles);
+          addStateChange(
+            `Updated articles state: ${
+              articlesRef.current.length - newArticles.length
+            } -> ${updatedArticles.length}`
           );
-          setArticles((prev) => [...prev, ...uniqueNewArticles]);
         }
-        setTotalCount(result.totalCount || 0);
 
-        // Calculate total loaded articles based on the current state
-        const totalLoaded =
-          currentPage === 1
-            ? newArticles.length
-            : articles.length + newArticles.length;
+        // Set total count only once
+        if (currentPage === 1) {
+          setTotalCount(result.totalCount || 0);
+        }
+
+        // Calculate total loaded articles
+        const totalLoaded = articlesRef.current.length;
+        addStateChange(
+          `Pagination state: ${totalLoaded}/${result.totalCount} articles loaded`
+        );
 
         // Only show Load More if we have more articles to load
-        setHasMore(result.totalCount > totalLoaded);
+        const hasMoreArticles = result.totalCount > totalLoaded;
+        addStateChange(`Has more articles: ${hasMoreArticles}`);
+        setHasMore(hasMoreArticles);
 
         // Set category info from the first article
         if (result.data && result.data.length > 0 && currentPage === 1) {
@@ -76,6 +131,7 @@ export default function CategoryArticles({ category }: Props) {
           });
         }
       } catch (error) {
+        console.error("Error in fetchArticles:", error);
         setError(
           error instanceof Error ? error.message : "Failed to fetch articles"
         );
@@ -85,14 +141,10 @@ export default function CategoryArticles({ category }: Props) {
     };
 
     fetchArticles();
-  }, [category, currentPage, articles.length]);
+  }, [category, currentPage]);
 
-  // Handle load more click
-  const handleLoadMore = () => {
-    if (!isLoading) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
+  // Calculate total loaded articles
+  const totalLoaded = articles.length;
 
   // Loading state display - only show on initial load
   if (isLoading && articles.length === 0) {
@@ -127,6 +179,31 @@ export default function CategoryArticles({ category }: Props) {
 
   return (
     <div className="w-full max-w-[1536px] mx-auto px-4 mt-10">
+      {/* Debug Button */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <button
+          onClick={() => setIsDebugOpen(true)}
+          className="bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-gray-700"
+        >
+          Debug
+        </button>
+      </div>
+
+      {/* Debug Dialog */}
+      <DebugDialog
+        isOpen={isDebugOpen}
+        onClose={() => setIsDebugOpen(false)}
+        data={{
+          currentPage,
+          isLoading,
+          articlesCount: articles.length,
+          totalCount,
+          hasMore,
+          newArticlesCount: totalLoaded,
+          stateChanges,
+        }}
+      />
+
       {/* Header Section */}
       <div className="mb-8">
         <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-6 shadow-sm">
@@ -163,24 +240,32 @@ export default function CategoryArticles({ category }: Props) {
       {/* Articles Grid */}
       <div className="bg-white rounded-xl shadow-sm p-6">
         <Grid columns={5} gap="lg">
-          {articles.map((article) => (
-            <Card
-              key={article.id}
-              title={article.title}
-              description={article.content}
-              imageUrl={article.image || undefined}
-              link={`/article/${article.id}`}
-              category={article.category_name || undefined}
-              subcategory={article.subcategory_name || undefined}
-              author={article.author_name || undefined}
-              date={article.published_at}
-              viewsCount={article.views_count}
-              likesCount={article.likes_count}
-              commentsCount={article.comments_count}
-              tags={article.tag_names}
-              tagColors={article.tag_colors}
-            />
-          ))}
+          {articles.map((article) => {
+            console.log("Article data:", {
+              id: article.id,
+              title: article.title,
+              tag_names: article.tag_names,
+              tag_colors: article.tag_colors,
+            });
+            return (
+              <Card
+                key={article.id}
+                title={article.title}
+                description={article.content}
+                imageUrl={article.image || undefined}
+                link={`/article/${article.id}`}
+                category={article.category_name || undefined}
+                subcategory={article.subcategory_name || undefined}
+                author={article.author_name || undefined}
+                date={article.published_at}
+                viewsCount={article.views_count}
+                likesCount={article.likes_count}
+                commentsCount={article.comments_count}
+                tags={article.tag_names}
+                tagColors={article.tag_colors}
+              />
+            );
+          })}
         </Grid>
 
         {/* Load More Button */}

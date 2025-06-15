@@ -3,13 +3,12 @@
 import { query } from "../db/db";
 import { Article } from "../definition";
 
-export async function getRelativeArticles(
+export async function getFrontEndRelativeArticles(
   currentArticleId?: number,
   page: number = 1,
   limit: number = 10
 ) {
   try {
-    // Calculate offset for MySQL pagination
     const offset = (page - 1) * limit;
 
     // First get the current article's category and tags
@@ -19,7 +18,7 @@ export async function getRelativeArticles(
           SELECT 
             a.category_id,
             a.sub_category_id,
-            GROUP_CONCAT(t.id) as tag_ids
+            GROUP_CONCAT(t.id ORDER BY t.id) as tag_ids
           FROM Articles a
           LEFT JOIN Article_Tags at ON a.id = at.article_id
           LEFT JOIN Tags t ON at.tag_id = t.id
@@ -58,8 +57,8 @@ export async function getRelativeArticles(
         c.name as category_name,
         sc.name as subcategory_name,
         au.name as author_name,
-        GROUP_CONCAT(DISTINCT t.name ORDER BY t.id) as tag_names,
-        GROUP_CONCAT(DISTINCT t.color ORDER BY t.id) as tag_colors,
+        GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ',') as tag_names,
+        GROUP_CONCAT(DISTINCT t.color ORDER BY t.name SEPARATOR ',') as tag_colors,
         (SELECT COUNT(*) FROM Likes WHERE article_id = a.id) as likes_count,
         (SELECT COUNT(*) FROM Comments WHERE article_id = a.id) as comments_count,
         (
@@ -120,11 +119,15 @@ export async function getRelativeArticles(
     const totalCount = result.data[0].total_count;
     const articles = result.data.map((article) => ({
       ...article,
-      tag_names: article.tag_names ? article.tag_names.split(",") : [],
-      tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
+      tag_names: article.tag_names
+        ? article.tag_names.split(",").filter(Boolean)
+        : [],
+      tag_colors: article.tag_colors
+        ? article.tag_colors.split(",").filter(Boolean)
+        : [],
       likes_count: Number(article.likes_count) || 0,
       comments_count: Number(article.comments_count) || 0,
-      views_count: 0, // Set default value since Views table doesn't exist
+      views_count: 0,
     }));
 
     return { data: articles, totalCount };

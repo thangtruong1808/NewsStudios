@@ -2,7 +2,7 @@
 
 // Component to display related articles with optional current article filtering
 import { useState, useEffect } from "react";
-import { getRelativeArticles } from "@/app/lib/actions/relative-articles";
+import { getFrontEndRelativeArticles } from "@/app/lib/actions/front-end-relative-articles";
 import { Article } from "@/app/lib/definition";
 import Grid from "@/app/components/front-end/shared/Grid";
 import Card from "@/app/components/front-end/shared/Card";
@@ -43,7 +43,7 @@ export default function RelativeArticles({
           currentArticleId
         );
 
-        const result = await getRelativeArticles(
+        const result = await getFrontEndRelativeArticles(
           currentArticleId ? Number(currentArticleId) : undefined,
           page,
           ITEMS_PER_PAGE
@@ -149,24 +149,34 @@ export default function RelativeArticles({
             <>
               {/* Grid layout for related articles using shared Grid component */}
               <Grid columns={5} gap="lg">
-                {relatedArticles.map((article) => (
-                  <Card
-                    key={article.id}
-                    title={article.title}
-                    description={article.content}
-                    imageUrl={article.image}
-                    link={`/article/${article.id}`}
-                    category={article.category_name}
-                    subcategory={article.subcategory_name}
-                    author={article.author_name}
-                    date={article.published_at}
-                    viewsCount={article.views_count}
-                    likesCount={article.likes_count}
-                    commentsCount={article.comments_count}
-                    tags={article.tag_names}
-                    tagColors={article.tag_colors}
-                  />
-                ))}
+                {relatedArticles.map((article) => {
+                  console.log("Article tag data:", {
+                    id: article.id,
+                    title: article.title,
+                    tag_names: article.tag_names,
+                    tag_colors: article.tag_colors,
+                    tag_names_length: article.tag_names?.length,
+                    tag_colors_length: article.tag_colors?.length,
+                  });
+                  return (
+                    <Card
+                      key={article.id}
+                      title={article.title}
+                      description={article.content}
+                      imageUrl={article.image || undefined}
+                      link={`/article/${article.id}`}
+                      category={article.category_name}
+                      subcategory={article.subcategory_name}
+                      author={article.author_name}
+                      date={article.published_at}
+                      viewsCount={article.views_count}
+                      likesCount={article.likes_count}
+                      commentsCount={article.comments_count}
+                      tags={article.tag_names}
+                      tagColors={article.tag_colors}
+                    />
+                  );
+                })}
               </Grid>
 
               {/* Load More Button */}

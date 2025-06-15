@@ -4,6 +4,10 @@ import { query } from "../db/db";
 import { Article } from "../definition";
 import pool from "../db/db";
 
+/**
+ * Fetches articles with optional filtering by type and subcategory
+ * Used for general article listing with basic filters
+ */
 export async function getFrontEndArticles({
   type,
   page = 1,
@@ -79,6 +83,10 @@ export async function getFrontEndArticles({
   }
 }
 
+/**
+ * Fetches articles for the explore page with advanced filtering
+ * Supports filtering by type, subcategory, and tags
+ */
 export async function getExploreArticles({
   type,
   page = 1,
@@ -162,6 +170,10 @@ export async function getExploreArticles({
   }
 }
 
+/**
+ * Fetches articles by category with sorting options
+ * Used in category-specific article listings
+ */
 export async function getExploreArticlesByCategory({
   type,
   page = 1,
@@ -259,6 +271,10 @@ export async function getExploreArticlesByCategory({
   }
 }
 
+/**
+ * Fetches articles for a specific subcategory
+ * Used in subcategory-specific article listings
+ */
 export async function getSubcategoryArticles({
   subcategoryId,
   page = 1,
@@ -316,10 +332,14 @@ export async function getSubcategoryArticles({
   }
 }
 
+/**
+ * Fetches articles for a specific category with pagination
+ * Used in category-specific article listings with detailed metadata
+ */
 export async function getCategoryArticles({
   categoryId,
   page = 1,
-  itemsPerPage = 25,
+  itemsPerPage = 10,
 }: {
   categoryId: string;
   page?: number;
@@ -331,7 +351,7 @@ export async function getCategoryArticles({
     // Get total count
     const countQuery = `
       SELECT COUNT(*) as total
-      FROM articles a
+      FROM Articles a
       WHERE a.category_id = ?
     `;
     const [countResult] = await pool.query(countQuery, [categoryId]);
@@ -343,21 +363,19 @@ export async function getCategoryArticles({
         a.*,
         c.name as category_name,
         sc.name as subcategory_name,
-        u.name as author_name,
-        GROUP_CONCAT(DISTINCT t.name) as tag_names,
-        GROUP_CONCAT(DISTINCT t.color) as tag_colors,
+        au.name as author_name,
+        GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ',') as tag_names,
+        GROUP_CONCAT(DISTINCT t.color ORDER BY t.name SEPARATOR ',') as tag_colors,
         COUNT(DISTINCT l.id) as likes_count,
-        COUNT(DISTINCT cm.id) as comments_count,
-        COUNT(DISTINCT v.id) as views_count
-      FROM articles a
-      LEFT JOIN categories c ON a.category_id = c.id
-      LEFT JOIN subcategories sc ON a.subcategory_id = sc.id
-      LEFT JOIN users u ON a.author_id = u.id
-      LEFT JOIN article_tags at ON a.id = at.article_id
-      LEFT JOIN tags t ON at.tag_id = t.id
-      LEFT JOIN likes l ON a.id = l.article_id
-      LEFT JOIN comments cm ON a.id = cm.article_id
-      LEFT JOIN views v ON a.id = v.article_id
+        COUNT(DISTINCT cm.id) as comments_count
+      FROM Articles a
+      LEFT JOIN Categories c ON a.category_id = c.id
+      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
+      LEFT JOIN Authors au ON a.author_id = au.id
+      LEFT JOIN Article_Tags at ON a.id = at.article_id
+      LEFT JOIN Tags t ON at.tag_id = t.id
+      LEFT JOIN Likes l ON a.id = l.article_id
+      LEFT JOIN Comments cm ON a.id = cm.article_id
       WHERE a.category_id = ?
       GROUP BY a.id
       ORDER BY a.published_at DESC
@@ -367,15 +385,39 @@ export async function getCategoryArticles({
     const [rows] = await pool.query(query, [categoryId, itemsPerPage, offset]);
     const articles = rows as any[];
 
+    console.log(
+      "Raw articles data:",
+      articles.map((article) => ({
+        id: article.id,
+        title: article.title,
+        tag_names: article.tag_names,
+        tag_colors: article.tag_colors,
+      }))
+    );
+
     // Format the response
     const formattedArticles = articles.map((article) => ({
       ...article,
-      tag_names: article.tag_names ? article.tag_names.split(",") : [],
-      tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
+      tag_names: article.tag_names
+        ? article.tag_names.split(",").filter(Boolean)
+        : [],
+      tag_colors: article.tag_colors
+        ? article.tag_colors.split(",").filter(Boolean)
+        : [],
       likes_count: Number(article.likes_count) || 0,
       comments_count: Number(article.comments_count) || 0,
-      views_count: Number(article.views_count) || 0,
+      views_count: 0, // Set default value since Views table doesn't exist
     }));
+
+    console.log(
+      "Formatted articles data:",
+      formattedArticles.map((article) => ({
+        id: article.id,
+        title: article.title,
+        tag_names: article.tag_names,
+        tag_colors: article.tag_colors,
+      }))
+    );
 
     return {
       data: formattedArticles,
@@ -391,6 +433,10 @@ export async function getCategoryArticles({
   }
 }
 
+/**
+ * Fetches articles for a specific category with front-end specific formatting
+ * Used in category-specific article listings with simplified metadata
+ */
 export async function getFrontEndCategoryArticles({
   categoryId,
   page = 1,
@@ -401,18 +447,31 @@ export async function getFrontEndCategoryArticles({
   itemsPerPage?: number;
 }) {
   try {
+    // Calculate offset based on page number and items per page
     const offset = (page - 1) * itemsPerPage;
 
+    // First, get the total count
+    const countResult = await query(
+      `SELECT COUNT(DISTINCT a.id) as total FROM Articles a WHERE a.category_id = ?`,
+      [categoryId]
+    );
+
+    if (!countResult.data || countResult.data.length === 0) {
+      return { data: [], totalCount: 0 };
+    }
+
+    const totalCount = countResult.data[0].total;
+
+    // Then get the articles with pagination, ensuring unique articles
     const result = await query(
       `
-      SELECT 
+      SELECT DISTINCT
         a.*,
         c.name as category_name,
         sc.name as subcategory_name,
         au.name as author_name,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors,
-        (SELECT COUNT(*) FROM Articles WHERE category_id = ?) as total_count
+        GROUP_CONCAT(DISTINCT t.name) as tag_names,
+        GROUP_CONCAT(DISTINCT t.color) as tag_colors
       FROM Articles a
       LEFT JOIN Categories c ON a.category_id = c.id
       LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
@@ -424,14 +483,13 @@ export async function getFrontEndCategoryArticles({
       ORDER BY a.published_at DESC
       LIMIT ? OFFSET ?
     `,
-      [categoryId, categoryId, itemsPerPage, offset]
+      [categoryId, itemsPerPage, offset]
     );
 
     if (!result.data || result.data.length === 0) {
       return { data: [], totalCount: 0 };
     }
 
-    const totalCount = result.data[0].total_count;
     const articles = result.data.map((article) => ({
       ...article,
       tag_names: article.tag_names ? article.tag_names.split(",") : [],
