@@ -113,7 +113,6 @@ export async function getRelativeArticles(
     );
 
     if (!result.data || result.data.length === 0) {
-      console.log("No relative articles found");
       return { data: [], totalCount: 0 };
     }
 
@@ -129,7 +128,9 @@ export async function getRelativeArticles(
 
     return { data: articles, totalCount };
   } catch (error) {
-    console.error("Error fetching relative articles:", error);
-    return { error: "Failed to fetch relative articles" };
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to fetch relative articles'
+    };
   }
 }

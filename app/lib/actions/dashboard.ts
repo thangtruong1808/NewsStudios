@@ -12,14 +12,11 @@ export async function getDashboardStats() {
   try {
     // Get active users stats
     const activeUsersResult = await getActiveUsersStats();
-    console.log('Active users result:', activeUsersResult);
 
     // Get article stats
     const articleStatsResult = await getArticleStats();
-    console.log('Article stats result:', articleStatsResult);
 
     if (activeUsersResult.error) {
-      console.error('Error fetching active users:', activeUsersResult.error);
       return {
         data: {
           activeUsers: 0,
@@ -40,7 +37,6 @@ export async function getDashboardStats() {
       error: null
     };
   } catch (error) {
-    console.error('Error in getDashboardStats:', error);
     return {
       data: {
         activeUsers: 0,

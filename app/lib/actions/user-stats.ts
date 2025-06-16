@@ -10,46 +10,32 @@ export async function getActiveUsersStats(): Promise<{
   error: string | null;
 }> {
   try {
-    // Get active users count
-    const activeUsersQuery = `
-      SELECT COUNT(*) as status
-      FROM Users
-      WHERE status = 'active'
-    `;
-
-    const result = await query(activeUsersQuery);
+    const result = await query(
+      `SELECT COUNT(*) as activeUsers 
+       FROM users 
+       WHERE last_login_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)`
+    );
 
     if (result.error) {
-      const errorMessage = result.error;
-      if (errorMessage) {
-        throw new Error(errorMessage);
-      }
+      return {
+        data: null,
+        error: result.error
+      };
     }
 
-    // Log the result for debugging
-    console.log('Active users result:', result);
-
-    // Map the data to match the expected structure
-    const activeUsers = result.data?.[0]?.status || 0;
-    console.log('Mapped active users count:', activeUsers);
-
-    // Return the data in the format expected by the dashboard
-    const stats: UserStats = {
-      activeUsers: activeUsers,
-      activeUsersTrend: 0, // No trend calculation needed
-    };
-
-    console.log('Returning stats:', stats);
+    const activeUsers = result.data?.[0]?.activeUsers || 0;
 
     return {
-      data: stats,
-      error: null,
+      data: {
+        activeUsers: Number(activeUsers),
+        activeUsersTrend: 0
+      },
+      error: null
     };
   } catch (error) {
-    console.error('Error in getActiveUsersStats:', error);
     return {
       data: null,
-      error: error instanceof Error ? error.message : "Failed to fetch active users stats",
+      error: error instanceof Error ? error.message : 'Failed to fetch active users stats'
     };
   }
 } 

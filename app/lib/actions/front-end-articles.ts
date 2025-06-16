@@ -62,7 +62,6 @@ export async function getFrontEndArticles({
     );
 
     if (!result.data || result.data.length === 0) {
-      console.log("No articles found");
       return { data: [], totalCount: 0 };
     }
 
@@ -78,7 +77,6 @@ export async function getFrontEndArticles({
 
     return { data: articles, totalCount };
   } catch (error) {
-    console.error("Error fetching articles:", error);
     return { error: "Failed to fetch articles" };
   }
 }
@@ -149,7 +147,6 @@ export async function getExploreArticles({
     );
 
     if (!result.data || result.data.length === 0) {
-      console.log("No articles found");
       return { data: [], totalCount: 0 };
     }
 
@@ -165,7 +162,6 @@ export async function getExploreArticles({
 
     return { data: articles, totalCount };
   } catch (error) {
-    console.error("Error fetching articles:", error);
     return { error: "Failed to fetch articles" };
   }
 }
@@ -226,7 +222,6 @@ export async function getSubcategoryArticles({
 
     return { data: articles, totalCount };
   } catch (error) {
-    console.error("Error fetching subcategory articles:", error);
     return { error: "Failed to fetch articles" };
   }
 }
@@ -307,7 +302,6 @@ export async function getCategoryArticles({
       totalPages: Math.ceil(totalCount / itemsPerPage),
     };
   } catch (error) {
-    console.error("Error fetching category articles:", error);
     return { error: "Failed to fetch category articles" };
   }
 }
@@ -585,11 +579,42 @@ export async function getArticlesByTag({
       error: null
     };
   } catch (error) {
-    console.error('Error fetching articles by tag:', error);
     return {
       data: null,
       totalCount: 0,
       error: 'Failed to fetch articles'
+    };
+  }
+}
+
+export async function getArticlesByCategory(categoryId: number) {
+  try {
+    const result = await query(
+      `SELECT a.*, c.name as category_name, sc.name as subcategory_name, u.name as author_name
+       FROM articles a
+       LEFT JOIN categories c ON a.category_id = c.id
+       LEFT JOIN subcategories sc ON a.subcategory_id = sc.id
+       LEFT JOIN users u ON a.author_id = u.id
+       WHERE a.category_id = ? AND a.status = 'published'
+       ORDER BY a.published_at DESC`,
+      [categoryId]
+    );
+
+    if (result.error) {
+      return {
+        data: null,
+        error: result.error
+      };
+    }
+
+    return {
+      data: result.data || [],
+      error: null
+    };
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to fetch articles'
     };
   }
 }

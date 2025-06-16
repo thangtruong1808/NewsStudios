@@ -123,7 +123,6 @@ export async function getConnection() {
     const connection = await pool.getConnection();
     return { connection, error: null };
   } catch (error) {
-    console.error("Database connection error:", error);
     return {
       connection: null,
       error:
@@ -142,7 +141,6 @@ export async function beginTransaction(connection: mysql.PoolConnection) {
     await connection.beginTransaction();
     return { error: null };
   } catch (error) {
-    console.error("Transaction begin error:", error);
     return {
       error:
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -160,7 +158,6 @@ export async function commitTransaction(connection: mysql.PoolConnection) {
     await connection.commit();
     return { error: null };
   } catch (error) {
-    console.error("Transaction commit error:", error);
     return {
       error:
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -178,7 +175,6 @@ export async function rollbackTransaction(connection: mysql.PoolConnection) {
     await connection.rollback();
     return { error: null };
   } catch (error) {
-    console.error("Transaction rollback error:", error);
     return {
       error:
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -195,7 +191,6 @@ export async function releaseConnection(connection: mysql.PoolConnection) {
     connection.release();
     return { error: null };
   } catch (error) {
-    console.error("Connection release error:", error);
     return {
       error:
         error instanceof Error ? error.message : "An unknown error occurred",
