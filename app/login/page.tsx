@@ -7,8 +7,8 @@ import { toast } from "react-hot-toast";
 import { useSession } from "next-auth/react";
 import { Suspense } from "react";
 import LoginForm from "./LoginForm";
-import { NewspaperIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import Logo from "@/app/components/front-end/shared/Logo";
 
 /**
  * LoginPage Component
@@ -86,26 +86,10 @@ export default function LoginPage() {
         </div>
 
         {/* Welcome section with logo and title */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center h-16">
-            {/* Logo and Brand section with hover effects */}
-            <Link href="/" className="flex items-center space-x-3 group">
-              {/* Icon container with gradient background and blur effect */}
-              <div className="relative">
-                {/* Gradient background with hover opacity transition */}
-                <div className="absolute inset-0 rounded-lg blur opacity-20 group-hover:opacity-30 transition-opacity" />
-                <div className="relative p-2 rounded-lg ">
-                  <NewspaperIcon className="h-8 w-8 text-blue-500" />
-                </div>
-              </div>
-              {/* Brand name with blue text color */}
-              <div className="flex items-center">
-                <span className="text-2xl font-bold text-blue-500">
-                  YourNewsHub
-                </span>
-              </div>
-            </Link>
-          </div>
+        <div className="flex items-center justify-center h-16">
+          <Link href="/" className="group">
+            <Logo />
+          </Link>
         </div>
 
         {/* Login form with suspense boundary */}

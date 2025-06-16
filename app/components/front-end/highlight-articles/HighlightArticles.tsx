@@ -54,7 +54,7 @@ export default function HighlightArticles() {
         // Only show Load More if we have more articles to load and we received a full page
         setHasMore(
           result.totalCount > totalLoaded &&
-            newArticles.length === ITEMS_PER_PAGE
+          newArticles.length === ITEMS_PER_PAGE
         );
       } catch (error) {
         console.error("Error fetching highlight articles:", error);
@@ -143,6 +143,14 @@ export default function HighlightArticles() {
               )
               .slice(0, 7)
               .map((article) => article.title)}
+            dates={articles
+              .sort(
+                (a, b) =>
+                  new Date(b.published_at || "").getTime() -
+                  new Date(a.published_at || "").getTime()
+              )
+              .slice(0, 7)
+              .map((article) => article.published_at || "")}
           />
         </div>
 

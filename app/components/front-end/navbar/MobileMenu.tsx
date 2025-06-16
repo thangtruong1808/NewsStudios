@@ -109,7 +109,7 @@ export default function MobileMenu({
     <div className="relative lg:hidden" ref={mobileMenuRef}>
       <button
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 border border-gray-300 hover:text-green-500 hover:border-green-500"
+        className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 border border-gray-300 hover:text-blue-500 hover:border-blue-500"
       >
         <span className="sr-only">Open main menu</span>
         <span className="flex items-center gap-2">
@@ -146,10 +146,10 @@ export default function MobileMenu({
                   setMobileActiveDropdown(null);
                   setIsUserDropdownOpen(false);
                 }}
-                className="p-1 rounded-md text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500"
+                className="p-1 rounded-md text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 border border-gray-300 hover:text-blue-500 hover:border-blue-500"
               >
                 <span className="sr-only">Close menu</span>
-                <XMarkIcon className="h-6 w-6 border-2 border-gray-300 rounded-md text-gray-400 hover:text-green-500 hover:border-green-500" aria-hidden="true" />
+                <XMarkIcon className="h-6 w-6 border-2 border-gray-300 rounded-md text-gray-400 hover:text-blue-500 hover:border-blue-500" aria-hidden="true" />
               </button>
             </div>
 
@@ -210,7 +210,7 @@ export default function MobileMenu({
                 <div className="relative" ref={userDropdownRef}>
                   <button
                     onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                    className="w-full flex flex-col items-center border-2 border-gray-500 px-2 py-1 rounded-md hover:text-green-500 hover:border-green-500"
+                    className="w-full flex flex-col items-center border-2 border-gray-500 px-2 py-1 rounded-md hover:text-blue-500 hover:border-blue-500"
                   >
                     {session.user.user_image ? (
                       <div className="relative w-8 h-8 rounded-full overflow-hidden">
@@ -241,7 +241,7 @@ export default function MobileMenu({
                       <div className="py-1">
                         <button
                           onClick={handleSignOut}
-                          className="flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:text-green-500 w-full"
+                          className="flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:text-blue-500 w-full"
                         >
                           <span>Sign Out</span>
                         </button>
@@ -254,7 +254,7 @@ export default function MobileMenu({
                   href="/login"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2 border-2 border-gray-500 rounded-md hover:text-green-500 hover:border-green-500"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 border-2 border-gray-500 rounded-md hover:text-blue-500 hover:border-blue-500"
                 >
                   <UserIcon className="h-5 w-5" />
                   <span className="text-sm font-medium">Login</span>

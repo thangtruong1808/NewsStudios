@@ -87,7 +87,7 @@ export default function DesktopMenu({
               <div className="flex items-center">
                 <Link
                   href={`/explore?categoryId=${category.id}`}
-                  className={`hover:text-lg text-sm xl:text-lg hover:text-green-500 font-medium px-1 ${isActive(`/category/${category.id}`)
+                  className={`hover:text-lg text-sm xl:text-lg hover:text-blue-500 font-medium px-1 ${isActive(`/category/${category.id}`)
                     ? "text-black"
                     : "text-gray-500 hover:text-gray-900"
                     }`}
@@ -98,7 +98,7 @@ export default function DesktopMenu({
 
               {/* Dropdown Menu */}
               <div
-                className="absolute left-0 w-40 md:w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 hidden group-hover:block mt-2 hover:text-green-500"
+                className="absolute left-0 w-40 md:w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 hidden group-hover:block mt-2 hover:text-blue-500"
                 style={{ top: "100%", marginTop: "0" }}
               >
                 <div
@@ -112,7 +112,7 @@ export default function DesktopMenu({
                       <Link
                         key={subcategory.id}
                         href={`/explore?subcategoryId=${subcategory.id}`}
-                        className="block px-2 md:px-2 py-2 text-xs md:text-sm text-gray-700 hover:text-green-500 rounded-md"
+                        className="block px-2 md:px-2 py-2 text-xs md:text-sm text-gray-700 hover:text-blue-500 rounded-md"
                         role="menuitem"
                       >
                         {subcategory.name}
@@ -134,7 +134,7 @@ export default function DesktopMenu({
               className={`text-sm md:text-md font-medium ${isActive("/profile") ? "text-black" : "text-gray-500"
                 }`}
             >
-              <span className="flex flex-col items-center border-2 border-gray-500 px-2 py-1 rounded-md hover:text-green-500 hover:border-green-500">
+              <span className="flex flex-col items-center border-2 border-gray-500 px-2 py-1 rounded-md hover:text-blue-500 hover:border-blue-500">
                 {session.user.user_image ? (
                   <div className="relative w-8 h-8 rounded-full overflow-hidden">
                     <Image
@@ -170,7 +170,7 @@ export default function DesktopMenu({
                 >
                   <button
                     onClick={handleSignOut}
-                    className="flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:text-green-500 w-full"
+                    className="flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:text-blue-500 w-full"
                     role="menuitem"
                   >
                     <span>Sign Out</span>
@@ -187,7 +187,7 @@ export default function DesktopMenu({
             className={`text-sm md:text-md font-medium ${isActive("/login") ? "text-black" : "text-gray-500"
               }`}
           >
-            <span className="flex flex-col xl:flex-row items-center border-2 border-gray-500 px-2 py-1 rounded-md hover:text-green-500 hover:border-green-500">
+            <span className="flex flex-col xl:flex-row items-center border-2 border-gray-500 px-2 py-1 rounded-md hover:text-blue-500 hover:border-blue-500">
               <UserIcon className="h-5 w-5" />
               <span className="mt-1 xl:mt-0 xl:ml-1 text-sm">Login</span>
             </span>

@@ -91,7 +91,7 @@ export default function FeaturedArticles() {
         // Only show Load More if we have more articles to load and we received a full page
         setHasMore(
           result.totalCount > totalLoaded &&
-            newArticles.length === ITEMS_PER_PAGE
+          newArticles.length === ITEMS_PER_PAGE
         );
       } catch (error) {
         console.error("Error fetching featured articles:", error);
@@ -180,6 +180,14 @@ export default function FeaturedArticles() {
               )
               .slice(0, 7)
               .map((article) => article.title)}
+            dates={articles
+              .sort(
+                (a, b) =>
+                  new Date(b.updated_at).getTime() -
+                  new Date(a.updated_at).getTime()
+              )
+              .slice(0, 7)
+              .map((article) => article.updated_at)}
           />
         </div>
 

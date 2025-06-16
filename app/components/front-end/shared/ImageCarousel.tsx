@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
 export interface CarouselItem {
@@ -11,6 +11,7 @@ export interface CarouselItem {
   description?: string;
   image: string;
   link?: string;
+  date?: string;
 }
 
 // Props interface for the ImageCarousel component
@@ -21,6 +22,7 @@ interface ImageCarouselProps {
   autoSlide?: boolean; // Enable/disable auto-sliding
   slideInterval?: number; // Time between slides in milliseconds
   titles?: string[]; // Add titles array prop
+  dates?: string[]; // Add dates array prop
 }
 
 /**
@@ -37,6 +39,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   autoSlide = true,
   slideInterval = 5000, // Default 5 seconds between slides
   titles = [], // Add titles prop with default empty array
+  dates = [], // Add dates prop with default empty array
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(autoSlide);
@@ -76,6 +79,30 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
     return () => clearInterval(interval);
   }, [autoSlide, slideInterval, nextSlide, isHovered]);
 
+  // Format date function
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "";
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "";
+      }
+
+      const options: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "UTC",
+      };
+
+      return date.toLocaleDateString("en-US", options);
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "";
+    }
+  };
+
   if (!images.length) return null;
 
   const currentImage = images[currentIndex];
@@ -98,7 +125,13 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
         />
         {/* Title Overlay */}
         {titles[currentIndex] && (
-          <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-2">
+          <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-4">
+            {dates[currentIndex] && (
+              <div className="flex items-center gap-1 text-gray-200 text-sm mb-1">
+                <CalendarIcon className="h-4 w-4" />
+                <span>{formatDate(dates[currentIndex])}</span>
+              </div>
+            )}
             <p className="text-white text-sm font-medium truncate">
               {titles[currentIndex]}
             </p>
@@ -133,9 +166,8 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentIndex ? "bg-white" : "bg-white/50"
-              }`}
+              className={`w-2 h-2 rounded-full transition-colors ${index === currentIndex ? "bg-white" : "bg-white/50"
+                }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
