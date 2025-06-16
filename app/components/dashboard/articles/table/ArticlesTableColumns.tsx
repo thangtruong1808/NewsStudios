@@ -5,7 +5,6 @@ import { Article } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import ExpandableTagList from "./ExpandableTagList";
-import { useSession } from "next-auth/react";
 import { formatDateToLocal } from "@/app/lib/utils/dateFormatter";
 
 /**
@@ -15,6 +14,7 @@ interface ArticlesTableColumnsProps {
   isDeleting: boolean;
   onEdit: (article: Article) => void;
   onDelete: (article: Article) => void;
+  isAdmin: boolean;
 }
 
 /**
@@ -29,12 +29,10 @@ export function getArticlesTableColumns({
   isDeleting,
   onEdit,
   onDelete,
+  isAdmin,
 }: ArticlesTableColumnsProps): Column<
   Article & { sequence?: number; actions?: never }
 >[] {
-  const { data: session } = useSession();
-  const isAdmin = session?.user?.role === "admin";
-
   // Define base columns without actions
   const baseColumns: Column<
     Article & { sequence?: number; actions?: never }
@@ -43,20 +41,21 @@ export function getArticlesTableColumns({
         field: "sequence",
         label: "#",
         sortable: false,
-        render: (value) => <span className="text-sm text-gray-500">{value}</span>,
+        render: (value: string, item: Article & { sequence?: number; actions?: never }) => {
+          const index = item.sequence || 0;
+          return String(index + 1);
+        },
       },
       {
         field: "title",
         label: "Title",
         sortable: true,
         render: (value) => (
-          <div className="w-48">
-            <ExpandableContent
-              content={value}
-              maxWords={20}
-              className="text-sm text-gray-500"
-            />
-          </div>
+          <ExpandableContent
+            content={value}
+            maxWords={20}
+            className="font-medium text-gray-900"
+          />
         ),
       },
       {
@@ -64,135 +63,95 @@ export function getArticlesTableColumns({
         label: "Content",
         sortable: true,
         render: (value) => (
-          <div className="w-64">
-            <ExpandableContent
-              content={value}
-              maxWords={20}
-              className="text-sm text-gray-500"
-            />
-          </div>
+          <ExpandableContent
+            content={value}
+            maxWords={20}
+            className="text-gray-600"
+          />
         ),
       },
       {
-        field: "category_id",
+        field: "category_name",
         label: "Category",
         sortable: true,
-        render: (_, article) => (
-          <div className="w-32">
-            <ExpandableContent
-              content={article.category_name || "Uncategorized"}
-              maxWords={20}
-              className="text-sm text-gray-500"
-            />
-          </div>
-        ),
       },
       {
-        field: "sub_category_id",
-        label: "SubCategory",
+        field: "subcategory_name",
+        label: "Subcategory",
         sortable: true,
-        render: (_, article) => (
-          <div className="w-32">
-            <ExpandableContent
-              content={article.sub_category_name || "None"}
-              maxWords={20}
-              className="text-sm text-gray-500"
-            />
-          </div>
-        ),
+      },
+      {
+        field: "author_name",
+        label: "Author",
+        sortable: true,
       },
       {
         field: "tag_names",
         label: "Tags",
-        sortable: true,
-        render: (value, article) => (
-          <div className="w-48">
-            <ExpandableTagList
-              tags={Array.isArray(value) ? value : []}
-              tagColors={article.tag_colors || []}
-              className="text-sm text-gray-500"
-            />
-          </div>
+        sortable: false,
+        render: (value, row) => (
+          <ExpandableTagList
+            tags={Array.isArray(value) ? value : []}
+            tagColors={row.tag_colors || []}
+          />
         ),
+      },
+      {
+        field: "views_count",
+        label: "Views",
+        sortable: true,
+      },
+      {
+        field: "likes_count",
+        label: "Likes",
+        sortable: true,
+      },
+      {
+        field: "comments_count",
+        label: "Comments",
+        sortable: true,
+      },
+      {
+        field: "published_at",
+        label: "Published At",
+        sortable: true,
+        render: (value) => formatDateToLocal(value),
       },
       {
         field: "updated_at",
         label: "Updated At",
         sortable: true,
-        render: (value) => (
-          <div className="w-32">
-            <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-              {formatDateToLocal(value)}
-            </span>
-          </div>
-        ),
-      },
-      {
-        field: "is_featured",
-        label: "Featured",
-        sortable: true,
-        render: (value) => (
-          <div className="w-24">
-            <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm ${value
-                  ? "bg-green-100 text-green-800"
-                  : "bg-gray-100 text-gray-500"
-                }`}
-            >
-              {value ? "Yes" : "No"}
-            </span>
-          </div>
-        ),
-      },
-      {
-        field: "is_trending",
-        label: "Trending",
-        sortable: true,
-        render: (value) => (
-          <div className="w-24">
-            <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm ${value
-                  ? "bg-green-100 text-green-800"
-                  : "bg-gray-100 text-gray-500"
-                }`}
-            >
-              {value ? "Yes" : "No"}
-            </span>
-          </div>
-        ),
+        render: (value) => formatDateToLocal(value),
       },
     ];
 
-  // Add actions column only for admin users
-  const columns = isAdmin
-    ? [
-      ...baseColumns,
-      {
-        field: "actions" as keyof (Article & { sequence?: number }),
-        label: "Actions",
-        sortable: false,
-        render: (_: unknown, article: Article) => (
-          <div className="flex justify-start items-start space-x-2">
-            <button
-              onClick={() => onEdit(article)}
-              className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-            >
-              <PencilIcon className="h-4 w-4" />
-              Edit
-            </button>
-            <button
-              onClick={() => onDelete(article)}
-              disabled={isDeleting}
-              className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
-            >
-              <TrashIcon className="h-4 w-4" />
-              Delete
-            </button>
-          </div>
-        ),
-      },
-    ]
-    : baseColumns;
+  // Add actions column if user is admin
+  if (isAdmin) {
+    baseColumns.push({
+      field: "actions",
+      label: "Actions",
+      sortable: false,
+      render: (_, row) => (
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => onEdit(row)}
+            className="text-blue-600 hover:text-blue-900"
+            aria-label="Edit article"
+          >
+            <PencilIcon className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => onDelete(row)}
+            disabled={isDeleting}
+            className="text-red-600 hover:text-red-900 disabled:opacity-50"
+            aria-label="Delete article"
+          >
+            <TrashIcon className="h-5 w-5" />
+          </button>
+        </div>
+      ),
+    });
+  }
 
-  return columns;
+  return baseColumns;
 }

@@ -1,5 +1,8 @@
+"use client";
+
 import { useState, useEffect } from "react";
-import { useForm, Control } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import type { Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -305,13 +308,14 @@ export function useArticleForm({
         is_featured: data.is_featured,
         headline_priority: data.headline_priority,
         is_trending: data.is_trending,
-        created_at: now,
-        updated_at: now,
-        published_at: now,
-        comments: [],
-        views: 0,
-        likes: 0,
+        updated_at: now.toISOString(),
+        published_at: now.toISOString(),
+        views_count: 0,
+        likes_count: 0,
+        comments_count: 0,
+        tag_names: [],
         tag_ids: selectedTags,
+        tag_colors: [],
       };
 
       console.log("Prepared article data:", articleData);

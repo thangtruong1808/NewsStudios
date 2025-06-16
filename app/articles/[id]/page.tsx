@@ -11,6 +11,7 @@ interface ArticlePageProps {
   };
 }
 
+// This is a Next.js page component that must be exported as default
 export default function ArticlePage({ params }: ArticlePageProps) {
   // Ensure id is a valid number
   const articleId = parseInt(params.id);
@@ -50,7 +51,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
             <div className="text-center py-8 text-gray-500">
               <p>Comments are coming soon!</p>
               <p className="text-sm mt-2">
-                We're working on adding a comment system to enhance the
+                We&apos;re working on adding a comment system to enhance the
                 discussion.
               </p>
             </div>

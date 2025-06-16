@@ -1,3 +1,4 @@
+// This component is kept for future use in error handling across the application
 interface ErrorMessageProps {
   error: Error;
 }

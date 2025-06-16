@@ -1,6 +1,5 @@
 "use client";
 
-import MyLogo from "./MyLogo";
 import NavLinks from "./NavLinks";
 import SignOutButton from "./SignOutButton";
 import {

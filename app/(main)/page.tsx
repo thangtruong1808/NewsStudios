@@ -1,4 +1,3 @@
-import Button from "../components/Button";
 import { ArticlesTrending } from "@/app/components/front-end/trending-articles/ArticlesTrending";
 import HighlightArticles from "../components/front-end/highlight-articles/HighlightArticles";
 import FeaturedArticles from "@/app/components/front-end/FeaturedArticles/FeaturedArticles";

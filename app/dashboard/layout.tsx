@@ -60,7 +60,7 @@ export default async function LayoutDashboard({
       </div>
 
       {/* Main content area with sidebar and content */}
-      <DashboardClient session={session}>{children}</DashboardClient>
+      <DashboardClient>{children}</DashboardClient>
 
       {/* Toast notifications configuration */}
       <Toaster

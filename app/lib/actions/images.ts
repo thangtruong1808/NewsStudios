@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { query, transaction } from "../db/db";
 import { ImageFormData } from "../validations/imageSchema";
-import { uploadToFTP } from "../utils/ftpUpload";
+import { uploadToFTP } from "../utils/ftp";
 import { uploadImageToCloudinary } from "../utils/cloudinaryServerUtils";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { Image } from "../definition";

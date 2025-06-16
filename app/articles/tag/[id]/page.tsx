@@ -17,6 +17,7 @@ type Props = {
   };
 };
 
+// This is a Next.js page component that must be exported as default
 export default function TagArticles({ params }: Props) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,7 +85,7 @@ export default function TagArticles({ params }: Props) {
         }
 
         const newArticles = result.data;
-        
+
         if (currentPage === 1) {
           setArticles(newArticles);
           articlesRef.current = newArticles;
@@ -135,7 +136,7 @@ export default function TagArticles({ params }: Props) {
               No Articles Found
             </h3>
             <p className="text-gray-500 max-w-md">
-              We couldn't find any articles with this tag. Please check back later or explore other tags.
+              We couldn&apos;t find any articles with this tag. Please check back later or explore other tags.
             </p>
           </div>
         </div>
@@ -167,7 +168,7 @@ export default function TagArticles({ params }: Props) {
                     <span className="text-sm font-medium text-gray-700">
                       Tag:
                     </span>
-                    <span 
+                    <span
                       className="text-sm px-2 py-1 rounded-full text-white"
                       style={{ backgroundColor: tagInfo?.color || '#000000' }}
                     >
@@ -192,12 +193,12 @@ export default function TagArticles({ params }: Props) {
             {Array.isArray(articles) && articles.map((article) => {
               // Split tag strings into arrays safely
               const tagNames = typeof article.tag_names === "string"
-                ? article.tag_names.split(",")
+                ? (article.tag_names as string).split(",")
                 : Array.isArray(article.tag_names)
                   ? article.tag_names
                   : [];
               const tagColors = typeof article.tag_colors === "string"
-                ? article.tag_colors.split(",")
+                ? (article.tag_colors as string).split(",")
                 : Array.isArray(article.tag_colors)
                   ? article.tag_colors
                   : [];

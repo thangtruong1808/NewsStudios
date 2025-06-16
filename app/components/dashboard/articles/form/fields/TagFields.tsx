@@ -1,11 +1,10 @@
 "use client";
 
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { ArticleFormData } from "../articleSchema";
 import { Tag } from "../../../../../lib/definition";
 
 interface TagFieldsProps {
-  register: UseFormRegister<ArticleFormData>;
   errors: FieldErrors<ArticleFormData>;
   tags: Tag[];
   selectedTags: number[];
@@ -13,7 +12,6 @@ interface TagFieldsProps {
 }
 
 export default function TagFields({
-  register,
   errors,
   tags,
   selectedTags,
@@ -35,11 +33,10 @@ export default function TagFields({
           <option
             key={tag.id}
             value={tag.id}
-            className={`py-2 px-2 rounded-md mt-1 ${
-              selectedTags.includes(tag.id)
-                ? "bg-gray-200"
-                : "hover:bg-blue-500 hover:text-white"
-            }`}
+            className={`py-2 px-2 rounded-md mt-1 ${selectedTags.includes(tag.id)
+              ? "bg-gray-200"
+              : "hover:bg-blue-500 hover:text-white"
+              }`}
             style={{
               backgroundColor: selectedTags.includes(tag.id)
                 ? "#e5e7eb"

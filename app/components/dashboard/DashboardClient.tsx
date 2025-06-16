@@ -9,12 +9,10 @@ import { fontClasses } from "../fonts";
 
 interface DashboardClientProps {
   children: React.ReactNode;
-  session: Session;
 }
 
 export default function DashboardClient({
   children,
-  session,
 }: DashboardClientProps) {
   const [isSideNavCollapsed, setIsSideNavCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

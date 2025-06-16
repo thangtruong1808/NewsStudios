@@ -32,7 +32,7 @@ export default function EnhancedDashboard({ stats }: EnhancedDashboardProps) {
           <div>
             <h1 className="text-2xl font-bold">Welcome back!</h1>
             <p className="mt-1 text-blue-100 text-sm">
-              Here's what's happening with your content today.
+              Here&apos;s what&apos;s happening with your content today.
             </p>
           </div>
           <div className="bg-white/10 rounded-lg p-2">
@@ -200,7 +200,7 @@ export default function EnhancedDashboard({ stats }: EnhancedDashboardProps) {
           <div className="ml-3">
             <h3 className="text-sm font-medium text-blue-800">Dashboard Under Development</h3>
             <div className="mt-2 text-sm text-blue-700">
-              <p>We're currently enhancing the dashboard with more features and real-time data. Some statistics are still being collected and will be available soon.</p>
+              <p>We&apos;re currently enhancing the dashboard with more features and real-time data. Some statistics are still being collected and will be available soon.</p>
             </div>
           </div>
         </div>

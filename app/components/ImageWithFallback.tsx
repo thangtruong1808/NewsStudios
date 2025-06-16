@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 
 interface ImageWithFallbackProps {
   proxyUrl: string;
@@ -31,7 +32,7 @@ export default function ImageWithFallback({
   };
 
   return (
-    <img
+    <Image
       src={src}
       alt={alt}
       className={className}

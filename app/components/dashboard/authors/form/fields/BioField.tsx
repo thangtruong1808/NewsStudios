@@ -1,4 +1,6 @@
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+"use client";
+
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { AuthorFormData } from "../authorSchema";
 
 interface BioFieldProps {
@@ -6,18 +8,31 @@ interface BioFieldProps {
   errors: FieldErrors<AuthorFormData>;
 }
 
-export function BioField({ register, errors }: BioFieldProps) {
+export default function BioField({ register, errors }: BioFieldProps) {
   return (
-    <div>
-      <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-        Bio <span className="text-xs">(optional)</span>
+    <div className="space-y-2">
+      <label
+        htmlFor="bio"
+        className="block text-sm font-medium text-gray-700"
+      >
+        Bio
       </label>
       <textarea
         id="bio"
-        rows={8}
-        {...register("bio")}
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-3 py-2 text-sm"
-        placeholder="Enter the author's biography"
+        rows={4}
+        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+        placeholder="Enter author's bio"
+        {...register("bio", {
+          required: "Bio is required",
+          minLength: {
+            value: 10,
+            message: "Bio must be at least 10 characters long",
+          },
+          maxLength: {
+            value: 1000,
+            message: "Bio must not exceed 1000 characters",
+          },
+        })}
       />
       {errors.bio && (
         <p className="mt-1 text-sm text-red-600">{errors.bio.message}</p>
