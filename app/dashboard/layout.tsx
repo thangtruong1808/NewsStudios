@@ -18,18 +18,6 @@ import DashboardClient from "@/app/components/dashboard/DashboardClient";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export const metadata = {
-  title: 'NewsStudios CMS | Dashboard - Content Management System',
-  description: 'Manage your content, articles, and media with NewsStudios CMS. Track analytics, manage users, and control your content platform.',
-  keywords: 'CMS, content management, dashboard, analytics, media management',
-  authors: [{
-    name: 'Thang Truong',
-    email: 'thangtruong1808@gmail.com'
-  }],
-  viewport: 'width=device-width, initial-scale=1',
-  robots: 'noindex, nofollow'
-};
-
 export default async function LayoutDashboard({
   children,
 }: {
@@ -65,8 +53,8 @@ export default async function LayoutDashboard({
             fontClasses.robotoMono
           )}
         >
-          <h1 className="text-2xl font-bold">
-            NewsStudios Content Management System
+          <h1 className="text-2xl font-bold ">
+            Content Management System
           </h1>
         </div>
       </div>

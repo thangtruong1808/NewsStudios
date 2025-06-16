@@ -57,6 +57,7 @@ export async function getFilteredTags(
     );
 
     if (!result.data || result.data.length === 0) {
+      console.log("No tags found");
       return { data: [], totalCount: 0 };
     }
 
@@ -67,31 +68,7 @@ export async function getFilteredTags(
 
     return { data: tags, totalCount };
   } catch (error) {
+    console.error("Error fetching tags:", error);
     return { error: "Failed to fetch tags" };
-  }
-}
-
-export async function getTags() {
-  try {
-    const result = await query(
-      `SELECT * FROM tags ORDER BY name ASC`
-    );
-
-    if (result.error) {
-      return {
-        data: null,
-        error: result.error
-      };
-    }
-
-    return {
-      data: result.data || [],
-      error: null
-    };
-  } catch (error) {
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : 'Failed to fetch tags'
-    };
   }
 }

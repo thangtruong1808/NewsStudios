@@ -99,39 +99,42 @@ export async function getVideoById(id: number) {
   }
 }
 
-export async function createVideo(video: {
-  article_id: number;
-  video_url: string;
-  description?: string;
-}) {
+export async function createVideo(
+  video: Omit<Video, "id" | "created_at" | "updated_at">
+) {
   try {
+    console.log("Creating video in database:", video);
+
+    if (!video.article_id) {
+      throw new Error("Article ID is required");
+    }
+
+    if (!video.video_url) {
+      throw new Error("Video URL is required");
+    }
+
+    // Convert undefined to null for SQL
+    const description =
+      video.description === undefined ? null : video.description;
+
     const result = await query(
-      `INSERT INTO videos (article_id, video_url, description)
+      `INSERT INTO Videos (article_id, video_url, description)
        VALUES (?, ?, ?)`,
-      [video.article_id, video.video_url, video.description || null]
+      [video.article_id, video.video_url, description]
     );
 
+    console.log("Database insert result:", result);
+
     if (result.error) {
-      return {
-        data: null,
-        error: result.error
-      };
+      console.error("Database error:", result.error);
+      return { success: false, error: result.error };
     }
 
-    const insertId = (result.data as any).insertId;
-    if (insertId) {
-      const { data: newVideo, error } = await getVideoById(insertId);
-      if (error) {
-        return { data: null, error };
-      }
-      if (newVideo) {
-        return { data: newVideo, error: null };
-      }
-    }
-
-    return { data: null, error: "Failed to create video" };
+    revalidatePath("/dashboard/videos");
+    return { success: true, error: null };
   } catch (error) {
-    return { data: null, error: "Failed to create video" };
+    console.error("Error creating video:", error);
+    return { success: false, error: "Failed to create video" };
   }
 }
 

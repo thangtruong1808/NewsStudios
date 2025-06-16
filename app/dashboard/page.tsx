@@ -8,6 +8,9 @@ export const revalidate = 0;
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
 
+  // Log the stats for debugging
+  console.log('Dashboard page stats:', stats);
+
   return (
     <EnhancedDashboard stats={stats.data || { activeUsers: 0, activeUsersTrend: 0, totalArticles: 0 }} />
   );

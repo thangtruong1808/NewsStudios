@@ -82,6 +82,7 @@ export async function getTags({
       totalPages,
     };
   } catch (error) {
+    console.error("Error fetching tags:", error);
     return { error: "Failed to fetch tags" };
   }
 }
@@ -141,6 +142,7 @@ export async function getFilteredTags(
     );
 
     if (!result.data || result.data.length === 0) {
+      console.log("No tags found");
       return { data: [], totalCount: 0 };
     }
 
@@ -151,6 +153,7 @@ export async function getFilteredTags(
 
     return { data: tags, totalCount };
   } catch (error) {
+    console.error("Error fetching tags:", error);
     return { error: "Failed to fetch tags" };
   }
 }
@@ -198,6 +201,7 @@ export async function getTagById(id: number) {
       error: null,
     };
   } catch (error) {
+    console.error("Error fetching tag:", error);
     return { data: null, error: "Failed to fetch tag" };
   }
 }
@@ -219,6 +223,7 @@ export async function createTag(tagData: TagFormData) {
     );
 
     if (result.error) {
+      console.error("Error creating tag:", result.error);
       return { data: null, error: result.error };
     }
 
@@ -235,6 +240,7 @@ export async function createTag(tagData: TagFormData) {
 
     return { data: null, error: "Failed to create tag" };
   } catch (error) {
+    console.error("Error creating tag:", error);
     return { data: null, error: "Failed to create tag" };
   }
 }
@@ -260,6 +266,7 @@ export async function updateTag(id: number, tagData: TagFormData) {
     const { data: tag } = await getTagById(id);
     return { data: tag, error: null };
   } catch (error) {
+    console.error("Error updating tag:", error);
     return { data: null, error: "Failed to update Tag" };
   }
 }
@@ -285,6 +292,7 @@ export async function deleteTag(id: number) {
     );
 
     if (articlesResult.error || !articlesResult.data) {
+      console.error("Error checking articles:", articlesResult.error);
       return {
         data: null,
         error: "Failed to check related articles",
@@ -303,6 +311,7 @@ export async function deleteTag(id: number) {
     const deleteResult = await query("DELETE FROM Tags WHERE id = ?", [id]);
 
     if (deleteResult.error) {
+      console.error("Error deleting tag:", deleteResult.error);
       return {
         data: null,
         error: "Failed to delete tag",
@@ -316,6 +325,7 @@ export async function deleteTag(id: number) {
       verifyDelete.error ||
       (verifyDelete.data && verifyDelete.data.length > 0)
     ) {
+      console.error("Error verifying deletion:", verifyDelete.error);
       return {
         data: null,
         error: "Failed to verify tag deletion",
@@ -324,6 +334,7 @@ export async function deleteTag(id: number) {
 
     return { data: true, error: null };
   } catch (error) {
+    console.error("Error in deleteTag:", error);
     return {
       data: null,
       error: error instanceof Error ? error.message : "Failed to delete tag",
@@ -394,6 +405,7 @@ export async function searchTags(
       totalPages,
     };
   } catch (error) {
+    console.error("Error in searchTags:", error);
     return {
       error: "Failed to search tags",
       data: [],
@@ -438,6 +450,7 @@ export async function getAllTags() {
       error: null,
     };
   } catch (error) {
+    console.error("Database Error:", error);
     return {
       data: null,
       error: "Failed to fetch tags.",
@@ -479,6 +492,7 @@ export async function getTagsBySubcategory(subcategoryId: number) {
       error: null,
     };
   } catch (error) {
+    console.error("Database Error:", error);
     return {
       data: null,
       error: "Failed to fetch tags.",
