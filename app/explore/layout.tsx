@@ -3,14 +3,18 @@ import { getCategoryById } from "@/app/lib/actions/categories";
 import { getSubcategoryById } from "@/app/lib/actions/subcategories";
 import ExploreLayout from "@/app/components/front-end/explore/ExploreLayout";
 
-type Props = {
-  params: { [key: string]: string | string[] | undefined }
-  searchParams: { [key: string]: string | string[] | undefined }
+interface SearchParams {
+  categoryId?: string;
+  subcategoryId?: string;
 }
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const categoryId = searchParams?.categoryId as string | undefined;
-  const subcategoryId = searchParams?.subcategoryId as string | undefined;
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const categoryId = searchParams?.categoryId;
+  const subcategoryId = searchParams?.subcategoryId;
 
   if (subcategoryId) {
     const subcategoryResult = await getSubcategoryById(parseInt(subcategoryId));
