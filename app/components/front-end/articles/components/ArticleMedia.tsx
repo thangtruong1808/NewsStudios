@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { VideoModal } from "../../latest-articles/VideoModal";
@@ -18,12 +18,23 @@ const ArticleMedia = ({
 }: ArticleMediaProps) => {
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [currentMainImage, setCurrentMainImage] = useState<string>(selectedImage || '');
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   // Filter out duplicate images
   const uniqueImages = additionalMedia.images.filter(
     (image, index, self) =>
       index === self.findIndex((img) => img.url === image.url)
   );
+
+  // Set video thumbnails
+  useEffect(() => {
+    videoRefs.current.forEach((video, index) => {
+      if (video && additionalMedia.videos[index]) {
+        video.src = additionalMedia.videos[index].url;
+        video.currentTime = 1; // Set to 1 second to get a good thumbnail
+      }
+    });
+  }, [additionalMedia.videos]);
 
   const handleImageClick = (url: string) => {
     setSelectedImageUrl(url);
@@ -48,10 +59,10 @@ const ArticleMedia = ({
     return null;
   }
 
-  // Check if there's exactly one image and one video
-  const hasOneImageAndOneVideo = uniqueImages.length === 1 && additionalMedia.videos.length === 1;
   // Check if there's exactly one image and no video
   const hasOneImageAndNoVideo = uniqueImages.length === 1 && additionalMedia.videos.length === 0;
+  // Check if there's one image and one or more videos
+  const hasOneImageAndVideos = uniqueImages.length === 1 && additionalMedia.videos.length >= 1;
 
   return (
     <div className="space-y-4">
@@ -73,24 +84,37 @@ const ArticleMedia = ({
         {/* Right Side Content - Only show if not in one-image-no-video case */}
         {!hasOneImageAndNoVideo && (
           <div className="w-1/5 flex flex-col gap-4">
-            {/* Video Button */}
+            {/* Video Buttons - Show one button per video */}
             {additionalMedia.videos.length > 0 && (
-              <div className="flex items-center">
-                <button
-                  onClick={() => {
-                    const videoUrl = additionalMedia.videos[0].url;
-                    if (videoUrl) handleVideoClick(videoUrl);
-                  }}
-                  className="w-full bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
-                >
-                  <PlayIcon className="h-8 w-8" />
-                  <span className="text-sm font-medium">Watch Video</span>
-                </button>
+              <div className="flex flex-col gap-2">
+                {additionalMedia.videos.map((video, index) => (
+                  <div key={video.id} className="relative group">
+                    <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+                      <video
+                        ref={el => videoRefs.current[index] = el}
+                        className="w-full h-full object-cover"
+                        muted
+                        playsInline
+                        preload="metadata"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-30 transition-all duration-300" />
+                      <button
+                        onClick={() => {
+                          if (video.url) handleVideoClick(video.url);
+                        }}
+                        className="absolute inset-0 w-full flex items-center justify-center gap-2 text-white"
+                      >
+                        <PlayIcon className="h-8 w-8" />
+                        <span className="text-sm font-medium">Watch Video {index + 1}</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
-            {/* Additional Media Grid - Only show if not in one-image-one-video case */}
-            {!hasOneImageAndOneVideo && additionalMedia.images.length > 0 && (
+            {/* Additional Media Grid - Only show if not in one-image-and-videos case */}
+            {!hasOneImageAndVideos && additionalMedia.images.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {uniqueImages.map((image, index) => (
                   <div

@@ -9,7 +9,7 @@ const dbConfig = {
   database: process.env.DB_NAME || "u506579725_nextjs_mysql",
   port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
   waitForConnections: true,
-  connectionLimit: 5, // Increased from 3 to 5 for better performance
+  connectionLimit: 10, // Increased from 3 to 5 for better performance
   queueLimit: 0, // Removed queue limit to prevent connection blocking
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000, // Increased to 10 seconds

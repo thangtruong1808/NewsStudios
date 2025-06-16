@@ -64,9 +64,9 @@ export default function VideoUpload({
         throw new Error("Please select a video file");
       }
 
-      // Validate file size (50MB limit)
-      if (file.size > 50 * 1024 * 1024) {
-        throw new Error("Video size should be less than 50MB");
+      // Validate file size (500MB limit)
+      if (file.size > 500 * 1024 * 1024) {
+        throw new Error("Video size should be less than 500MB");
       }
 
       // Simulate upload progress
