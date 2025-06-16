@@ -31,7 +31,7 @@ export default function ArticleSelect({
           <option value={0}>Select an article</option>
           {articles.map((article) => (
             <option key={article.id} value={article.id}>
-              {article.title}
+              [{article.id}] {article.title}
             </option>
           ))}
         </select>

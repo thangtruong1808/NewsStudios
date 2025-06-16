@@ -56,7 +56,7 @@ export default function SubcategoryArticles({ subcategory }: Props) {
         }
 
         const newArticles = result.data || [];
-        
+
         if (currentPage === 1) {
           // For page 1, just set the articles directly
           setArticles(newArticles);
@@ -136,16 +136,16 @@ export default function SubcategoryArticles({ subcategory }: Props) {
       <div className="w-full max-w-[1536px] mx-auto px-4 mt-10">
         {/* Header Section */}
         <div className="mb-8">
-          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-6 shadow-sm">
-            <div className="flex items-center space-x-4">
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4 sm:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
               <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-100">
                 <FolderIcon className="h-6 w-6 text-indigo-600" />
               </div>
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">
+              <div className="flex-1 w-full">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                   {subcategoryInfo?.name || subcategory || "Articles"}
                 </h1>
-                <div className="flex items-center space-x-4 mt-2">
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
                   <div className="flex items-center space-x-2">
                     <FolderIcon className="h-4 w-4 text-gray-400" />
                     <span className="text-sm font-medium text-gray-700">
@@ -171,12 +171,12 @@ export default function SubcategoryArticles({ subcategory }: Props) {
         </div>
 
         {/* Empty State Message */}
-        <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-          <div className="flex flex-col items-center justify-center space-y-4">
-            <h3 className="text-xl font-semibold text-gray-900">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
               No Articles Found
             </h3>
-            <p className="text-gray-500 max-w-md">
+            <p className="text-sm sm:text-base text-gray-500 max-w-md">
               {subcategory
                 ? `We couldn't find any articles in the subcategory "${subcategoryInfo?.name || subcategory}" under category "${subcategoryInfo?.category_name || 'Loading...'}". Please check back later or explore other categories.`
                 : "No articles are available at the moment. Please check back later."}
@@ -191,16 +191,16 @@ export default function SubcategoryArticles({ subcategory }: Props) {
     <div className="w-full max-w-[1536px] mx-auto px-4 mt-10">
       {/* Header Section */}
       <div className="mb-8">
-        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center space-x-4">
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4 sm:p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-100">
               <FolderIcon className="h-6 w-6 text-indigo-600" />
             </div>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900">
+            <div className="flex-1 w-full">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {subcategoryInfo?.name ?? "Articles"}
               </h1>
-              <div className="flex items-center space-x-4 mt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
                 <div className="flex items-center space-x-2">
                   <FolderIcon className="h-4 w-4 text-gray-400" />
                   <span className="text-sm font-medium text-gray-700">

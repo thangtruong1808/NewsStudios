@@ -66,7 +66,14 @@ export default function SingleArticle({
         }
 
         if (videosResult.data) {
-          setVideos(videosResult.data);
+          console.log("Fetched videos:", videosResult.data);
+          // Map the videos to ensure we're using video_url
+          const formattedVideos = videosResult.data.map(video => ({
+            id: video.id,
+            url: video.video_url, // Use video_url instead of url
+            description: video.description || undefined
+          }));
+          setVideos(formattedVideos);
         }
       } catch (error) {
         setError(error instanceof Error ? error.message : "Failed to fetch article");
@@ -83,10 +90,12 @@ export default function SingleArticle({
   };
 
   const handleVideoClick = (url: string) => {
+    console.log("Handling video click with URL:", url);
     setSelectedVideo(url);
   };
 
   const closeVideoModal = () => {
+    console.log("Closing video modal");
     setSelectedVideo(null);
   };
 
@@ -125,6 +134,9 @@ export default function SingleArticle({
     }))
   };
 
+  console.log("Current video state:", selectedVideo);
+  console.log("Available videos:", videos);
+
   return (
     <div className="bg-white rounded-xl shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -142,12 +154,12 @@ export default function SingleArticle({
         />
         <ArticleContent content={article.content} />
         <ArticleTags
-          tags={Array.isArray(article.tag_names) 
+          tags={Array.isArray(article.tag_names)
             ? article.tag_names.map((name: string, index: number) => ({
-                name,
-                color: article.tag_colors?.[index] || "#6B7280",
-                id: article.tag_ids?.[index] || 0
-              }))
+              name,
+              color: article.tag_colors?.[index] || "#6B7280",
+              id: article.tag_ids?.[index] || 0
+            }))
             : []}
         />
         <ArticleActions

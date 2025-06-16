@@ -9,26 +9,28 @@ const dbConfig = {
   database: process.env.DB_NAME || "u506579725_nextjs_mysql",
   port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
   waitForConnections: true,
-  connectionLimit: 3, // Reduced from 5 to 3 to stay well under the server limit
-  queueLimit: 10, // Added queue limit to handle connection requests when pool is full
+  connectionLimit: 5, // Increased from 3 to 5 for better performance
+  queueLimit: 0, // Removed queue limit to prevent connection blocking
   enableKeepAlive: true,
-  keepAliveInitialDelay: 0,
-  connectTimeout: 10000, // 10 seconds timeout
-  acquireTimeout: 10000, // 10 seconds timeout for acquiring a connection
-  idleTimeout: 60000, // Close idle connections after 60 seconds
-  maxIdle: 2, // Maximum number of idle connections to keep in the pool
+  keepAliveInitialDelay: 10000, // Increased to 10 seconds
+  connectTimeout: 30000, // Increased to 30 seconds
+  acquireTimeout: 30000, // Increased to 30 seconds
+  idleTimeout: 60000, // Keep idle connections for 60 seconds
+  maxIdle: 5, // Increased to match connectionLimit
 };
 
 // Create the connection pool
 const pool = mysql.createPool(dbConfig);
 
-// Test the connection
+// Test the connection and log the result
 pool
   .getConnection()
   .then((connection) => {
+    console.log("Database connection pool initialized successfully");
     connection.release();
   })
   .catch((err) => {
+    console.error("Failed to initialize database connection pool:", err);
     throw new Error(`Failed to connect to database: ${err.message}`);
   });
 
@@ -45,25 +47,27 @@ export async function query<T = any>(
   let connection;
   try {
     connection = await pool.getConnection();
+    console.log("Executing query:", text);
+    console.log("Query parameters:", params);
     const [rows] = await connection.execute(text, params);
     return { data: rows as T[], error: null };
   } catch (error) {
     console.error("Database query error:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Database query failed";
-    // Check for specific error types
+    
+    // Enhanced error handling with specific error types
     if (error instanceof Error) {
       if (error.message.includes("ECONNREFUSED")) {
         return {
           data: null,
-          error:
-            "Unable to connect to the database. Please check your database connection.",
+          error: "Database connection refused. Please check if the database server is running.",
         };
       }
       if (error.message.includes("ER_ACCESS_DENIED_ERROR")) {
         return {
           data: null,
-          error: "Access denied. Please check your database credentials.",
+          error: "Database access denied. Please verify your credentials.",
         };
       }
       if (error.message.includes("ER_BAD_DB_ERROR")) {
@@ -72,11 +76,27 @@ export async function query<T = any>(
           error: "Database not found. Please check your database name.",
         };
       }
+      if (error.message.includes("ETIMEDOUT")) {
+        return {
+          data: null,
+          error: "Database connection timed out. Please try again.",
+        };
+      }
+      if (error.message.includes("PROTOCOL_CONNECTION_LOST")) {
+        return {
+          data: null,
+          error: "Database connection was lost. Please try again.",
+        };
+      }
     }
     return { data: null, error: errorMessage };
   } finally {
     if (connection) {
-      connection.release();
+      try {
+        connection.release();
+      } catch (error) {
+        console.error("Error releasing connection:", error);
+      }
     }
   }
 }

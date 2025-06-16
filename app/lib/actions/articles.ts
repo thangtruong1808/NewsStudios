@@ -53,6 +53,23 @@ export async function getArticles({
 
     console.log("Executing query with params:", queryParams);
 
+    // First, get the total count
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM Articles a
+      ${whereClause}
+    `;
+    
+    const countResult = await query(countQuery, search ? [`%${search}%`, `%${search}%`] : []);
+    
+    if (countResult.error) {
+      console.error("Error getting total count:", countResult.error);
+      throw new Error(countResult.error);
+    }
+
+    const totalCount = countResult.data?.[0]?.total || 0;
+
+    // Then get the articles with pagination
     const result = await query(
       `
       SELECT 
@@ -61,8 +78,7 @@ export async function getArticles({
         sc.name as subcategory_name,
         au.name as author_name,
         GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors,
-        (SELECT COUNT(*) FROM Articles ${whereClause}) as total_count
+        GROUP_CONCAT(t.color) as tag_colors
       FROM Articles a
       LEFT JOIN Categories c ON a.category_id = c.id
       LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
@@ -77,7 +93,10 @@ export async function getArticles({
       queryParams
     );
 
-    console.log("Query result:", result);
+    if (result.error) {
+      console.error("Error fetching articles:", result.error);
+      throw new Error(result.error);
+    }
 
     if (!result.data || result.data.length === 0) {
       console.log("No articles found in query result");
@@ -91,7 +110,6 @@ export async function getArticles({
       };
     }
 
-    const totalCount = result.data[0].total_count;
     const articles = result.data.map((article) => ({
       ...article,
       tag_names: article.tag_names ? article.tag_names.split(",") : [],
@@ -117,7 +135,7 @@ export async function getArticles({
     };
   } catch (error) {
     console.error("Error in getArticles:", error);
-    return { error: "Failed to fetch articles" };
+    return { error: error instanceof Error ? error.message : "Failed to fetch articles" };
   }
 }
 

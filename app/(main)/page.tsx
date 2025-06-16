@@ -11,9 +11,9 @@ export default function Home() {
   return (
     <>
       {/* Quick Links Section */}
-      <div className="mb-12">
+      {/* <div className="mb-12">
         <QuickLinks />
-      </div>
+      </div> */}
       {/* Featured Articles Section */}
       <div id="featured-articles" className="m-12">
         <FeaturedArticles />

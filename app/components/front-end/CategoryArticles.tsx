@@ -165,16 +165,16 @@ export default function CategoryArticles({ categoryId }: Props) {
     <div className="w-full max-w-[1536px] mx-auto px-4 mt-10">
       {/* Header Section */}
       <div className="mb-8">
-        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center space-x-4">
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4 sm:p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-100">
               <FolderIcon className="h-6 w-6 text-indigo-600" />
             </div>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900">
+            <div className="flex-1 w-full">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {categoryInfo?.name || "Articles"}
               </h1>
-              <div className="flex items-center space-x-4 mt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
                 <div className="flex items-center space-x-2">
                   <FolderIcon className="h-4 w-4 text-gray-400" />
                   <span className="text-sm font-medium text-gray-700">
