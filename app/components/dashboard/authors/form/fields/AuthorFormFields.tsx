@@ -2,7 +2,7 @@ import { UseFormRegister, FieldErrors, Control } from "react-hook-form";
 import { AuthorFormData } from "../authorSchema";
 import { NameField } from "./NameField";
 import { DescriptionField } from "./DescriptionField";
-import { BioField } from "./BioField";
+import BioField from "./BioField";
 
 interface AuthorFormFieldsProps {
   register: UseFormRegister<AuthorFormData>;
