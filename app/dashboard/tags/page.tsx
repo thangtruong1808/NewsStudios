@@ -7,7 +7,7 @@ import TagsSearchWrapper from "@/app/components/dashboard/tags/search/TagsSearch
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
 import TagsHeader from "@/app/components/dashboard/tags/header/TagsHeader";
 import TagsState from "@/app/components/dashboard/tags/state/TagsState";
-import { formatDateToLocal } from "@/app/lib/utils";
+import { formatDateToLocal } from "@/app/lib/utils/dateFormatter";
 
 /**
  * Props interface for TagsPage component

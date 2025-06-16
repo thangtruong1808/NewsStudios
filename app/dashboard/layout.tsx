@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import { redirect } from "next/navigation";
 import clsx from "clsx";
 import MyLogo from "../components/dashboard/MyLogo";
+import Logo from "../components/front-end/shared/Logo";
 import { fontClasses } from "../components/fonts";
 import { getAuthSession } from "../lib/auth";
 import DashboardClient from "@/app/components/dashboard/DashboardClient";
@@ -40,8 +41,8 @@ export default async function LayoutDashboard({
             fontClasses.robotoMono
           )}
         >
-          <div className="p-4">
-            <MyLogo />
+          <div className="p-4 text-blue-500">
+            <Logo />
           </div>
         </div>
 
@@ -52,7 +53,7 @@ export default async function LayoutDashboard({
             fontClasses.robotoMono
           )}
         >
-          <h1 className="text-2xl font-bold text-blue-500">
+          <h1 className="text-2xl font-bold ">
             Content Management System
           </h1>
         </div>

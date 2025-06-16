@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { getAllVideos } from "@/app/lib/actions/front-end-videos";
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from "@heroicons/react/24/outline";
 import VideoCarouselSkeleton from "./VideoCarouselSkeleton";
+import VideoModal from "./VideoModal";
 
 interface Video {
   id: number;
@@ -22,6 +23,8 @@ export default function VideoCarousel() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   useEffect(() => {
@@ -82,6 +85,16 @@ export default function VideoCarousel() {
     return () => clearInterval(interval);
   }, [isAutoPlaying, isHovering, nextVideo]);
 
+  const handleVideoClick = (index: number) => {
+    setSelectedVideoIndex(index);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedVideoIndex(null);
+  };
+
   if (isLoading) {
     return <VideoCarouselSkeleton />;
   }
@@ -113,16 +126,23 @@ export default function VideoCarousel() {
       >
         {/* Video Player Container */}
         <div className="relative h-full w-full">
-          <video
-            src={currentVideo.video_url}
-            controls
-            className="h-full w-full object-cover"
-          />
+          <div className="relative h-full w-full">
+            <video
+              src={currentVideo.video_url}
+              className="h-full w-full object-cover"
+            />
+            <button
+              onClick={() => handleVideoClick(currentIndex)}
+              className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-40 transition-all duration-300"
+              aria-label="Play video"
+            >
+              <PlayIcon className="h-16 w-16 text-white" />
+            </button>
+          </div>
 
           {/* Title Overlay */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-5">
             <h3 className="text-md font-bold text-white mb-1">
-
               <span className="text-gray-200 text-sm ml-1">
                 <CalendarIcon className="inline-block h-4 w-4 mr-1" />
                 {new Date(currentVideo.updated_at).toLocaleDateString('en-US', {
@@ -183,10 +203,10 @@ export default function VideoCarousel() {
                       if (isTransitioning) return;
                       setIsTransitioning(true);
                       setCurrentIndex(index);
+                      handleVideoClick(index);
                       setTimeout(() => setIsTransitioning(false), 500);
                     }}
-                    className={`absolute inset-0 w-full flex items-center justify-center ${index === currentIndex ? 'ring-2 ring-white' : ''
-                      }`}
+                    className={`absolute inset-0 w-full flex items-center justify-center ${index === currentIndex ? 'ring-2 ring-white' : ''}`}
                   >
                     <PlayIcon className="h-6 w-6 text-white" />
                   </button>
@@ -214,6 +234,14 @@ export default function VideoCarousel() {
           ))}
         </div>
       </div>
+
+      {/* Video Modal */}
+      <VideoModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        videoUrl={selectedVideoIndex !== null ? videos[selectedVideoIndex].video_url : currentVideo.video_url}
+        title={selectedVideoIndex !== null ? videos[selectedVideoIndex].article_title : currentVideo.article_title}
+      />
     </div>
   );
 } 

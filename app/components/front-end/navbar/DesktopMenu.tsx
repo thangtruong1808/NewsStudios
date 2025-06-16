@@ -87,9 +87,9 @@ export default function DesktopMenu({
               <div className="flex items-center">
                 <Link
                   href={`/explore?categoryId=${category.id}`}
-                  className={`hover:text-lg text-sm xl:text-lg hover:text-blue-500 font-medium px-1 ${isActive(`/category/${category.id}`)
-                    ? "text-black"
-                    : "text-gray-500 hover:text-gray-900"
+                  className={`text-gray-500 font hover:text-lg text-sm xl:text-lg hover:text-blue-500 hover:font-bold font-medium px-1 ${isActive(`/category/${category.id}`)
+                    // ? "text-black"
+                    // : "text-gray-500 hover:text-blue-900"
                     }`}
                 >
                   {category.name}
@@ -112,7 +112,7 @@ export default function DesktopMenu({
                       <Link
                         key={subcategory.id}
                         href={`/explore?subcategoryId=${subcategory.id}`}
-                        className="block px-2 md:px-2 py-2 text-xs md:text-sm text-gray-700 hover:text-blue-500 rounded-md"
+                        className="block px-2 md:px-2 py-2 text-xs md:text-sm text-gray-700 hover:text-blue-500 hover:bg-gray-100 hover:font-bold rounded-md"
                         role="menuitem"
                       >
                         {subcategory.name}
@@ -187,7 +187,7 @@ export default function DesktopMenu({
             className={`text-sm md:text-md font-medium ${isActive("/login") ? "text-black" : "text-gray-500"
               }`}
           >
-            <span className="flex flex-col xl:flex-row items-center border-2 border-gray-500 px-2 py-1 rounded-md hover:text-blue-500 hover:border-blue-500">
+            <span className="flex flex-col xl:flex-row items-center border-2 border-gray-400 px-2 py-1 rounded-md hover:text-blue-500 hover:border-blue-500">
               <UserIcon className="h-5 w-5" />
               <span className="mt-1 xl:mt-0 xl:ml-1 text-sm">Login</span>
             </span>

@@ -112,7 +112,8 @@ export default function MobileMenu({
         className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 border border-gray-300 hover:text-blue-500 hover:border-blue-500"
       >
         <span className="sr-only">Open main menu</span>
-        <span className="flex items-center gap-2">
+
+        <span className="flex items-center gap-2 hover:text-blue-500 hover:font-bold">
           <span className="text-md font-medium">Menu</span>
           <Bars3Icon className="block h-7 w-7" aria-hidden="true" />
         </span>
@@ -146,10 +147,10 @@ export default function MobileMenu({
                   setMobileActiveDropdown(null);
                   setIsUserDropdownOpen(false);
                 }}
-                className="p-1 rounded-md text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 border border-gray-300 hover:text-blue-500 hover:border-blue-500"
+                className="p-1 rounded-md text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 border border-2 border-gray-300 hover:text-blue-500 hover:border-blue-500"
               >
-                <span className="sr-only">Close menu</span>
-                <XMarkIcon className="h-6 w-6 border-2 border-gray-300 rounded-md text-gray-400 hover:text-blue-500 hover:border-blue-500" aria-hidden="true" />
+                <span className="sr-only ">Close menu</span>
+                <XMarkIcon className="h-6 w-6 text-gray-400 hover:text-blue-500 hover:border-blue-500" aria-hidden="true" />
               </button>
             </div>
 
@@ -158,7 +159,7 @@ export default function MobileMenu({
               <div className="px-2 py-4">
                 <Link
                   href="/"
-                  className={`block px-4 py-2 text-md text-gray-700 hover:bg-gray-100 rounded-md ${isActive("/") ? "bg-gray-50" : ""
+                  className={`block px-4 py-2 text-md text-gray-700 hover:text-blue-500 hover:font-bold hover:bg-gray-100 rounded-md ${isActive("/") ? "bg-gray-50" : ""
                     }`}
                 >
                   Home
@@ -170,7 +171,7 @@ export default function MobileMenu({
                       <div key={category.id}>
                         <button
                           onClick={() => handleMobileCategoryClick(category.id)}
-                          className={`w-full text-left px-4 py-2 text-md text-gray-700 hover:bg-gray-100 rounded-md flex items-center justify-between ${isActive(`/category/${category.id}`)
+                          className={`w-full text-left px-4 py-2 text-md text-gray-700 hover:text-blue-500 hover:font-bold hover:bg-gray-100 rounded-md flex items-center justify-between ${isActive(`/category/${category.id}`)
                             ? "bg-gray-50"
                             : ""
                             }`}
@@ -190,7 +191,7 @@ export default function MobileMenu({
                                 <Link
                                   key={subcategory.id}
                                   href={`/explore?subcategoryId=${subcategory.id}`}
-                                  className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md"
+                                  className="block px-4 py-2 text-sm text-gray-600 hover:text-blue-500 hover:font-bold hover:bg-gray-100 rounded-md"
                                 >
                                   {subcategory.name}
                                 </Link>

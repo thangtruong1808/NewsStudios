@@ -13,6 +13,7 @@ import {
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 import { useSession } from "next-auth/react";
+import { formatDateToLocal } from "@/app/lib/utils/dateFormatter";
 
 // Props interface for VideosGrid component
 interface VideosGridProps {
@@ -209,7 +210,7 @@ export default function VideosGrid({
               <p className="text-xs flex items-center gap-1 truncate">
                 <span className="mr-1 font-medium">Last updated:</span>{" "}
                 <span className="text-gray-500">
-                  {new Date(video.updated_at).toLocaleDateString()}
+                  {formatDateToLocal(video.updated_at)}
                 </span>
                 <span>
                   <ClockIcon className="w-3 h-3 text-gray-500" />

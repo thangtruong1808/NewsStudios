@@ -15,3 +15,17 @@ export const formatDateWithMonth = (dateString: string): string => {
   const year = date.getFullYear();
   return `${day} ${month} ${year}`;
 };
+
+/**
+ * Formats a date string to a localized date format with three-letter month abbreviation
+ * Example: "2024-02-15" becomes "15 Jun 2024"
+ * @param dateString - The date string to format
+ * @returns Formatted date string
+ */
+export const formatDateToLocal = (dateString: string): string => {
+  const date = new Date(dateString);
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = date.toLocaleString("en-US", { month: "short" });
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
+};

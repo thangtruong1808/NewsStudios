@@ -32,7 +32,7 @@ export default function Footer() {
           {/* Brand section with logo and description */}
           <div className="col-span-1 md:col-span-1">
             <Link href="/">
-            <BrandName />
+              <BrandName />
             </Link>
           </div>
 
@@ -45,10 +45,10 @@ export default function Footer() {
               </h3>
             </div>
             <ul className="mt-4 space-y-4">
-              <li>
+              <li >
                 <Link
                   href="/#featured-articles"
-                  className="text-base text-gray-500 hover:text-gray-900"
+                  className="text-base text-gray-500 hover:text-blue-500 hover:font-bold"
                 >
                   Featured Articles
                 </Link>
@@ -56,7 +56,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#highlight-articles"
-                  className="text-base text-gray-500 hover:text-gray-900"
+                  className="text-base text-gray-500 hover:text-blue-500 hover:font-bold"
                 >
                   Highlight Articles
                 </Link>
@@ -64,7 +64,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#trending-articles"
-                  className="text-base text-gray-500 hover:text-gray-900"
+                  className="text-base text-gray-500 hover:text-blue-500 hover:font-bold"
                 >
                   Trending Articles
                 </Link>
@@ -72,7 +72,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#related-articles"
-                  className="text-base text-gray-500 hover:text-gray-900"
+                  className="text-base text-gray-500 hover:text-blue-500 hover:font-bold"
                 >
                   Related Articles
                 </Link>
@@ -96,7 +96,7 @@ export default function Footer() {
                     <li key={category.id}>
                       <Link
                         href={`/explore?categoryId=${category.id}`}
-                        className="text-base text-gray-500 hover:text-gray-900"
+                        className="text-base text-gray-500 hover:text-blue-500 hover:font-bold"
                       >
                         {category.name}
                       </Link>
@@ -111,7 +111,7 @@ export default function Footer() {
                     <li key={category.id}>
                       <Link
                         href={`/explore?categoryId=${category.id}`}
-                        className="text-base text-gray-500 hover:text-gray-900"
+                        className="text-base text-gray-500 hover:text-blue-500 hover:font-bold"
                       >
                         {category.name}
                       </Link>
