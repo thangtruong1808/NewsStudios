@@ -9,7 +9,7 @@ const dbConfig = {
   database: process.env.DB_NAME || "u506579725_nextjs_mysql",
   port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
   waitForConnections: true,
-  connectionLimit: 10, // Increased from 3 to 5 for better performance
+  connectionLimit: 10, // Increased from 3 to 10 for better performance
   queueLimit: 0, // Removed queue limit to prevent connection blocking
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000, // Increased to 10 seconds
@@ -26,11 +26,9 @@ const pool = mysql.createPool(dbConfig);
 pool
   .getConnection()
   .then((connection) => {
-    console.log("Database connection pool initialized successfully");
     connection.release();
   })
   .catch((err) => {
-    console.error("Failed to initialize database connection pool:", err);
     throw new Error(`Failed to connect to database: ${err.message}`);
   });
 
@@ -47,12 +45,9 @@ export async function query<T = any>(
   let connection;
   try {
     connection = await pool.getConnection();
-    console.log("Executing query:", text);
-    console.log("Query parameters:", params);
     const [rows] = await connection.execute(text, params);
     return { data: rows as T[], error: null };
   } catch (error) {
-    console.error("Database query error:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Database query failed";
     
@@ -95,7 +90,7 @@ export async function query<T = any>(
       try {
         connection.release();
       } catch (error) {
-        console.error("Error releasing connection:", error);
+        // Silent error handling for connection release
       }
     }
   }

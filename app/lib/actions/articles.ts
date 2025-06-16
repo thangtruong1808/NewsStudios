@@ -27,18 +27,10 @@ export async function getArticles({
   page = 1,
   limit = 10,
   search,
-  sortField = "created_at",
+  sortField = "published_at",
   sortDirection = "desc",
 }: GetArticlesParams = {}) {
   try {
-    console.log("getArticles called with params:", {
-      page,
-      limit,
-      search,
-      sortField,
-      sortDirection,
-    });
-
     const offset = (page - 1) * limit;
 
     // Build the WHERE clause based on search parameter
@@ -51,8 +43,6 @@ export async function getArticles({
       ? [`%${search}%`, `%${search}%`, limit, offset]
       : [limit, offset];
 
-    console.log("Executing query with params:", queryParams);
-
     // First, get the total count
     const countQuery = `
       SELECT COUNT(*) as total
@@ -63,7 +53,6 @@ export async function getArticles({
     const countResult = await query(countQuery, search ? [`%${search}%`, `%${search}%`] : []);
     
     if (countResult.error) {
-      console.error("Error getting total count:", countResult.error);
       throw new Error(countResult.error);
     }
 

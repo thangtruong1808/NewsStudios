@@ -46,7 +46,6 @@ const ArticleMedia = ({
   };
 
   const handleVideoClick = (url: string) => {
-    console.log("Video clicked with URL:", url);
     onVideoClick(url);
   };
 
