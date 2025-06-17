@@ -1,5 +1,4 @@
 import mysql from "mysql2/promise";
-import { ResultSetHeader } from "mysql2";
 
 // Database configuration with fallback values for development
 const dbConfig = {

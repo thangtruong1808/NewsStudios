@@ -2,7 +2,7 @@
 
 import { Table } from "@/app/components/dashboard/shared/table";
 import { Category } from "@/app/lib/definition";
-import { getTableColumns } from "./TableColumns";
+import { useTableColumns } from "./TableColumns";
 import { useSession } from "next-auth/react";
 
 interface CategoriesTableProps {
@@ -41,7 +41,7 @@ export default function CategoriesTable({
   onItemsPerPageChange,
 }: CategoriesTableProps) {
   const { data: session } = useSession();
-  const columns = getTableColumns();
+  const columns = useTableColumns();
 
   return (
     <Table

@@ -6,7 +6,7 @@ import ExpandableContent from "@/app/components/dashboard/shared/table/Expandabl
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
 import { useSession } from "next-auth/react";
 
-export const getTableColumns = (): Column<
+export const useTableColumns = (): Column<
   Category & { sequence?: number; actions?: never }
 >[] => {
   const { data: session } = useSession();

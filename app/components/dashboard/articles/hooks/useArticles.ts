@@ -73,7 +73,7 @@ export function useArticles() {
     };
 
     fetchData();
-  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
+  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery, isSearching, isSorting]);
 
   // Event handlers
   const handlePageChange = (page: number) => {

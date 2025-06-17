@@ -1,6 +1,6 @@
 "use client";
 
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { ArticleFormData } from "../articleSchema";
 
 interface ContentFieldsProps {

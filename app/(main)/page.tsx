@@ -3,7 +3,6 @@ import HighlightArticles from "../components/front-end/highlight-articles/Highli
 import FeaturedArticles from "@/app/components/front-end/FeaturedArticles/FeaturedArticles";
 import RelativeArticles from "@/app/components/front-end/relative-articles/RelativeArticles";
 import Tags from "../components/front-end/Tags/Tags";
-import TopButton from "@/app/components/front-end/shared/TopButton";
 import VideoCarousel from "../components/front-end/VideoCarousel";
 
 export default function Home() {

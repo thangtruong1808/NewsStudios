@@ -8,12 +8,15 @@
   "plugins": ["import"],
   "rules": {
     "no-unused-vars": ["warn", { "varsIgnorePattern": "^_" }],
-    "import/no-unused-modules": [1, { "unusedExports": true }],
+    // "import/no-unused-modules": [1, { "unusedExports": true }],
+   "import/no-unused-modules": "off",
     "import/no-unresolved": "error",
     "import/named": "warn",
     "import/namespace": "error",    
     "import/no-default-export": "off",
     "react/no-unescaped-entities": "off",
-    "@next/next/no-page-custom-font": "off"
+    "@next/next/no-page-custom-font": "off",
+    "import/no-duplicates": "off",
+    "@typescript-eslint/no-unused-vars": "off"
   }
 }

@@ -1,22 +1,25 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import NotFound from "../components/front-end/NotFound";
 import ExploreContent from "../components/front-end/explore/ExploreContent";
 
-export default function ExplorePage() {
+function ExploreContentWrapper() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
   const tag = searchParams.get("tag");
   const subcategory = searchParams.get("subcategoryId");
   const categoryId = searchParams.get("categoryId");
 
-  console.log("ExplorePage URL params:", {
-    type,
-    tag,
-    subcategory,
-    categoryId,
-  });
+  if (process.env.NODE_ENV === 'development') {
+    console.log("ExplorePage URL params:", {
+      type,
+      tag,
+      subcategory,
+      categoryId,
+    });
+  }
 
   if (subcategory) {
     return <ExploreContent subcategory={subcategory} />;
@@ -27,4 +30,12 @@ export default function ExplorePage() {
   }
 
   return <NotFound message="Please select a view from the navbar." />;
+}
+
+export default function ExplorePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ExploreContentWrapper />
+    </Suspense>
+  );
 }

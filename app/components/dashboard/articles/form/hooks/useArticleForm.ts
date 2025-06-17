@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import type { Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -156,8 +155,8 @@ export function useArticleForm({
 
   // Add effect to fetch tags when subcategory changes
   useEffect(() => {
+    const subcategoryId = watch("sub_category_id");
     const fetchTags = async () => {
-      const subcategoryId = watch("sub_category_id");
       if (subcategoryId) {
         const { data: subcategoryTags, error } = await getTagsBySubcategory(
           subcategoryId
@@ -185,7 +184,7 @@ export function useArticleForm({
     };
 
     fetchTags();
-  }, [watch("sub_category_id"), setValue, article?.id]);
+  }, [watch, setValue, article?.id]);
 
   const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = Array.from(e.target.selectedOptions).map((option) =>

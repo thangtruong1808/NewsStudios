@@ -15,7 +15,6 @@
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
-  User,
   Category as CategoryType,
   Author as AuthorType,
   SubCategory,

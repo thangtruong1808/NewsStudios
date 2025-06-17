@@ -8,7 +8,7 @@ declare global {
 
 import { useState, useEffect } from "react";
 import { Category } from "@/app/lib/definition";
-import { getTableColumns } from "./TableColumns";
+import { useTableColumns } from "./TableColumns";
 import { TableHeader } from "./TableHeader";
 import TableBody from "./TableBody";
 import Pagination from "./Pagination";
@@ -20,20 +20,48 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 interface CategoriesTableClientProps {
   categories: Category[];
+  currentPage: number;
+  totalPages: number;
+  itemsPerPage: number;
+  totalItems: number;
+  sortField: string;
+  sortDirection: "asc" | "desc";
+  searchQuery: string;
+  isDeleting: boolean;
+  isLoading: boolean;
+  onSort: (field: string) => void;
+  onPageChange: (page: number) => void;
+  onEdit: (category: Category) => void;
+  onDelete: (id: number, name: string) => void;
+  onItemsPerPageChange: (itemsPerPage: number) => void;
 }
 
 export default function CategoriesTableClient({
   categories,
+  currentPage,
+  totalPages,
+  itemsPerPage,
+  totalItems,
+  sortField,
+  sortDirection,
+  searchQuery,
+  isDeleting,
+  isLoading,
+  onSort,
+  onPageChange,
+  onEdit,
+  onDelete,
+  onItemsPerPageChange,
 }: CategoriesTableClientProps) {
   const router = useRouter();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState<string>("name");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [mounted, setMounted] = useState(false);
 
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(categories.length / itemsPerPage);
+  const columns = useTableColumns(
+    currentPage,
+    itemsPerPage,
+    onDelete,
+    isDeleting
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -41,10 +69,9 @@ export default function CategoriesTableClient({
 
   const handleSort = (field: string) => {
     if (field === sortField) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      onSort(field === "name" ? "asc" : "desc");
     } else {
-      setSortField(field);
-      setSortDirection("asc");
+      onSort(field);
     }
   };
 
@@ -89,28 +116,8 @@ export default function CategoriesTableClient({
     const isConfirmed = await confirmPromise;
     if (!isConfirmed) return;
 
-    setIsDeleting(true);
-    try {
-      const { error } = await deleteCategory(id);
-      if (error) {
-        toast.error(`Failed to delete category: ${error}`);
-      } else {
-        toast.success("Category deleted successfully");
-        router.refresh();
-      }
-    } catch (error) {
-      toast.error("An error occurred while deleting the category");
-    } finally {
-      setIsDeleting(false);
-    }
+    onDelete(id, name);
   };
-
-  const columns = getTableColumns(
-    currentPage,
-    itemsPerPage,
-    handleDelete,
-    isDeleting
-  );
 
   const sortData = (data: Category[]) => {
     return [...data].sort((a, b) => {
@@ -345,9 +352,9 @@ export default function CategoriesTableClient({
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
-        onPageChange={setCurrentPage}
+        onPageChange={onPageChange}
         itemsPerPage={itemsPerPage}
-        totalItems={categories.length}
+        totalItems={totalItems}
       />
     </div>
   );

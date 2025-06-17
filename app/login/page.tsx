@@ -24,8 +24,17 @@ export default function LoginPage() {
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
 
-  console.log("Login Page - Session Status:", status);
-  console.log("Login Page - Session Data:", session);
+  // Only log session data in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log("Login Page - Session Status:", status);
+    console.log("Login Page - Session Data:", session);
+  }
+
+  // Redirect if already logged in
+  if (status === "authenticated") {
+    router.push("/dashboard");
+    return null;
+  }
 
   /**
    * Handles form submission for user authentication
@@ -40,14 +49,19 @@ export default function LoginPage() {
     const password = formData.get("password") as string;
 
     try {
-      console.log("Attempting login with:", { email });
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Attempting login with:", { email });
+      }
+
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
 
-      console.log("Login Result:", result);
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Login Result:", result);
+      }
 
       if (result?.error) {
         toast.error("Invalid credentials");
@@ -58,7 +72,9 @@ export default function LoginPage() {
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
-      console.error("Login error:", error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Login error:", error);
+      }
       toast.error("An error occurred during login");
     } finally {
       setIsLoading(false);

@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+
 import { Suspense } from "react";
 import ResetPasswordForm from "./ResetPasswordForm";
 import { NewspaperIcon } from "@heroicons/react/24/outline";
@@ -18,8 +16,6 @@ import Link from "next/link";
  * - Responsive layout with gradient styling
  */
 export default function ResetPasswordPage() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <>

@@ -1,48 +1,23 @@
 "use client";
 
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { ArticleFormData } from "../articleSchema";
-import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
-import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useState, useEffect } from "react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 interface MediaFieldsProps {
-  register: UseFormRegister<ArticleFormData>;
-  errors: FieldErrors<ArticleFormData>;
   imageUrl: string | null;
   videoUrl: string | null;
-  uploadProgress: {
-    image?: number;
-    video?: number;
-  };
   onFileUpload: (file: File, type: "image" | "video") => Promise<void>;
   onRemoveMedia: (type: "image" | "video") => void;
 }
 
 export default function MediaFields({
-  register,
-  errors,
   imageUrl,
   videoUrl,
-  uploadProgress,
   onFileUpload,
   onRemoveMedia,
 }: MediaFieldsProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-
-  // Clean up object URLs when component unmounts
-  useEffect(() => {
-    return () => {
-      if (selectedImage && selectedImage.startsWith("blob:")) {
-        URL.revokeObjectURL(selectedImage);
-      }
-      if (selectedVideo && selectedVideo.startsWith("blob:")) {
-        URL.revokeObjectURL(selectedVideo);
-      }
-    };
-  }, [selectedImage, selectedVideo]);
-
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -75,14 +50,13 @@ export default function MediaFields({
             onChange={handleImageChange}
           />
         </div>
-        {errors.image && (
-          <p className="mt-1 text-sm text-red-600">{errors.image.message}</p>
-        )}
         {imageUrl && (
           <div className="mt-2 relative">
-            <img
+            <Image
               src={imageUrl}
               alt="Preview"
+              width={128}
+              height={128}
               className="h-32 w-32 object-cover rounded-lg"
             />
             <button
@@ -113,9 +87,6 @@ export default function MediaFields({
             onChange={handleVideoChange}
           />
         </div>
-        {errors.video && (
-          <p className="mt-1 text-sm text-red-600">{errors.video.message}</p>
-        )}
         {videoUrl && (
           <div className="mt-2 relative">
             <video

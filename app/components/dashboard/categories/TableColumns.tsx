@@ -1,17 +1,21 @@
 "use client";
 
-import Link from "next/link";
+
 import { Category } from "../../../lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Column } from "./types";
+import { useSession } from "next-auth/react";
 
-export function getTableColumns(
+export function useTableColumns(
   currentPage: number,
   itemsPerPage: number,
-  handleDelete: (id: number, name: string) => Promise<void>,
+  handleDelete: (id: number, name: string) => void,
   isDeleting: boolean
 ): Column[] {
-  return [
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
+  const columns: Column[] = [
     {
       key: "sequence",
       label: "#",
@@ -62,7 +66,11 @@ export function getTableColumns(
         </div>
       ),
     },
-    {
+  ];
+
+  // Only add actions column for admin users
+  if (isAdmin) {
+    columns.push({
       key: "actions",
       label: "Actions",
       sortable: false,
@@ -87,6 +95,8 @@ export function getTableColumns(
           </button>
         </div>
       ),
-    },
-  ];
+    });
+  }
+
+  return columns;
 }

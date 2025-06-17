@@ -16,19 +16,19 @@ const tabs = [
 
 const FormTabs: React.FC<FormTabsProps> = ({ activeTab, onTabChange }) => (
   <div className="flex space-x-2 border-b border-gray-200 mb-4">
-    {tabs.map((tab) => (
+    {tabs.map(({ key, label }) => (
       <button
-        key={tab.key}
+        key={key}
         type="button"
         className={`px-4 py-2 text-sm font-medium rounded-t-md focus:outline-none transition-colors duration-150
-          ${activeTab === tab.key
+          ${activeTab === key
             ? "bg-blue-100 border-l border-t border-r border-gray-200 text-blue-600"
             : "bg-gray-100 text-gray-500 hover:text-blue-600"
           }
         `}
-        onClick={() => onTabChange(tab.key)}
+        onClick={() => onTabChange(key)}
       >
-        {tab.label}
+        {label}
       </button>
     ))}
   </div>

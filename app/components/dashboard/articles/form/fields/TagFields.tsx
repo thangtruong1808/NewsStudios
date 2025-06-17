@@ -9,7 +9,7 @@ interface TagFieldsProps {
   errors: FieldErrors<ArticleFormData>;
   tags: Tag[];
   selectedTags: number[];
-  onTagChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onTagChange: () => void;
 }
 
 export default function TagFields({
@@ -23,7 +23,7 @@ export default function TagFields({
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     registerOnChange(e);
-    onTagChange(e);
+    onTagChange();
   };
 
   return (

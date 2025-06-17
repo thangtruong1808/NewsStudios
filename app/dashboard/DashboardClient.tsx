@@ -58,7 +58,7 @@ export default function DashboardClient({
           fontClasses.robotoMono
         )}
       >
-        <SideNav onCollapse={setIsSideNavCollapsed} session={session} />
+        <SideNav onCollapse={setIsSideNavCollapsed} />
       </aside>
 
       {/* Mobile menu overlay */}

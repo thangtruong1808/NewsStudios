@@ -1,7 +1,5 @@
 "use client";
 
-import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
-
 interface FormActionsProps {
   isSubmitting: boolean;
   onCancel: () => void;
@@ -32,8 +30,8 @@ export default function FormActions({
         {isSubmitting
           ? "Saving..."
           : isEditMode
-          ? "Update Article"
-          : "Create Article"}
+            ? "Update Article"
+            : "Create Article"}
       </button>
     </div>
   );

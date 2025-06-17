@@ -6,10 +6,6 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { ResultSetHeader } from "mysql2";
 
-interface QueryResult {
-  data: ResultSetHeader | null;
-  error: string | null;
-}
 
 export async function getUsers(params?: {
   page?: number;
@@ -141,7 +137,7 @@ export async function createUser(userData: UserFormData) {
     return {
       success: true,
       data: {
-        id: (result.data as ResultSetHeader)?.insertId,
+        id: result.data && 'insertId' in result.data ? result.data.insertId : null,
         firstname: userData.firstname,
         lastname: userData.lastname,
         email: userData.email,

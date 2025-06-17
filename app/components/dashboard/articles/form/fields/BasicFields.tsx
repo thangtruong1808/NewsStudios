@@ -1,20 +1,16 @@
 "use client";
 
-import {
+import type {
   UseFormRegister,
   FieldErrors,
-  Control,
-  useWatch,
 } from "react-hook-form";
 import { ArticleFormData } from "@/app/components/dashboard/articles/form/articleSchema";
 
 interface BasicFieldsProps {
   register: UseFormRegister<ArticleFormData>;
   errors: FieldErrors<ArticleFormData>;
-  control: Control<ArticleFormData>;
   categories: { id: number; name: string; description?: string }[];
   authors: { id: number; name: string }[];
-  subcategories: { id: number; name: string; category_id: number }[];
   selectedCategory: string;
   onCategoryChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   filteredSubcategories: { id: number; name: string; category_id: number }[];
@@ -23,10 +19,8 @@ interface BasicFieldsProps {
 export default function BasicFields({
   register,
   errors,
-  control,
   categories,
   authors,
-  subcategories,
   selectedCategory,
   onCategoryChange,
   filteredSubcategories,

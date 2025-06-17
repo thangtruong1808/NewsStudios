@@ -1,16 +1,14 @@
 "use client";
 
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister } from "react-hook-form";
 import { ArticleFormData } from "../articleSchema";
 
 interface SettingsFieldsProps {
   register: UseFormRegister<ArticleFormData>;
-  errors: FieldErrors<ArticleFormData>;
 }
 
 export default function SettingsFields({
   register,
-  errors,
 }: SettingsFieldsProps) {
   return (
     <div className="space-y-6">

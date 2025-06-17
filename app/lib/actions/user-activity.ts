@@ -6,6 +6,10 @@ interface UserActivity {
   activity_type: string;
 }
 
+interface ActiveUsersResult {
+  active_users: number;
+}
+
 /**
  * Get active users based on various activities:
  * - Comments
@@ -20,7 +24,7 @@ export async function getActiveUsers(): Promise<{
   error: string | null;
 }> {
   try {
-    const result = await query<UserActivity>(
+    const result = await query<ActiveUsersResult>(
       `WITH user_activities AS (
         -- Get users who commented
         SELECT 

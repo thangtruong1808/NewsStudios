@@ -2,9 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { query, transaction } from "../db/db";
-import { ImageFormData } from "../validations/imageSchema";
-import { uploadToFTP } from "../utils/ftp";
-import { uploadImageToCloudinary } from "../utils/cloudinaryServerUtils";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { Image } from "../definition";
 
@@ -138,7 +135,7 @@ export async function getImages({
     );
 
     if (result.error || countResult.error) {
-      throw new Error(result.error || countResult.error);
+      throw new Error(result.error || countResult.error || "An unknown error occurred");
     }
 
     const total = countResult.data?.[0]?.total || 0;

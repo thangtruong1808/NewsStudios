@@ -41,7 +41,7 @@ export function getArticlesTableColumns({
         field: "sequence",
         label: "#",
         sortable: false,
-        render: (value: string, item: Article & { sequence?: number; actions?: never }) => {
+        render: (_, item) => {
           const index = item.sequence || 0;
           return String(index + 1);
         },
