@@ -3,6 +3,14 @@ import { getArticles } from "@/app/lib/actions/articles";
 import EditPhotoPageClient from "@/app/components/dashboard/photos/EditPhotoPageClient";
 import { notFound } from "next/navigation";
 import { Image } from "@/app/lib/definition";
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Edit Photo | NewsStudios',
+  description: 'Edit your photo, media content, and gallery in one place',
+  keywords: ['photos', 'media management', 'CMS', 'admin panel'],
+  authors: [{ name: 'thang-truong' }],
+};
 
 interface EditPhotoPageProps {
   params: {

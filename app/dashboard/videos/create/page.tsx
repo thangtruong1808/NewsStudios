@@ -1,9 +1,16 @@
 import { getArticles } from "@/app/lib/actions/articles";
 import CreateVideoPageClient from "@/app/components/dashboard/videos/CreateVideoPageClient";
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Create Video | NewsStudios',
+  description: 'Create a new video, media content, and gallery in one place',
+  keywords: ['videos', 'media management', 'CMS', 'admin panel'],
+  authors: [{ name: 'thang-truong' }],
+};
 
 export default async function CreateVideoPage() {
   try {
-    console.log("Fetching articles for video creation...");
     const articlesResult = await getArticles({
       limit: 1000,
       sortField: "title",
@@ -11,19 +18,11 @@ export default async function CreateVideoPage() {
     });
 
     if (articlesResult.error) {
-      console.error("Error fetching articles:", articlesResult.error);
       throw new Error(articlesResult.error);
-    }
-
-    if (!articlesResult.data || articlesResult.data.length === 0) {
-      console.log("No articles found in the database");
-    } else {
-      console.log(`Found ${articlesResult.data.length} articles`);
     }
 
     return <CreateVideoPageClient articles={articlesResult.data || []} />;
   } catch (error) {
-    console.error("Error in CreateVideoPage:", error);
     return (
       <div className="w-full">
         <div className="rounded-md bg-red-50 p-4">

@@ -109,7 +109,7 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
   };
 
   const handleEdit = (_author: Author) => {
-    router.push(`/dashboard/authors/${_author.id}/edit`);
+    router.push(`/dashboard/author/${_author.id}/edit`);
   };
 
   const handleDelete = async (_author: Author) => {

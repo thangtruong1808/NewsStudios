@@ -115,13 +115,21 @@ export function getArticlesTableColumns({
         field: "published_at",
         label: "Published At",
         sortable: true,
-        render: (value) => formatDateToLocal(value),
+        render: (value) => (
+          <div className="min-w-[120px]">
+            {formatDateToLocal(value)}
+          </div>
+        ),
       },
       {
         field: "updated_at",
         label: "Updated At",
         sortable: true,
-        render: (value) => formatDateToLocal(value),
+        render: (value) => (
+          <div className="min-w-[120px]">
+            {formatDateToLocal(value)}
+          </div>
+        ),
       },
     ];
 

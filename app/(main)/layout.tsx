@@ -1,7 +1,14 @@
 import NavBar from "../components/front-end/navbar/NavBar";
 import Footer from "../components/front-end/Footer";
 import TopButton from "../components/front-end/shared/TopButton";
+import { Metadata } from 'next';
 
+export const metadata: Metadata = {
+  title: 'Home | NewsStudios',
+  description: 'Manage your content, articles, and media in one place',
+  keywords: ['dashboard', 'content management', 'CMS', 'admin panel'],
+  authors: [{ name: 'thang-truong' }],
+};
 export default function MainLayout({
   children,
 }: Readonly<{

@@ -1,4 +1,3 @@
-
 import { Toaster } from "react-hot-toast";
 import { redirect } from "next/navigation";
 import clsx from "clsx";
@@ -6,6 +5,7 @@ import Logo from "../components/front-end/shared/Logo";
 import { fontClasses } from "../components/fonts";
 import { getAuthSession } from "../lib/auth";
 import DashboardClient from "@/app/components/dashboard/DashboardClient";
+import { Metadata } from 'next';
 
 // Remove experimental_ppr flag as it might be causing issues
 // export const experimental_ppr = true;
@@ -14,6 +14,13 @@ import DashboardClient from "@/app/components/dashboard/DashboardClient";
 // export const revalidate = 0;
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Dashboard | NewsStudios',
+  description: 'Manage your content, articles, and media in one place',
+  keywords: ['dashboard', 'content management', 'CMS', 'admin panel'],
+  authors: [{ name: 'thang-truong' }],
+};
 
 export default async function LayoutDashboard({
   children,

@@ -3,6 +3,7 @@
 import { Image as ImageType } from "@/app/lib/definition";
 import { useState } from "react";
 import { PhotoActions } from "./PhotoActions";
+import { PhotoMetadata } from "./PhotoMetadata";
 import NextImage from "next/image";
 
 interface PhotoCardProps {
@@ -46,14 +47,7 @@ export default function PhotoCard({
           </div>
         )}
       </div>
-      <div className="p-4">
-        <h3 className="mb-2 text-lg font-semibold text-gray-900">
-          {photo.description || "Untitled"}
-        </h3>
-        <p className="text-sm text-gray-500">
-          {new Date(photo.created_at).toLocaleDateString()}
-        </p>
-      </div>
+      <PhotoMetadata photo={photo} />
     </div>
   );
 }

@@ -54,25 +54,20 @@ export async function getUsers(params?: {
 
 export async function getUserById(id: number) {
   try {
-    console.log(`Fetching user with ID: ${id}`);
     const result = await query("SELECT * FROM Users WHERE id = ?", [id]);
 
     if (result.error) {
-      console.error(`Error fetching user ${id}:`, result.error);
       return { data: null, error: result.error };
     }
 
     // Extract only the user data from the result, ensuring proper typing
     const rows = result.data as any[];
-    console.log(`Query result for user ${id}:`, rows);
 
     if (!rows || rows.length === 0) {
-      console.log(`No user found with ID: ${id}`);
       return { data: null, error: "User not found" };
     }
 
     const userData = rows[0];
-    console.log(`User data found:`, userData);
 
     // Return all user fields including password and user_image
     const user = {
@@ -91,7 +86,6 @@ export async function getUserById(id: number) {
 
     return { data: user, error: null };
   } catch (error) {
-    console.error(`Exception fetching user ${id}:`, error);
     return { data: null, error: "Failed to fetch user" };
   }
 }

@@ -132,14 +132,14 @@ export async function getFrontEndRelativeArticles(
       );
 
       // Log the tag data for debugging
-      console.log("Article tag data in getFrontEndRelativeArticles:", {
-        id: article.id,
-        title: article.title,
-        tag_names: tagNames,
-        tag_colors: adjustedTagColors,
-        tag_names_length: tagNames.length,
-        tag_colors_length: adjustedTagColors.length,
-      });
+      // console.log("Article tag data in getFrontEndRelativeArticles:", {
+      //   id: article.id,
+      //   title: article.title,
+      //   tag_names: tagNames,
+      //   tag_colors: adjustedTagColors,
+      //   tag_names_length: tagNames.length,
+      //   tag_colors_length: adjustedTagColors.length,
+      // });
 
       return {
         ...article,
