@@ -10,9 +10,7 @@
     "no-unused-vars": ["warn", { "varsIgnorePattern": "^_" }],
     "import/no-unused-modules": [1, { "unusedExports": true }],
     "import/no-unresolved": "error",
-    "import/named": ["error", {
-      "allowCommonJSExports": true
-    }],
+    "import/named": "warn",
     "import/namespace": "error"
   }
 }
