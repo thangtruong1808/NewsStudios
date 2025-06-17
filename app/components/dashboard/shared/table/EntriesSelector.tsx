@@ -13,19 +13,8 @@ export default function EntriesSelector({
   currentPage,
   onItemsPerPageChange,
 }: EntriesSelectorProps) {
-  console.log("EntriesSelector props:", {
-    itemsPerPage,
-    totalItems,
-    currentPage,
-  });
-
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-  console.log("EntriesSelector calculated range:", {
-    startItem,
-    endItem,
-    totalItems,
-  });
 
   return (
     <div className="flex flex-col sm:flex-row justify-start sm:justify-between items-start sm:items-center mb-4">

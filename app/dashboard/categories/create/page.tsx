@@ -1,11 +1,13 @@
-"use client";
+import { Metadata } from 'next';
+import CreateCategoryPageClient from './CreateCategoryPageClient';
 
-import CategoryForm from "../../../components/dashboard/categories/CategoryForm";
+export const metadata: Metadata = {
+  title: 'Create Category | NewsStudios',
+  description: 'Create a new category to organize your content',
+  keywords: ['categories', 'create category', 'CMS', 'admin panel'],
+  authors: [{ name: 'thang-truong' }],
+};
 
 export default function CreateCategoryPage() {
-  return (
-    <div className="bg-gray-50">
-      <CategoryForm isEditMode={false} />
-    </div>
-  );
+  return <CreateCategoryPageClient />;
 }

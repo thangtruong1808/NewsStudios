@@ -100,8 +100,8 @@ export default function CategoriesState({ children }: CategoriesStateProps) {
     setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
   };
 
-  const handleEdit = (_category: Category) => {
-    // TODO: Implement edit functionality
+  const handleEdit = (category: Category) => {
+    router.push(`/dashboard/categories/${category.id}/edit`);
   };
 
   const handleDelete = (_id: number, _name: string) => {

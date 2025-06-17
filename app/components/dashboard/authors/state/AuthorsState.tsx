@@ -96,7 +96,7 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
   const handlePageChange = (_page: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", _page.toString());
-    router.push(`/dashboard/authors?${params.toString()}`);
+    router.push(`/dashboard/author?${params.toString()}`);
   };
 
   const handleSort = (_field: keyof Author) => {
@@ -105,7 +105,7 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
     const params = new URLSearchParams(searchParams);
     params.set("sortField", _field as string);
     params.set("sortDirection", newDirection);
-    router.push(`/dashboard/authors?${params.toString()}`);
+    router.push(`/dashboard/author?${params.toString()}`);
   };
 
   const handleEdit = (_author: Author) => {
@@ -155,7 +155,7 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
         const newPage = currentPage - 1;
         const params = new URLSearchParams(searchParams);
         params.set("page", newPage.toString());
-        router.push(`/dashboard/authors?${params.toString()}`);
+        router.push(`/dashboard/author?${params.toString()}`);
       }
 
       showErrorToast({ message: "Author deleted successfully" });
@@ -178,14 +178,14 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
     } else {
       params.delete("query");
     }
-    router.push(`/dashboard/authors?${params.toString()}`);
+    router.push(`/dashboard/author?${params.toString()}`);
   };
 
   const handleItemsPerPageChange = (_limit: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
     params.set("limit", _limit.toString());
-    router.push(`/dashboard/authors?${params.toString()}`);
+    router.push(`/dashboard/author?${params.toString()}`);
   };
 
   const columns = [

@@ -26,20 +26,14 @@ export async function getActiveUsersStats(): Promise<{
       }
     }
 
-    // Log the result for debugging
-    console.log('Active users result:', result);
-
     // Map the data to match the expected structure
     const activeUsers = result.data?.[0]?.status || 0;
-    console.log('Mapped active users count:', activeUsers);
 
     // Return the data in the format expected by the dashboard
     const stats: UserStats = {
       activeUsers: activeUsers,
       activeUsersTrend: 0, // No trend calculation needed
     };
-
-    console.log('Returning stats:', stats);
 
     return {
       data: stats,
