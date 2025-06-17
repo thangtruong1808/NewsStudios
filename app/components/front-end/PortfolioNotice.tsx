@@ -18,8 +18,10 @@ export default function PortfolioNotice() {
         <div className="py-2 flex items-center justify-between">
           <p className="text-sm text-red-500 flex-1 text-center flex items-center justify-center gap-2">
             <InformationCircleIcon className="h-5 w-5" />
-            "This project serves as a personal portfolio and is not intended for
-            commercial use."
+            <span className="text-sm">
+              This project serves as a personal portfolio and is not intended
+              for commercial use.
+            </span>
             <HandRaisedIcon className="h-5 w-5 animate-wave" />
           </p>
           <button

@@ -1,10 +1,8 @@
-// "use client";
 
 import SideNav from "../components/dashboard/SideNav";
 import { Toaster } from "react-hot-toast";
 import { redirect } from "next/navigation";
 import clsx from "clsx";
-import MyLogo from "../components/dashboard/MyLogo";
 import Logo from "../components/front-end/shared/Logo";
 import { fontClasses } from "../components/fonts";
 import { getAuthSession } from "../lib/auth";
