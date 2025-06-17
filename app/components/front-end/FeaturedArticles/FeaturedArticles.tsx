@@ -74,7 +74,6 @@ export default function FeaturedArticles() {
           throw new Error(result.error);
         }
 
-        console.log("Featured articles result:", result);
         const newArticles = result.data || [];
         if (page === 1) {
           setArticles(newArticles);
@@ -94,7 +93,6 @@ export default function FeaturedArticles() {
           newArticles.length === ITEMS_PER_PAGE
         );
       } catch (error) {
-        console.error("Error fetching featured articles:", error);
         setError("Failed to load featured articles");
       } finally {
         setIsLoading(false);

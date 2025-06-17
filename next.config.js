@@ -3,6 +3,15 @@ const nextConfig = {
   images: {
     minimumCacheTTL: 60,
     unoptimized: process.env.NODE_ENV === "development",
+
+    // Allow Cloudinary domain
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+    ],
   },
   // Ensure environment variables are loaded
   env: {

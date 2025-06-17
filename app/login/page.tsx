@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
@@ -31,9 +31,14 @@ export default function LoginPage() {
   }
 
   // Redirect if already logged in
-  if (status === "authenticated") {
-    router.push("/dashboard");
-    return null;
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      router.push("/dashboard");
+    }
+  }, [status, session, router]);
+
+  if (status === "loading") {
+    return null; // or a loading spinner
   }
 
   /**

@@ -76,19 +76,27 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id;
-        session.user.email = token.email;
-        session.user.name = token.name;
-        session.user.user_image = token.user_image;
-        session.user.role = token.role;
-        session.user.firstname = token.firstname;
-        session.user.lastname = token.lastname;
-        session.user.status = token.status;
-        session.user.created_at = token.created_at;
-        session.user.updated_at = token.updated_at;
+      try {
+        if (token) {
+          session.user = {
+            ...session.user,
+            id: token.id,
+            email: token.email,
+            name: token.name,
+            user_image: token.user_image,
+            role: token.role,
+            firstname: token.firstname,
+            lastname: token.lastname,
+            status: token.status,
+            created_at: token.created_at,
+            updated_at: token.updated_at,
+          };
+        }
+        return session;
+      } catch (error) {
+        console.error('Session callback error:', error);
+        return session;
       }
-      return session;
     },
   },
 };

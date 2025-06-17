@@ -28,17 +28,14 @@ export async function uploadImageToCloudinary(
   try {
     // Check if Cloudinary is properly configured
     if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) {
-      console.error("Cloudinary configuration missing: cloud_name");
       throw new Error("Cloudinary cloud_name is not configured");
     }
 
     if (!process.env.CLOUDINARY_API_KEY) {
-      console.error("Cloudinary configuration missing: api_key");
       throw new Error("Cloudinary api_key is not configured");
     }
 
     if (!process.env.CLOUDINARY_API_SECRET) {
-      console.error("Cloudinary configuration missing: api_secret");
       throw new Error("Cloudinary api_secret is not configured");
     }
 
@@ -47,18 +44,12 @@ export async function uploadImageToCloudinary(
       throw new Error("Invalid file: File is missing or has no name");
     }
 
-    console.log(
-      `Uploading file to Cloudinary: ${file.name}, size: ${file.size} bytes, type: ${file.type}, folder: ${folder}`
-    );
-
     // Convert file to buffer
     let buffer: Buffer;
     try {
       const bytes = await file.arrayBuffer();
       buffer = Buffer.from(bytes);
-      console.log(`File converted to buffer: ${buffer.length} bytes`);
     } catch (error) {
-      console.error("Error converting file to buffer:", error);
       throw new Error(
         `Failed to process file: ${
           error instanceof Error ? error.message : "Unknown error"
@@ -86,7 +77,6 @@ export async function uploadImageToCloudinary(
           },
           (error, result) => {
             if (error) {
-              console.error("Cloudinary upload error details:", error);
               reject(error);
             } else {
               console.log("Cloudinary upload successful:", {
@@ -105,7 +95,6 @@ export async function uploadImageToCloudinary(
         bufferStream.end(buffer);
         bufferStream.pipe(uploadStream);
       } catch (error) {
-        console.error("Error setting up upload stream:", error);
         reject(error);
       }
     });
@@ -116,7 +105,6 @@ export async function uploadImageToCloudinary(
       publicId: (result as any).public_id,
     };
   } catch (error) {
-    console.error("Error uploading file to Cloudinary:", error);
     return {
       success: false,
       error:

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Category } from "@/app/lib/definition";
 import { getCategories } from "@/app/lib/actions/categories";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -46,10 +46,10 @@ export default function CategoriesState({ children }: CategoriesStateProps) {
   const [sortDirection, setSortDirection] = useState((searchParams.get("sortDirection") as "asc" | "desc") || "desc");
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setIsLoading(true);
-      const { data, totalItems, totalPages } = await getCategories({
+      console.log('Fetching categories with params:', {
         page: currentPage,
         limit: itemsPerPage,
         sortField,
@@ -57,21 +57,39 @@ export default function CategoriesState({ children }: CategoriesStateProps) {
         search: searchQuery,
       });
 
-      if (data) {
-        setCategories(data);
-        setTotalPages(totalPages);
-        setTotalItems(totalItems);
+      const result = await getCategories({
+        page: currentPage,
+        limit: itemsPerPage,
+        sortField,
+        sortDirection,
+        search: searchQuery,
+      });
+
+      if (result.error) {
+        console.error('Error fetching categories:', result.error);
+        showErrorToast({ message: result.error });
+        return;
+      }
+
+      if (result.data) {
+        console.log('Categories fetched successfully:', result.data);
+        setCategories(result.data);
+        setTotalPages(result.totalPages);
+        setTotalItems(result.totalItems);
+      } else {
+        console.log('No categories data received');
       }
     } catch (error) {
+      console.error('Exception in fetchCategories:', error);
       showErrorToast({ message: "Failed to fetch categories" });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
 
   useEffect(() => {
     fetchCategories();
-  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery, fetchCategories]);
+  }, [fetchCategories]);
 
   const handlePageChange = (_page: number) => {
     setCurrentPage(_page);

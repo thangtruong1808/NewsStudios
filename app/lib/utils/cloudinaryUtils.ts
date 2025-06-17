@@ -60,11 +60,7 @@ export async function uploadImage(
       }
     } else {
       fileToUpload = file;
-      console.log("Using provided File object:", {
-        name: fileToUpload.name,
-        size: fileToUpload.size,
-        type: fileToUpload.type,
-      });
+ 
     }
 
     // Validate file type
@@ -72,11 +68,6 @@ export async function uploadImage(
     const isImage = fileType.startsWith("image/");
     const isVideo = fileType.startsWith("video/");
 
-    console.log("File validation:", {
-      fileType,
-      isImage,
-      isVideo,
-    });
 
     if (!isImage && !isVideo) {
       throw new Error(
@@ -85,9 +76,7 @@ export async function uploadImage(
     }
 
     // Use the server action to upload the image
-    console.log("Calling server action uploadImageToCloudinary");
     const result = await uploadImageToCloudinary(fileToUpload, folder);
-    console.log("Server action result:", result);
 
     if (!result.success) {
       throw new Error(result.error || "Failed to upload file to Cloudinary");
@@ -99,7 +88,6 @@ export async function uploadImage(
       publicId: result.publicId,
     };
   } catch (error) {
-    console.error("Error uploading file:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to upload file",

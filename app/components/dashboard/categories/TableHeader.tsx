@@ -18,39 +18,35 @@ export function TableHeader({
   onSort,
 }: TableHeaderProps) {
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            {columns.map((column) => {
-              const isMobileVisible = ["id", "name"].includes(column.field);
-              return (
-                <th
-                  key={column.field}
-                  scope="col"
-                  className={`px-3 py-3 text-left text-xs font-medium text-gray-900 sm:text-sm ${column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
-                    } border-b border-zinc-300 ${isMobileVisible ? "table-cell" : "hidden md:table-cell"
-                    }`}
-                  onClick={() => column.sortable && onSort(column.field)}
-                >
-                  <div className="group inline-flex items-center">
-                    <span>{column.label}</span>
-                    {column.sortable && sortField === column.field && (
-                      <span className="ml-1 text-gray-500">
-                        {sortDirection === "asc" ? (
-                          <ChevronUpIcon className="h-4 w-4" aria-hidden="true" />
-                        ) : (
-                          <ChevronDownIcon className="h-4 w-4" aria-hidden="true" />
-                        )}
-                      </span>
+    <thead className="bg-gray-50">
+      <tr>
+        {columns.map((column) => {
+          const isMobileVisible = ["id", "name"].includes(column.field);
+          return (
+            <th
+              key={column.field}
+              scope="col"
+              className={`px-3 py-3 text-left text-xs font-medium text-gray-900 sm:text-sm ${column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
+                } border-b border-zinc-300 ${isMobileVisible ? "table-cell" : "hidden md:table-cell"
+                }`}
+              onClick={() => column.sortable && onSort(column.field)}
+            >
+              <div className="group inline-flex items-center">
+                <span>{column.label}</span>
+                {column.sortable && sortField === column.field && (
+                  <span className="ml-1 text-gray-500">
+                    {sortDirection === "asc" ? (
+                      <ChevronUpIcon className="h-4 w-4" aria-hidden="true" />
+                    ) : (
+                      <ChevronDownIcon className="h-4 w-4" aria-hidden="true" />
                     )}
-                  </div>
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-      </table>
-    </div>
+                  </span>
+                )}
+              </div>
+            </th>
+          );
+        })}
+      </tr>
+    </thead>
   );
 }
