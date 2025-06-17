@@ -79,10 +79,11 @@ export default function UsersTable({
           {value ? (
             <Image
               src={value}
-              alt="User"
-              fill
+              alt={`${user.firstname} ${user.lastname}`}
+              width={40}
+              height={40}
               className="object-cover rounded-full"
-              sizes="(max-width: 60px) 100vw, 60px"
+              priority
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-blue-400 to-blue-300 flex items-center justify-center">
@@ -141,11 +142,10 @@ export default function UsersTable({
       sortable: true,
       render: (value: string) => (
         <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm ${
-            value === "active"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm ${value === "active"
+            ? "bg-green-100 text-green-800"
+            : "bg-red-100 text-red-800"
+            }`}
         >
           {value}
         </span>
@@ -180,34 +180,34 @@ export default function UsersTable({
     // Actions column with Edit and Delete buttons (only for admin)
     ...(isAdmin
       ? [
-          {
-            field: "actions" as keyof (User & {
-              sequence?: number;
-              actions?: never;
-            }),
-            label: "Actions",
-            sortable: false,
-            render: (_: unknown, user: User) => (
-              <div className="flex justify-start items-start space-x-2">
-                <button
-                  onClick={() => onEdit(user)}
-                  className="inline-flex items-center gap-1 rounded border border-blue-500 px-2 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-                >
-                  <PencilIcon className="h-5 w-5" />
-                  Edit
-                </button>
-                <button
-                  onClick={() => onDelete(user)}
-                  disabled={isDeleting}
-                  className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
-                >
-                  <TrashIcon className="h-5 w-5" />
-                  Delete
-                </button>
-              </div>
-            ),
-          },
-        ]
+        {
+          field: "actions" as keyof (User & {
+            sequence?: number;
+            actions?: never;
+          }),
+          label: "Actions",
+          sortable: false,
+          render: (_: unknown, user: User) => (
+            <div className="flex justify-start items-start space-x-2">
+              <button
+                onClick={() => onEdit(user)}
+                className="inline-flex items-center gap-1 rounded border border-blue-500 px-2 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+              >
+                <PencilIcon className="h-5 w-5" />
+                Edit
+              </button>
+              <button
+                onClick={() => onDelete(user)}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+              >
+                <TrashIcon className="h-5 w-5" />
+                Delete
+              </button>
+            </div>
+          ),
+        },
+      ]
       : []),
   ];
 
