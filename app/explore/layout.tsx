@@ -1,20 +1,17 @@
-"use client";
+import { Metadata } from 'next';
+import ExploreLayoutClient from './ExploreLayoutClient';
 
-import NavBar from "../components/front-end/navbar/NavBar";
-import Footer from "../components/front-end/Footer";
-import TopButton from "../components/front-end/shared/TopButton";
+export const metadata: Metadata = {
+  title: 'Explore | NewsStudios',
+  description: 'Discover and explore content across different categories and tags',
+  keywords: ['explore', 'content', 'categories', 'tags', 'articles', 'videos'],
+  authors: [{ name: 'thang-truong' }],
+};
 
 export default function ExploreLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen flex flex-col">
-      <NavBar />
-      <main className="flex-grow">{children}</main>
-      <Footer />
-      <TopButton />
-    </div>
-  );
+  return <ExploreLayoutClient>{children}</ExploreLayoutClient>;
 }

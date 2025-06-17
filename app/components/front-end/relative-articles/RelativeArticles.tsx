@@ -6,13 +6,7 @@ import { getFrontEndRelativeArticles } from "@/app/lib/actions/front-end-relativ
 import { Article } from "@/app/lib/definition";
 import Grid from "@/app/components/front-end/shared/Grid";
 import Card from "@/app/components/front-end/shared/Card";
-import {
-  UserIcon,
-  ClockIcon,
-  HeartIcon,
-  ChatBubbleLeftIcon,
-  EyeIcon,
-} from "@heroicons/react/24/outline";
+
 import RelativeArticlesSkeleton from "./RelativeArticlesSkeleton";
 
 // Props interface for RelatedArticles component
@@ -38,10 +32,6 @@ export default function RelativeArticles({
       try {
         setIsLoading(true);
         setError(null);
-        console.log(
-          "Fetching related articles for article ID:",
-          currentArticleId
-        );
 
         const result = await getFrontEndRelativeArticles(
           currentArticleId ? Number(currentArticleId) : undefined,
@@ -53,7 +43,6 @@ export default function RelativeArticles({
           throw new Error(result.error);
         }
 
-        console.log("Related articles result:", result);
         const newArticles = result.data || [];
         if (page === 1) {
           setRelatedArticles(newArticles);
@@ -172,16 +161,6 @@ export default function RelativeArticles({
                     }
                     return [];
                   })();
-
-                  // Log the tag data for debugging
-                  console.log("Article tag data:", {
-                    id: article.id,
-                    title: article.title,
-                    tag_names: tagNames,
-                    tag_colors: tagColors,
-                    tag_names_length: tagNames.length,
-                    tag_colors_length: tagColors.length,
-                  });
 
                   return (
                     <Card

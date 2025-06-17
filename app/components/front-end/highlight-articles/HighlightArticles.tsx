@@ -37,7 +37,6 @@ export default function HighlightArticles() {
           throw new Error(result.error);
         }
 
-        console.log("Highlight articles result:", result);
         const newArticles = result.data || [];
         if (page === 1) {
           setArticles(newArticles);

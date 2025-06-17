@@ -5,7 +5,6 @@ import Card from "../shared/Card";
 import Grid from "../shared/Grid";
 import { ImageCarousel } from "../shared/ImageCarousel";
 import { StarIcon } from "@heroicons/react/24/outline";
-import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import { getFeaturedArticles } from "@/app/lib/actions/featured-articles";
 import FeaturedArticlesSkeleton from "./FeaturedArticlesSkeleton";
 
@@ -39,25 +38,25 @@ export default function FeaturedArticles() {
 
   // Handle view click
   const handleViewClick = (articleId: number) => {
-    console.log("View clicked for article:", articleId);
+    // console.log("View clicked for article:", articleId);
     // Add your view handling logic here
   };
 
   // Handle like click
   const handleLikeClick = (articleId: number) => {
-    console.log("Like clicked for article:", articleId);
+    // console.log("Like clicked for article:", articleId);
     // Add your like handling logic here
   };
 
   // Handle comment click
   const handleCommentClick = (articleId: number) => {
-    console.log("Comment clicked for article:", articleId);
+    // console.log("Comment clicked for article:", articleId);
     // Add your comment handling logic here
   };
 
   // Handle share click
   const handleShareClick = (articleId: number) => {
-    console.log("Share clicked for article:", articleId);
+    // console.log("Share clicked for article:", articleId);
     // Add your share handling logic here
   };
 

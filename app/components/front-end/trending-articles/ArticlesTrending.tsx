@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { getFrontEndArticles } from "@/app/lib/actions/front-end-articles";
 import { Article } from "@/app/lib/definition";
-import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import { FireIcon } from "@heroicons/react/24/outline";
 import { ImageCarousel } from "@/app/components/front-end/shared/ImageCarousel";
 import Grid from "@/app/components/front-end/shared/Grid";
@@ -36,7 +35,6 @@ export function ArticlesTrending() {
           throw new Error(result.error);
         }
 
-        console.log("Trending articles result:", result);
         const newArticles = result.data || [];
         if (page === 1) {
           setArticles(newArticles);

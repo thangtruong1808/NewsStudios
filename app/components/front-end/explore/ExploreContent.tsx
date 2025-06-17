@@ -12,7 +12,14 @@ export default function ExploreContent({
   subcategory,
   categoryId,
 }: ExploreContentProps) {
-  console.log("ExploreContent props:", { subcategory, categoryId });
+  // const [articles, setArticles] = useState<Article[]>([]);
+  // const [isLoading, setIsLoading] = useState(true);
+  // const [error, setError] = useState<string | null>(null);
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [totalCount, setTotalCount] = useState(0);
+  // const [hasMore, setHasMore] = useState(false);
+  // const articlesRef = useRef<Article[]>([]);
+  // const itemsPerPage = 10;
 
   return (
     <div className="space-y-8">

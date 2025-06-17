@@ -28,8 +28,6 @@ export async function getImagesByArticleId(articleId: number) {
       throw new Error(result.error);
     }
 
-    console.log("Fetched images:", result.data); // Debug log
-
     return {
       data: result.data || [],
       error: null,

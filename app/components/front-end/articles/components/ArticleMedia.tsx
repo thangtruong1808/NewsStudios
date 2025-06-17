@@ -74,6 +74,7 @@ const ArticleMedia = ({
               src={currentMainImage}
               alt={articleTitle || "Article image"}
               fill
+              priority
               className="object-cover rounded-lg cursor-pointer"
               onClick={() => handleImageClick(currentMainImage)}
             />

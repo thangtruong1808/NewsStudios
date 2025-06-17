@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { getArticleById } from "@/app/lib/actions/articles";
 import { getImagesByArticleId } from "@/app/lib/actions/front-end-images";
 import { getVideosByArticleId } from "@/app/lib/actions/front-end-videos";
-import { Article } from "@/app/lib/definition";
+import { Article, Video } from "@/app/lib/definition";
 import { AdditionalMedia, MediaItem } from "../latest-articles/types";
 import { Image } from "@/app/lib/definition";
 import ArticleSkeleton from "./ArticleSkeleton";
@@ -66,7 +66,6 @@ export default function SingleArticle({
         }
 
         if (videosResult.data) {
-          console.log("Fetched videos:", videosResult.data);
           // Map the videos to ensure we're using video_url
           const formattedVideos = videosResult.data.map(video => ({
             id: video.id,
@@ -89,13 +88,11 @@ export default function SingleArticle({
     setSelectedImage(url);
   };
 
-  const handleVideoClick = (url: string) => {
-    console.log("Handling video click with URL:", url);
+  const handleVideoSelect = (url: string) => {
     setSelectedVideo(url);
   };
 
   const closeVideoModal = () => {
-    console.log("Closing video modal");
     setSelectedVideo(null);
   };
 
@@ -134,9 +131,6 @@ export default function SingleArticle({
     }))
   };
 
-  console.log("Current video state:", selectedVideo);
-  console.log("Available videos:", videos);
-
   return (
     <div className="bg-white rounded-xl shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -147,7 +141,7 @@ export default function SingleArticle({
           articleTitle={article.title}
           additionalMedia={additionalMedia}
           onImageClick={handleImageClick}
-          onVideoClick={handleVideoClick}
+          onVideoClick={handleVideoSelect}
           selectedVideo={selectedVideo}
           onCloseVideoModal={closeVideoModal}
           articleId={article.id}

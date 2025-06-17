@@ -1,41 +1,13 @@
-"use client";
+import { Metadata } from 'next';
+import ExplorePageClient from './ExplorePageClient';
 
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
-import NotFound from "../components/front-end/NotFound";
-import ExploreContent from "../components/front-end/explore/ExploreContent";
-
-function ExploreContentWrapper() {
-  const searchParams = useSearchParams();
-  const type = searchParams.get("type");
-  const tag = searchParams.get("tag");
-  const subcategory = searchParams.get("subcategoryId");
-  const categoryId = searchParams.get("categoryId");
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log("ExplorePage URL params:", {
-      type,
-      tag,
-      subcategory,
-      categoryId,
-    });
-  }
-
-  if (subcategory) {
-    return <ExploreContent subcategory={subcategory} />;
-  }
-
-  if (categoryId) {
-    return <ExploreContent categoryId={categoryId} />;
-  }
-
-  return <NotFound message="Please select a view from the navbar." />;
-}
+export const metadata: Metadata = {
+  title: 'Explore Content | NewsStudios',
+  description: 'Browse and discover content across different categories and tags',
+  keywords: ['explore', 'content', 'categories', 'tags', 'articles', 'videos'],
+  authors: [{ name: 'thang-truong' }],
+};
 
 export default function ExplorePage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ExploreContentWrapper />
-    </Suspense>
-  );
+  return <ExplorePageClient />;
 }

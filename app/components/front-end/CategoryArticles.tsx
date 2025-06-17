@@ -38,92 +38,50 @@ export default function CategoryArticles({ categoryId }: Props) {
   // Single useEffect to handle both initial load and pagination
   useEffect(() => {
     const fetchArticles = async () => {
-      console.log("Fetching articles with categoryId:", categoryId);
-      if (!categoryId) {
-        console.log("No categoryId provided, returning");
-        return;
-      }
+      if (!categoryId) return;
 
       try {
         setIsLoading(true);
-        console.log("Loading state set to true");
-
-        // Reset state when category changes
-        if (currentPage === 1) {
-          console.log("Resetting state for new category");
-          setArticles([]);
-          articlesRef.current = [];
-          setHasMore(false);
-        }
-
-        console.log("Calling getCategoryArticles with:", {
+        const result = await getCategoryArticles({
           categoryId,
           page: currentPage,
           itemsPerPage,
         });
 
-        const result = await getCategoryArticles({
-          categoryId: categoryId,
-          page: currentPage,
-          itemsPerPage: itemsPerPage,
-        });
-
-        console.log("API Response:", {
-          articlesCount: result.data?.length || 0,
-          totalCount: result.totalCount,
-          error: result.error,
-        });
-
         if (result.error) {
-          console.error("API returned error:", result.error);
           throw new Error(result.error);
         }
 
-        const newArticles = result.data || [];
-        console.log("New articles received:", newArticles.length);
+        if (!result.data) {
+          throw new Error("No data received");
+        }
+
+        const newArticles = result.data;
 
         if (currentPage === 1) {
-          // For page 1, just set the articles directly
-          console.log("Setting initial articles");
           setArticles(newArticles);
           articlesRef.current = newArticles;
         } else {
-          // For page 2+, simply append the new articles
-          console.log("Appending new articles to existing ones");
           const updatedArticles = [...articlesRef.current, ...newArticles];
           articlesRef.current = updatedArticles;
           setArticles(updatedArticles);
         }
 
-        // Set total count only once
-        if (currentPage === 1) {
-          console.log("Setting total count:", result.totalCount);
-          setTotalCount(result.totalCount || 0);
-        }
-
-        // Calculate total loaded articles
+        setTotalCount(result.totalCount || 0);
         const totalLoaded = articlesRef.current.length;
-        console.log("Total loaded articles:", totalLoaded);
-
-        // Only show Load More if we have more articles to load
-        const hasMoreArticles = result.totalCount > totalLoaded;
-        console.log("Has more articles:", hasMoreArticles);
-        setHasMore(hasMoreArticles);
+        setHasMore(result.totalCount > totalLoaded);
 
         // Set category info from the first article
         if (result.data && result.data.length > 0 && currentPage === 1) {
-          console.log("Setting category info:", result.data[0].category_name);
           setCategoryInfo({
             name: result.data[0].category_name || "",
           });
         }
       } catch (error) {
-        console.error("Error in fetchArticles:", error);
         setError(
           error instanceof Error ? error.message : "Failed to fetch articles"
         );
       } finally {
-        console.log("Setting loading state to false");
         setIsLoading(false);
       }
     };
