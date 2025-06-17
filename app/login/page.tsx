@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import LoginForm from "./LoginForm";
 import Link from "next/link";
 import Logo from "@/app/components/front-end/shared/Logo";
+import LoginSkeleton from "./LoginSkeleton";
 
 /**
  * LoginPage Component
@@ -38,7 +39,7 @@ export default function LoginPage() {
   }, [status, session, router]);
 
   if (status === "loading") {
-    return null; // or a loading spinner
+    return <LoginSkeleton />;
   }
 
   /**
@@ -114,7 +115,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login form with suspense boundary */}
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<LoginSkeleton />}>
           <LoginForm />
         </Suspense>
       </div>

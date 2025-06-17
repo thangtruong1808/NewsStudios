@@ -1,5 +1,4 @@
 
-import SideNav from "../components/dashboard/SideNav";
 import { Toaster } from "react-hot-toast";
 import { redirect } from "next/navigation";
 import clsx from "clsx";
