@@ -1,22 +1,14 @@
 "use client";
 
 declare global {
-  interface Window {
-    confirm: (message?: string) => boolean;
+  interface _Window {
+    confirm: (_message?: string) => boolean;
   }
 }
 
-import { useState, useEffect } from "react";
 import { Category } from "@/app/lib/definition";
-import { useTableColumns } from "./hooks/useTableColumns";
-import { TableHeader } from "./TableHeader";
-import TableBody from "./TableBody";
-import Pagination from "./Pagination";
-import { toast } from "react-hot-toast";
-import { deleteCategory } from "@/app/lib/actions/categories";
 import { useRouter, useSearchParams } from "next/navigation";
-import MobileCategoryCard from "./MobileCategoryCard";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useTableColumns } from "./hooks/useTableColumns";
 import { CategoriesTable } from "./CategoriesTable";
 
 interface CategoriesTableClientProps {
@@ -30,12 +22,12 @@ interface CategoriesTableClientProps {
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: (field: keyof Category) => void;
-  onPageChange: (page: number) => void;
-  onEdit: (category: Category) => void;
-  onDelete: (id: number, name: string) => void;
-  onSearch: (term: string) => void;
-  onItemsPerPageChange: (limit: number) => void;
+  onSort: (_field: keyof Category) => void;
+  onPageChange: (_page: number) => void;
+  onEdit: (_category: Category) => void;
+  onDelete: (_id: number, _name: string) => void;
+  onSearch: (_term: string) => void;
+  onItemsPerPageChange: (_limit: number) => void;
 }
 
 export default function CategoriesTableClient({
@@ -56,9 +48,9 @@ export default function CategoriesTableClient({
   onSearch,
   onItemsPerPageChange,
 }: CategoriesTableClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const columns = useTableColumns({ isDeleting, onDelete });
+  const _router = useRouter();
+  const _searchParams = useSearchParams();
+  const _columns = useTableColumns({ isDeleting, onDelete });
 
   const handleSort = (_field: keyof Category) => {
     onSort(_field);
@@ -68,8 +60,8 @@ export default function CategoriesTableClient({
     onPageChange(_page);
   };
 
-  const handleSearch = (term: string) => {
-    onSearch(term);
+  const handleSearch = (_term: string) => {
+    onSearch(_term);
   };
 
   return (

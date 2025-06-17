@@ -5,7 +5,7 @@ import { Category } from "../../../lib/definition";
 
 interface TableBodyProps {
   categories: Category[];
-  columns: Column[];
+  columns: Column<Category>[];
   currentPage: number;
   itemsPerPage: number;
 }
@@ -24,25 +24,15 @@ export default function TableBody({
           className="hover:bg-gray-100 transition-colors duration-150"
         >
           {columns.map((column) => {
-            const isActionsColumn = column.key === "actions";
-            const isSequenceColumn = column.key === "sequence";
-            const isMobileVisible = ["id", "name", "actions"].includes(
-              column.key
-            );
+            const isMobileVisible = ["id", "name"].includes(column.field);
 
             return (
               <td
-                key={`${category.id}-${column.key}`}
-                className={`whitespace-nowrap ${
-                  isSequenceColumn ? "px-2 py-2" : "px-3 py-3"
-                } text-xs ${isActionsColumn ? "text-center" : ""} ${
-                  isMobileVisible ? "table-cell" : "hidden md:table-cell"
-                }`}
+                key={`${category.id}-${column.field}`}
+                className={`whitespace-nowrap px-3 py-3 text-xs ${isMobileVisible ? "table-cell" : "hidden md:table-cell"
+                  }`}
               >
-                {column.cell(
-                  category,
-                  (currentPage - 1) * itemsPerPage + index
-                )}
+                {column.render?.(category[column.field], category) ?? String(category[column.field])}
               </td>
             );
           })}

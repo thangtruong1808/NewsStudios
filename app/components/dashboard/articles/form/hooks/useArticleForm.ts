@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -246,7 +246,7 @@ export function useArticleForm({
     toast.success(`${type} removed successfully`);
   };
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     const categoryId = e.target.value;
     setSelectedCategory(categoryId);
     setValue("category_id", categoryId ? parseInt(categoryId) : 0, {

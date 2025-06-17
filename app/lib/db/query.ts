@@ -1,5 +1,5 @@
 import mysql from "mysql2/promise";
-import pool from "./db";
+import pool, { getConnection } from "./db";
 
 // Define types for database clients
 export type QueryClient = mysql.Pool | mysql.PoolConnection;
@@ -9,32 +9,25 @@ export type QueryResult<T = any> = T[];
 // Query function with proper typing
 export async function query<T = any>(
   text: string,
-  params?: any[],
-  client: QueryClient = pool
+  params?: any[]
 ): Promise<{
-  data: QueryResult<T> | null;
+  data: T[] | null;
   error: string | null;
 }> {
-  let connection: mysql.PoolConnection | null = null;
+  let _client;
   try {
-    if (client === pool) {
-      connection = await pool.getConnection();
-      const [rows] = await connection.execute(text, params);
-      return { data: rows as T[], error: null };
-    } else {
-      const [rows] = await client.execute(text, params);
-      return { data: rows as T[], error: null };
+    _client = await getConnection();
+    if (!_client.connection) {
+      throw new Error("Failed to get database connection");
     }
+    const [rows] = await _client.connection.execute(text, params);
+    return { data: rows as T[], error: null };
   } catch (error) {
     console.error("Database query error:", error);
     return {
       data: null,
       error: error instanceof Error ? error.message : "Database query failed",
     };
-  } finally {
-    if (connection) {
-      connection.release();
-    }
   }
 }
 
@@ -70,7 +63,9 @@ export async function transaction<T>(
   }
 }
 
-export default {
+const queryUtils = {
   query,
   transaction,
 };
+
+export default queryUtils;

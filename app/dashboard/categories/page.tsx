@@ -3,7 +3,7 @@
 import CategoriesState from "@/app/components/dashboard/categories/state/CategoriesState";
 import CategoriesHeader from "@/app/components/dashboard/categories/header/CategoriesHeader";
 import CategoriesSearch from "@/app/components/dashboard/categories/search/CategoriesSearch";
-import CategoriesTable from "@/app/components/dashboard/categories/table/CategoriesTable";
+import { CategoriesTable } from "@/app/components/dashboard/categories/table/CategoriesTable";
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
 import { Category } from "@/app/lib/definition";
 

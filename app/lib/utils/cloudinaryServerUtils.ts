@@ -77,7 +77,7 @@ export async function uploadImageToCloudinary(
     console.log(`Resource type determined: ${resourceType}`);
 
     // Upload to Cloudinary
-    const _result = await new Promise((resolve, reject) => {
+    const result = await new Promise((resolve, reject) => {
       try {
         const uploadStream = cloudinary.uploader.upload_stream(
           {

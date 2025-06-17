@@ -106,10 +106,9 @@ export default function ArticleForm({
                 control={control}
                 categories={categories}
                 authors={authors}
-                subcategories={subcategories}
+                filteredSubcategories={subcategories}
                 selectedCategory={selectedCategory}
                 onCategoryChange={handleCategoryChange}
-                filteredSubcategories={filteredSubcategories}
               />
               <TagFields
                 register={register}
@@ -133,7 +132,6 @@ export default function ArticleForm({
               errors={errors}
               imageUrl={imageUrl}
               videoUrl={videoUrl}
-              uploadProgress={uploadProgress}
               onFileUpload={handleFileUpload}
               onRemoveMedia={handleRemoveMedia}
             />
@@ -141,7 +139,9 @@ export default function ArticleForm({
 
           {/* Settings Tab */}
           {activeTab === "settings" && (
-            <SettingsFields register={register} errors={errors} />
+            <SettingsFields
+              register={register}
+            />
           )}
         </div>
 

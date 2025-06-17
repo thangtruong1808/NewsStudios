@@ -1,7 +1,6 @@
 "use server";
 
 import { query } from "../db/db";
-import { Article } from "../definition";
 
 export async function getFeaturedArticles(page: number = 1, limit: number = 8) {
   try {

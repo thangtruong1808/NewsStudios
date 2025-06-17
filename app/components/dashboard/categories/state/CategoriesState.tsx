@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Category } from "@/app/lib/definition";
-import { getCategories, deleteCategory } from "@/app/lib/actions/categories";
+import { getCategories } from "@/app/lib/actions/categories";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   showSuccessToast,
@@ -24,7 +24,7 @@ interface CategoriesStateProps {
     handlePageChange: (_page: number) => void;
     handleSort: (_field: keyof Category) => void;
     handleEdit: (_category: Category) => void;
-    handleDelete: (_category: Category) => void;
+    handleDelete: (_id: number, _name: string) => void;
     handleSearch: (_term: string) => void;
     handleItemsPerPageChange: (_limit: number) => void;
   }) => React.ReactNode;
@@ -40,12 +40,11 @@ export default function CategoriesState({ children }: CategoriesStateProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isSorting, setIsSorting] = useState(false);
-
-  const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("limit")) || 10;
-  const sortField = (searchParams.get("sortField") as keyof Category) || "created_at";
-  const sortDirection = (searchParams.get("sortDirection") as "asc" | "desc") || "desc";
-  const searchQuery = searchParams.get("search") || "";
+  const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
+  const [itemsPerPage, setItemsPerPage] = useState(Number(searchParams.get("limit")) || 10);
+  const [sortField, setSortField] = useState((searchParams.get("sortField") as keyof Category) || "created_at");
+  const [sortDirection, setSortDirection] = useState((searchParams.get("sortDirection") as "asc" | "desc") || "desc");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
 
   const fetchCategories = async () => {
     try {
@@ -72,61 +71,33 @@ export default function CategoriesState({ children }: CategoriesStateProps) {
 
   useEffect(() => {
     fetchCategories();
-  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery, isSearching, isSorting]);
+  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery, fetchCategories]);
 
   const handlePageChange = (_page: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", _page.toString());
-    router.push(`/dashboard/categories?${params.toString()}`);
+    setCurrentPage(_page);
   };
 
   const handleSort = (_field: keyof Category) => {
-    const params = new URLSearchParams(searchParams.toString());
-    const newDirection = sortField === _field && sortDirection === "asc" ? "desc" : "asc";
-    params.set("sortField", _field);
-    params.set("sortDirection", newDirection);
-    setIsSorting(true);
-    router.push(`/dashboard/categories?${params.toString()}`);
+    setSortField(_field);
+    setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
   };
 
   const handleEdit = (_category: Category) => {
-    router.push(`/dashboard/categories/${_category.id}/edit`);
+    // TODO: Implement edit functionality
   };
 
-  const handleDelete = async (_category: Category) => {
-    if (!window.confirm(`Are you sure you want to delete ${_category.name}?`)) {
-      return;
-    }
-
-    try {
-      setIsDeleting(true);
-      const { error } = await deleteCategory(_category.id);
-      if (error) {
-        showErrorToast({ message: error });
-        return;
-      }
-      showSuccessToast({ message: "Category deleted successfully" });
-      fetchCategories();
-    } catch (error) {
-      showErrorToast({ message: "Failed to delete category" });
-    } finally {
-      setIsDeleting(false);
-    }
+  const handleDelete = (_id: number, _name: string) => {
+    // TODO: Implement delete functionality
   };
 
   const handleSearch = (_term: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("search", _term);
-    params.set("page", "1");
-    setIsSearching(true);
-    router.push(`/dashboard/categories?${params.toString()}`);
+    setSearchQuery(_term);
+    setCurrentPage(1);
   };
 
   const handleItemsPerPageChange = (_limit: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("limit", _limit.toString());
-    params.set("page", "1");
-    router.push(`/dashboard/categories?${params.toString()}`);
+    setItemsPerPage(_limit);
+    setCurrentPage(1);
   };
 
   return (

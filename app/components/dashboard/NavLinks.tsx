@@ -8,7 +8,7 @@ import {
   PhotoIcon,
   TagIcon,
   ChartBarIcon,
-  Cog6ToothIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import NavLink from "./NavLink";

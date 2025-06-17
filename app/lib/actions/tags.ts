@@ -1,7 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
-import pool from "../db/db";
+import { RowDataPacket } from "mysql2";
 import { Tag, TagFormData } from "../definition";
 
 interface QueryResult {

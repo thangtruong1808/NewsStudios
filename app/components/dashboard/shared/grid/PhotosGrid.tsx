@@ -2,7 +2,7 @@
 
 import { Image } from "@/app/lib/definition";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { PhotoCard } from "@/app/components/dashboard/photos/card/PhotoCard";
+import PhotoCard from "@/app/components/dashboard/photos/card/PhotoCard";
 
 interface PhotosGridProps {
   photos: Image[];

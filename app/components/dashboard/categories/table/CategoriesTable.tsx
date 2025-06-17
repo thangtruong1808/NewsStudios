@@ -14,13 +14,14 @@ interface CategoriesTableProps {
   itemsPerPage: number;
   sortField: keyof Category;
   sortDirection: "asc" | "desc";
+  searchQuery: string;
+  isDeleting: boolean;
+  isLoading: boolean;
   onSort: (_field: keyof Category) => void;
   onPageChange: (_page: number) => void;
-  onDelete: (_category: Category) => void;
-  isDeleting: boolean;
-  searchQuery: string;
-  isLoading: boolean;
-  onSearch: (_category: Category) => void;
+  onEdit: (_category: Category) => void;
+  onDelete: (_id: number, _name: string) => void;
+  onItemsPerPageChange: (_limit: number) => void;
 }
 
 export function CategoriesTable({
@@ -31,24 +32,28 @@ export function CategoriesTable({
   itemsPerPage,
   sortField,
   sortDirection,
+  searchQuery,
+  isDeleting,
+  isLoading,
   onSort,
   onPageChange,
+  onEdit,
   onDelete,
-  isDeleting,
-  searchQuery,
-  isLoading,
-  onSearch,
+  onItemsPerPageChange,
 }: CategoriesTableProps) {
   const columns = useTableColumns({ isDeleting, onDelete });
 
   return (
     <div className="mt-8">
       <div className="sm:hidden">
-        <MobileCategoryCard
-          categories={categories}
-          onDelete={onDelete}
-          isDeleting={isDeleting}
-        />
+        {categories.map((category) => (
+          <MobileCategoryCard
+            key={category.id}
+            category={category}
+            onEdit={onEdit}
+            onDelete={(category) => onDelete(category.id, category.name)}
+          />
+        ))}
       </div>
 
       <div className="hidden sm:block">
@@ -71,9 +76,7 @@ export function CategoriesTable({
         totalItems={totalItems}
         itemsPerPage={itemsPerPage}
         onPageChange={onPageChange}
-        onItemsPerPageChange={(_limit: number) => {
-          // Handle items per page change
-        }}
+        onItemsPerPageChange={onItemsPerPageChange}
       />
     </div>
   );

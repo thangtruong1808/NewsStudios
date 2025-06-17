@@ -76,6 +76,7 @@ export default function ResetPasswordForm() {
               />
             }
             autoComplete="email"
+            isReactHookForm={true}
           />
 
           <FormInput
@@ -97,6 +98,7 @@ export default function ResetPasswordForm() {
               />
             }
             autoComplete="new-password"
+            isReactHookForm={true}
           />
 
           <FormInput
@@ -120,6 +122,7 @@ export default function ResetPasswordForm() {
               />
             }
             autoComplete="new-password"
+            isReactHookForm={true}
           />
         </div>
 

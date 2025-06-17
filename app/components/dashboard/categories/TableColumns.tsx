@@ -1,9 +1,9 @@
 "use client";
 
-import { Category } from "@/app/lib/definition";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Column } from "./types";
 import { useSession } from "next-auth/react";
+import { Category } from "../../../lib/definition";
+import { Column } from "./types";
+import { TrashIcon } from "@heroicons/react/24/outline";
 
 interface UseTableColumnsProps {
   currentPage: number;
@@ -12,92 +12,46 @@ interface UseTableColumnsProps {
   onDelete: (_id: number, _name: string) => void;
 }
 
-export function useTableColumns({ currentPage, itemsPerPage, isDeleting, onDelete }: UseTableColumnsProps): Column[] {
+export function useTableColumns({ currentPage, itemsPerPage, isDeleting, onDelete }: UseTableColumnsProps): Column<Category>[] {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
 
-  const columns: Column[] = [
+  return [
     {
-      key: "sequence",
-      label: "#",
-      sortable: false,
-      cell: (category: Category, index: number) => (
-        <div className="text-left text-xs text-gray-500 sm:text-sm">
-          {(currentPage - 1) * itemsPerPage + index + 1}
-        </div>
-      ),
-    },
-    {
-      key: "name",
+      field: "name",
       label: "Name",
       sortable: true,
-      cell: (category: Category) => (
-        <div className="whitespace-nowrap text-xs font-medium text-gray-900 sm:text-sm">
-          {category.name}
-        </div>
-      ),
     },
     {
-      key: "description",
+      field: "description",
       label: "Description",
-      sortable: false,
-      cell: (category: Category) => (
-        <div className="whitespace-nowrap text-xs text-gray-500 sm:text-sm">
-          {category.description || "No description"}
-        </div>
-      ),
+      sortable: true,
     },
     {
-      key: "created_at",
+      field: "created_at",
       label: "Created At",
       sortable: true,
-      cell: (category: Category) => (
-        <div className="whitespace-nowrap text-xs text-gray-500 sm:text-sm">
-          {new Date(category.created_at).toLocaleDateString()}
-        </div>
-      ),
     },
     {
-      key: "updated_at",
+      field: "updated_at",
       label: "Updated At",
       sortable: true,
-      cell: (category: Category) => (
-        <div className="whitespace-nowrap text-xs text-gray-500 sm:text-sm">
-          {new Date(category.updated_at).toLocaleDateString()}
+    },
+    {
+      field: "id",
+      label: "Actions",
+      sortable: false,
+      render: (_value: any, category: Category) => (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onDelete(category.id, category.name)}
+            disabled={isDeleting}
+            className="text-red-600 hover:text-red-800 disabled:opacity-50"
+          >
+            <TrashIcon className="h-5 w-5" />
+          </button>
         </div>
       ),
     },
   ];
-
-  // Only add actions column for admin users
-  if (isAdmin) {
-    columns.push({
-      key: "actions",
-      label: "Actions",
-      sortable: false,
-      cell: (category: Category) => (
-        <div className="flex justify-center gap-4">
-          <button
-            onClick={() =>
-              (window.location.href = `/dashboard/categories/${category.id}/edit`)
-            }
-            className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1.5 text-xs font-medium text-blue-500 hover:bg-blue-100"
-          >
-            <PencilIcon className="h-3.5 w-3.5" />
-            Edit
-          </button>
-          <button
-            onClick={() => onDelete(category.id, category.name)}
-            disabled={isDeleting}
-            className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 disabled:opacity-50"
-          >
-            <TrashIcon className="h-3.5 w-3.5" />
-            Delete
-          </button>
-        </div>
-      ),
-    });
-  }
-
-  return columns;
 }

@@ -24,8 +24,8 @@ const pool = mysql.createPool(dbConfig);
 // Test the connection and log the result
 pool
   .getConnection()
-  .then((connection) => {
-    connection.release();
+  .then((_connection) => {
+    _connection.release();
   })
   .catch((err) => {
     throw new Error(`Failed to connect to database: ${err.message}`);
@@ -41,10 +41,10 @@ export async function query<T = any>(
   data: T[] | null;
   error: string | null;
 }> {
-  let connection;
+  let _connection;
   try {
-    connection = await pool.getConnection();
-    const [rows] = await connection.execute(text, params);
+    _connection = await pool.getConnection();
+    const [rows] = await _connection.execute(text, params);
     return { data: rows as T[], error: null };
   } catch (error) {
     const errorMessage =
@@ -85,9 +85,9 @@ export async function query<T = any>(
     }
     return { data: null, error: errorMessage };
   } finally {
-    if (connection) {
+    if (_connection) {
       try {
-        connection.release();
+        _connection.release();
       } catch (error) {
         // Silent error handling for connection release
       }
@@ -99,17 +99,17 @@ export async function query<T = any>(
 export async function transaction<T>(
   callback: (connection: mysql.PoolConnection) => Promise<T>
 ): Promise<T> {
-  const connection = await pool.getConnection();
+  const _connection = await pool.getConnection();
   try {
-    await connection.beginTransaction();
-    const result = await callback(connection);
-    await connection.commit();
+    await _connection.beginTransaction();
+    const result = await callback(_connection);
+    await _connection.commit();
     return result;
   } catch (error) {
-    await connection.rollback();
+    await _connection.rollback();
     throw error;
   } finally {
-    connection.release();
+    _connection.release();
   }
 }
 
@@ -119,8 +119,8 @@ export async function transaction<T>(
  */
 export async function getConnection() {
   try {
-    const connection = await pool.getConnection();
-    return { connection, error: null };
+    const _connection = await pool.getConnection();
+    return { connection: _connection, error: null };
   } catch (error) {
     console.error("Database connection error:", error);
     return {
@@ -136,9 +136,9 @@ export async function getConnection() {
  * @param connection The database connection
  * @returns The result of starting the transaction
  */
-export async function beginTransaction(connection: mysql.PoolConnection) {
+export async function beginTransaction(_connection: mysql.PoolConnection) {
   try {
-    await connection.beginTransaction();
+    await _connection.beginTransaction();
     return { error: null };
   } catch (error) {
     console.error("Transaction begin error:", error);
@@ -154,9 +154,9 @@ export async function beginTransaction(connection: mysql.PoolConnection) {
  * @param connection The database connection
  * @returns The result of committing the transaction
  */
-export async function commitTransaction(connection: mysql.PoolConnection) {
+export async function commitTransaction(_connection: mysql.PoolConnection) {
   try {
-    await connection.commit();
+    await _connection.commit();
     return { error: null };
   } catch (error) {
     console.error("Transaction commit error:", error);
@@ -172,9 +172,9 @@ export async function commitTransaction(connection: mysql.PoolConnection) {
  * @param connection The database connection
  * @returns The result of rolling back the transaction
  */
-export async function rollbackTransaction(connection: mysql.PoolConnection) {
+export async function rollbackTransaction(_connection: mysql.PoolConnection) {
   try {
-    await connection.rollback();
+    await _connection.rollback();
     return { error: null };
   } catch (error) {
     console.error("Transaction rollback error:", error);
@@ -189,9 +189,9 @@ export async function rollbackTransaction(connection: mysql.PoolConnection) {
  * Releases a connection back to the pool
  * @param connection The database connection to release
  */
-export async function releaseConnection(connection: mysql.PoolConnection) {
+export async function releaseConnection(_connection: mysql.PoolConnection) {
   try {
-    connection.release();
+    _connection.release();
     return { error: null };
   } catch (error) {
     console.error("Connection release error:", error);

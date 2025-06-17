@@ -1,11 +1,13 @@
 "use client";
 
 import type { UseFormRegister, FieldErrors } from "react-hook-form";
-import { ArticleFormData } from "../articleSchema";
+import type { ArticleFormData } from "../articleSchema";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 
 interface MediaFieldsProps {
+  register: UseFormRegister<ArticleFormData>;
+  errors: FieldErrors<ArticleFormData>;
   imageUrl: string | null;
   videoUrl: string | null;
   onFileUpload: (file: File, type: "image" | "video") => Promise<void>;
@@ -13,6 +15,8 @@ interface MediaFieldsProps {
 }
 
 export default function MediaFields({
+  register,
+  errors,
   imageUrl,
   videoUrl,
   onFileUpload,

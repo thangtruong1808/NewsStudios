@@ -26,8 +26,7 @@ export default function LoginForm() {
   const router = useRouter();
 
   // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const handleChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     // Clear error for this field when user starts typing
@@ -83,7 +82,7 @@ export default function LoginForm() {
             type="email"
             label="Email Address"
             value={formData.email}
-            onChange={handleChange}
+            onChange={(value) => handleChange("email", value)}
             error={formErrors.email}
             placeholder="name@example.com"
             icon={
@@ -101,7 +100,7 @@ export default function LoginForm() {
             type={showPassword ? "text" : "password"}
             label="Password"
             value={formData.password}
-            onChange={handleChange}
+            onChange={(value) => handleChange("password", value)}
             error={formErrors.password}
             placeholder="Enter your password"
             icon={

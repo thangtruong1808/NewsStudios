@@ -1,15 +1,19 @@
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors, Control } from "react-hook-form";
 import { AuthorFormData } from "../authorSchema";
 import { NameField, DescriptionField, BioField } from ".";
 
 interface AuthorFormFieldsProps {
   register: UseFormRegister<AuthorFormData>;
   errors: FieldErrors<AuthorFormData>;
+  control: Control<AuthorFormData>;
+  isEditMode: boolean;
 }
 
 export function AuthorFormFields({
   register,
   errors,
+  control,
+  isEditMode,
 }: AuthorFormFieldsProps) {
   return (
     <div className="space-y-6">

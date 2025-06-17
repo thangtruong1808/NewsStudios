@@ -1,8 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
+import { RowDataPacket } from "mysql2";
 import { Article } from "../definition";
-import pool from "../db/db";
 
 /**
  * Fetches articles with optional filtering by type and subcategory
@@ -253,11 +254,14 @@ export async function getCategoryArticles({
       FROM Articles a
       WHERE a.category_id = ?
     `;
-    const [countResult] = await pool.query(countQuery, [categoryId]);
-    const totalCount = (countResult as any)[0].total;
+    const countResult = await query(countQuery, [categoryId]);
+    if (!countResult.data || countResult.data.length === 0) {
+      return { data: [], totalCount: 0 };
+    }
+    const totalCount = countResult.data[0].total;
 
     // Get articles with pagination
-    const query = `
+    const articlesQuery = `
       SELECT 
         a.*,
         c.name as category_name,
@@ -281,8 +285,11 @@ export async function getCategoryArticles({
       LIMIT ? OFFSET ?
     `;
 
-    const [rows] = await pool.query(query, [categoryId, itemsPerPage, offset]);
-    const articles = rows as any[];
+    const articlesResult = await query(articlesQuery, [categoryId, itemsPerPage, offset]);
+    if (!articlesResult.data) {
+      return { data: [], totalCount: 0 };
+    }
+    const articles = articlesResult.data;
 
     // Format the response
     const formattedArticles = articles.map((article) => ({

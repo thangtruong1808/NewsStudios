@@ -3,19 +3,30 @@
 import React from "react";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 
-interface FormInputProps {
+interface BaseFormInputProps {
   id: string;
   name: string;
   type: string;
   label: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
   placeholder: string;
   icon: React.ReactNode;
   rightElement?: React.ReactNode;
   autoComplete?: string;
 }
+
+interface StringChangeFormInputProps extends BaseFormInputProps {
+  onChange: (value: string) => void;
+  isReactHookForm?: false;
+}
+
+interface EventChangeFormInputProps extends BaseFormInputProps {
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isReactHookForm: true;
+}
+
+type FormInputProps = StringChangeFormInputProps | EventChangeFormInputProps;
 
 export default function FormInput({
   id,
@@ -29,9 +40,14 @@ export default function FormInput({
   icon,
   rightElement,
   autoComplete,
+  isReactHookForm,
 }: FormInputProps) {
-  const handleChange = (_e: React.ChangeEvent<HTMLInputElement>) => {
-    // ... existing code ...
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isReactHookForm) {
+      onChange(e);
+    } else {
+      onChange(e.target.value);
+    }
   };
 
   return (

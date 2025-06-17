@@ -2,7 +2,6 @@
 
 import { query } from "../lib/db/db";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 
 export interface LoginFormData {
@@ -98,6 +97,6 @@ export async function logout() {
   redirect("/login");
 }
 
-export async function login(_cookies: any) {
+export async function login() {
   // ... existing code ...
 }

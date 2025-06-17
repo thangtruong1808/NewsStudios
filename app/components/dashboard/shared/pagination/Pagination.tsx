@@ -14,6 +14,7 @@ interface PaginationProps {
   itemsPerPage: number;
   totalItems: number;
   onPageChange?: (page: number) => void;
+  onItemsPerPageChange?: (limit: number) => void;
   showFirstLast?: boolean;
   showPageNumbers?: boolean;
   maxPageNumbers?: number;
@@ -29,6 +30,7 @@ export default function Pagination({
   itemsPerPage,
   totalItems,
   onPageChange,
+  onItemsPerPageChange,
   showFirstLast = true,
   showPageNumbers = true,
   maxPageNumbers = 5,
@@ -81,9 +83,8 @@ export default function Pagination({
       <button
         key={page}
         onClick={() => handlePageChange(page)}
-        className={`${buttonClassName} ${
-          currentPage === page ? activeButtonClassName : ""
-        }`}
+        className={`${buttonClassName} ${currentPage === page ? activeButtonClassName : ""
+          }`}
         aria-current={currentPage === page ? "page" : undefined}
       >
         {page}
@@ -99,18 +100,16 @@ export default function Pagination({
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage <= 1}
-          className={`${buttonClassName} ${
-            currentPage <= 1 ? disabledButtonClassName : ""
-          }`}
+          className={`${buttonClassName} ${currentPage <= 1 ? disabledButtonClassName : ""
+            }`}
         >
           Previous
         </button>
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          className={`${buttonClassName} ${
-            currentPage >= totalPages ? disabledButtonClassName : ""
-          }`}
+          className={`${buttonClassName} ${currentPage >= totalPages ? disabledButtonClassName : ""
+            }`}
         >
           Next
         </button>
@@ -139,9 +138,8 @@ export default function Pagination({
             <button
               onClick={() => handlePageChange(1)}
               disabled={currentPage <= 1}
-              className={`${buttonClassName} rounded-l-md ${
-                currentPage <= 1 ? disabledButtonClassName : ""
-              }`}
+              className={`${buttonClassName} rounded-l-md ${currentPage <= 1 ? disabledButtonClassName : ""
+                }`}
             >
               <span className="sr-only">First</span>
               <ChevronDoubleLeftIcon className="h-5 w-5" aria-hidden="true" />
@@ -151,9 +149,8 @@ export default function Pagination({
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage <= 1}
-            className={`${buttonClassName} ${
-              currentPage <= 1 ? disabledButtonClassName : ""
-            }`}
+            className={`${buttonClassName} ${currentPage <= 1 ? disabledButtonClassName : ""
+              }`}
           >
             <span className="sr-only">Previous</span>
             <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
@@ -164,9 +161,8 @@ export default function Pagination({
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage >= totalPages}
-            className={`${buttonClassName} ${
-              currentPage >= totalPages ? disabledButtonClassName : ""
-            }`}
+            className={`${buttonClassName} ${currentPage >= totalPages ? disabledButtonClassName : ""
+              }`}
           >
             <span className="sr-only">Next</span>
             <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
@@ -176,9 +172,8 @@ export default function Pagination({
             <button
               onClick={() => handlePageChange(totalPages)}
               disabled={currentPage >= totalPages}
-              className={`${buttonClassName} rounded-r-md ${
-                currentPage >= totalPages ? disabledButtonClassName : ""
-              }`}
+              className={`${buttonClassName} rounded-r-md ${currentPage >= totalPages ? disabledButtonClassName : ""
+                }`}
             >
               <span className="sr-only">Last</span>
               <ChevronDoubleRightIcon className="h-5 w-5" aria-hidden="true" />

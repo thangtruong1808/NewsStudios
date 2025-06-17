@@ -3,12 +3,14 @@
 import type {
   UseFormRegister,
   FieldErrors,
+  Control,
 } from "react-hook-form";
 import { ArticleFormData } from "@/app/components/dashboard/articles/form/articleSchema";
 
 interface BasicFieldsProps {
   register: UseFormRegister<ArticleFormData>;
   errors: FieldErrors<ArticleFormData>;
+  control: Control<ArticleFormData>;
   categories: { id: number; name: string; description?: string }[];
   authors: { id: number; name: string }[];
   selectedCategory: string;
@@ -19,12 +21,17 @@ interface BasicFieldsProps {
 export default function BasicFields({
   register,
   errors,
+  control,
   categories,
   authors,
   selectedCategory,
   onCategoryChange,
   filteredSubcategories,
 }: BasicFieldsProps) {
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+    onCategoryChange(e);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -48,7 +55,7 @@ export default function BasicFields({
           </label>
           <select
             {...register("category_id")}
-            onChange={onCategoryChange}
+            onChange={handleCategoryChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-2 py-2 text-sm [&>option:checked]:bg-gray-200 [&>option:checked]:text-black"
           >
             <option value="">Select a category</option>

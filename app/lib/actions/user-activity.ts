@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
 
 interface UserActivity {

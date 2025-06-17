@@ -57,7 +57,7 @@ export default function EditCategoryPage({
 
   return (
     <div className="bg-gray-50">
-      <CategoryForm categoryId={params.id} />
+      <CategoryForm category={category} isEditMode={true} />
     </div>
   );
 }
