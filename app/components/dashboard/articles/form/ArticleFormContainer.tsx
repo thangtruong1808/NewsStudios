@@ -8,7 +8,6 @@ interface ArticleFormContainerProps {
   categories: any[];
   authors: any[];
   subcategories: any[];
-  users: any[];
   tags: any[];
 }
 
@@ -17,7 +16,6 @@ export default function ArticleFormContainer({
   categories,
   authors,
   subcategories,
-  users,
   tags,
 }: ArticleFormContainerProps) {
   return (
@@ -28,7 +26,6 @@ export default function ArticleFormContainer({
           categories={categories}
           authors={authors}
           subcategories={subcategories}
-          users={users}
           tags={tags}
         />
       </div>

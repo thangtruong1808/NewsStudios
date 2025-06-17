@@ -54,7 +54,10 @@ export function useArticleForm({
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadProgress, setUploadProgress] = useState<{
+    image?: number;
+    video?: number;
+  }>({});
 
   const {
     register,
@@ -215,9 +218,11 @@ export function useArticleForm({
       if (type === "image") {
         setSelectedImageFile(file);
         setImageUrl(URL.createObjectURL(file));
+        setUploadProgress(prev => ({ ...prev, image: 0 }));
       } else {
         setSelectedVideoFile(file);
         setVideoUrl(URL.createObjectURL(file));
+        setUploadProgress(prev => ({ ...prev, video: 0 }));
       }
 
       toast.success(`${type} selected successfully`);
@@ -232,10 +237,12 @@ export function useArticleForm({
       setImageUrl("");
       setSelectedImageFile(null);
       setValue("image", undefined);
+      setUploadProgress(prev => ({ ...prev, image: undefined }));
     } else {
       setVideoUrl("");
       setSelectedVideoFile(null);
       setValue("video", undefined);
+      setUploadProgress(prev => ({ ...prev, video: undefined }));
     }
     toast.success(`${type} removed successfully`);
   };

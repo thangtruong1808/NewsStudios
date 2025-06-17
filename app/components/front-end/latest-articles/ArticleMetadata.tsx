@@ -9,10 +9,10 @@ export const ArticleMetadata = ({ article }: ArticleProps) => (
         {article.category_name}
       </span>
     )}
-    {article.sub_category_name && (
+    {article.subcategory_name && (
       <span className="flex items-center px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
         <TagIcon className="h-4 w-4 mr-1" />
-        {article.sub_category_name}
+        {article.subcategory_name}
       </span>
     )}
   </div>

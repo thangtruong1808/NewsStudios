@@ -1,4 +1,4 @@
-import { Category } from "../../../login/login-definitions";
+import { Category } from "@/app/lib/definition";
 import { ReactNode } from "react";
 
 export interface Column {

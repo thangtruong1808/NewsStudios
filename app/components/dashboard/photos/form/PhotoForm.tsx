@@ -130,11 +130,13 @@ export default function PhotoForm({
               </div>
             ) : isImageAvailable ? (
               <div className="relative">
-                <img
-                  src={image.image_url}
-                  alt="Current"
-                  className="mx-auto h-32 w-32 object-cover"
-                />
+                {image && (
+                  <img
+                    src={image.image_url}
+                    alt="Current"
+                    className="mx-auto h-32 w-32 object-cover"
+                  />
+                )}
               </div>
             ) : (
               <PhotoIcon
@@ -239,8 +241,8 @@ export default function PhotoForm({
           {isSubmitting
             ? "Saving..."
             : isEditMode
-            ? "Update Photo"
-            : "Create Photo"}
+              ? "Update Photo"
+              : "Create Photo"}
         </button>
       </div>
     </form>

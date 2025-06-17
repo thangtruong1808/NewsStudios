@@ -6,6 +6,7 @@ import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton
 import ArticlesHeader from "@/app/components/dashboard/articles/header/ArticlesHeader";
 import { getArticlesTableColumns } from "@/app/components/dashboard/articles/table/ArticlesTableColumns";
 import { useArticles } from "@/app/components/dashboard/articles/hooks/useArticles";
+import { useSession } from "next-auth/react";
 
 /**
  * Props interface for the Articles page component
@@ -31,6 +32,9 @@ interface ArticlesPageProps {
  * - Error handling
  */
 export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
   const {
     articles,
     totalPages,
@@ -57,6 +61,7 @@ export default function ArticlesPage({ searchParams }: ArticlesPageProps) {
     isDeleting,
     onEdit: handleEdit,
     onDelete: handleDelete,
+    isAdmin,
   });
 
   // Loading state with skeleton UI

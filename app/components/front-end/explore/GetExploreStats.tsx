@@ -41,30 +41,49 @@ export default function GetExploreStats({
           throw new Error("Failed to fetch articles");
         }
 
-        let filteredArticles: Article[] = result;
+        if (!result.data) {
+          return [];
+        }
+
+        let filteredArticles: Article[] = result.data;
 
         if (type === "trending") {
-          filteredArticles = result.filter((article) => article.is_trending);
+          filteredArticles = result.data.filter((article) => article.is_trending);
         } else if (tag) {
-          filteredArticles = result.filter((article) =>
-            article.tags?.some((t: { name: string }) => t.name === tag)
+          filteredArticles = result.data.filter((article) =>
+            article.tag_names?.includes(tag)
           );
         } else if (subcategory) {
-          filteredArticles = result.filter(
-            (article) => article.subcategory_id === parseInt(subcategory)
+          filteredArticles = result.data.filter(
+            (article) => article.sub_category_id === parseInt(subcategory)
           );
         }
 
+        // Get the most viewed article
+        const mostViewed = [...filteredArticles].sort(
+          (a, b) => b.views_count - a.views_count
+        )[0];
+
+        // Get the most liked article
+        const mostLiked = [...filteredArticles].sort(
+          (a, b) => b.likes_count - a.likes_count
+        )[0];
+
+        // Get the most commented article
+        const mostCommented = [...filteredArticles].sort(
+          (a, b) => b.comments_count - a.comments_count
+        )[0];
+
         const totalViews = filteredArticles.reduce(
-          (sum, article) => sum + (article.views || 0),
+          (sum, article) => sum + article.views_count,
           0
         );
         const totalLikes = filteredArticles.reduce(
-          (sum, article) => sum + (article.likes || 0),
+          (sum, article) => sum + article.likes_count,
           0
         );
         const totalComments = filteredArticles.reduce(
-          (sum, article) => sum + (article.comments?.length || 0),
+          (sum, article) => sum + article.comments_count,
           0
         );
 

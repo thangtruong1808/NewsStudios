@@ -1,6 +1,6 @@
 "use client";
 
-import { Column } from "./Table";
+import { Column } from "./TableTypes";
 import { MobileView, TabletView, DesktopView } from "./views";
 
 interface ResponsiveTableProps<T> {
@@ -8,8 +8,8 @@ interface ResponsiveTableProps<T> {
   columns: Column<T>[];
   currentPage: number;
   itemsPerPage: number;
-  onEdit?: (id: number) => void;
-  onDelete?: (id: number) => void;
+  onEdit?: (item: T) => void;
+  onDelete?: (item: T) => void;
   isDeleting?: boolean;
 }
 

@@ -158,16 +158,27 @@ export default function HighlightArticles() {
         <Grid columns={3} gap="lg">
           {articles.slice(0, page * ITEMS_PER_PAGE).map((article) => {
             // Split tag strings into arrays safely
-            const tagNames = typeof article.tag_names === "string"
-              ? article.tag_names.split(",")
-              : Array.isArray(article.tag_names)
-                ? article.tag_names
-                : [];
-            const tagColors = typeof article.tag_colors === "string"
-              ? article.tag_colors.split(",")
-              : Array.isArray(article.tag_colors)
-                ? article.tag_colors
-                : [];
+            const tagNames = (() => {
+              const tagNamesValue = article.tag_names as string | string[] | undefined;
+              if (typeof tagNamesValue === "string") {
+                return tagNamesValue.split(",").filter(Boolean);
+              }
+              if (Array.isArray(tagNamesValue)) {
+                return tagNamesValue;
+              }
+              return [];
+            })();
+
+            const tagColors = (() => {
+              const tagColorsValue = article.tag_colors as string | string[] | undefined;
+              if (typeof tagColorsValue === "string") {
+                return tagColorsValue.split(",").filter(Boolean);
+              }
+              if (Array.isArray(tagColorsValue)) {
+                return tagColorsValue;
+              }
+              return [];
+            })();
 
             return (
               <Card

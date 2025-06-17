@@ -70,7 +70,7 @@ export default function RelativeArticles({
         // Only show Load More if we have more articles to load and we received a full page
         setHasMore(
           result.totalCount > totalLoaded &&
-            newArticles.length === ITEMS_PER_PAGE
+          newArticles.length === ITEMS_PER_PAGE
         );
       } catch (error) {
         console.error("Error fetching related articles:", error);
@@ -151,16 +151,27 @@ export default function RelativeArticles({
               <Grid columns={5} gap="lg">
                 {relatedArticles.map((article) => {
                   // Split tag strings into arrays safely
-                  const tagNames = typeof article.tag_names === "string"
-                    ? article.tag_names.split(",")
-                    : Array.isArray(article.tag_names)
-                      ? article.tag_names
-                      : [];
-                  const tagColors = typeof article.tag_colors === "string"
-                    ? article.tag_colors.split(",")
-                    : Array.isArray(article.tag_colors)
-                      ? article.tag_colors
-                      : [];
+                  const tagNames = (() => {
+                    const tagNamesValue = article.tag_names as string | string[] | undefined;
+                    if (typeof tagNamesValue === "string") {
+                      return tagNamesValue.split(",").filter(Boolean);
+                    }
+                    if (Array.isArray(tagNamesValue)) {
+                      return tagNamesValue;
+                    }
+                    return [];
+                  })();
+
+                  const tagColors = (() => {
+                    const tagColorsValue = article.tag_colors as string | string[] | undefined;
+                    if (typeof tagColorsValue === "string") {
+                      return tagColorsValue.split(",").filter(Boolean);
+                    }
+                    if (Array.isArray(tagColorsValue)) {
+                      return tagColorsValue;
+                    }
+                    return [];
+                  })();
 
                   // Log the tag data for debugging
                   console.log("Article tag data:", {

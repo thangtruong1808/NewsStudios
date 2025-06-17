@@ -22,15 +22,17 @@ export default function ExploreTrendingTags() {
           throw new Error("Failed to fetch articles");
         }
 
-        // Count occurrences of each tag
         const tagCounts = new Map<string, number>();
 
-        result.forEach((article: Article) => {
+        if (!result.data) {
+          return [];
+        }
+
+        result.data.forEach((article: Article) => {
           // Use tag_names array from the article
           if (article.tag_names && article.tag_names.length > 0) {
             article.tag_names.forEach((tagName: string) => {
-              const count = tagCounts.get(tagName) || 0;
-              tagCounts.set(tagName, count + 1);
+              tagCounts.set(tagName, (tagCounts.get(tagName) || 0) + 1);
             });
           }
         });

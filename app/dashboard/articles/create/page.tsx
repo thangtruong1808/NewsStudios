@@ -118,7 +118,6 @@ export default function CreateArticlePage() {
         categories={data.categories}
         authors={data.authors}
         subcategories={data.subcategories}
-        users={data.users}
         tags={data.tags}
       />
     </div>

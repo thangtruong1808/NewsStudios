@@ -6,9 +6,7 @@ export const ArticleInfo = ({ article }: ArticleProps) => (
     <span className="flex items-center space-x-1">
       <ClockIcon className="h-4 w-4" />
       <span>
-        {article.published_at instanceof Date
-          ? article.published_at.toLocaleDateString()
-          : new Date(article.published_at || "").toLocaleDateString()}
+        {new Date(article.published_at || "").toLocaleDateString()}
       </span>
     </span>
     {article.author_name && (

@@ -2,7 +2,7 @@
 
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
-import { SearchWrapper } from "../search";
+import SearchWrapper from "../shared/search/SearchWrapper";
 
 export default function CategoriesSearchWrapper() {
   const searchParams = useSearchParams();
@@ -21,8 +21,9 @@ export default function CategoriesSearchWrapper() {
 
   return (
     <SearchWrapper
-      placeholder="Search categories by name..."
+      placeholder="Search categories..."
       onSearch={handleSearch}
+      defaultValue={searchParams.get("query")?.toString()}
     />
   );
 }

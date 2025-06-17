@@ -1,4 +1,4 @@
-import { Author } from "../../../login/login-definitions";
+import { Author } from "@/app/lib/definition";
 import { ReactNode } from "react";
 
 export interface Column {
