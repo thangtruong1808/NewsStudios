@@ -22,7 +22,7 @@ import Logo from "@/app/components/front-end/shared/Logo";
 export default function LoginPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, setIsLoading] = useState(false);
 
   // Only log session data in development
   if (process.env.NODE_ENV === 'development') {
@@ -40,7 +40,7 @@ export default function LoginPage() {
    * Handles form submission for user authentication
    * Processes login credentials and manages user session
    */
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const _handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Article, Image } from "@/app/lib/definition";
 import { createImage, updateImage } from "@/app/lib/actions/images";

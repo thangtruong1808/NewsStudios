@@ -1,66 +1,80 @@
 "use client";
 
-import { Table } from "@/app/components/dashboard/shared/table";
 import { Category } from "@/app/lib/definition";
-import { useTableColumns } from "./TableColumns";
-import { useSession } from "next-auth/react";
+import { useTableColumns } from "../hooks/useTableColumns";
+import { TableHeader, TableBody } from "@/app/components/dashboard/shared/table";
+import Pagination from "@/app/components/dashboard/shared/pagination/Pagination";
+import MobileCategoryCard from "../MobileCategoryCard";
 
 interface CategoriesTableProps {
   categories: Category[];
-  currentPage: number;
   totalPages: number;
-  itemsPerPage: number;
   totalItems: number;
+  currentPage: number;
+  itemsPerPage: number;
   sortField: keyof Category;
   sortDirection: "asc" | "desc";
-  onSort: (field: keyof Category) => void;
-  onPageChange: (page: number) => void;
-  onEdit: (category: Category) => void;
-  onDelete: (category: Category) => void;
+  onSort: (_field: keyof Category) => void;
+  onPageChange: (_page: number) => void;
+  onDelete: (_category: Category) => void;
   isDeleting: boolean;
   searchQuery: string;
   isLoading: boolean;
-  onItemsPerPageChange?: (limit: number) => void;
+  onSearch: (_category: Category) => void;
 }
 
-export default function CategoriesTable({
+export function CategoriesTable({
   categories,
-  currentPage,
   totalPages,
-  itemsPerPage,
   totalItems,
+  currentPage,
+  itemsPerPage,
   sortField,
   sortDirection,
   onSort,
   onPageChange,
-  onEdit,
   onDelete,
   isDeleting,
   searchQuery,
   isLoading,
-  onItemsPerPageChange,
+  onSearch,
 }: CategoriesTableProps) {
-  const { data: session } = useSession();
-  const columns = useTableColumns();
+  const columns = useTableColumns({ isDeleting, onDelete });
 
   return (
-    <Table
-      data={categories}
-      columns={columns}
-      currentPage={currentPage}
-      totalPages={totalPages}
-      itemsPerPage={itemsPerPage}
-      totalItems={totalItems}
-      sortField={sortField}
-      sortDirection={sortDirection}
-      onSort={onSort}
-      onPageChange={onPageChange}
-      onItemsPerPageChange={onItemsPerPageChange}
-      onEdit={session?.user?.role === "admin" ? onEdit : undefined}
-      onDelete={session?.user?.role === "admin" ? onDelete : undefined}
-      isDeleting={isDeleting}
-      searchQuery={searchQuery}
-      isLoading={isLoading}
-    />
+    <div className="mt-8">
+      <div className="sm:hidden">
+        <MobileCategoryCard
+          categories={categories}
+          onDelete={onDelete}
+          isDeleting={isDeleting}
+        />
+      </div>
+
+      <div className="hidden sm:block">
+        <TableHeader
+          columns={columns}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSort={onSort}
+        />
+        <TableBody
+          columns={columns}
+          data={categories}
+          isLoading={isLoading}
+        />
+      </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={onPageChange}
+        onItemsPerPageChange={(_limit: number) => {
+          // Handle items per page change
+        }}
+      />
+    </div>
   );
 }

@@ -9,10 +9,8 @@ import {
   ChatBubbleLeftIcon,
   EyeIcon,
   ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
   BookmarkIcon
 } from "@heroicons/react/24/outline";
-import { formatDateToLocal } from "@/app/lib/utils/dateFormatter";
 import DashboardCharts from "./charts/DashboardCharts";
 
 interface EnhancedDashboardProps {

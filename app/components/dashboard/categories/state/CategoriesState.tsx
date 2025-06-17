@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { useState, useEffect } from "react";
 import { Category } from "@/app/lib/definition";
 import { getCategories, deleteCategory } from "@/app/lib/actions/categories";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   showSuccessToast,
   showErrorToast,
-  showConfirmationToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 
-export interface CategoriesStateProps {
+interface CategoriesStateProps {
   children: (props: {
     categories: Category[];
     totalPages: number;
@@ -22,148 +21,111 @@ export interface CategoriesStateProps {
     sortField: keyof Category;
     sortDirection: "asc" | "desc";
     searchQuery: string;
-    handlePageChange: (page: number) => void;
-    handleSort: (field: keyof Category) => void;
-    handleEdit: (category: Category) => void;
-    handleDelete: (category: Category) => void;
-    handleSearch: (term: string) => void;
-    handleItemsPerPageChange: (limit: number) => void;
+    handlePageChange: (_page: number) => void;
+    handleSort: (_field: keyof Category) => void;
+    handleEdit: (_category: Category) => void;
+    handleDelete: (_category: Category) => void;
+    handleSearch: (_term: string) => void;
+    handleItemsPerPageChange: (_limit: number) => void;
   }) => React.ReactNode;
 }
 
 export default function CategoriesState({ children }: CategoriesStateProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isDeleting, setIsDeleting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isSorting, setIsSorting] = useState(false);
 
-  // Extract and parse URL parameters
   const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("limit")) || 5;
-  const searchQuery = searchParams.get("query") || "";
-  const sortField =
-    (searchParams.get("sortField") as keyof Category) || "created_at";
-  const sortDirection =
-    (searchParams.get("sortDirection") as "asc" | "desc") || "desc";
+  const itemsPerPage = Number(searchParams.get("limit")) || 10;
+  const sortField = (searchParams.get("sortField") as keyof Category) || "created_at";
+  const sortDirection = (searchParams.get("sortDirection") as "asc" | "desc") || "desc";
+  const searchQuery = searchParams.get("search") || "";
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (!isSearching && !isSorting) {
-          setIsLoading(true);
-        }
-        const { data, totalItems, totalPages } = await getCategories({
-          page: currentPage,
-          limit: itemsPerPage,
-          search: searchQuery,
-          sortField: sortField as string,
-          sortDirection,
-        });
+  const fetchCategories = async () => {
+    try {
+      setIsLoading(true);
+      const { data, totalItems, totalPages } = await getCategories({
+        page: currentPage,
+        limit: itemsPerPage,
+        sortField,
+        sortDirection,
+        search: searchQuery,
+      });
 
-        setCategories(data || []);
+      if (data) {
+        setCategories(data);
         setTotalPages(totalPages);
         setTotalItems(totalItems);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-        setIsSearching(false);
-        setIsSorting(false);
       }
-    };
+    } catch (error) {
+      showErrorToast({ message: "Failed to fetch categories" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchData();
-  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
+  useEffect(() => {
+    fetchCategories();
+  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery, isSearching, isSorting]);
 
-  const handlePageChange = (page: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", page.toString());
+  const handlePageChange = (_page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", _page.toString());
     router.push(`/dashboard/categories?${params.toString()}`);
   };
 
-  const handleSort = (field: keyof Category) => {
-    setIsSorting(true);
-    const newDirection =
-      field === sortField && sortDirection === "asc" ? "desc" : "asc";
-    const params = new URLSearchParams(searchParams);
-    params.set("sortField", field as string);
+  const handleSort = (_field: keyof Category) => {
+    const params = new URLSearchParams(searchParams.toString());
+    const newDirection = sortField === _field && sortDirection === "asc" ? "desc" : "asc";
+    params.set("sortField", _field);
     params.set("sortDirection", newDirection);
+    setIsSorting(true);
     router.push(`/dashboard/categories?${params.toString()}`);
   };
 
-  const handleEdit = (category: Category) => {
-    router.push(`/dashboard/categories/${category.id}/edit`);
+  const handleEdit = (_category: Category) => {
+    router.push(`/dashboard/categories/${_category.id}/edit`);
   };
 
-  const handleDelete = async (category: Category) => {
-    const confirmPromise = new Promise<boolean>((resolve) => {
-      showConfirmationToast({
-        title: "Delete Category",
-        message:
-          "Are you sure you want to delete this category? This action cannot be undone.",
-        onConfirm: () => resolve(true),
-        onCancel: () => resolve(false),
-      });
-    });
+  const handleDelete = async (_category: Category) => {
+    if (!window.confirm(`Are you sure you want to delete ${_category.name}?`)) {
+      return;
+    }
 
-    const isConfirmed = await confirmPromise;
-    if (!isConfirmed) return;
-
-    setIsDeleting(true);
     try {
-      const { error } = await deleteCategory(category.id);
-
+      setIsDeleting(true);
+      const { error } = await deleteCategory(_category.id);
       if (error) {
         showErrorToast({ message: error });
         return;
       }
-
-      // Refresh the categories data
-      const { data, totalItems, totalPages } = await getCategories({
-        page: currentPage,
-        limit: itemsPerPage,
-        search: searchQuery,
-        sortField: sortField as string,
-        sortDirection,
-      });
-
-      setCategories(data || []);
-      setTotalPages(totalPages);
-      setTotalItems(totalItems);
-
-      router.refresh();
       showSuccessToast({ message: "Category deleted successfully" });
+      fetchCategories();
     } catch (error) {
-      console.error("Error deleting category:", error);
-      showErrorToast({
-        message: "Failed to delete category. Please try again.",
-      });
+      showErrorToast({ message: "Failed to delete category" });
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const handleSearch = (term: string) => {
-    setIsSearching(true);
-    const params = new URLSearchParams(searchParams);
+  const handleSearch = (_term: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("search", _term);
     params.set("page", "1");
-    if (term) {
-      params.set("query", term);
-    } else {
-      params.delete("query");
-    }
+    setIsSearching(true);
     router.push(`/dashboard/categories?${params.toString()}`);
   };
 
-  const handleItemsPerPageChange = (limit: number) => {
-    const params = new URLSearchParams(searchParams);
+  const handleItemsPerPageChange = (_limit: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("limit", _limit.toString());
     params.set("page", "1");
-    params.set("limit", limit.toString());
     router.push(`/dashboard/categories?${params.toString()}`);
   };
 

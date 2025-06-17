@@ -2,18 +2,43 @@ import { Category } from "@/app/lib/definition";
 import { ReactNode } from "react";
 
 export interface Column {
-  key: string;
+  field: string;
   label: string;
   sortable: boolean;
-  cell: (category: Category, index: number) => ReactNode;
+  render?: (_category: Category, _index: number) => React.ReactNode;
 }
 
 export interface PaginationProps {
   currentPage: number;
   totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (_page: number) => void;
+}
+
+export interface TableProps {
+  columns: Column[];
+  data: Category[];
+  currentPage: number;
+  totalPages: number;
   itemsPerPage: number;
   totalItems: number;
-  onPageChange: (page: number) => void;
+  sortField: string;
+  sortDirection: "asc" | "desc";
+  onSort: (_field: string) => void;
+  onPageChange: (_page: number) => void;
+  onItemsPerPageChange?: (_limit: number) => void;
+  onEdit?: (_category: Category) => void;
+  onDelete?: (_id: number, _categoryName: string) => void;
+  isDeleting?: boolean;
+  searchQuery?: string;
+  isLoading?: boolean;
+}
+
+export interface MobileCategoryCardProps {
+  category: Category;
+  onDelete: (_id: number, _categoryName: string) => void;
+  isDeleting: boolean;
 }
 
 export interface TableHeaderProps {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from 'react';
-import Chart from 'chart.js/auto';
+import { Chart as ChartJS } from "chart.js/auto";
 
 interface DashboardChartsProps {
   activeUsers: number;
@@ -9,7 +9,7 @@ interface DashboardChartsProps {
 
 export default function DashboardCharts({ activeUsers }: DashboardChartsProps) {
   const userActivityChartRef = useRef<HTMLCanvasElement>(null);
-  const userActivityChart = useRef<Chart | null>(null);
+  const userActivityChart = useRef<ChartJS | null>(null);
 
   useEffect(() => {
     if (userActivityChartRef.current) {
@@ -21,7 +21,7 @@ export default function DashboardCharts({ activeUsers }: DashboardChartsProps) {
       // Create new chart
       const ctx = userActivityChartRef.current.getContext('2d');
       if (ctx) {
-        userActivityChart.current = new Chart(ctx, {
+        userActivityChart.current = new ChartJS(ctx, {
           type: 'line',
           data: {
             labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],

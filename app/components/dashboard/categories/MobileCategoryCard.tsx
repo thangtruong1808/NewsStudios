@@ -5,8 +5,8 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 interface MobileCategoryCardProps {
   category: Category;
-  onEdit: (category: Category) => void;
-  onDelete: (category: Category) => void;
+  onEdit: (_category: Category) => void;
+  onDelete: (_category: Category) => void;
 }
 
 export default function MobileCategoryCard({

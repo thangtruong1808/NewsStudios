@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   getAuthors,
-  searchAuthors,
   deleteAuthor,
 } from "@/app/lib/actions/authors";
 import { Author } from "@/app/lib/definition";
@@ -13,7 +12,6 @@ import AuthorsHeader from "../header/AuthorsHeader";
 import AuthorsSearch from "../search/AuthorsSearch";
 import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton";
 import {
-  showSuccessToast,
   showErrorToast,
   showConfirmationToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
@@ -43,52 +41,47 @@ interface AuthorsStateProps {
 export default function AuthorsState({ children }: AuthorsStateProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // State management
   const [isDeleting, setIsDeleting] = useState(false);
   const [authors, setAuthors] = useState<Author[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSearching, setIsSearching] = useState(false);
-  const [isSorting, setIsSorting] = useState(false);
+  const [_isSearching, setIsSearching] = useState(false);
+  const [_isSorting, setIsSorting] = useState(false);
 
-  // Get URL parameters
+  // URL parameters with defaults
   const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("itemsPerPage")) || 5;
-  const searchQuery = searchParams.get("search") || "";
-  const sortField = searchParams.get("sortField") || "created_at";
-  const sortDirection =
-    (searchParams.get("sortDirection") as "asc" | "desc") || "desc";
+  const itemsPerPage = Number(searchParams.get("limit")) || 5;
+  const searchQuery = searchParams.get("query") || "";
+  const sortField = (searchParams.get("sortField") as keyof Author) || "created_at";
+  const sortDirection = (searchParams.get("sortDirection") as "asc" | "desc") || "desc";
 
+  // Fetch authors data when dependencies change
   useEffect(() => {
-    const fetchAuthors = async () => {
+    const fetchData = async () => {
       try {
-        setIsLoading(true);
-        const result = searchQuery
-          ? await searchAuthors({
-              search: searchQuery,
-              page: currentPage,
-              limit: itemsPerPage,
-              sortField,
-              sortDirection,
-            })
-          : await getAuthors({
-              page: currentPage,
-              limit: itemsPerPage,
-              sortField,
-              sortDirection,
-            });
+        if (!_isSearching && !_isSorting) {
+          setIsLoading(true);
+        }
+        const result = await getAuthors({
+          page: currentPage,
+          limit: itemsPerPage,
+          search: searchQuery,
+          sortField: String(sortField),
+          sortDirection,
+        });
 
         if (result.error) {
           throw new Error(result.error);
         }
 
-        if (result.data) {
-          setAuthors(result.data);
-          setTotalPages(result.totalPages || 1);
-          setTotalItems(result.totalItems || 0);
-        }
+        setAuthors(result.data || []);
+        setTotalPages(result.totalPages || 1);
+        setTotalItems(result.totalItems || 0);
       } catch (error) {
-        console.error("Error fetching authors:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
         setIsSearching(false);
@@ -96,35 +89,34 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
       }
     };
 
-    fetchAuthors();
-  }, [currentPage, itemsPerPage, searchQuery, sortField, sortDirection]);
+    fetchData();
+  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery, _isSearching, _isSorting]);
 
-  const handlePageChange = (page: number) => {
+  // Event handlers
+  const handlePageChange = (_page: number) => {
     const params = new URLSearchParams(searchParams);
-    params.set("page", page.toString());
-    router.push(`/dashboard/author?${params.toString()}`);
+    params.set("page", _page.toString());
+    router.push(`/dashboard/authors?${params.toString()}`);
   };
 
-  const handleSort = (field: keyof Author) => {
-    const params = new URLSearchParams(searchParams);
-    const currentDirection = params.get("sortDirection") as "asc" | "desc";
-    const newDirection = currentDirection === "asc" ? "desc" : "asc";
-    params.set("sortField", field);
-    params.set("sortDirection", newDirection);
-    router.push(`/dashboard/author?${params.toString()}`);
+  const handleSort = (_field: keyof Author) => {
     setIsSorting(true);
+    const newDirection = _field === sortField && sortDirection === "asc" ? "desc" : "asc";
+    const params = new URLSearchParams(searchParams);
+    params.set("sortField", _field as string);
+    params.set("sortDirection", newDirection);
+    router.push(`/dashboard/authors?${params.toString()}`);
   };
 
-  const handleEdit = (author: Author) => {
-    router.push(`/dashboard/author/${author.id}/edit`);
+  const handleEdit = (_author: Author) => {
+    router.push(`/dashboard/authors/${_author.id}/edit`);
   };
 
-  const handleDelete = async (author: Author) => {
+  const handleDelete = async (_author: Author) => {
     const confirmPromise = new Promise<boolean>((resolve) => {
       showConfirmationToast({
         title: "Delete Author",
-        message:
-          "Are you sure you want to delete this author? This action cannot be undone.",
+        message: "Are you sure you want to delete this author? This action cannot be undone.",
         onConfirm: () => resolve(true),
         onCancel: () => resolve(false),
       });
@@ -135,69 +127,65 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
 
     setIsDeleting(true);
     try {
-      const result = await deleteAuthor(author.id);
+      const success = await deleteAuthor(Number(_author.id));
 
-      if (!result.success) {
-        throw new Error(result.error || "Failed to delete author");
+      if (!success) {
+        throw new Error("Failed to delete author");
       }
 
-      // Refresh the authors list after successful deletion
-      const updatedResult = await getAuthors({
+      router.refresh();
+
+      const result = await getAuthors({
         page: currentPage,
         limit: itemsPerPage,
-        sortField,
+        search: searchQuery,
+        sortField: String(sortField),
         sortDirection,
       });
 
-      if (updatedResult.data) {
-        setAuthors(updatedResult.data);
-        setTotalPages(updatedResult.totalPages || 1);
-        setTotalItems(updatedResult.totalItems || 0);
+      if (result.error) {
+        throw new Error(result.error);
       }
 
-      // Show success toast with explicit duration
-      toast.success("Author deleted successfully", {
-        duration: 3000,
-        position: "top-right",
-        style: {
-          background: "#FFFFFF",
-          color: "#6B7280",
-          padding: "12px 16px",
-          borderRadius: "8px",
-          fontSize: "14px",
-        },
-        icon: "✅",
-      });
+      setAuthors(result.data || []);
+      setTotalPages(result.totalPages || 1);
+      setTotalItems(result.totalItems || 0);
+
+      if (result.data?.length === 0 && currentPage > 1) {
+        const newPage = currentPage - 1;
+        const params = new URLSearchParams(searchParams);
+        params.set("page", newPage.toString());
+        router.push(`/dashboard/authors?${params.toString()}`);
+      }
+
+      showErrorToast({ message: "Author deleted successfully" });
     } catch (error) {
       console.error("Error deleting author:", error);
       showErrorToast({
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to delete author. Please try again.",
+        message: error instanceof Error ? error.message : "Failed to delete author. Please try again.",
       });
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const handleSearch = (query: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (query) {
-      params.set("search", query);
-    } else {
-      params.delete("search");
-    }
-    params.set("page", "1"); // Reset to first page on new search
-    router.push(`/dashboard/author?${params.toString()}`);
+  const handleSearch = (_term: string) => {
     setIsSearching(true);
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+    if (_term) {
+      params.set("query", _term);
+    } else {
+      params.delete("query");
+    }
+    router.push(`/dashboard/authors?${params.toString()}`);
   };
 
-  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+  const handleItemsPerPageChange = (_limit: number) => {
     const params = new URLSearchParams(searchParams);
-    params.set("itemsPerPage", newItemsPerPage.toString());
-    params.set("page", "1"); // Reset to first page when changing items per page
-    router.push(`/dashboard/author?${params.toString()}`);
+    params.set("page", "1");
+    params.set("limit", _limit.toString());
+    router.push(`/dashboard/authors?${params.toString()}`);
   };
 
   const columns = [

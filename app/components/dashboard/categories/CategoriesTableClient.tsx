@@ -8,40 +8,42 @@ declare global {
 
 import { useState, useEffect } from "react";
 import { Category } from "@/app/lib/definition";
-import { useTableColumns } from "./TableColumns";
+import { useTableColumns } from "./hooks/useTableColumns";
 import { TableHeader } from "./TableHeader";
 import TableBody from "./TableBody";
 import Pagination from "./Pagination";
 import { toast } from "react-hot-toast";
 import { deleteCategory } from "@/app/lib/actions/categories";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import MobileCategoryCard from "./MobileCategoryCard";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { CategoriesTable } from "./CategoriesTable";
 
 interface CategoriesTableClientProps {
   categories: Category[];
-  currentPage: number;
   totalPages: number;
-  itemsPerPage: number;
   totalItems: number;
-  sortField: string;
+  currentPage: number;
+  itemsPerPage: number;
+  sortField: keyof Category;
   sortDirection: "asc" | "desc";
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: (field: string) => void;
+  onSort: (field: keyof Category) => void;
   onPageChange: (page: number) => void;
   onEdit: (category: Category) => void;
   onDelete: (id: number, name: string) => void;
-  onItemsPerPageChange: (itemsPerPage: number) => void;
+  onSearch: (term: string) => void;
+  onItemsPerPageChange: (limit: number) => void;
 }
 
 export default function CategoriesTableClient({
   categories,
-  currentPage,
   totalPages,
-  itemsPerPage,
   totalItems,
+  currentPage,
+  itemsPerPage,
   sortField,
   sortDirection,
   searchQuery,
@@ -51,310 +53,42 @@ export default function CategoriesTableClient({
   onPageChange,
   onEdit,
   onDelete,
+  onSearch,
   onItemsPerPageChange,
 }: CategoriesTableClientProps) {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const columns = useTableColumns({ isDeleting, onDelete });
 
-  const columns = useTableColumns(
-    currentPage,
-    itemsPerPage,
-    onDelete,
-    isDeleting
-  );
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleSort = (field: string) => {
-    if (field === sortField) {
-      onSort(field === "name" ? "asc" : "desc");
-    } else {
-      onSort(field);
-    }
+  const handleSort = (_field: keyof Category) => {
+    onSort(_field);
   };
 
-  const handleEdit = (category: Category) => {
-    router.push(`/dashboard/categories/${category.id}/edit`);
+  const handlePageChange = (_page: number) => {
+    onPageChange(_page);
   };
 
-  const handleDelete = async (id: number, name: string) => {
-    const confirmPromise = new Promise<boolean>((resolve) => {
-      toast(
-        (t) => (
-          <div className="flex flex-col items-center">
-            <p className="mb-2">
-              Are you sure you want to delete category "{name}"?
-            </p>
-            <div className="flex space-x-2">
-              <button
-                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                onClick={() => {
-                  toast.dismiss(t.id);
-                  resolve(true);
-                }}
-              >
-                Delete
-              </button>
-              <button
-                className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-                onClick={() => {
-                  toast.dismiss(t.id);
-                  resolve(false);
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ),
-        { duration: 5000 }
-      );
-    });
-
-    const isConfirmed = await confirmPromise;
-    if (!isConfirmed) return;
-
-    onDelete(id, name);
+  const handleSearch = (term: string) => {
+    onSearch(term);
   };
-
-  const sortData = (data: Category[]) => {
-    return [...data].sort((a, b) => {
-      const aValue = a[sortField as keyof Category];
-      const bValue = b[sortField as keyof Category];
-
-      if (aValue === null || aValue === undefined) return 1;
-      if (bValue === null || bValue === undefined) return -1;
-
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        return sortDirection === "asc"
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      if (aValue instanceof Date && bValue instanceof Date) {
-        return sortDirection === "asc"
-          ? aValue.getTime() - bValue.getTime()
-          : bValue.getTime() - aValue.getTime();
-      }
-
-      return 0;
-    });
-  };
-
-  // Sort categories
-  const sortedCategories = sortData(categories);
-
-  // Paginate categories
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCategories = sortedCategories.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
-
-  if (!mounted) {
-    return null;
-  }
 
   return (
-    <div className="mt-6 flow-root">
-      <div className="overflow-x-auto">
-        <div className="inline-block min-w-full align-middle">
-          <div className="overflow-hidden rounded-md bg-gray-50">
-            {/* Mobile View */}
-            <div className="md:hidden">
-              {paginatedCategories.map((category, index) => (
-                <div
-                  key={category.id}
-                  className="mb-4 w-full rounded-md bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:bg-zinc-200/50"
-                >
-                  {/* Header with ID and Name */}
-                  <div className="border-b border-gray-100 pb-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-base font-medium text-gray-500">
-                        #{(currentPage - 1) * itemsPerPage + index + 1}
-                      </span>
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {category.name}
-                      </h3>
-                    </div>
-                  </div>
-
-                  {/* Category Details */}
-                  <div className="mt-3 space-y-3">
-                    <div className="grid grid-cols-1 gap-3">
-                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
-                        <span className="text-base font-medium text-gray-500">
-                          Description
-                        </span>
-                        <p className="mt-1 text-base text-gray-900">
-                          {category.description || "-"}
-                        </p>
-                      </div>
-                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
-                        <span className="text-base font-medium text-gray-500">
-                          Created
-                        </span>
-                        <p className="mt-1 text-base text-gray-900">
-                          {new Date(category.created_at).toLocaleDateString(
-                            "en-GB",
-                            {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                            }
-                          )}
-                        </p>
-                      </div>
-                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
-                        <span className="text-base font-medium text-gray-500">
-                          Updated
-                        </span>
-                        <p className="mt-1 text-base text-gray-900">
-                          {new Date(category.updated_at).toLocaleDateString(
-                            "en-GB",
-                            {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                            }
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="mt-4 flex justify-around border-t border-gray-100 pt-3">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEdit(category)}
-                        className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-                      >
-                        <PencilIcon className="h-4 w-4" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(category.id, category.name)}
-                        disabled={isDeleting}
-                        className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Tablet/Medium Desktop View (1024px - 1440px) */}
-            <div className="hidden md:block 2xl:hidden">
-              {paginatedCategories.map((category, index) => (
-                <div
-                  key={category.id}
-                  className="mb-4 w-full rounded-md bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md hover:bg-zinc-200/50"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-base font-medium text-gray-500">
-                          #{(currentPage - 1) * itemsPerPage + index + 1}
-                        </span>
-                        <h3 className="text-base font-medium text-gray-900">
-                          {category.name}
-                        </h3>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleEdit(category)}
-                          className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleDelete(category.id, category.name)
-                          }
-                          disabled={isDeleting}
-                          className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
-                        <span className="text-base text-gray-500">
-                          Description:
-                        </span>
-                        <span className="ml-2 text-base text-gray-900">
-                          {category.description || "-"}
-                        </span>
-                      </div>
-                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
-                        <span className="text-base text-gray-500">
-                          Created:
-                        </span>
-                        <span className="ml-2 text-base text-gray-900">
-                          {new Date(category.created_at).toLocaleDateString(
-                            "en-GB",
-                            {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                            }
-                          )}
-                        </span>
-                      </div>
-                      <div className="transition-colors duration-200 hover:bg-gray-50/50 rounded-md p-1">
-                        <span className="text-base text-gray-500">
-                          Updated:
-                        </span>
-                        <span className="ml-2 text-base text-gray-900">
-                          {new Date(category.updated_at).toLocaleDateString(
-                            "en-GB",
-                            {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                            }
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Large Desktop View (1440px and above) */}
-            <table className="hidden 2xl:table min-w-full text-gray-900">
-              <TableHeader
-                columns={columns}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              />
-              <TableBody
-                categories={paginatedCategories}
-                columns={columns}
-                currentPage={currentPage}
-                itemsPerPage={itemsPerPage}
-              />
-            </table>
-          </div>
-        </div>
-      </div>
-      <Pagination
-        currentPage={currentPage}
+    <div className="mt-8">
+      <CategoriesTable
+        categories={categories}
         totalPages={totalPages}
-        onPageChange={onPageChange}
-        itemsPerPage={itemsPerPage}
         totalItems={totalItems}
+        currentPage={currentPage}
+        itemsPerPage={itemsPerPage}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+        onPageChange={handlePageChange}
+        onDelete={onDelete}
+        isDeleting={isDeleting}
+        searchQuery={searchQuery}
+        isLoading={isLoading}
+        onSearch={handleSearch}
       />
     </div>
   );

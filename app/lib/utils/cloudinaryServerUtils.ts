@@ -77,7 +77,7 @@ export async function uploadImageToCloudinary(
     console.log(`Resource type determined: ${resourceType}`);
 
     // Upload to Cloudinary
-    const result = await new Promise((resolve, reject) => {
+    const _result = await new Promise((resolve, reject) => {
       try {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
@@ -143,7 +143,7 @@ export async function deleteImageFromCloudinary(publicId: string) {
       ? cleanPublicId
       : `newshub_photos/${cleanPublicId}`;
 
-    const result = await new Promise((resolve, reject) => {
+    const _result = await new Promise((resolve, reject) => {
       cloudinary.uploader.destroy(
         fullPublicId,
         { resource_type: "image", invalidate: true },
@@ -189,7 +189,7 @@ export async function deleteVideoFromCloudinary(publicId: string) {
       ? cleanPublicId
       : `newshub_photos/${cleanPublicId}`;
 
-    const result = await new Promise((resolve, reject) => {
+    const _result = await new Promise((resolve, reject) => {
       cloudinary.uploader.destroy(
         fullPublicId,
         { resource_type: "video", invalidate: true },

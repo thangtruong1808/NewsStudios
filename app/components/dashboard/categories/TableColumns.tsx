@@ -1,17 +1,18 @@
 "use client";
 
-
-import { Category } from "../../../lib/definition";
+import { Category } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Column } from "./types";
 import { useSession } from "next-auth/react";
 
-export function useTableColumns(
-  currentPage: number,
-  itemsPerPage: number,
-  handleDelete: (id: number, name: string) => void,
-  isDeleting: boolean
-): Column[] {
+interface UseTableColumnsProps {
+  currentPage: number;
+  itemsPerPage: number;
+  isDeleting: boolean;
+  onDelete: (_id: number, _name: string) => void;
+}
+
+export function useTableColumns({ currentPage, itemsPerPage, isDeleting, onDelete }: UseTableColumnsProps): Column[] {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
 
@@ -86,7 +87,7 @@ export function useTableColumns(
             Edit
           </button>
           <button
-            onClick={() => handleDelete(category.id, category.name)}
+            onClick={() => onDelete(category.id, category.name)}
             disabled={isDeleting}
             className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-100 disabled:opacity-50"
           >

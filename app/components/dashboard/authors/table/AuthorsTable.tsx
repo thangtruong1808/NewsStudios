@@ -153,6 +153,26 @@ export default function AuthorsTable({
     });
   }
 
+  const handleSort = (_field: keyof Author) => {
+    onSort(_field);
+  };
+
+  const handlePageChange = (_page: number) => {
+    onPageChange(_page);
+  };
+
+  const handleEdit = (_author: Author) => {
+    onEdit(_author);
+  };
+
+  const handleDelete = (_author: Author) => {
+    onDelete(_author);
+  };
+
+  const handleItemsPerPageChange = (_limit: number) => {
+    onItemsPerPageChange(_limit);
+  };
+
   return (
     <div className="flow-root">
       <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -166,14 +186,14 @@ export default function AuthorsTable({
             totalItems={totalItems}
             sortField={sortField}
             sortDirection={sortDirection}
-            onSort={onSort}
-            onPageChange={onPageChange}
-            onEdit={onEdit}
-            onDelete={onDelete}
+            onSort={handleSort}
+            onPageChange={handlePageChange}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
             isDeleting={isDeleting}
             searchQuery={searchQuery}
             isLoading={isLoading}
-            onItemsPerPageChange={onItemsPerPageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
           />
         </div>
       </div>

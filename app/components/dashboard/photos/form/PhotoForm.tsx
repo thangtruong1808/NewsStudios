@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import NextImage from "next/image";
 
 const photoSchema = z.object({
   description: z.string().min(1, "Description is required"),
@@ -103,9 +104,11 @@ export default function PhotoForm({
               </div>
             ) : previewUrl ? (
               <div className="relative">
-                <img
+                <NextImage
                   src={previewUrl}
                   alt="Preview"
+                  width={128}
+                  height={128}
                   className="mx-auto h-32 w-32 object-cover"
                 />
                 <button
@@ -131,9 +134,11 @@ export default function PhotoForm({
             ) : isImageAvailable ? (
               <div className="relative">
                 {image && (
-                  <img
+                  <NextImage
                     src={image.image_url}
                     alt="Current"
+                    width={128}
+                    height={128}
                     className="mx-auto h-32 w-32 object-cover"
                   />
                 )}

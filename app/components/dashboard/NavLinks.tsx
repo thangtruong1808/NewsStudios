@@ -1,21 +1,15 @@
 "use client";
 
-import {
-  UserIcon,
-  HomeIcon,
-  UsersIcon,
-  NewspaperIcon,
-  VideoCameraIcon,
-  PhotoIcon,
-  FolderIcon,
-  AcademicCapIcon,
-  BanknotesIcon,
-  TagIcon,
-  CloudIcon,
-  FolderOpenIcon,
-  ChevronDownIcon,
-} from "@heroicons/react/24/outline";
 import { usePathname } from "next/navigation";
+import {
+  HomeIcon,
+  UserGroupIcon,
+  DocumentTextIcon,
+  PhotoIcon,
+  TagIcon,
+  ChartBarIcon,
+  Cog6ToothIcon,
+} from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import NavLink from "./NavLink";
 import { useState } from "react";
@@ -30,26 +24,26 @@ const linkGroups = [
     name: "Main",
     links: [
       { name: "Home", href: "/dashboard", icon: HomeIcon },
-      { name: "Articles", href: "/dashboard/articles", icon: NewspaperIcon },
-      { name: "Videos", href: "/dashboard/videos", icon: VideoCameraIcon },
+      { name: "Articles", href: "/dashboard/articles", icon: DocumentTextIcon },
+      { name: "Videos", href: "/dashboard/videos", icon: ChartBarIcon },
       { name: "Photos", href: "/dashboard/photos", icon: PhotoIcon },
     ],
   },
   {
     name: "Users & Authors",
     links: [
-      { name: "Users", href: "/dashboard/users", icon: UsersIcon },
-      { name: "Authors", href: "/dashboard/author", icon: UserIcon },
+      { name: "Users", href: "/dashboard/users", icon: UserGroupIcon },
+      { name: "Authors", href: "/dashboard/author", icon: HomeIcon },
     ],
   },
   {
     name: "Content Management",
     links: [
-      { name: "Categories", href: "/dashboard/categories", icon: FolderIcon },
+      { name: "Categories", href: "/dashboard/categories", icon: HomeIcon },
       {
         name: "Subcategories",
         href: "/dashboard/subcategories",
-        icon: FolderOpenIcon,
+        icon: HomeIcon,
       },
       { name: "Tags", href: "/dashboard/tags", icon: TagIcon },
     ],
@@ -115,7 +109,7 @@ export default function NavLinks({ isCollapsed }: NavLinksProps) {
                 link.name === "Home"
                   ? pathname === link.href
                   : pathname === link.href ||
-                    pathname.startsWith(`${link.href}/`);
+                  pathname.startsWith(`${link.href}/`);
 
               return (
                 <div

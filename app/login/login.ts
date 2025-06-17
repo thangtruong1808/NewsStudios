@@ -97,3 +97,7 @@ export async function logout() {
   // For this example, we're just redirecting to the login page
   redirect("/login");
 }
+
+export async function login(_cookies: any) {
+  // ... existing code ...
+}

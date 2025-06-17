@@ -22,11 +22,10 @@ const ftpConfig: FTPConfig = {
 };
 
 // Base URL for uploaded files
-const BASE_URL =
-  "https://srv876-files.hstgr.io/3fd7426401e9c4d8/files/public_html";
+const _BASE_URL = process.env.FTP_BASE_URL;
 
 // Get the domain from environment variable or use a default
-const DOMAIN = "srv876-files.hstgr.io";
+const _DOMAIN = process.env.FTP_DOMAIN;
 
 // Use the direct file server URL with the exact format required
 export const FILE_SERVER_URL =

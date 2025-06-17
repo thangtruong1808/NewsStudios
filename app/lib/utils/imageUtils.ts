@@ -25,10 +25,11 @@ export function isExternalUrl(str: string): boolean {
   return str.startsWith("http");
 }
 
-// Export a default object with all functions
-export default {
+const imageUtils = {
   constructImageUrl,
   isBase64Image,
   isExternalUrl,
   IMAGE_SERVER_BASE_URL,
 };
+
+export default imageUtils;

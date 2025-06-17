@@ -6,9 +6,9 @@ import { useSession } from "next-auth/react";
 
 interface PhotoActionsProps {
   photo: Image;
-  onEdit: (photo: Image) => void;
-  onDelete: (photo: Image) => void;
-  isDeleting?: boolean;
+  onEdit: (_photo: Image) => void;
+  onDelete: (_photo: Image) => void;
+  isDeleting: boolean;
   isVisible: boolean;
 }
 
@@ -28,9 +28,8 @@ export function PhotoActions({
 
   return (
     <div
-      className={`absolute top-2 right-2 flex gap-2 transition-opacity duration-200 ${
-        isVisible ? "opacity-100" : "opacity-0"
-      }`}
+      className={`absolute top-2 right-2 flex gap-2 transition-opacity duration-200 ${isVisible ? "opacity-100" : "opacity-0"
+        }`}
     >
       <button
         onClick={() => onEdit(photo)}
