@@ -11,13 +11,20 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Home | NewsStudios',
     description: 'Manage your content, articles, and media in one place',
-    images: ['/NewsStudios-Thumbnail-Image.png'],
+    images: [
+      {
+        url: 'https://news-studios.vercel.app/NewsStudios-Thumbnail-Image.png',
+        width: 1200,
+        height: 630,
+        alt: 'NewsStudios Platform',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Home | NewsStudios',
     description: 'Manage your content, articles, and media in one place',
-    images: ['/NewsStudios-Thumbnail-Image.png'],
+    images: ['https://news-studios.vercel.app/NewsStudios-Thumbnail-Image.png'],
   },
 };
 export default function MainLayout({
