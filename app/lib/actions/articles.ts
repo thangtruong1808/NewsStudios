@@ -313,26 +313,24 @@ export async function updateArticle(
           id,
         ]);
 
-        // Always insert the new main image as a new record in the Images table
-        await connection.execute(
-          "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
-          [id, article.image]
+        // Check if there's an existing image record
+        const [existingImage] = await connection.execute(
+          "SELECT id FROM Images WHERE article_id = ?",
+          [id]
         );
 
-        // If there was a previous main image, ensure it exists in the Images table
-        if (previousImageUrl) {
-          const [existingImage] = await connection.execute(
-            "SELECT id FROM Images WHERE article_id = ? AND image_url = ?",
-            [id, previousImageUrl]
+        if ((existingImage as any[]).length > 0) {
+          // Update existing image record
+          await connection.execute(
+            "UPDATE Images SET image_url = ?, updated_at = NOW() WHERE article_id = ?",
+            [article.image, id]
           );
-
-          // If the previous main image doesn't exist in the Images table, add it
-          if ((existingImage as any[]).length === 0) {
-            await connection.execute(
-              "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
-              [id, previousImageUrl]
-            );
-          }
+        } else {
+          // Insert new image record if none exists
+          await connection.execute(
+            "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
+            [id, article.image]
+          );
         }
       } else {
         // If image is undefined, null, or empty string, delete the image from both tables

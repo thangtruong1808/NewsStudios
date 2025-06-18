@@ -230,35 +230,33 @@ export function useArticleForm({
         setSelectedImageFile(file);
         setImageUrl(URL.createObjectURL(file));
         setUploadProgress(prev => ({ ...prev, image: 0 }));
-        // Do not upload to Cloudinary here
         toast.success("Image selected successfully");
       } else {
         setSelectedVideoFile(file);
         setVideoUrl(URL.createObjectURL(file));
         setUploadProgress(prev => ({ ...prev, video: 0 }));
-        // Do not upload to Cloudinary here
         toast.success("Video selected successfully");
       }
     } catch (error) {
       toast.error(`Error selecting ${type}`);
       console.error(`Error selecting ${type}:`, error);
     }
-  }, [setSelectedImageFile, setImageUrl, setUploadProgress, setSelectedVideoFile, setVideoUrl]);
+  }, []);
 
   const handleRemoveMedia = useCallback((type: "image" | "video") => {
     if (type === "image") {
       setImageUrl("");
       setSelectedImageFile(null);
-      form.setValue("image", undefined);
+      form.setValue("image", "");
       setUploadProgress(prev => ({ ...prev, image: undefined }));
     } else {
       setVideoUrl("");
       setSelectedVideoFile(null);
-      form.setValue("video", undefined);
+      form.setValue("video", "");
       setUploadProgress(prev => ({ ...prev, video: undefined }));
     }
     toast.success(`${type} removed successfully`);
-  }, [setImageUrl, setSelectedImageFile, form, setUploadProgress, setVideoUrl, setSelectedVideoFile]);
+  }, [form]);
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     const categoryId = e.target.value;
@@ -279,52 +277,45 @@ export function useArticleForm({
         sub_category_id: data.sub_category_id ? Number(data.sub_category_id) : undefined,
         tag_ids: Array.isArray(data.tag_ids) ? data.tag_ids.map((id) => Number(id)) : [],
       };
-      // Debug: Log selected files before upload
-      console.log("[DEBUG] selectedImageFile before upload:", selectedImageFile);
-      console.log("[DEBUG] selectedVideoFile before upload:", selectedVideoFile);
-      // Upload files if they exist (restore previous logic)
-      if (selectedImageFile) {
-        console.log("[DEBUG] Uploading image file...");
-        const imageResult = await uploadToCloudinary(selectedImageFile, "image");
-        if (!imageResult.success || !imageResult.url) {
-          console.log("[DEBUG] Image upload failed:", imageResult.error);
-          throw new Error(imageResult.error || "Failed to upload image");
-        }
-        fixedData.image = imageResult.url;
-        setImageUrl(imageResult.url);
-        console.log("[DEBUG] Image uploaded successfully:", fixedData.image);
-      } else {
-        fixedData.image = "";
-      }
-      if (selectedVideoFile) {
-        console.log("[DEBUG] Uploading video file...");
-        const videoResult = await uploadToCloudinary(selectedVideoFile, "video");
-        if (!videoResult.success || !videoResult.url) {
-          console.log("[DEBUG] Video upload failed:", videoResult.error);
-          throw new Error(videoResult.error || "Failed to upload video");
-        }
-        fixedData.video = videoResult.url;
-        setVideoUrl(videoResult.url);
-        console.log("[DEBUG] Video uploaded successfully:", fixedData.video);
-      } else {
-        fixedData.video = "";
-      }
-      console.log("[DEBUG] Fixed data to submit:", fixedData);
-      const now = new Date();
-      // Remove created_at and updated_at for createArticle
-      const { created_at, updated_at, ...articleDataForCreate } = {
-        ...fixedData,
-        user_id: userId,
-        created_at: now.toISOString(),
-        updated_at: now.toISOString(),
-      };
-      console.log("[DEBUG] Article data to submit:", articleDataForCreate);
+
       if (article?.id) {
         console.log("[DEBUG] Updating article");
         try {
-          const result = await updateArticle(article.id, articleDataForCreate as Partial<Article>, selectedTags);
+          // Handle image changes
+          let finalImageUrl = article.image || "";
+          if (selectedImageFile) {
+            console.log("[DEBUG] Uploading new image to Cloudinary");
+            const imageResult = await uploadToCloudinary(selectedImageFile, "image");
+            if (!imageResult.success || !imageResult.url) {
+              throw new Error(imageResult.error || "Failed to upload image");
+            }
+            finalImageUrl = imageResult.url;
+          }
+
+          // Handle video changes
+          let finalVideoUrl = article.video || "";
+          if (selectedVideoFile) {
+            console.log("[DEBUG] Uploading new video to Cloudinary");
+            const videoResult = await uploadToCloudinary(selectedVideoFile, "video");
+            if (!videoResult.success || !videoResult.url) {
+              throw new Error(videoResult.error || "Failed to upload video");
+            }
+            finalVideoUrl = videoResult.url;
+          }
+
+          // Prepare update data with final media URLs
+          const updateData = {
+            ...fixedData,
+            image: finalImageUrl,
+            video: finalVideoUrl,
+          };
+
+          console.log("[DEBUG] Updating article with data:", updateData);
+          const result = await updateArticle(article.id, updateData as Partial<Article>, selectedTags);
           console.log("[DEBUG] Update result:", result);
-          toast.success("Article updated successfully");
+          toast.success("Article updated successfully", {
+            duration: 3000,
+          });
           router.push("/dashboard/articles");
           router.refresh();
         } catch (updateError) {
@@ -332,11 +323,33 @@ export function useArticleForm({
           throw updateError;
         }
       } else {
+        // Handle new article creation
         console.log("[DEBUG] Creating new article");
         try {
-          const result = await createArticle(articleDataForCreate as unknown as Article, selectedTags);
+          // Upload files if they exist
+          if (selectedImageFile) {
+            console.log("[DEBUG] Uploading image file...");
+            const imageResult = await uploadToCloudinary(selectedImageFile, "image");
+            if (!imageResult.success || !imageResult.url) {
+              throw new Error(imageResult.error || "Failed to upload image");
+            }
+            fixedData.image = imageResult.url;
+          }
+
+          if (selectedVideoFile) {
+            console.log("[DEBUG] Uploading video file...");
+            const videoResult = await uploadToCloudinary(selectedVideoFile, "video");
+            if (!videoResult.success || !videoResult.url) {
+              throw new Error(videoResult.error || "Failed to upload video");
+            }
+            fixedData.video = videoResult.url;
+          }
+
+          const result = await createArticle(fixedData as unknown as Article, selectedTags);
           console.log("[DEBUG] Create result:", result);
-          toast.success("Article created successfully");
+          toast.success("Article created successfully", {
+            duration: 3000,
+          });
           router.push("/dashboard/articles");
           router.refresh();
         } catch (createError) {
