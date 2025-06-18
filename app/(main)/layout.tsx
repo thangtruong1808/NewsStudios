@@ -8,6 +8,17 @@ export const metadata: Metadata = {
   description: 'Manage your content, articles, and media in one place',
   keywords: ['dashboard', 'content management', 'CMS', 'admin panel'],
   authors: [{ name: 'thang-truong' }],
+  openGraph: {
+    title: 'Home | NewsStudios',
+    description: 'Manage your content, articles, and media in one place',
+    images: ['/NewsStudios-Thumbnail-Image.png'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Home | NewsStudios',
+    description: 'Manage your content, articles, and media in one place',
+    images: ['/NewsStudios-Thumbnail-Image.png'],
+  },
 };
 export default function MainLayout({
   children,
