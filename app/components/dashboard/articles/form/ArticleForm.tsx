@@ -47,6 +47,7 @@ export default function ArticleForm({
   subcategories = [],
   tags: initialTags = [],
 }: ArticleFormProps) {
+  console.log('rendered');
   const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id ? Number(session.user.id) : undefined;
@@ -55,8 +56,8 @@ export default function ArticleForm({
   const {
     register,
     handleSubmit,
-    errors,
     control,
+    formState,
     isSubmitting,
     activeTab,
     setActiveTab,
@@ -74,6 +75,7 @@ export default function ArticleForm({
     onSubmit,
     isFormEmpty,
     isEditMode,
+    getValues,
   } = useArticleForm({
     article,
     categories,
@@ -83,12 +85,37 @@ export default function ArticleForm({
     userId,
   });
 
+  // Add a debug log for form submission
+  const onValid = (data: any) => {
+    console.log('[DEBUG] Form submission started');
+    console.log('[DEBUG] Raw form data:', data);
+
+    // Map string values to numbers where needed
+    const mappedData = {
+      ...data,
+      category_id: data.category_id ? Number(data.category_id) : undefined,
+      author_id: data.author_id ? Number(data.author_id) : undefined,
+      sub_category_id: data.sub_category_id ? Number(data.sub_category_id) : undefined,
+      tag_ids: Array.isArray(data.tag_ids) ? data.tag_ids.map(Number) : [],
+    };
+
+    console.log('[DEBUG] Mapped form data:', mappedData);
+    return onSubmit(mappedData);
+  };
+
+  const onInvalid = (errors: any) => {
+    console.log('[DEBUG] Form validation failed:', errors);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       {/* Form header with title and description */}
       <FormHeader isEdit={!!article} />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+      <form
+        onSubmit={handleSubmit(onValid, onInvalid)}
+        className="p-6 space-y-6"
+      >
         <p className="text-xs ">
           Fields marked with an asterisk (*) are required
         </p>
@@ -102,17 +129,17 @@ export default function ArticleForm({
             <>
               <BasicFields
                 register={register}
-                errors={errors}
+                errors={formState.errors}
                 control={control}
                 categories={categories}
                 authors={authors}
-                filteredSubcategories={subcategories}
+                filteredSubcategories={filteredSubcategories}
                 selectedCategory={selectedCategory}
                 onCategoryChange={handleCategoryChange}
               />
               <TagFields
                 register={register}
-                errors={errors}
+                errors={formState.errors}
                 tags={tags}
                 selectedTags={selectedTags}
                 onTagChange={handleTagChange}
@@ -122,14 +149,14 @@ export default function ArticleForm({
 
           {/* Content Tab */}
           {activeTab === "content" && (
-            <ContentFields register={register} errors={errors} />
+            <ContentFields register={register} errors={formState.errors} />
           )}
 
           {/* Media Tab */}
           {activeTab === "media" && (
             <MediaFields
               register={register}
-              errors={errors}
+              errors={formState.errors}
               imageUrl={imageUrl}
               videoUrl={videoUrl}
               onFileUpload={handleFileUpload}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -17,6 +17,7 @@ import {
   SubCategory,
   Tag,
   User,
+  CreateArticleData,
 } from "../../../../../lib/definition";
 import { articleSchema, ArticleFormData } from "../articleSchema";
 import { getTagsBySubcategory } from "@/app/lib/actions/tags";
@@ -30,6 +31,28 @@ interface UseArticleFormProps {
   userId?: number;
 }
 
+interface UseArticleFormReturn extends Omit<UseFormReturn<ArticleFormData>, 'getValues'> {
+  formState: UseFormReturn<ArticleFormData>["formState"];
+  isSubmitting: boolean;
+  activeTab: "basic" | "content" | "media" | "settings";
+  setActiveTab: (tab: "basic" | "content" | "media" | "settings") => void;
+  selectedCategory: string;
+  selectedTags: number[];
+  filteredSubcategories: SubCategory[];
+  tags: Tag[];
+  imageUrl: string;
+  videoUrl: string;
+  uploadProgress: { image?: number; video?: number };
+  handleTagChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleFileUpload: (file: File, type: "image" | "video") => Promise<void>;
+  handleCategoryChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleRemoveMedia: (type: "image" | "video") => void;
+  onSubmit: (data: ArticleFormData) => Promise<void>;
+  isFormEmpty: boolean;
+  isEditMode: boolean;
+  getValues: UseFormReturn<ArticleFormData>["getValues"];
+}
+
 export function useArticleForm({
   article,
   categories,
@@ -37,7 +60,8 @@ export function useArticleForm({
   subcategories,
   tags: initialTags,
   userId,
-}: UseArticleFormProps) {
+}: UseArticleFormProps): UseArticleFormReturn {
+  console.log('[DEBUG] useArticleForm initialized');
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -58,14 +82,7 @@ export function useArticleForm({
     video?: number;
   }>({});
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid, isDirty },
-    setValue,
-    watch,
-    control,
-  } = useForm<ArticleFormData>({
+  const form = useForm<ArticleFormData>({
     resolver: zodResolver(articleSchema),
     defaultValues: {
       title: article?.title || "",
@@ -83,15 +100,16 @@ export function useArticleForm({
     },
     mode: "onChange",
   });
+  const { register, handleSubmit, control, getValues } = form;
 
   // Initialize form with article data
   useEffect(() => {
     if (article) {
       console.log("Initializing form with article data:", article);
-      setValue("title", article.title || "");
-      setValue("content", article.content || "");
+      form.setValue("title", article.title || "");
+      form.setValue("content", article.content || "");
       if (article.category_id) {
-        setValue("category_id", article.category_id);
+        form.setValue("category_id", article.category_id);
         setSelectedCategory(article.category_id.toString());
         // Filter subcategories immediately
         const filtered = subcategories.filter(
@@ -100,10 +118,10 @@ export function useArticleForm({
         );
         setFilteredSubcategories(filtered);
       }
-      if (article.author_id) setValue("author_id", article.author_id);
-      setValue("user_id", userId || article.user_id);
+      if (article.author_id) form.setValue("author_id", article.author_id);
+      form.setValue("user_id", userId || article.user_id);
       if (article.sub_category_id) {
-        setValue("sub_category_id", article.sub_category_id);
+        form.setValue("sub_category_id", article.sub_category_id);
         // Set initial tags immediately if we have a subcategory
         const fetchInitialTags = async () => {
           if (article.sub_category_id) {
@@ -117,25 +135,25 @@ export function useArticleForm({
         };
         fetchInitialTags();
       }
-      setValue("image", article.image || "");
-      setValue("video", article.video || "");
-      setValue("is_featured", article.is_featured || false);
-      setValue("headline_priority", article.headline_priority || 0);
-      setValue("is_trending", article.is_trending || false);
-      setValue("tag_ids", article.tag_ids || []);
+      form.setValue("image", article.image || "");
+      form.setValue("video", article.video || "");
+      form.setValue("is_featured", article.is_featured || false);
+      form.setValue("headline_priority", article.headline_priority || 0);
+      form.setValue("is_trending", article.is_trending || false);
+      form.setValue("tag_ids", article.tag_ids || []);
 
       // Set other state values
       setSelectedTags(article.tag_ids || []);
       setImageUrl(article.image || "");
       setVideoUrl(article.video || "");
     }
-  }, [article, setValue, userId, subcategories]);
+  }, [article, form, userId, subcategories]);
 
-  // Update filtered subcategories when category changes
+  // Single useEffect to handle subcategory filtering
   useEffect(() => {
     if (selectedCategory) {
       const filtered = subcategories.filter(
-        (sub) => sub.category_id.toString() === selectedCategory
+        (sub) => sub.category_id === parseInt(selectedCategory)
       );
       setFilteredSubcategories(filtered);
     } else {
@@ -143,58 +161,52 @@ export function useArticleForm({
     }
   }, [selectedCategory, subcategories]);
 
-  // Initialize filtered subcategories on mount if we have a category
-  useEffect(() => {
-    if (article?.category_id) {
-      const filtered = subcategories.filter(
-        (sub) => sub.category_id.toString() === article.category_id?.toString()
-      );
-      setFilteredSubcategories(filtered);
-    }
-  }, [article?.category_id, subcategories]);
-
   // Add effect to fetch tags when subcategory changes
   useEffect(() => {
-    const subcategoryId = watch("sub_category_id");
+    const subcategoryId = form.watch("sub_category_id");
     const fetchTags = async () => {
       if (subcategoryId) {
+        // console.log("Fetching tags for subcategory:", subcategoryId);
         const { data: subcategoryTags, error } = await getTagsBySubcategory(
-          subcategoryId
+          Number(subcategoryId)
         );
         if (error) {
           console.error("Error fetching tags:", error);
+          toast.error("Failed to fetch tags");
           return;
         }
         if (subcategoryTags) {
+          console.log("Fetched tags:", subcategoryTags);
           setTags(subcategoryTags);
           // Only reset tags if we're not in edit mode
           if (!article?.id) {
             setSelectedTags([]);
-            setValue("tag_ids", []);
+            form.setValue("tag_ids", []);
           }
         }
       } else {
+        console.log("No subcategory selected, clearing tags");
         setTags([]);
         // Only reset tags if we're not in edit mode
         if (!article?.id) {
           setSelectedTags([]);
-          setValue("tag_ids", []);
+          form.setValue("tag_ids", []);
         }
       }
     };
 
     fetchTags();
-  }, [watch, setValue, article?.id]);
+  }, [form.watch("sub_category_id"), form.setValue, article?.id]);
 
   const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = Array.from(e.target.selectedOptions).map((option) =>
-      parseInt(option.value)
+      Number(option.value)
     );
     setSelectedTags(selectedOptions);
-    setValue("tag_ids", selectedOptions);
+    form.setValue("tag_ids", selectedOptions);
   };
 
-  const handleFileUpload = async (file: File, type: "image" | "video") => {
+  const handleFileUpload = useCallback(async (file: File, type: "image" | "video") => {
     try {
       if (type === "image" && !file.type.startsWith("image/")) {
         toast.error("Please select an image file");
@@ -218,168 +230,147 @@ export function useArticleForm({
         setSelectedImageFile(file);
         setImageUrl(URL.createObjectURL(file));
         setUploadProgress(prev => ({ ...prev, image: 0 }));
+        // Do not upload to Cloudinary here
+        toast.success("Image selected successfully");
       } else {
         setSelectedVideoFile(file);
         setVideoUrl(URL.createObjectURL(file));
         setUploadProgress(prev => ({ ...prev, video: 0 }));
+        // Do not upload to Cloudinary here
+        toast.success("Video selected successfully");
       }
-
-      toast.success(`${type} selected successfully`);
     } catch (error) {
       toast.error(`Error selecting ${type}`);
       console.error(`Error selecting ${type}:`, error);
     }
-  };
+  }, [setSelectedImageFile, setImageUrl, setUploadProgress, setSelectedVideoFile, setVideoUrl]);
 
-  const handleRemoveMedia = (type: "image" | "video") => {
+  const handleRemoveMedia = useCallback((type: "image" | "video") => {
     if (type === "image") {
       setImageUrl("");
       setSelectedImageFile(null);
-      setValue("image", undefined);
+      form.setValue("image", undefined);
       setUploadProgress(prev => ({ ...prev, image: undefined }));
     } else {
       setVideoUrl("");
       setSelectedVideoFile(null);
-      setValue("video", undefined);
+      form.setValue("video", undefined);
       setUploadProgress(prev => ({ ...prev, video: undefined }));
     }
     toast.success(`${type} removed successfully`);
-  };
+  }, [setImageUrl, setSelectedImageFile, form, setUploadProgress, setVideoUrl, setSelectedVideoFile]);
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     const categoryId = e.target.value;
     setSelectedCategory(categoryId);
-    setValue("category_id", categoryId ? parseInt(categoryId) : 0, {
-      shouldValidate: true,
-    });
+    form.setValue("category_id", categoryId ? parseInt(categoryId) : 0);
+    form.setValue("sub_category_id", 0); // Reset subcategory when category changes
   };
 
   const onSubmit = async (data: ArticleFormData) => {
+    console.log("[DEBUG] onSubmit called with data:", data);
     try {
       setIsSubmitting(true);
-      console.log("Form submission started with data:", data);
-      console.log("Article ID:", article?.id);
-      console.log("Selected tags:", selectedTags);
-
-      // Validate required fields
-      if (
-        !data.title ||
-        !data.content ||
-        !data.category_id ||
-        !data.author_id ||
-        !userId
-      ) {
-        toast.error("Please fill in all required fields");
-        return;
-      }
-
-      // Upload files if they exist
+      // Convert string fields to numbers as needed
+      const fixedData = {
+        ...data,
+        category_id: data.category_id ? Number(data.category_id) : undefined,
+        author_id: data.author_id ? Number(data.author_id) : undefined,
+        sub_category_id: data.sub_category_id ? Number(data.sub_category_id) : undefined,
+        tag_ids: Array.isArray(data.tag_ids) ? data.tag_ids.map((id) => Number(id)) : [],
+      };
+      // Debug: Log selected files before upload
+      console.log("[DEBUG] selectedImageFile before upload:", selectedImageFile);
+      console.log("[DEBUG] selectedVideoFile before upload:", selectedVideoFile);
+      // Upload files if they exist (restore previous logic)
       if (selectedImageFile) {
-        console.log("Uploading image file...");
-        const imageResult = await uploadToCloudinary(
-          selectedImageFile,
-          "image"
-        );
+        console.log("[DEBUG] Uploading image file...");
+        const imageResult = await uploadToCloudinary(selectedImageFile, "image");
         if (!imageResult.success || !imageResult.url) {
+          console.log("[DEBUG] Image upload failed:", imageResult.error);
           throw new Error(imageResult.error || "Failed to upload image");
         }
-        data.image = imageResult.url;
-        console.log("Image uploaded successfully:", data.image);
+        fixedData.image = imageResult.url;
+        setImageUrl(imageResult.url);
+        console.log("[DEBUG] Image uploaded successfully:", fixedData.image);
+      } else {
+        fixedData.image = "";
       }
-
       if (selectedVideoFile) {
-        console.log("Uploading video file...");
-        const videoResult = await uploadToCloudinary(
-          selectedVideoFile,
-          "video"
-        );
+        console.log("[DEBUG] Uploading video file...");
+        const videoResult = await uploadToCloudinary(selectedVideoFile, "video");
         if (!videoResult.success || !videoResult.url) {
+          console.log("[DEBUG] Video upload failed:", videoResult.error);
           throw new Error(videoResult.error || "Failed to upload video");
         }
-        data.video = videoResult.url;
-        console.log("Video uploaded successfully:", data.video);
+        fixedData.video = videoResult.url;
+        setVideoUrl(videoResult.url);
+        console.log("[DEBUG] Video uploaded successfully:", fixedData.video);
+      } else {
+        fixedData.video = "";
       }
-
+      console.log("[DEBUG] Fixed data to submit:", fixedData);
       const now = new Date();
-      const articleData: Article = {
-        id: article?.id || 0,
-        title: data.title,
-        content: data.content,
-        category_id: data.category_id,
-        author_id: data.author_id,
+      // Remove created_at and updated_at for createArticle
+      const { created_at, updated_at, ...articleDataForCreate } = {
+        ...fixedData,
         user_id: userId,
-        sub_category_id: data.sub_category_id,
-        image: data.image,
-        video: data.video,
-        is_featured: data.is_featured,
-        headline_priority: data.headline_priority,
-        is_trending: data.is_trending,
+        created_at: now.toISOString(),
         updated_at: now.toISOString(),
-        published_at: now.toISOString(),
-        views_count: 0,
-        likes_count: 0,
-        comments_count: 0,
-        tag_names: [],
-        tag_ids: selectedTags,
-        tag_colors: [],
       };
-
-      console.log("Prepared article data:", articleData);
-
+      console.log("[DEBUG] Article data to submit:", articleDataForCreate);
       if (article?.id) {
-        console.log("Updating existing article with ID:", article.id);
-        // If media was removed, ensure it's passed as undefined
-        if (imageUrl === "") {
-          articleData.image = undefined;
-        }
-        if (videoUrl === "") {
-          articleData.video = undefined;
-        }
+        console.log("[DEBUG] Updating article");
         try {
-          const result = await updateArticle(
-            article.id,
-            articleData,
-            selectedTags
-          );
-          console.log("Update result:", result);
+          const result = await updateArticle(article.id, articleDataForCreate as Partial<Article>, selectedTags);
+          console.log("[DEBUG] Update result:", result);
           toast.success("Article updated successfully");
           router.push("/dashboard/articles");
           router.refresh();
         } catch (updateError) {
-          console.error("Error updating article:", updateError);
+          console.error("[DEBUG] Error updating article:", updateError);
           throw updateError;
         }
       } else {
-        console.log("Creating new article");
+        console.log("[DEBUG] Creating new article");
         try {
-          const result = await createArticle(articleData, selectedTags);
-          console.log("Create result:", result);
+          const result = await createArticle(articleDataForCreate as unknown as Article, selectedTags);
+          console.log("[DEBUG] Create result:", result);
           toast.success("Article created successfully");
           router.push("/dashboard/articles");
           router.refresh();
         } catch (createError) {
-          console.error("Error creating article:", createError);
+          console.error("[DEBUG] Error creating article:", createError);
           throw createError;
         }
       }
     } catch (error) {
-      console.error("Error in form submission:", error);
+      console.error("[DEBUG] Error in form submission:", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to submit article"
       );
     } finally {
       setIsSubmitting(false);
+      console.log("[DEBUG] Form submission finished");
     }
   };
 
-  const formValues = watch();
+  const formValues = form.watch();
   const isFormEmpty = !formValues.title.trim() || !formValues.content.trim();
 
+  // Debug: Log subcategory, selected tags, and form values on every render
+  useEffect(() => {
+    const subcategoryId = form.watch("sub_category_id");
+    const tagIds = form.watch("tag_ids");
+    console.log("[DEBUG] Current subcategoryId:", subcategoryId);
+    console.log("[DEBUG] Current selectedTags state:", selectedTags);
+    console.log("[DEBUG] Current tag_ids in form:", tagIds);
+    console.log("[DEBUG] Current form values:", form.watch());
+  });
+
   return {
-    register,
-    handleSubmit,
-    errors,
-    control,
+    ...form,
+    formState: form.formState,
     isSubmitting,
     activeTab,
     setActiveTab: (tab: "basic" | "content" | "media" | "settings") =>
@@ -398,5 +389,6 @@ export function useArticleForm({
     onSubmit,
     isFormEmpty,
     isEditMode: !!article,
+    getValues,
   };
 }

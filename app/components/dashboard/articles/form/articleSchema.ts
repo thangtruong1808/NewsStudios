@@ -6,13 +6,13 @@ export const articleSchema = z.object({
   category_id: z.coerce.number().min(1, "Category is required"),
   author_id: z.coerce.number().min(1, "Author is required"),
   user_id: z.coerce.number().optional(),
-  sub_category_id: z.coerce.number().optional(),
+  sub_category_id: z.coerce.number().min(1, "Subcategory is required"),
   image: z.string().optional(),
   video: z.string().optional(),
   is_featured: z.boolean().default(false),
   headline_priority: z.coerce.number().default(0),
   is_trending: z.boolean().default(false),
-  tag_ids: z.array(z.number()).min(1, "At least one tag is required"),
+  tag_ids: z.array(z.coerce.number()).min(1, "At least one tag is required"),
 });
 
 export type ArticleFormData = z.infer<typeof articleSchema>;

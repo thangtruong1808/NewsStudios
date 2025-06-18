@@ -469,7 +469,8 @@ export async function getTagsBySubcategory(subcategoryId: number) {
         t.description, 
         t.color,
         DATE_FORMAT(t.created_at, '%Y-%m-%d %H:%i:%s') as created_at,
-        DATE_FORMAT(t.updated_at, '%Y-%m-%d %H:%i:%s') as updated_at
+        DATE_FORMAT(t.updated_at, '%Y-%m-%d %H:%i:%s') as updated_at,
+        (SELECT COUNT(*) FROM Article_Tags WHERE tag_id = t.id) as article_count
       FROM Tags t
       WHERE t.sub_category_id = ?
       ORDER BY t.name ASC
@@ -481,11 +482,12 @@ export async function getTagsBySubcategory(subcategoryId: number) {
       throw new Error(result.error || "Failed to fetch data");
     }
 
-    // Convert the dates to proper Date objects
+    // Convert the dates to proper Date objects and ensure article_count is a number
     const tags = (result.data as any[]).map((tag) => ({
       ...tag,
       created_at: new Date(tag.created_at),
       updated_at: new Date(tag.updated_at),
+      article_count: Number(tag.article_count) || 0,
     })) as Tag[];
 
     return {

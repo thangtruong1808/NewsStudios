@@ -5,7 +5,6 @@ import { getCategories } from "@/app/lib/actions/categories";
 import { getAuthors } from "@/app/lib/actions/authors";
 import { getSubcategories } from "@/app/lib/actions/subcategories";
 import { getUsers } from "@/app/lib/actions/users";
-import { getAllTags } from "@/app/lib/actions/tags";
 import ArticleFormContainer from "@/app/components/dashboard/articles/form/ArticleFormContainer";
 import FormSkeleton from "@/app/components/dashboard/shared/skeleton/FormSkeleton";
 
@@ -17,26 +16,28 @@ export default function CreateArticlePageClient() {
     authors: any[];
     subcategories: any[];
     users: any[];
-    tags: any[];
   } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [categories, authors, subcategories, users, tags] = await Promise.all([
+        const [categories, authors, users] = await Promise.all([
           getCategories(),
           getAuthors(),
-          getSubcategories(),
           getUsers(),
-          getAllTags(),
         ]);
+
+        // Get all subcategories without filtering by category
+        const subcategories = await getSubcategories({
+          page: 1,
+          limit: 1000, // Get all subcategories
+        });
 
         setData({
           categories: categories.data || [],
           authors: authors.data || [],
           subcategories: subcategories.data || [],
           users: users.data || [],
-          tags: tags.data || [],
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
@@ -79,7 +80,7 @@ export default function CreateArticlePageClient() {
         categories={data.categories}
         authors={data.authors}
         subcategories={data.subcategories}
-        tags={data.tags}
+        tags={[]} // Pass empty array since tags will be fetched when subcategory is selected
       />
     </div>
   );

@@ -4,6 +4,7 @@ import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import type { ArticleFormData } from "../articleSchema";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
+import { useEffect } from "react";
 
 interface MediaFieldsProps {
   register: UseFormRegister<ArticleFormData>;
@@ -22,9 +23,14 @@ export default function MediaFields({
   onFileUpload,
   onRemoveMedia,
 }: MediaFieldsProps) {
+  useEffect(() => {
+    console.log("[DEBUG] MediaFields mounted");
+  }, []);
+
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      console.log("[DEBUG] Image file selected:", file);
       await onFileUpload(file, "image");
     }
   };
@@ -32,6 +38,7 @@ export default function MediaFields({
   const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      console.log("[DEBUG] Video file selected:", file);
       await onFileUpload(file, "video");
     }
   };
