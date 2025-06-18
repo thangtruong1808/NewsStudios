@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Home | NewsStudios',
     description: 'Manage your content, articles, and media in one place',
+    url: 'https://news-studios.vercel.app', // Add your main URL
+    type: 'website',
     images: [
       {
         url: 'https://news-studios.vercel.app/NewsStudios-Thumbnail-Image.png',
