@@ -14,8 +14,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: 'https://news-studios.vercel.app/NewsStudios-Thumbnail-Image.png',
-        width: 1200,
-        height: 630,
+        width: 600,
+        height: 315,
         alt: 'NewsStudios Platform',
       },
     ],
