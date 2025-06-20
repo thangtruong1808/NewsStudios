@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import TagArticlesClient from './TagArticlesClient';
+import { getTagById } from '@/app/lib/actions/tags';
 
 interface TagArticlesProps {
   params: {
@@ -8,11 +9,49 @@ interface TagArticlesProps {
 }
 
 export async function generateMetadata({ params }: TagArticlesProps): Promise<Metadata> {
+  let title = 'Articles by Tag | NewsStudios';
+  let description = 'Browse and discover a comprehensive collection of articles filtered by tags. Explore curated content, trending topics, and engaging multimedia articles from our extensive library organized by relevant tags and categories.';
+
+  try {
+    const result = await getTagById(parseInt(params.id));
+    if (result.data) {
+      const tag = result.data;
+      title = `Articles tagged "${tag.name}" | NewsStudios`;
+      description = `Discover a comprehensive collection of articles tagged with "${tag.name}". Browse through curated content, trending topics, and engaging multimedia articles from our extensive library. Find high-quality content and stay updated with the latest news and insights related to this topic.`;
+    }
+  } catch (error) {
+    console.error('Error fetching tag metadata:', error);
+  }
+
   return {
-    title: `Articles by Tag | NewsStudios`,
-    description: 'Browse articles filtered by tag',
+    title,
+    description,
     keywords: ['articles', 'tags', 'content', 'blog'],
     authors: [{ name: 'thang-truong' }],
+    openGraph: {
+      title,
+      description,
+      url: `https://news-studios.vercel.app/articles/tag/${params.id}`,
+      type: 'website',
+      siteName: 'NewsStudios',
+      images: [
+        {
+          url: 'https://news-studios.vercel.app/NewsStudios-Thumbnail-Image.png',
+          width: 400,
+          height: 209,
+          alt: 'NewsStudios Tagged Articles',
+        },
+      ],
+    },
+    other: {
+      'fb:app_id': 'your-facebook-app-id',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['https://news-studios.vercel.app/NewsStudios-Thumbnail-Image.png'],
+    },
   };
 }
 
