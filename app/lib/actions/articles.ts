@@ -108,8 +108,6 @@ export async function getArticles({
       views_count: article.views_count || 0,
     }));
 
-    console.log(`Processed ${articles.length} articles`);
-
     const start = offset + 1;
     const end = Math.min(offset + limit, totalCount);
     const totalPages = Math.ceil(totalCount / limit);

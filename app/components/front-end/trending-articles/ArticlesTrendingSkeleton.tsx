@@ -31,62 +31,68 @@ export default function ArticlesTrendingSkeleton() {
       </div>
 
       {/* Main content section */}
-      <div className="max-w-[1536px] mx-auto px-4 py-8">
-        {/* Image Carousel Section Skeleton */}
-        <div className="mb-4 h-[400px] w-full">
-          <div className="w-full h-full bg-gray-200 rounded-lg animate-pulse"></div>
+      {/* Image Carousel Section Skeleton */}
+      <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+        <div className="max-w-[1536px] mx-auto px-6">
+          <div className="mb-4 h-[400px] w-full">
+            <div className="w-full h-full bg-gray-200 rounded-lg animate-pulse"></div>
+          </div>
         </div>
+      </div>
 
-        {/* Articles Grid Skeleton */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {gridItems.map((index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg shadow-md overflow-hidden"
-            >
-              {/* Image Skeleton */}
-              <div className="w-full h-48 bg-gray-200 animate-pulse"></div>
+      {/* Articles Grid Skeleton */}
+      <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+        <div className="max-w-[1536px] mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4">
+            {gridItems.map((index) => (
+              <div
+                key={index}
+                className="bg-white rounded-lg shadow-md overflow-hidden"
+              >
+                {/* Image Skeleton */}
+                <div className="w-full h-48 bg-gray-200 animate-pulse"></div>
 
-              {/* Content Skeleton */}
-              <div className="p-4">
-                {/* Title Skeleton */}
-                <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse mb-3"></div>
+                {/* Content Skeleton */}
+                <div className="p-4">
+                  {/* Title Skeleton */}
+                  <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse mb-3"></div>
 
-                {/* Description Skeleton */}
-                <div className="space-y-2 mb-4">
-                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-                </div>
+                  {/* Description Skeleton */}
+                  <div className="space-y-2 mb-4">
+                    <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
 
-                {/* Meta Info Skeleton */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                </div>
+                  {/* Meta Info Skeleton */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
 
-                {/* Tags Skeleton */}
-                <div className="flex gap-2 mb-3">
-                  <div className="h-6 w-16 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-6 w-20 bg-gray-200 rounded animate-pulse"></div>
-                </div>
+                  {/* Tags Skeleton */}
+                  <div className="flex gap-2 mb-3">
+                    <div className="h-6 w-16 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-6 w-20 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
 
-                {/* Stats Skeleton */}
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-4">
-                    <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
+                  {/* Stats Skeleton */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-4">
+                      <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
                     <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
                   </div>
-                  <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* Load More Button Skeleton */}
-        <div className="flex justify-center mt-8">
-          <div className="h-10 w-32 bg-gray-200 rounded-lg animate-pulse"></div>
+          {/* Load More Button Skeleton */}
+          <div className="flex justify-center mt-8">
+            <div className="h-10 w-32 bg-gray-200 rounded-lg animate-pulse"></div>
+          </div>
         </div>
       </div>
     </>

@@ -61,11 +61,6 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
     const totalItems = countResult.data?.[0]?.total || 0;
     const videos = result.data || [];
 
-    // Log pagination details for debugging
-    console.log(
-      `Page ${page}: Fetched ${videos.length} videos, Total: ${totalItems}, Offset: ${offset}`
-    );
-
     return {
       data: videos,
       error: null,

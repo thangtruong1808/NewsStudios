@@ -10,7 +10,7 @@ interface ExploreLayoutClientProps {
 
 export default function ExploreLayoutClient({ children }: ExploreLayoutClientProps) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col">
       <NavBar />
       <main className="flex-grow">{children}</main>
       <Footer />

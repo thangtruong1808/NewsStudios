@@ -101,7 +101,7 @@ export default function Tags() {
   return (
     <>
       {/* Header section with title and description - Full width background */}
-      <div className="w-screen bg-gray-200 relative left-1/2 right-1/2 -mx-[50vw]">
+      <div className="w-screen bg-gray-200 relative left-1/2 right-1/2 -mx-[50vw] mb-4">
         <div className="max-w-[1536px] mx-auto">
           <div className="py-8">
             <div className="flex items-center space-x-3">
@@ -122,111 +122,113 @@ export default function Tags() {
       </div>
 
       {/* Main content section */}
-      <div className="mt-8">
-        {/* Filters */}
-        <div className="mb-6 flex gap-4">
-          <div className="flex-1">
-            <label
-              htmlFor="category"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Category
-            </label>
-            <select
-              id="category"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border-2 px-2 py-2"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex-1">
-            <label
-              htmlFor="subcategory"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Subcategory
-            </label>
-            <select
-              id="subcategory"
-              value={selectedSubcategory}
-              onChange={(e) => setSelectedSubcategory(e.target.value)}
-              className="w-full rounded-lg border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border-2 px-2 py-2"
-              disabled={!selectedCategory}
-            >
-              <option value="">All Subcategories</option>
-              {availableSubcategories.map((sub) => (
-                <option key={sub.id} value={sub.id}>
-                  {sub.name}
-                </option>
-              ))}
-            </select>
-            {selectedCategory === "" && (
-              <span className="text-gray-500 text-sm mt-1">
-                Please select a category first
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Total Tags Count */}
-        <div className="mb-4 text-sm text-gray-600">
-          Showing {tags.length} of {totalTags} tags
-        </div>
-
-        {/* Tags Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-2">
-          {tags.map((tag) => (
-            <Link
-              key={tag.id}
-              href={`/articles/tag/${tag.id}`}
-              className="group block"
-            >
-              <div
-                className="p-4 rounded-lg border border-gray-200 hover:border-blue-500 transition-colors"
-                style={{ backgroundColor: tag.color }}
+      <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+        <div className="max-w-[1536px] mx-auto px-6">
+          {/* Filters */}
+          <div className="mb-6 flex gap-4">
+            <div className="flex-1">
+              <label
+                htmlFor="category"
+                className="block text-md font-medium text-black mb-1"
               >
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                  <span
-                    className="text-xs font-medium truncate text-white"
-                  // style={{ color: tag.color }}
-                  >
-                    {tag.name}
-                  </span>
-                  <span className="text-xs text-white">
-                    {tag.article_count} articles
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Load More Button */}
-        {hasMore && tags.length > 0 && (
-          <div className="mt-8 text-center">
-            <button
-              onClick={handleLoadMore}
-              disabled={loading}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <LoadingSpinner />
-                  <span className="ml-2">Loading...</span>
-                </>
-              ) : (
-                "Load More"
+                Category
+              </label>
+              <select
+                id="category"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border-2 px-2 py-2"
+              >
+                <option value="">All Categories</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label
+                htmlFor="subcategory"
+                className="block text-md font-medium text-black mb-1"
+              >
+                Subcategory
+              </label>
+              <select
+                id="subcategory"
+                value={selectedSubcategory}
+                onChange={(e) => setSelectedSubcategory(e.target.value)}
+                className="w-full rounded-lg border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 border-2 px-2 py-2"
+                disabled={!selectedCategory}
+              >
+                <option value="">All Subcategories</option>
+                {availableSubcategories.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.name}
+                  </option>
+                ))}
+              </select>
+              {selectedCategory === "" && (
+                <span className="text-gray-500 text-sm mt-1">
+                  Please select a category first
+                </span>
               )}
-            </button>
+            </div>
           </div>
-        )}
+
+          {/* Total Tags Count */}
+          <div className="mb-4 text-sm text-gray-600">
+            Showing {tags.length} of {totalTags} tags
+          </div>
+
+          {/* Tags Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-2">
+            {tags.map((tag) => (
+              <Link
+                key={tag.id}
+                href={`/articles/tag/${tag.id}`}
+                className="group block"
+              >
+                <div
+                  className="p-4 rounded-lg border border-gray-200 hover:border-blue-500 transition-colors"
+                  style={{ backgroundColor: tag.color }}
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                    <span
+                      className="text-xs font-medium truncate text-white"
+                    // style={{ color: tag.color }}
+                    >
+                      {tag.name}
+                    </span>
+                    <span className="text-xs text-white">
+                      {tag.article_count} articles
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Load More Button */}
+          {hasMore && tags.length > 0 && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={handleLoadMore}
+                disabled={loading}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <LoadingSpinner />
+                    <span className="ml-2">Loading...</span>
+                  </>
+                ) : (
+                  "Load More"
+                )}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

@@ -12,16 +12,6 @@ function ExploreContentWrapper() {
   const subcategory = searchParams.get("subcategoryId");
   const categoryId = searchParams.get("categoryId");
 
-  //This is a common development practice where console logs are only shown during development to help debug the application, and they won't appear in production. It's particularly useful for tracking URL parameters and their values while developing the explore page functionality
-  if (process.env.NODE_ENV === 'development') {
-    console.log("ExplorePage URL params:", {
-      type,
-      tag,
-      subcategory,
-      categoryId,
-    });
-  }
-
   if (subcategory) {
     return <ExploreContent subcategory={subcategory} />;
   }

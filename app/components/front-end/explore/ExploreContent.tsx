@@ -21,19 +21,21 @@ export default function ExploreContent({
   // const articlesRef = useRef<Article[]>([]);
   // const itemsPerPage = 10;
 
+  if (subcategory) {
+    return <SubcategoryArticles subcategory={subcategory} />;
+  }
+
+  if (categoryId) {
+    return <CategoryArticles categoryId={categoryId} />;
+  }
+
   return (
     <div className="space-y-8">
-      {subcategory ? (
-        <SubcategoryArticles subcategory={subcategory} />
-      ) : categoryId ? (
-        <CategoryArticles categoryId={categoryId} />
-      ) : (
-        <div className="text-center py-8">
-          <p className="text-gray-500">
-            Please select a category or subcategory to view articles.
-          </p>
-        </div>
-      )}
+      <div className="text-center py-8">
+        <p className="text-gray-500">
+          Please select a category or subcategory to view articles.
+        </p>
+      </div>
     </div>
   );
 }

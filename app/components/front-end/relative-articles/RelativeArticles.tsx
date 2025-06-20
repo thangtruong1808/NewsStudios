@@ -99,7 +99,7 @@ export default function RelativeArticles({
   return (
     <>
       {/* Header section with title and description - Full width background */}
-      <div className="w-screen bg-gray-200 relative left-1/2 right-1/2 -mx-[50vw]">
+      <div className="w-screen bg-gray-200 relative left-1/2 right-1/2 -mx-[50vw] mb-4">
         <div className="max-w-[1536px] mx-auto">
           <div className="py-8">
             <div className="flex items-center space-x-3">
@@ -132,76 +132,78 @@ export default function RelativeArticles({
       </div>
 
       {/* Main content section */}
-      <section className="mt-8">
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          {relatedArticles.length > 0 ? (
-            <>
-              {/* Grid layout for related articles using shared Grid component */}
-              <Grid columns={5} gap="lg">
-                {relatedArticles.map((article) => {
-                  // Split tag strings into arrays safely
-                  const tagNames = (() => {
-                    const tagNamesValue = article.tag_names as string | string[] | undefined;
-                    if (typeof tagNamesValue === "string") {
-                      return tagNamesValue.split(",").filter(Boolean);
-                    }
-                    if (Array.isArray(tagNamesValue)) {
-                      return tagNamesValue;
-                    }
-                    return [];
-                  })();
+      <section className="mt-2">
+        <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+          <div className="max-w-[1536px] mx-auto px-6">
+            {relatedArticles.length > 0 ? (
+              <>
+                {/* Grid layout for related articles using custom grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-6">
+                  {relatedArticles.map((article) => {
+                    // Split tag strings into arrays safely
+                    const tagNames = (() => {
+                      const tagNamesValue = article.tag_names as string | string[] | undefined;
+                      if (typeof tagNamesValue === "string") {
+                        return tagNamesValue.split(",").filter(Boolean);
+                      }
+                      if (Array.isArray(tagNamesValue)) {
+                        return tagNamesValue;
+                      }
+                      return [];
+                    })();
 
-                  const tagColors = (() => {
-                    const tagColorsValue = article.tag_colors as string | string[] | undefined;
-                    if (typeof tagColorsValue === "string") {
-                      return tagColorsValue.split(",").filter(Boolean);
-                    }
-                    if (Array.isArray(tagColorsValue)) {
-                      return tagColorsValue;
-                    }
-                    return [];
-                  })();
+                    const tagColors = (() => {
+                      const tagColorsValue = article.tag_colors as string | string[] | undefined;
+                      if (typeof tagColorsValue === "string") {
+                        return tagColorsValue.split(",").filter(Boolean);
+                      }
+                      if (Array.isArray(tagColorsValue)) {
+                        return tagColorsValue;
+                      }
+                      return [];
+                    })();
 
-                  return (
-                    <Card
-                      key={article.id}
-                      title={article.title}
-                      description={article.content}
-                      imageUrl={article.image || undefined}
-                      link={`/articles/${article.id}`}
-                      category={article.category_name}
-                      subcategory={article.subcategory_name}
-                      author={article.author_name}
-                      date={article.published_at}
-                      viewsCount={article.views_count}
-                      likesCount={article.likes_count}
-                      commentsCount={article.comments_count}
-                      tags={tagNames}
-                      tagColors={tagColors}
-                    />
-                  );
-                })}
-              </Grid>
-
-              {/* Load More Button */}
-              {hasMore && relatedArticles.length >= 5 && (
-                <div className="flex justify-center mt-8">
-                  <button
-                    onClick={handleLoadMore}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Loading..." : "Load More"}
-                  </button>
+                    return (
+                      <Card
+                        key={article.id}
+                        title={article.title}
+                        description={article.content}
+                        imageUrl={article.image || undefined}
+                        link={`/articles/${article.id}`}
+                        category={article.category_name}
+                        subcategory={article.subcategory_name}
+                        author={article.author_name}
+                        date={article.published_at}
+                        viewsCount={article.views_count}
+                        likesCount={article.likes_count}
+                        commentsCount={article.comments_count}
+                        tags={tagNames}
+                        tagColors={tagColors}
+                      />
+                    );
+                  })}
                 </div>
-              )}
-            </>
-          ) : (
-            // Empty state display
-            <div className="text-center py-8 text-gray-500">
-              <p>No related articles found.</p>
-            </div>
-          )}
+
+                {/* Load More Button */}
+                {hasMore && relatedArticles.length >= 5 && (
+                  <div className="flex justify-center mt-8">
+                    <button
+                      onClick={handleLoadMore}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Loading..." : "Load More"}
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              // Empty state display
+              <div className="text-center py-8 text-gray-500">
+                <p>No related articles found.</p>
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </>

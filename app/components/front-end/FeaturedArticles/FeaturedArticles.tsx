@@ -153,81 +153,87 @@ export default function FeaturedArticles() {
       </div>
 
       {/* Main content section */}
-      <div className="max-w-[1536px] mx-auto px-4">
-        {/* Image Carousel Section */}
-        <div className="mb-4 h-[400px] w-full">
-          <ImageCarousel
-            images={articles
-              .sort(
-                (a, b) =>
-                  new Date(b.updated_at).getTime() -
-                  new Date(a.updated_at).getTime()
-              )
-              .slice(0, 7)
-              .map((article) => article.image)}
-            alt="Featured Articles"
-            autoSlide={true}
-            slideInterval={5000}
-            className="rounded-lg overflow-hidden"
-            titles={articles
-              .sort(
-                (a, b) =>
-                  new Date(b.updated_at).getTime() -
-                  new Date(a.updated_at).getTime()
-              )
-              .slice(0, 7)
-              .map((article) => article.title)}
-            dates={articles
-              .sort(
-                (a, b) =>
-                  new Date(b.updated_at).getTime() -
-                  new Date(a.updated_at).getTime()
-              )
-              .slice(0, 7)
-              .map((article) => article.updated_at)}
-          />
-        </div>
-
-        {/* Articles Grid */}
-        <Grid columns={4} gap="md">
-          {articles.slice(0, page * ITEMS_PER_PAGE).map((article) => (
-            <Card
-              key={article.id}
-              title={article.title}
-              description={article.content}
-              imageUrl={article.image}
-              link={`/articles/${article.id}`}
-              date={article.updated_at}
-              author={article.author_name}
-              category={article.category_name}
-              subcategory={article.subcategory_name}
-              tags={article.tag_names}
-              tagColors={article.tag_colors}
-              viewsCount={article.views_count}
-              likesCount={article.likes_count}
-              commentsCount={article.comments_count}
-              sharesCount={article.shares_count}
-              onViewClick={() => handleViewClick(article.id)}
-              onLikeClick={() => handleLikeClick(article.id)}
-              onCommentClick={() => handleCommentClick(article.id)}
-              onShareClick={() => handleShareClick(article.id)}
+      {/* Image Carousel Section */}
+      <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+        <div className="max-w-[1536px] mx-auto px-6">
+          <div className="mb-4 h-[400px] w-full">
+            <ImageCarousel
+              images={articles
+                .sort(
+                  (a, b) =>
+                    new Date(b.updated_at).getTime() -
+                    new Date(a.updated_at).getTime()
+                )
+                .slice(0, 7)
+                .map((article) => article.image)}
+              alt="Featured Articles"
+              autoSlide={true}
+              slideInterval={5000}
+              className="rounded-lg overflow-hidden"
+              titles={articles
+                .sort(
+                  (a, b) =>
+                    new Date(b.updated_at).getTime() -
+                    new Date(a.updated_at).getTime()
+                )
+                .slice(0, 7)
+                .map((article) => article.title)}
+              dates={articles
+                .sort(
+                  (a, b) =>
+                    new Date(b.updated_at).getTime() -
+                    new Date(a.updated_at).getTime()
+                )
+                .slice(0, 7)
+                .map((article) => article.updated_at)}
             />
-          ))}
-        </Grid>
-
-        {/* Load More Button */}
-        {hasMore && articles.length > 0 && (
-          <div className="flex justify-center mt-8">
-            <button
-              onClick={handleLoadMore}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              disabled={isLoading}
-            >
-              {isLoading ? "Loading..." : "Load More"}
-            </button>
           </div>
-        )}
+        </div>
       </div>
+
+      {/* Articles Grid */}
+      <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+        <div className="max-w-[1536px] mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+            {articles.slice(0, page * ITEMS_PER_PAGE).map((article) => (
+              <Card
+                key={article.id}
+                title={article.title}
+                description={article.content}
+                imageUrl={article.image}
+                link={`/articles/${article.id}`}
+                date={article.updated_at}
+                author={article.author_name}
+                category={article.category_name}
+                subcategory={article.subcategory_name}
+                tags={article.tag_names}
+                tagColors={article.tag_colors}
+                viewsCount={article.views_count}
+                likesCount={article.likes_count}
+                commentsCount={article.comments_count}
+                sharesCount={article.shares_count}
+                onViewClick={() => handleViewClick(article.id)}
+                onLikeClick={() => handleLikeClick(article.id)}
+                onCommentClick={() => handleCommentClick(article.id)}
+                onShareClick={() => handleShareClick(article.id)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Load More Button */}
+      {hasMore && articles.length > 0 && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={handleLoadMore}
+            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            disabled={isLoading}
+          >
+            {isLoading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
     </>
   );
 }

@@ -120,33 +120,35 @@ export default function CategoryArticles({ categoryId }: Props) {
   }
 
   return (
-    <div className="w-full max-w-[1536px] mx-auto px-4 mt-10">
+    <>
       {/* Header Section */}
-      <div className="mb-8">
-        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4 sm:p-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-100">
-              <FolderIcon className="h-6 w-6 text-indigo-600" />
-            </div>
-            <div className="flex-1 w-full">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                {categoryInfo?.name || "Articles"}
-              </h1>
-              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
-                <div className="flex items-center space-x-2">
-                  <FolderIcon className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700">
-                    Category:
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {categoryInfo?.name || "Uncategorized"}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-700">
-                    Total Articles:
-                  </span>
-                  <span className="text-sm text-gray-600">{totalCount}</span>
+      <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] m-8">
+        <div className="max-w-[1536px] mx-auto px-6">
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4 sm:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-100">
+                <FolderIcon className="h-6 w-6 text-indigo-600" />
+              </div>
+              <div className="flex-1 w-full">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {categoryInfo?.name || "Articles"}
+                </h1>
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
+                  <div className="flex items-center space-x-2">
+                    <FolderIcon className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-700">
+                      Category:
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {categoryInfo?.name || "Uncategorized"}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      Total Articles:
+                    </span>
+                    <span className="text-sm text-gray-600">{totalCount}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -155,48 +157,50 @@ export default function CategoryArticles({ categoryId }: Props) {
       </div>
 
       {/* Articles Grid */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <Grid columns={5} gap="lg">
-          {articles.map((article) => (
-            <Card
-              key={article.id}
-              title={article.title}
-              description={article.content}
-              imageUrl={article.image || undefined}
-              link={`/articles/${article.id}`}
-              category={article.category_name || undefined}
-              subcategory={article.subcategory_name || undefined}
-              author={article.author_name || undefined}
-              date={article.published_at}
-              viewsCount={article.views_count}
-              likesCount={article.likes_count}
-              commentsCount={article.comments_count}
-              tags={article.tag_names}
-              tagColors={article.tag_colors}
-            />
-          ))}
-        </Grid>
-
-        {/* Load More Button */}
-        {hasMore && (
-          <div className="mt-8 text-center">
-            <button
-              onClick={handleLoadMore}
-              disabled={isLoading}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <>
-                  <LoadingSpinner />
-                  <span className="ml-2">Loading...</span>
-                </>
-              ) : (
-                "Load More"
-              )}
-            </button>
+      <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+        <div className="max-w-[1536px] mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-6">
+            {articles.map((article) => (
+              <Card
+                key={article.id}
+                title={article.title}
+                description={article.content}
+                imageUrl={article.image || undefined}
+                link={`/articles/${article.id}`}
+                category={article.category_name || undefined}
+                subcategory={article.subcategory_name || undefined}
+                author={article.author_name || undefined}
+                date={article.published_at}
+                viewsCount={article.views_count}
+                likesCount={article.likes_count}
+                commentsCount={article.comments_count}
+                tags={article.tag_names}
+                tagColors={article.tag_colors}
+              />
+            ))}
           </div>
-        )}
+
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="m-8 text-center">
+              <button
+                onClick={handleLoadMore}
+                disabled={isLoading}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner />
+                    <span className="ml-2">Loading...</span>
+                  </>
+                ) : (
+                  "Load More"
+                )}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
