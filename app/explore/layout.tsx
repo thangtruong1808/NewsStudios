@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     ],
   },
   other: {
-    'appId': '692383700367966',
+    'fb:app_id': '692383700367966',
     'article:author': 'thang-truong',
     'article:published_time': new Date().toISOString(),
   },
