@@ -23,7 +23,9 @@ export const metadata: Metadata = {
   },
   other: {
     'fb:app_id': '692383700367966',
+    'author': 'thang-truong',
     'article:author': 'thang-truong',
+    'published_time': new Date().toISOString(),
     'article:published_time': new Date().toISOString(),
   },
   twitter: {
