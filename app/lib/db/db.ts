@@ -124,19 +124,20 @@ export async function query<T = unknown>(
  * Execute a callback within a transaction, committing when it succeeds.
  */
 export async function transaction<T>(
+  // eslint-disable-next-line no-unused-vars
   callback: (connection: mysql.PoolConnection) => Promise<T>
 ): Promise<T> {
-  const connection = await pool.getConnection();
+  const dbConnection = await pool.getConnection();
   try {
-    await connection.beginTransaction();
-    const result = await callback(connection);
-    await connection.commit();
+    await dbConnection.beginTransaction();
+    const result = await callback(dbConnection);
+    await dbConnection.commit();
     return result;
   } catch (error) {
-    await connection.rollback();
+    await dbConnection.rollback();
     throw error;
   } finally {
-    connection.release();
+    dbConnection.release();
   }
 }
 
@@ -146,8 +147,8 @@ export async function transaction<T>(
  */
 export async function getConnection() {
   try {
-    const connection = await pool.getConnection();
-    return { connection, error: null };
+    const dbConnection = await pool.getConnection();
+    return { connection: dbConnection, error: null };
   } catch (error) {
     return {
       connection: null,

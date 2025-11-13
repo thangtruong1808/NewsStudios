@@ -1,6 +1,5 @@
-import type { _User } from "next-auth";
-import type { _Session } from "next-auth";
-import type { _JWT } from "next-auth/jwt";
+/* eslint-disable no-unused-vars */
+import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface User {

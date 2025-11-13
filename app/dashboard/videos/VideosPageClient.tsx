@@ -150,7 +150,10 @@ export default function VideosPageClient() {
 
       {/* Search bar for filtering videos */}
       <div className="mt-6 space-y-4">
-        <VideosSearch onSearch={handleSearch} defaultValue={searchQuery} />
+        <VideosSearch
+          onSearch={({ term }) => handleSearch(term)}
+          defaultValue={searchQuery}
+        />
         <div className="flex justify-end">
           <button
             onClick={handleRefresh}

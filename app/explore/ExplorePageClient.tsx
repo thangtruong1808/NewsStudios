@@ -7,15 +7,15 @@ import ExploreContent from "../components/front-end/explore/ExploreContent";
 
 function ExploreContentWrapper() {
   const searchParams = useSearchParams();
-  const type = searchParams.get("type");
-  const tag = searchParams.get("tag");
   const subcategory = searchParams.get("subcategoryId");
   const categoryId = searchParams.get("categoryId");
 
+  // Prioritize subcategory view when query parameter provided.
   if (subcategory) {
     return <ExploreContent subcategory={subcategory} />;
   }
 
+  // Fallback to category view.
   if (categoryId) {
     return <ExploreContent categoryId={categoryId} />;
   }

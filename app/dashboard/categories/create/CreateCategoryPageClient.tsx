@@ -1,12 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { FolderIcon } from "@heroicons/react/24/outline";
 import CategoryForm from "@/app/components/dashboard/categories/CategoryForm";
 
+// Description: Dashboard page wrapper for creating new categories via shared form.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function CreateCategoryPageClient() {
-  const router = useRouter();
-
   return (
     <div className="bg-gray-50">
       <div className="bg-white rounded-lg shadow-md overflow-hidden">

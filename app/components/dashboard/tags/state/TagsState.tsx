@@ -24,7 +24,7 @@ export interface TagsStateProps {
     sortDirection: "asc" | "desc";
     searchQuery: string;
     handlePageChange: ({ page }: { page: number }) => void;
-    handleSort: ({ field }: { field: keyof Tag }) => void;
+    handleSort: ({ field }: { field: keyof Tag | "sequence" }) => void;
     handleEdit: ({ item }: { item: Tag }) => void;
     handleDelete: ({ item }: { item: Tag }) => void;
     handleSearch: ({ term }: { term: string }) => void;
@@ -108,7 +108,7 @@ export default function TagsState({ children }: TagsStateProps) {
     router.push(`/dashboard/tags?${params.toString()}`);
   };
 
-  const handleSort = ({ field }: { field: keyof Tag }) => {
+  const handleSort = ({ field }: { field: keyof Tag | "sequence" }) => {
     if (field === "sequence") return;
     setIsSorting(true);
     const newDirection =

@@ -55,9 +55,7 @@ export default function SubcategoriesTable({
     sequence: (currentPage - 1) * itemsPerPage + index + 1,
   }));
 
-  const columns: Column<
-    SubCategory & { sequence?: number; actions?: never }
-  >[] = [
+  const columns: Column<SubCategory & { sequence: number }>[] = [
     {
       field: "sequence",
       label: "#",
@@ -153,7 +151,7 @@ export default function SubcategoriesTable({
   // Only add the actions column if the user is an admin
   if (isAdmin) {
     columns.push({
-      field: "actions",
+      field: "id",
       label: "Actions",
       sortable: false,
       render: ({ row: subcategory }) => (
@@ -190,7 +188,7 @@ export default function SubcategoriesTable({
         sortField={sortField}
         sortDirection={sortDirection}
         onSort={({ field }) => {
-          if (field === "sequence" || field === "actions") return;
+          if (field === "sequence") return;
           onSort(field as keyof SubCategory);
         }}
         onPageChange={({ page }) => onPageChange(page)}

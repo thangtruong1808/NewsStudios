@@ -1,28 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
-import { RowDataPacket } from "mysql2";
 import { Tag, TagFormData } from "../definition";
 
 type TagCountRow = {
   total_count: number;
 } & Record<string, unknown>;
-
-interface QueryResult {
-  data?: TagRow[];
-  error?: string;
-  insertId?: number;
-}
-
-interface TagRow {
-  id: number;
-  name: string;
-  description: string | null;
-  color: string | null;
-  created_at: string;
-  updated_at: string;
-}
 
 interface GetTagsParams {
   page?: number;
@@ -248,8 +231,10 @@ export async function getTagById(id: number) {
       error: null,
     };
   } catch (error) {
-    console.error("Error fetching tag:", error);
-    return { data: null, error: "Failed to fetch tag" };
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : "Failed to fetch tag",
+    };
   }
 }
 
@@ -270,7 +255,6 @@ export async function createTag(tagData: TagFormData) {
     );
 
     if (result.error) {
-      console.error("Error creating tag:", result.error);
       return { data: null, error: result.error };
     }
 
@@ -287,8 +271,10 @@ export async function createTag(tagData: TagFormData) {
 
     return { data: null, error: "Failed to create tag" };
   } catch (error) {
-    console.error("Error creating tag:", error);
-    return { data: null, error: "Failed to create tag" };
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : "Failed to create tag",
+    };
   }
 }
 
@@ -313,8 +299,10 @@ export async function updateTag(id: number, tagData: TagFormData) {
     const { data: tag } = await getTagById(id);
     return { data: tag, error: null };
   } catch (error) {
-    console.error("Error updating tag:", error);
-    return { data: null, error: "Failed to update Tag" };
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : "Failed to update tag",
+    };
   }
 }
 
@@ -451,9 +439,9 @@ export async function searchTags(
       totalPages,
     };
   } catch (error) {
-    console.error("Error in searchTags:", error);
     return {
-      error: "Failed to search tags",
+      error:
+        error instanceof Error ? error.message : "Failed to search tags",
       data: [],
       totalCount: 0,
       start: 0,
@@ -496,10 +484,10 @@ export async function getAllTags() {
       error: null,
     };
   } catch (error) {
-    console.error("Database Error:", error);
     return {
       data: null,
-      error: "Failed to fetch tags.",
+      error:
+        error instanceof Error ? error.message : "Failed to fetch tags.",
     };
   }
 }
@@ -540,10 +528,10 @@ export async function getTagsBySubcategory(subcategoryId: number) {
       error: null,
     };
   } catch (error) {
-    console.error("Database Error:", error);
     return {
       data: null,
-      error: "Failed to fetch tags.",
+      error:
+        error instanceof Error ? error.message : "Failed to fetch tags.",
     };
   }
 }

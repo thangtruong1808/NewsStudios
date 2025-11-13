@@ -47,5 +47,3 @@ export default function ArticleSelect({
     </div>
   );
 }
-"use client";
-

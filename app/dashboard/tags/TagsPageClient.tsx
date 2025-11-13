@@ -6,55 +6,48 @@ import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton
 import TagsHeader from "@/app/components/dashboard/tags/header/TagsHeader";
 import TagsState from "@/app/components/dashboard/tags/state/TagsState";
 import { formatDateToLocal } from "@/app/lib/utils/dateFormatter";
+import type { Column } from "@/app/components/dashboard/shared/table/TableTypes";
+import type { Tag } from "@/app/lib/definition";
 
 /**
  * Props interface for TagsPageClient component
  * Defines the expected search parameters for filtering and sorting
  */
-interface TagsPageClientProps {
-  searchParams?: {
-    page?: string;
-    search?: string;
-    sortField?: string;
-    sortDirection?: "asc" | "desc";
-    query?: string;
-    limit?: string;
-  };
-}
-
-/**
- * TagsPageClient Component
- * Main page for managing tags with features for:
- * - Pagination and sorting
- * - Search functionality
- * - CRUD operations
- * - Loading states
- * - Error handling
- */
-export default function TagsPageClient({ searchParams }: TagsPageClientProps = {}) {
-  // Table column configuration for tag data display
-  const columns = [
+// Description: Dashboard page listing tags with search, pagination, and admin controls.
+// Data created: 2024-11-13
+// Author: thangtruong
+export default function TagsPageClient() {
+  // Skeleton column configuration mirroring table structure
+  const columns: Column<Tag & { sequence: number }>[] = [
+    {
+      field: "sequence",
+      label: "#",
+      sortable: false,
+      render: ({ value }) => String(value ?? ""),
+    },
     {
       field: "name",
       label: "Name",
       sortable: true,
+      render: ({ value }) => String(value ?? ""),
     },
     {
       field: "description",
       label: "Description",
       sortable: true,
+      render: ({ value }) => String(value ?? ""),
     },
     {
       field: "created_at",
       label: "Created At",
       sortable: true,
-      render: (value: string) => formatDateToLocal(value),
+      render: ({ value }) => formatDateToLocal(String(value ?? "")),
     },
     {
       field: "updated_at",
       label: "Updated At",
       sortable: true,
-      render: (value: string) => formatDateToLocal(value),
+      render: ({ value }) => formatDateToLocal(String(value ?? "")),
     },
   ];
 

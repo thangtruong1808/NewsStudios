@@ -66,5 +66,3 @@ export default function VideosSearch({
     </div>
   );
 }
-"use client";
-

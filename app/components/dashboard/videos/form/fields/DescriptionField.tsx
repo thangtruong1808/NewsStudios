@@ -38,5 +38,3 @@ export default function DescriptionField({
     </div>
   );
 }
-"use client";
-

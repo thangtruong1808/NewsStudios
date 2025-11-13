@@ -2,12 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
-import { RowDataPacket } from "mysql2";
+import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { Video } from "../definition";
-import mysql from "mysql2/promise";
 import { uploadToFTP } from "../utils/ftp";
 import { deleteVideoFromCloudinary } from "../utils/cloudinaryServerUtils";
-import pool from "../db/query";
+import { transaction } from "../db/query";
 
 type VideoCountRow = {
   total: number;
@@ -189,9 +188,9 @@ export async function updateVideo(
   data: Partial<Video>
 ): Promise<boolean> {
   try {
-    return await pool.transaction(async (client) => {
+    return transaction(async (client) => {
       // Get the old video details first
-      const [oldVideo] = await client.query<mysql.RowDataPacket[]>(
+      const [oldVideo] = await client.query<RowDataPacket[]>(
         "SELECT * FROM Videos WHERE id = ?",
         [id]
       );
@@ -203,12 +202,12 @@ export async function updateVideo(
       const oldVideoData = oldVideo[0] as Video;
 
       // Update the video in the database first
-      const [result] = await client.query(
+      const [result] = await client.query<ResultSetHeader>(
         "UPDATE Videos SET article_id = ?, video_url = ?, description = ? WHERE id = ?",
         [data.article_id, data.video_url || "", data.description || null, id]
       );
 
-      if (!result || (result as mysql.ResultSetHeader).affectedRows === 0) {
+      if (!result || result.affectedRows === 0) {
         throw new Error("Failed to update video");
       }
 
@@ -235,7 +234,7 @@ export async function updateVideo(
 
 export async function deleteVideo(id: number) {
   try {
-    return await pool.transaction(async (client) => {
+    return transaction(async (client) => {
       // First, get the video details before deleting
       const [videoResult] = await client.execute(
         "SELECT article_id, video_url FROM Videos WHERE id = ?",

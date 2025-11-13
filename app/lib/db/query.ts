@@ -1,5 +1,5 @@
 import mysql from "mysql2/promise";
-import pool, { getConnection } from "./db";
+import { getConnection } from "./db";
 
 // Define types for database clients
 export type QueryClient = mysql.Pool | mysql.PoolConnection;
@@ -36,9 +36,13 @@ export async function query<T = any>(
 
 // Transaction function with proper typing
 export async function transaction<T>(
-  callback: (client: TransactionClient) => Promise<T>
+  // eslint-disable-next-line no-unused-vars
+  callback: (connection: TransactionClient) => Promise<T>
 ): Promise<T> {
-  const connection = await pool.getConnection();
+  const { connection, error } = await getConnection();
+  if (!connection) {
+    throw new Error(error ?? "Failed to obtain database connection");
+  }
   try {
     await connection.beginTransaction();
     const result = await callback(connection);

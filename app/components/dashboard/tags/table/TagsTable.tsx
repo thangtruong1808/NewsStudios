@@ -20,7 +20,7 @@ interface TagsTableProps {
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: ({ field }: { field: keyof Tag }) => void;
+  onSort: ({ field }: { field: keyof Tag | "sequence" }) => void;
   onPageChange: ({ page }: { page: number }) => void;
   onEdit: ({ item }: { item: Tag }) => void;
   onDelete: ({ item }: { item: Tag }) => void;
@@ -53,7 +53,7 @@ export default function TagsTable({
   const isAdmin = session?.user?.role === "admin";
 
   // Define table columns with sorting and rendering options
-  const baseColumns: Column<Tag & { sequence?: number }>[] = [
+  const baseColumns: Column<Tag & { sequence: number }>[] = [
     {
       field: "sequence",
       label: "#",
@@ -201,19 +201,19 @@ export default function TagsTable({
     ? [
         ...baseColumns,
         {
-          field: "actions" as keyof (Tag & { sequence?: number }),
+          field: "id" as keyof (Tag & { sequence: number }),
           label: "Actions",
           sortable: false,
-          render: ({ row: tag }) => (
+          render: ({ row }: { row: Tag & { sequence: number } }) => (
             <div className="flex space-x-2">
               <button
-                onClick={() => onEdit({ item: tag })}
+                onClick={() => onEdit({ item: row })}
                 className="text-blue-600 hover:text-blue-800"
               >
                 <PencilIcon className="h-5 w-5" />
               </button>
               <button
-                onClick={() => onDelete({ item: tag })}
+                onClick={() => onDelete({ item: row })}
                 disabled={isDeleting}
                 className="text-red-600 hover:text-red-800 disabled:opacity-50"
               >

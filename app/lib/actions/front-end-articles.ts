@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
 import { Article } from "../definition";
 

@@ -24,21 +24,18 @@ export function getArticlesTableColumns({
   onEdit,
   onDelete,
   isAdmin,
-}: ArticlesTableColumnsProps): Column<
-  Article & { sequence?: number; actions?: never }
->[] {
+}: ArticlesTableColumnsProps): Column<Article & { sequence: number }>[] {
   // Base column definitions
-  const baseColumns: Column<
-    Article & { sequence?: number; actions?: never }
-  >[] = [
+  const baseColumns: Column<Article & { sequence: number }>[] = [
       {
         field: "sequence",
         label: "#",
         sortable: false,
-        render: ({ row }) => {
-          const index = row.sequence || 0;
-          return String(index + 1);
-        },
+      render: ({ value }) => (
+        <span className="text-sm text-gray-500">
+          {typeof value === "number" ? value : Number(value ?? 0)}
+        </span>
+      ),
       },
       {
         field: "title",
@@ -135,10 +132,10 @@ export function getArticlesTableColumns({
   // Conditional actions column
   if (isAdmin) {
     baseColumns.push({
-      field: "actions",
+      field: "id" as keyof (Article & { sequence: number }),
       label: "Actions",
       sortable: false,
-      render: ({ row }) => (
+      render: ({ row }: { row: Article & { sequence: number } }) => (
         <div className="flex items-center space-x-2">
           <button
             onClick={() => onEdit({ item: row })}

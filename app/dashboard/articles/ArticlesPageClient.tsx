@@ -7,31 +7,15 @@ import ArticlesHeader from "@/app/components/dashboard/articles/header/ArticlesH
 import { getArticlesTableColumns } from "@/app/components/dashboard/articles/table/ArticlesTableColumns";
 import { useArticles } from "@/app/components/dashboard/articles/hooks/useArticles";
 import { useSession } from "next-auth/react";
+import type { Article } from "@/app/lib/definition";
 
 /**
  * Props interface for the Articles page component
  */
-interface ArticlesPageProps {
-  searchParams?: {
-    page?: string;
-    search?: string;
-    sortField?: string;
-    sortDirection?: "asc" | "desc";
-    query?: string;
-    limit?: string;
-  };
-}
-
-/**
- * ArticlesPageClient Component
- * Main page for managing articles with features for:
- * - Pagination and sorting
- * - Search functionality
- * - CRUD operations
- * - Loading states
- * - Error handling
- */
-export default function ArticlesPageClient({ searchParams }: ArticlesPageProps = {}) {
+// Description: Dashboard page listing articles with search, sorting, and admin actions.
+// Data created: 2024-11-13
+// Author: thangtruong
+export default function ArticlesPageClient() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
 
@@ -59,10 +43,14 @@ export default function ArticlesPageClient({ searchParams }: ArticlesPageProps =
   // Get table columns configuration
   const columns = getArticlesTableColumns({
     isDeleting,
-    onEdit: handleEdit,
-    onDelete: handleDelete,
+    onEdit: ({ item }) => handleEdit(item),
+    onDelete: ({ item }) => handleDelete(item),
     isAdmin,
   });
+  const augmentedArticles = articles.map((article, index) => ({
+    ...article,
+    sequence: (currentPage - 1) * itemsPerPage + index + 1,
+  }));
 
   // Loading state with skeleton UI
   if (isLoading && !isSearching && !isSorting) {
@@ -100,7 +88,7 @@ export default function ArticlesPageClient({ searchParams }: ArticlesPageProps =
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
             <Table
-              data={articles}
+              data={augmentedArticles}
               columns={columns}
               currentPage={currentPage}
               totalPages={totalPages}
@@ -108,14 +96,19 @@ export default function ArticlesPageClient({ searchParams }: ArticlesPageProps =
               totalItems={totalItems}
               sortField={sortField}
               sortDirection={sortDirection}
-              onSort={handleSort}
-              onPageChange={handlePageChange}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+              onSort={({ field }) => {
+                if (field === "sequence") return;
+                handleSort(field as keyof Article);
+              }}
+              onPageChange={({ page }) => handlePageChange(page)}
+              onEdit={({ item }) => handleEdit(item)}
+              onDelete={({ item }) => handleDelete(item)}
               isDeleting={isDeleting}
               searchQuery={searchQuery}
               isLoading={isSearching || isSorting}
-              onItemsPerPageChange={handleItemsPerPageChange}
+              onItemsPerPageChange={({ limit }) =>
+                handleItemsPerPageChange(limit)
+              }
             />
           </div>
         </div>

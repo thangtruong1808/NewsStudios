@@ -17,12 +17,14 @@ interface BaseFormInputProps {
 }
 
 interface StringChangeFormInputProps extends BaseFormInputProps {
+  // eslint-disable-next-line no-unused-vars
   onChange: (value: string) => void;
   isReactHookForm?: false;
 }
 
 interface EventChangeFormInputProps extends BaseFormInputProps {
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  // eslint-disable-next-line no-unused-vars
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   isReactHookForm: true;
 }
 

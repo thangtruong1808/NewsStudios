@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Session } from "next-auth";
 import clsx from "clsx";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import SideNav from "../components/dashboard/SideNav";
@@ -9,12 +8,13 @@ import { fontClasses } from "../components/fonts";
 
 interface DashboardClientProps {
   children: React.ReactNode;
-  session: Session;
 }
 
+// Description: Dashboard layout wrapper providing responsive navigation shell.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function DashboardClient({
   children,
-  session,
 }: DashboardClientProps) {
   const [isSideNavCollapsed, setIsSideNavCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

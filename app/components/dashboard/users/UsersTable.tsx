@@ -21,7 +21,7 @@ interface UsersTableProps {
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: ({ field }: { field: keyof User }) => void;
+  onSort: ({ field }: { field: keyof User | "sequence" }) => void;
   onPageChange: ({ page }: { page: number }) => void;
   onEdit: ({ item }: { item: User }) => void;
   onDelete: ({ item }: { item: User }) => void;
@@ -53,7 +53,7 @@ export default function UsersTable({
   const isAdmin = session?.user?.role === "admin";
 
   // Configure table columns and render helpers.
-  const columns: Column<User & { sequence?: number; actions?: never }>[] = [
+  const columns: Column<User & { sequence: number }>[] = [
     // Sequence number column for row numbering
     {
       field: "sequence",
@@ -191,34 +191,31 @@ export default function UsersTable({
     // Actions column with Edit and Delete buttons (only for admin)
     ...(isAdmin
       ? [
-        {
-          field: "actions" as keyof (User & {
-            sequence?: number;
-            actions?: never;
-          }),
-          label: "Actions",
-          sortable: false,
-          render: ({ row: user }) => (
-            <div className="flex justify-start items-start space-x-2">
-              <button
-                onClick={() => onEdit({ item: user })}
-                className="inline-flex items-center gap-1 rounded border border-blue-500 px-2 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-              >
-                <PencilIcon className="h-5 w-5" />
-                Edit
-              </button>
-              <button
-                onClick={() => onDelete({ item: user })}
-                disabled={isDeleting}
-                className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
-              >
-                <TrashIcon className="h-5 w-5" />
-                Delete
-              </button>
-            </div>
-          ),
-        },
-      ]
+          {
+            field: "id" as keyof (User & { sequence: number }),
+            label: "Actions",
+            sortable: false,
+            render: ({ row }: { row: User & { sequence: number } }) => (
+              <div className="flex justify-start items-start space-x-2">
+                <button
+                  onClick={() => onEdit({ item: row })}
+                  className="inline-flex items-center gap-1 rounded border border-blue-500 px-2 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+                >
+                  <PencilIcon className="h-5 w-5" />
+                  Edit
+                </button>
+                <button
+                  onClick={() => onDelete({ item: row })}
+                  disabled={isDeleting}
+                  className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+                >
+                  <TrashIcon className="h-5 w-5" />
+                  Delete
+                </button>
+              </div>
+            ),
+          },
+        ]
       : []),
   ];
 
@@ -238,7 +235,10 @@ export default function UsersTable({
         sortField={sortField}
         sortDirection={sortDirection}
         onSort={({ field }) => {
-          if (field === "sequence" || field === "actions") return;
+          if (field === "sequence") {
+            onSort({ field });
+            return;
+          }
           onSort({ field: field as keyof User });
         }}
         onPageChange={({ page }) => onPageChange({ page })}

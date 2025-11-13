@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { query, transaction } from "../db/db";
-import { RowDataPacket, ResultSetHeader } from "mysql2";
+import { RowDataPacket } from "mysql2";
 import { Image } from "../definition";
 
 interface ImageRow extends RowDataPacket {
@@ -56,7 +56,7 @@ export async function createImage(data: {
   article_id?: number | null;
 }) {
   try {
-    const result = await transaction(async (connection) => {
+    const insertResult = await transaction(async (connection) => {
       const [rows] = await connection.execute(
         `INSERT INTO Images (
           image_url,
@@ -85,10 +85,12 @@ export async function createImage(data: {
     });
 
     revalidatePath("/dashboard");
-    return { success: true, id: (result as any).insertId };
+    return { success: true, id: (insertResult as any).insertId };
   } catch (error) {
-    console.error("Error creating image:", error);
-    return { success: false, error: "Failed to create image" };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to create image",
+    };
   }
 }
 
@@ -185,15 +187,17 @@ export async function getImageById(id: number) {
       error: null,
     };
   } catch (error) {
-    console.error("Error fetching image:", error);
-    return { data: null, error: "Failed to fetch image" };
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : "Failed to fetch image",
+    };
   }
 }
 
 // Function to update an image
 export async function updateImage(id: number, data: Partial<Image>) {
   try {
-    const result = await transaction(async (connection) => {
+    await transaction(async (connection) => {
       // First, get the current image data
       const [currentImage] = await connection.execute(
         "SELECT * FROM Images WHERE id = ?",
@@ -275,7 +279,6 @@ export async function updateImage(id: number, data: Partial<Image>) {
     revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
-    console.error("Error updating image:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to update image",
@@ -286,7 +289,7 @@ export async function updateImage(id: number, data: Partial<Image>) {
 // Function to delete an image
 export async function deleteImage(id: number) {
   try {
-    const result = await transaction(async (connection) => {
+    const deleteResult = await transaction(async (connection) => {
       const [rows] = await connection.execute(
         `DELETE FROM Images WHERE id = ?`,
         [id]
@@ -295,10 +298,16 @@ export async function deleteImage(id: number) {
     });
 
     revalidatePath("/dashboard");
-    return { success: true };
+    const affectedRows = (deleteResult as any).affectedRows ?? 0;
+    return {
+      success: affectedRows > 0,
+      error: affectedRows > 0 ? null : "Image not found",
+    };
   } catch (error) {
-    console.error("Error deleting image:", error);
-    return { success: false, error: "Failed to delete image" };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete image",
+    };
   }
 }
 
@@ -322,10 +331,12 @@ export async function getImageData(filename: string): Promise<{
       useDirectUrl: true,
     };
   } catch (error) {
-    console.error(`Error preparing image data for ${filename}:`, error);
     return {
       data: null,
-      error: "Failed to prepare image data",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to prepare image data",
       useDirectUrl: false,
     };
   }
@@ -349,8 +360,10 @@ export async function getImagesByEntity(
 
     return { data: result.data || [], error: null };
   } catch (error) {
-    console.error("Error fetching images:", error);
-    return { data: null, error: "Failed to fetch images" };
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : "Failed to fetch images",
+    };
   }
 }
 
@@ -374,8 +387,10 @@ export async function getAllImages(type?: string) {
 
     return { data: result.data || [], error: null };
   } catch (error) {
-    console.error("Error fetching all images:", error);
-    return { data: null, error: "Failed to fetch images" };
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : "Failed to fetch images",
+    };
   }
 }
 

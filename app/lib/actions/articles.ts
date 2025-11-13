@@ -1,11 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
 import { RowDataPacket } from "mysql2";
 import { Article } from "../definition";
-import mysql from "mysql2/promise";
-import pool from "../db/db";
+import { transaction } from "../db/db";
 
 export interface ArticleWithJoins extends Article, RowDataPacket {
   category_name?: string;
@@ -226,15 +224,8 @@ export async function getArticleById(id: number) {
   return { data: null, error: "Article not found" };
 }
 
-type CreateArticleData = Omit<Article, "id" | "published_at" | "updated_at"> & {
-  tag_ids?: number[];
-};
-
 export async function createArticle(article: Article, tag_ids: number[]) {
-  const connection = await pool.getConnection();
-  try {
-    await connection.beginTransaction();
-
+  return transaction(async (connection) => {
     // Insert article
     const [articleResult] = await connection.execute(
       `INSERT INTO Articles (
@@ -291,14 +282,8 @@ export async function createArticle(article: Article, tag_ids: number[]) {
       );
     }
 
-    await connection.commit();
     return newArticleId;
-  } catch (error) {
-    await connection.rollback();
-    throw error;
-  } finally {
-    connection.release();
-  }
+  });
 }
 
 export async function updateArticle(
@@ -306,10 +291,7 @@ export async function updateArticle(
   article: Partial<Article>,
   tag_ids?: number[]
 ) {
-  const connection = await pool.getConnection();
-  try {
-    await connection.beginTransaction();
-
+  return transaction(async (connection) => {
     // Filter out non-database fields and undefined values
     const validFields = [
       "title",
@@ -346,13 +328,6 @@ export async function updateArticle(
     // Handle image update
     if (article.image !== undefined) {
       if (article.image) {
-        // Get the previous main image URL from Articles table
-        const [previousImage] = await connection.execute(
-          "SELECT image FROM Articles WHERE id = ?",
-          [id]
-        );
-        const previousImageUrl = (previousImage as any[])[0]?.image;
-
         // Update the main article image in the Articles table
         await connection.execute("UPDATE Articles SET image = ? WHERE id = ?", [
           article.image,
@@ -465,8 +440,6 @@ export async function updateArticle(
       }
     }
 
-    await connection.commit();
-
     // Get the updated article
     const [updatedArticle] = await connection.execute(
       "SELECT * FROM Articles WHERE id = ?",
@@ -474,19 +447,11 @@ export async function updateArticle(
     );
 
     return (updatedArticle as any[])[0];
-  } catch (error) {
-    await connection.rollback();
-    throw error;
-  } finally {
-    connection.release();
-  }
+  });
 }
 
 export async function deleteArticle(id: number) {
-  const connection = await pool.getConnection();
-  try {
-    await connection.beginTransaction();
-
+  return transaction(async (connection) => {
     // Delete article tags first
     await connection.execute("DELETE FROM Article_Tags WHERE article_id = ?", [
       id,
@@ -504,12 +469,6 @@ export async function deleteArticle(id: number) {
       [id]
     );
 
-    await connection.commit();
     return (result as any).affectedRows > 0;
-  } catch (error) {
-    await connection.rollback();
-    throw error;
-  } finally {
-    connection.release();
-  }
+  });
 }

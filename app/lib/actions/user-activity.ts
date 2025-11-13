@@ -1,11 +1,4 @@
-import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
-
-interface UserActivity {
-  user_id: number;
-  last_activity: string;
-  activity_type: string;
-}
 
 interface ActiveUsersResult {
   active_users: number;
