@@ -2,6 +2,20 @@
 
 import { query } from "../db/db";
 
+type HighlightArticleRow = {
+  total_count: number;
+  tag_names?: string | null;
+  tag_ids?: string | null;
+  tag_colors?: string | null;
+  likes_count?: number | null;
+  comments_count?: number | null;
+  is_featured?: number | boolean | null;
+  is_trending?: number | boolean | null;
+  headline_priority?: number | null;
+  published_at: string | Date;
+  updated_at: string | Date;
+} & Record<string, unknown>;
+
 export async function getHighlightArticles({
   page = 1,
   itemsPerPage = 6,
@@ -12,7 +26,7 @@ export async function getHighlightArticles({
   try {
     const offset = (page - 1) * itemsPerPage;
 
-    const { data, error } = await query(
+    const { data, error } = await query<HighlightArticleRow>(
       `
       SELECT 
         a.*,
@@ -39,35 +53,34 @@ export async function getHighlightArticles({
       [itemsPerPage, offset]
     );
 
+    const rows = Array.isArray(data) ? (data as HighlightArticleRow[]) : [];
+
     if (error) {
-      console.error("Error in getHighlightArticles:", error);
       return { data: [], error, totalCount: 0 };
     }
 
-    // Transform the data to ensure all required fields are present
-    const articles = Array.isArray(data)
-      ? data.map((article: any) => ({
-          ...article,
-          published_at: new Date(article.published_at),
-          updated_at: new Date(article.updated_at),
-          is_featured: Boolean(article.is_featured),
-          is_trending: Boolean(article.is_trending),
-          headline_priority: Number(article.headline_priority),
-          tag_names: article.tag_names ? article.tag_names.split(",") : [],
-          tag_ids: article.tag_ids
-            ? article.tag_ids.split(",").map(Number)
-            : [],
-          tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
-          likes_count: Number(article.likes_count) || 0,
-          comments_count: Number(article.comments_count) || 0,
-          views_count: 0, // Set default value since Views table doesn't exist
-        }))
-      : [];
+    if (rows.length === 0) {
+      return { data: [], error: null, totalCount: 0 };
+    }
 
-    const totalCount = data?.[0]?.total_count || 0;
+    const articles = rows.map((article) => ({
+      ...article,
+      published_at: new Date(article.published_at),
+      updated_at: new Date(article.updated_at),
+      is_featured: Boolean(article.is_featured),
+      is_trending: Boolean(article.is_trending),
+      headline_priority: Number(article.headline_priority ?? 0),
+      tag_names: article.tag_names ? article.tag_names.split(",") : [],
+      tag_ids: article.tag_ids ? article.tag_ids.split(",").map(Number) : [],
+      tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
+      likes_count: Number(article.likes_count ?? 0),
+      comments_count: Number(article.comments_count ?? 0),
+      views_count: 0,
+    }));
+
+    const totalCount = Number(rows[0].total_count ?? 0);
     return { data: articles, error: null, totalCount };
-  } catch (error) {
-    console.error("Error in getHighlightArticles:", error);
+  } catch (_error) {
     return {
       data: [],
       error: "Failed to fetch highlight articles",

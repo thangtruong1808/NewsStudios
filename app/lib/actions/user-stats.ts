@@ -5,6 +5,10 @@ interface UserStats {
   activeUsersTrend: number;
 }
 
+type ActiveUsersRow = {
+  status: number;
+} & Record<string, unknown>;
+
 export async function getActiveUsersStats(): Promise<{
   data: UserStats | null;
   error: string | null;
@@ -17,7 +21,7 @@ export async function getActiveUsersStats(): Promise<{
       WHERE status = 'active'
     `;
 
-    const result = await query(activeUsersQuery);
+    const result = await query<ActiveUsersRow>(activeUsersQuery);
 
     if (result.error) {
       const errorMessage = result.error;
@@ -27,7 +31,10 @@ export async function getActiveUsersStats(): Promise<{
     }
 
     // Map the data to match the expected structure
-    const activeUsers = result.data?.[0]?.status || 0;
+    const rows = Array.isArray(result.data)
+      ? (result.data as ActiveUsersRow[])
+      : [];
+    const activeUsers = rows.length > 0 ? Number(rows[0].status ?? 0) : 0;
 
     // Return the data in the format expected by the dashboard
     const stats: UserStats = {
@@ -40,7 +47,6 @@ export async function getActiveUsersStats(): Promise<{
       error: null,
     };
   } catch (error) {
-    console.error('Error in getActiveUsersStats:', error);
     return {
       data: null,
       error: error instanceof Error ? error.message : "Failed to fetch active users stats",

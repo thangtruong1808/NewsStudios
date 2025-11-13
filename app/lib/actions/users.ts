@@ -20,9 +20,18 @@ export async function getUsers(params?: {
     const sortField = params?.sortField || "created_at";
     const sortDirection = params?.sortDirection || "desc";
 
+    type UserCountRow = {
+      total: number;
+    } & Record<string, unknown>;
+
     // Get total count for pagination
-    const countResult = await query("SELECT COUNT(*) as total FROM Users");
-    const totalItems = countResult.data?.[0]?.total || 0;
+    const countResult = await query<UserCountRow>(
+      "SELECT COUNT(*) as total FROM Users"
+    );
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as UserCountRow[])
+      : [];
+    const totalItems = countRows.length > 0 ? Number(countRows[0].total ?? 0) : 0;
 
     const sqlQuery = `
       SELECT * FROM Users 
@@ -344,6 +353,10 @@ export async function searchUsers(
     const sortField = params?.sortField || "created_at";
     const sortDirection = params?.sortDirection || "desc";
 
+    type UserCountRow = {
+      total: number;
+    } & Record<string, unknown>;
+
     // Get total count for pagination
     const countQuery = `
       SELECT COUNT(*) as total FROM Users 
@@ -352,12 +365,15 @@ export async function searchUsers(
       OR email LIKE ?
     `;
     const searchPattern = `%${searchQuery}%`;
-    const countResult = await query(countQuery, [
+    const countResult = await query<UserCountRow>(countQuery, [
       searchPattern,
       searchPattern,
       searchPattern,
     ]);
-    const totalItems = countResult.data?.[0]?.total || 0;
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as UserCountRow[])
+      : [];
+    const totalItems = countRows.length > 0 ? Number(countRows[0].total ?? 0) : 0;
 
     const sqlQuery = `
       SELECT * FROM Users 

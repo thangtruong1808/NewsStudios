@@ -2,6 +2,11 @@
 
 import { query } from "../db/db";
 
+type FrontendTagRow = {
+  total_count?: number;
+  article_count?: number | null;
+} & Record<string, unknown>;
+
 export async function getFilteredTags(
   categoryId?: string,
   subcategoryId?: string,
@@ -10,7 +15,7 @@ export async function getFilteredTags(
 ) {
   try {
     const conditions = [];
-    const values = [];
+    const values: Array<number> = [];
 
     // Add category condition if it's provided
     if (categoryId) {
@@ -37,11 +42,14 @@ export async function getFilteredTags(
       ${whereClause}
     `;
 
-    const countResult = await query(countQuery, values);
-    const totalCount = countResult.data?.[0]?.total_count || 0;
+    const countResult = await query<FrontendTagRow>(countQuery, values);
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as FrontendTagRow[])
+      : [];
+    const totalCount = countRows.length > 0 ? Number(countRows[0].total_count ?? 0) : 0;
 
     // Then get the paginated data with article counts
-    const result = await query(
+    const result = await query<FrontendTagRow>(
       `
       SELECT 
         t.*,
@@ -56,19 +64,21 @@ export async function getFilteredTags(
       [...values, limit, offset]
     );
 
-    if (!result.data || result.data.length === 0) {
-      console.log("No tags found");
-      return { data: [], totalCount: 0 };
+    const rows = Array.isArray(result.data)
+      ? (result.data as FrontendTagRow[])
+      : [];
+
+    if (rows.length === 0) {
+      return { data: [], totalCount: 0, error: null };
     }
 
-    const tags = result.data.map((tag) => ({
+    const tags = rows.map((tag) => ({
       ...tag,
-      article_count: Number(tag.article_count) || 0,
+      article_count: Number(tag.article_count ?? 0),
     }));
 
-    return { data: tags, totalCount };
-  } catch (error) {
-    console.error("Error fetching tags:", error);
-    return { error: "Failed to fetch tags" };
+    return { data: tags, totalCount, error: null };
+  } catch (_error) {
+    return { data: [], totalCount: 0, error: "Failed to fetch tags" };
   }
 }

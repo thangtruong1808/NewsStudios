@@ -16,6 +16,16 @@ interface AuthorRow extends RowDataPacket {
   updated_at: Date;
 }
 
+type AuthorCountResultRow = {
+  count: number;
+} & Record<string, unknown>;
+
+type AuthorListRow = Author & {
+  articles_count?: number | string | null;
+  created_at: string | Date;
+  updated_at: string | Date;
+};
+
 export async function getAuthorById(
   id: number
 ): Promise<{ data?: Author; error?: string }> {
@@ -87,11 +97,14 @@ export async function getAuthors({
       FROM Authors a
       ${searchCondition}
     `;
-    const countResult = await query(countQuery, searchParams);
+    const countResult = await query<AuthorCountResultRow>(countQuery, searchParams);
     if (countResult.error || !countResult.data) {
       throw new Error(countResult.error || "Failed to get count");
     }
-    const totalItems = parseInt(countResult.data[0].count);
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as AuthorCountResultRow[])
+      : [];
+    const totalItems = countRows.length > 0 ? Number(countRows[0].count ?? 0) : 0;
     const totalPages = Math.ceil(totalItems / limit);
 
     // Get paginated data with articles count
@@ -106,22 +119,36 @@ export async function getAuthors({
       OFFSET ?
     `;
 
-    const result = await query(dataQuery, [...searchParams, limit, offset]);
+    const result = await query<AuthorListRow>(dataQuery, [
+      ...searchParams,
+      limit,
+      offset,
+    ]);
 
     if (result.error || !result.data) {
       throw new Error(result.error || "Failed to fetch data");
     }
 
     // Convert the counts to numbers and ensure proper data types
-    const authors = (result.data as any[]).map((author) => ({
+    const rows = Array.isArray(result.data)
+      ? (result.data as AuthorListRow[])
+      : [];
+
+    const authors = rows.map((author) => ({
       ...author,
-      articles_count: parseInt(author.articles_count) || 0,
-      created_at: new Date(author.created_at),
-      updated_at: new Date(author.updated_at),
-    })) as Author[];
+      articles_count: Number(author.articles_count ?? 0),
+      created_at:
+        typeof author.created_at === "string"
+          ? author.created_at
+          : new Date(author.created_at).toISOString(),
+      updated_at:
+        typeof author.updated_at === "string"
+          ? author.updated_at
+          : new Date(author.updated_at).toISOString(),
+    }));
 
     return {
-      data: authors,
+      data: authors as Author[],
       error: null,
       totalItems,
       totalPages,
@@ -278,11 +305,18 @@ export async function searchAuthors({
       FROM Authors a
       ${searchCondition}
     `;
-    const countResult = await query(countQuery, searchParams);
+    const countResult = await query<AuthorCountResultRow>(
+      countQuery,
+      searchParams
+    );
     if (countResult.error || !countResult.data) {
       throw new Error(countResult.error || "Failed to get count");
     }
-    const totalItems = parseInt(countResult.data[0].count);
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as AuthorCountResultRow[])
+      : [];
+    const totalItems =
+      countRows.length > 0 ? Number(countRows[0].count ?? 0) : 0;
     const totalPages = Math.ceil(totalItems / limit);
 
     // Get paginated data with articles count
@@ -297,22 +331,36 @@ export async function searchAuthors({
       OFFSET ?
     `;
 
-    const result = await query(dataQuery, [...searchParams, limit, offset]);
+    const result = await query<AuthorListRow>(dataQuery, [
+      ...searchParams,
+      limit,
+      offset,
+    ]);
 
     if (result.error || !result.data) {
       throw new Error(result.error || "Failed to fetch data");
     }
 
     // Convert the counts to numbers and ensure proper data types
-    const authors = (result.data as any[]).map((author) => ({
+    const rows = Array.isArray(result.data)
+      ? (result.data as AuthorListRow[])
+      : [];
+
+    const authors = rows.map((author) => ({
       ...author,
-      articles_count: parseInt(author.articles_count) || 0,
-      created_at: new Date(author.created_at),
-      updated_at: new Date(author.updated_at),
-    })) as Author[];
+      articles_count: Number(author.articles_count ?? 0),
+      created_at:
+        typeof author.created_at === "string"
+          ? author.created_at
+          : new Date(author.created_at).toISOString(),
+      updated_at:
+        typeof author.updated_at === "string"
+          ? author.updated_at
+          : new Date(author.updated_at).toISOString(),
+    }));
 
     return {
-      data: authors,
+      data: authors as Author[],
       error: null,
       totalItems,
       totalPages,

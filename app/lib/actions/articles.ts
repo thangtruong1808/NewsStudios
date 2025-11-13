@@ -97,6 +97,7 @@ export async function getArticles({
         end: 0,
         currentPage: page,
         totalPages: 0,
+        error: null,
       };
     }
 
@@ -131,9 +132,18 @@ export async function getArticles({
       end,
       currentPage: page,
       totalPages,
+      error: null,
     };
-  } catch (error) {
-    throw error;
+  } catch (_error) {
+    return {
+      data: [],
+      totalCount: 0,
+      start: 0,
+      end: 0,
+      currentPage: page,
+      totalPages: 0,
+      error: "Failed to fetch articles.",
+    };
   }
 }
 

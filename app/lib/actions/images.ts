@@ -14,6 +14,10 @@ interface ImageRow extends RowDataPacket {
   updated_at: Date;
 }
 
+type ImageCountRow = {
+  total: number;
+} & Record<string, unknown>;
+
 // Function to upload image to server and get the URL
 export async function uploadImageToServer(file: File) {
   try {
@@ -128,7 +132,7 @@ export async function getImages({
     queryParams.push(limit, offset);
 
     const result = await query(queryStr, queryParams);
-    const countResult = await query(
+    const countResult = await query<ImageCountRow>(
       "SELECT COUNT(*) as total FROM Images" +
         (searchQuery ? " WHERE description LIKE ?" : ""),
       searchQuery ? [`%${searchQuery}%`] : []
@@ -138,7 +142,10 @@ export async function getImages({
       throw new Error(result.error || countResult.error || "An unknown error occurred");
     }
 
-    const total = countResult.data?.[0]?.total || 0;
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as ImageCountRow[])
+      : [];
+    const total = countRows.length > 0 ? Number(countRows[0].total ?? 0) : 0;
     const totalPages = Math.ceil(total / limit);
 
     return {
@@ -146,9 +153,8 @@ export async function getImages({
       totalPages,
       totalItems: total,
     };
-  } catch (error) {
-    console.error("Error fetching images:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }
 

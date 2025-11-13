@@ -2,6 +2,17 @@
 
 import { query } from "../db/db";
 
+type RelativeArticleRow = {
+  category_id?: number | null;
+  sub_category_id?: number | null;
+  tag_ids?: string | null;
+  tag_names?: string | null;
+  tag_colors?: string | null;
+  likes_count?: number | null;
+  comments_count?: number | null;
+  total_count?: number | null;
+} & Record<string, unknown>;
+
 export async function getFrontEndRelativeArticles(
   currentArticleId?: number,
   page: number = 1,
@@ -12,7 +23,7 @@ export async function getFrontEndRelativeArticles(
 
     // First get the current article's category and tags
     const currentArticleQuery = currentArticleId
-      ? await query(
+      ? await query<RelativeArticleRow>(
           `
           SELECT 
             a.category_id,
@@ -28,7 +39,11 @@ export async function getFrontEndRelativeArticles(
         )
       : null;
 
-    const currentArticle = currentArticleQuery?.data?.[0];
+    const currentRows = Array.isArray(currentArticleQuery?.data)
+      ? (currentArticleQuery.data as RelativeArticleRow[])
+      : [];
+
+    const currentArticle = currentRows[0];
     const tagIds = currentArticle?.tag_ids
       ? currentArticle.tag_ids.split(",")
       : [];
@@ -49,7 +64,7 @@ export async function getFrontEndRelativeArticles(
           AND a.is_trending = FALSE`;
 
     // Build the query to find related articles
-    const result = await query(
+    const result = await query<RelativeArticleRow>(
       `
       SELECT 
         a.*,
@@ -110,13 +125,16 @@ export async function getFrontEndRelativeArticles(
           ]
     );
 
-    if (!result.data || result.data.length === 0) {
-      console.log("No relative articles found");
-      return { data: [], totalCount: 0 };
+    const rows = Array.isArray(result.data)
+      ? (result.data as RelativeArticleRow[])
+      : [];
+
+    if (rows.length === 0) {
+      return { data: [], totalCount: 0, error: null };
     }
 
-    const totalCount = result.data[0].total_count;
-    const articles = result.data.map((article) => {
+    const totalCount = Number(rows[0].total_count ?? 0);
+    const articles = rows.map((article) => {
       // Ensure tag_names and tag_colors are arrays and have the same length
       const tagNames = article.tag_names
         ? article.tag_names.split(",").filter(Boolean)
@@ -151,9 +169,8 @@ export async function getFrontEndRelativeArticles(
       };
     });
 
-    return { data: articles, totalCount };
-  } catch (error) {
-    console.error("Error fetching relative articles:", error);
-    return { error: "Failed to fetch relative articles" };
+    return { data: articles, totalCount, error: null };
+  } catch (_error) {
+    return { data: [], totalCount: 0, error: "Failed to fetch relative articles" };
   }
 }

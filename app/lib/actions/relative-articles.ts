@@ -2,6 +2,17 @@
 
 import { query } from "../db/db";
 
+type RelativeArticleRow = {
+  category_id?: number | null;
+  sub_category_id?: number | null;
+  tag_ids?: string | null;
+  tag_names?: string | null;
+  tag_colors?: string | null;
+  likes_count?: number | null;
+  comments_count?: number | null;
+  total_count?: number | null;
+} & Record<string, unknown>;
+
 export async function getRelativeArticles(
   currentArticleId?: number,
   page: number = 1,
@@ -13,7 +24,7 @@ export async function getRelativeArticles(
 
     // First get the current article's category and tags
     const currentArticleQuery = currentArticleId
-      ? await query(
+      ? await query<RelativeArticleRow>(
           `
           SELECT 
             a.category_id,
@@ -111,24 +122,39 @@ export async function getRelativeArticles(
           ]
     );
 
-    if (!result.data || result.data.length === 0) {
-      console.log("No relative articles found");
-      return { data: [], totalCount: 0 };
+    const rows = Array.isArray(result.data)
+      ? (result.data as RelativeArticleRow[])
+      : [];
+
+    if (rows.length === 0) {
+      return { data: [], totalCount: 0, error: null };
     }
 
-    const totalCount = result.data[0].total_count;
-    const articles = result.data.map((article) => ({
-      ...article,
-      tag_names: article.tag_names ? article.tag_names.split(",") : [],
-      tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
-      likes_count: Number(article.likes_count) || 0,
-      comments_count: Number(article.comments_count) || 0,
-      views_count: 0, // Set default value since Views table doesn't exist
-    }));
+    const totalCount = Number(rows[0].total_count ?? 0);
+    const articles = rows.map((article) => {
+      const tagNames = article.tag_names
+        ? article.tag_names.split(",").filter(Boolean)
+        : [];
+      const tagColors = article.tag_colors
+        ? article.tag_colors.split(",").filter(Boolean)
+        : [];
 
-    return { data: articles, totalCount };
-  } catch (error) {
-    console.error("Error fetching relative articles:", error);
-    return { error: "Failed to fetch relative articles" };
+      const adjustedTagColors = tagNames.map((_: string, index: number) =>
+        tagColors[index] || tagColors[tagColors.length - 1] || "#6B7280"
+      );
+
+      return {
+        ...article,
+        tag_names: tagNames,
+        tag_colors: adjustedTagColors,
+        likes_count: Number(article.likes_count ?? 0),
+        comments_count: Number(article.comments_count ?? 0),
+        views_count: 0,
+      };
+    });
+
+    return { data: articles, totalCount, error: null };
+  } catch (_error) {
+    return { data: [], totalCount: 0, error: "Failed to fetch relative articles" };
   }
 }

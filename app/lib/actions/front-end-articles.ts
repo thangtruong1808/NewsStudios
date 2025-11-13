@@ -2,8 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
-import { RowDataPacket } from "mysql2";
 import { Article } from "../definition";
+
+type FrontendArticleRow = Article & {
+  category_name?: string | null;
+  subcategory_name?: string | null;
+  author_name?: string | null;
+  tag_names?: string | null;
+  tag_colors?: string | null;
+  likes_count?: number | null;
+  comments_count?: number | null;
+  views_count?: number | null;
+  total_count?: number;
+};
 
 /**
  * Fetches articles with optional filtering by type and subcategory
@@ -36,7 +47,18 @@ export async function getFrontEndArticles({
       params.push(subcategoryId);
     }
 
-    const result = await query(
+    const result = await query<
+      Article & {
+        category_name?: string | null;
+        subcategory_name?: string | null;
+        author_name?: string | null;
+        tag_names?: string | null;
+        tag_colors?: string | null;
+        likes_count?: number | null;
+        comments_count?: number | null;
+        total_count: number;
+      }
+    >(
       `
       SELECT 
         a.*,
@@ -62,23 +84,38 @@ export async function getFrontEndArticles({
       [...params, itemsPerPage, offset]
     );
 
-    if (!result.data || result.data.length === 0) {
-      return { data: [], totalCount: 0 };
+    const rows = Array.isArray(result.data)
+      ? (result.data as Array<
+          Article & {
+            category_name?: string | null;
+            subcategory_name?: string | null;
+            author_name?: string | null;
+            tag_names?: string | null;
+            tag_colors?: string | null;
+            likes_count?: number | null;
+            comments_count?: number | null;
+            total_count: number;
+          }
+        >)
+      : [];
+
+    if (rows.length === 0) {
+      return { data: [], totalCount: 0, error: null };
     }
 
-    const totalCount = result.data[0].total_count;
-    const articles = result.data.map((article) => ({
+    const totalCount = rows[0].total_count;
+    const articles = rows.map((article) => ({
       ...article,
       tag_names: article.tag_names ? article.tag_names.split(",") : [],
       tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
-      likes_count: Number(article.likes_count) || 0,
-      comments_count: Number(article.comments_count) || 0,
-      views_count: 0, // Set default value since Views table doesn't exist
+      likes_count: Number(article.likes_count ?? 0),
+      comments_count: Number(article.comments_count ?? 0),
+      views_count: 0,
     }));
 
-    return { data: articles, totalCount };
+    return { data: articles, totalCount, error: null };
   } catch (error) {
-    return { error: "Failed to fetch articles" };
+    return { data: [], totalCount: 0, error: "Failed to fetch articles" };
   }
 }
 
@@ -120,7 +157,19 @@ export async function getExploreArticles({
       params.push(tag);
     }
 
-    const result = await query(
+    const result = await query<
+      Article & {
+        category_name?: string | null;
+        subcategory_name?: string | null;
+        author_name?: string | null;
+        tag_names?: string | null;
+        tag_colors?: string | null;
+        likes_count?: number | null;
+        comments_count?: number | null;
+        views_count?: number | null;
+        total_count: number;
+      }
+    >(
       `
       SELECT 
         a.*,
@@ -147,23 +196,25 @@ export async function getExploreArticles({
       [...params, itemsPerPage, offset]
     );
 
-    if (!result.data || result.data.length === 0) {
-      return { data: [], totalCount: 0 };
+    const rows = Array.isArray(result.data) ? result.data : [];
+
+    if (rows.length === 0) {
+      return { data: [], totalCount: 0, error: null };
     }
 
-    const totalCount = result.data[0].total_count;
-    const articles = result.data.map((article) => ({
+    const totalCount = rows[0].total_count;
+    const articles = rows.map((article) => ({
       ...article,
       tag_names: article.tag_names ? article.tag_names.split(",") : [],
       tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
-      likes_count: Number(article.likes_count) || 0,
-      comments_count: Number(article.comments_count) || 0,
-      views_count: 0, // Set default value since Views table doesn't exist
+      likes_count: Number(article.likes_count ?? 0),
+      comments_count: Number(article.comments_count ?? 0),
+      views_count: 0,
     }));
 
-    return { data: articles, totalCount };
-  } catch (error) {
-    return { error: "Failed to fetch articles" };
+    return { data: articles, totalCount, error: null };
+  } catch (_error) {
+    return { data: [], totalCount: 0, error: "Failed to fetch articles" };
   }
 }
 
@@ -183,7 +234,7 @@ export async function getSubcategoryArticles({
   try {
     const offset = (page - 1) * itemsPerPage;
 
-    const result = await query(
+    const result = await query<FrontendArticleRow>(
       `
       SELECT 
         a.*,
@@ -207,23 +258,27 @@ export async function getSubcategoryArticles({
       [subcategoryId, subcategoryId, itemsPerPage, offset]
     );
 
-    if (!result.data || result.data.length === 0) {
-      return { data: [], totalCount: 0 };
+    const rows = Array.isArray(result.data)
+      ? (result.data as FrontendArticleRow[])
+      : [];
+
+    if (rows.length === 0) {
+      return { data: [], totalCount: 0, error: null };
     }
 
-    const totalCount = result.data[0].total_count;
-    const articles = result.data.map((article) => ({
+    const totalCount = rows[0].total_count ?? 0;
+    const articles = rows.map((article) => ({
       ...article,
       tag_names: article.tag_names ? article.tag_names.split(",") : [],
       tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
-      likes_count: Number(article.likes_count) || 0,
-      comments_count: Number(article.comments_count) || 0,
+      likes_count: Number(article.likes_count ?? 0),
+      comments_count: Number(article.comments_count ?? 0),
       views_count: 0,
     }));
 
-    return { data: articles, totalCount };
-  } catch (error) {
-    return { error: "Failed to fetch articles" };
+    return { data: articles, totalCount, error: null };
+  } catch (_error) {
+    return { data: [], totalCount: 0, error: "Failed to fetch articles" };
   }
 }
 
@@ -250,10 +305,22 @@ export async function getCategoryArticles({
       WHERE a.category_id = ?
     `;
     const countResult = await query(countQuery, [categoryId]);
-    if (!countResult.data || countResult.data.length === 0) {
-      return { data: [], totalCount: 0 };
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as Array<{ total: number }>)
+      : [];
+    const totalCount = countRows.length > 0 ? countRows[0].total : 0;
+
+    if (totalCount === 0) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+        error: null,
+      };
     }
-    const totalCount = countResult.data[0].total;
 
     // Get articles with pagination
     const articlesQuery = `
@@ -280,24 +347,23 @@ export async function getCategoryArticles({
       LIMIT ? OFFSET ?
     `;
 
-    const articlesResult = await query(articlesQuery, [categoryId, itemsPerPage, offset]);
-    if (!articlesResult.data) {
-      return { data: [], totalCount: 0 };
-    }
-    const articles = articlesResult.data;
+    const articlesResult = await query<FrontendArticleRow>(articlesQuery, [
+      categoryId,
+      itemsPerPage,
+      offset,
+    ]);
 
-    // Format the response
-    const formattedArticles = articles.map((article) => ({
+    const articleRows = Array.isArray(articlesResult.data)
+      ? (articlesResult.data as FrontendArticleRow[])
+      : [];
+
+    const formattedArticles = articleRows.map((article) => ({
       ...article,
-      tag_names: article.tag_names
-        ? article.tag_names.split(",").filter(Boolean)
-        : [],
-      tag_colors: article.tag_colors
-        ? article.tag_colors.split(",").filter(Boolean)
-        : [],
-      likes_count: Number(article.likes_count) || 0,
-      comments_count: Number(article.comments_count) || 0,
-      views_count: 0, // Set default value since Views table doesn't exist
+      tag_names: article.tag_names ? article.tag_names.split(",").filter(Boolean) : [],
+      tag_colors: article.tag_colors ? article.tag_colors.split(",").filter(Boolean) : [],
+      likes_count: Number(article.likes_count ?? 0),
+      comments_count: Number(article.comments_count ?? 0),
+      views_count: 0,
     }));
 
     return {
@@ -307,9 +373,18 @@ export async function getCategoryArticles({
       end: Math.min(offset + itemsPerPage, totalCount),
       currentPage: page,
       totalPages: Math.ceil(totalCount / itemsPerPage),
+      error: null,
     };
-  } catch (error) {
-    return { error: "Failed to fetch category articles" };
+  } catch (_error) {
+    return {
+      data: [],
+      totalCount: 0,
+      start: 0,
+      end: 0,
+      currentPage: page,
+      totalPages: 0,
+      error: "Failed to fetch category articles",
+    };
   }
 }
 
@@ -330,23 +405,31 @@ export async function getArticlesByTag({
     const offset = (page - 1) * itemsPerPage;
     
     // First get the total count of articles with this tag
-    const countResult = await query(`
+    const countResult = await query(
+      `
       SELECT COUNT(DISTINCT a.id) as total
       FROM Articles a
       INNER JOIN Article_Tags at ON a.id = at.article_id
       WHERE at.tag_id = ?
-    `, [tagId]);
+    `,
+      [tagId]
+    );
 
-    if (!countResult.data || countResult.data.length === 0) {
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as Array<{ total: number }>)
+      : [];
+
+    if (countRows.length === 0) {
       return {
         data: [],
         totalCount: 0,
-        error: null
+        error: null,
       };
     }
 
     // Then get the articles with their related data
-    const result = await query(`
+    const result = await query<FrontendArticleRow>(
+      `
       WITH FilteredArticles AS (
         SELECT DISTINCT a.id
         FROM Articles a
@@ -376,23 +459,29 @@ export async function getArticlesByTag({
       GROUP BY a.id
       ORDER BY a.published_at DESC
       LIMIT ? OFFSET ?
-    `, [tagId, itemsPerPage, offset]);
+    `,
+      [tagId, itemsPerPage, offset]
+    );
 
-    if (!result.data || result.data.length === 0) {
+    const articleRows = Array.isArray(result.data)
+      ? (result.data as FrontendArticleRow[])
+      : [];
+
+    if (articleRows.length === 0) {
       return {
         data: [],
-        totalCount: 0,
-        error: null
+        totalCount: countRows[0].total || 0,
+        error: null,
       };
     }
 
-    const articles = result.data.map((article) => {
+    const articles = articleRows.map((article) => {
       // Ensure tag names and colors are arrays and have the same length
       const tagNames = article.tag_names ? article.tag_names.split(",").filter(Boolean) : [];
       const tagColors = article.tag_colors ? article.tag_colors.split(",").filter(Boolean) : [];
 
       // If we have more tag names than colors, duplicate the last color
-      const adjustedTagColors = tagNames.map((_: string, index: number) => 
+      const adjustedTagColors = tagNames.map((_: string, index: number) =>
         tagColors[index] || tagColors[tagColors.length - 1] || "#6B7280"
       );
 
@@ -400,22 +489,22 @@ export async function getArticlesByTag({
         ...article,
         tag_names: tagNames,
         tag_colors: adjustedTagColors,
-        likes_count: Number(article.likes_count) || 0,
-        comments_count: Number(article.comments_count) || 0,
-        views_count: Number(article.views_count) || 0
+        likes_count: Number(article.likes_count ?? 0),
+        comments_count: Number(article.comments_count ?? 0),
+        views_count: Number(article.views_count ?? 0),
       };
     });
 
     return {
       data: articles,
-      totalCount: countResult.data[0].total || 0,
-      error: null
+      totalCount: countRows[0].total || 0,
+      error: null,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       data: null,
       totalCount: 0,
-      error: 'Failed to fetch articles'
+      error: "Failed to fetch articles",
     };
   }
 }

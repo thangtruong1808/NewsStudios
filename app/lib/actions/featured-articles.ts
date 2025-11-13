@@ -2,6 +2,15 @@
 
 import { query } from "../db/db";
 
+type FeaturedArticleRow = {
+  total_count: number;
+  tag_names?: string | null;
+  tag_colors?: string | null;
+  likes_count?: number | null;
+  comments_count?: number | null;
+  views_count?: number | null;
+} & Record<string, unknown>;
+
 export async function getFeaturedArticles(page: number = 1, limit: number = 8) {
   try {
     // Calculate offset for MySQL pagination
@@ -31,24 +40,26 @@ export async function getFeaturedArticles(page: number = 1, limit: number = 8) {
       [limit, offset]
     );
 
-    if (!result.data || result.data.length === 0) {
-      console.log("No featured articles found");
-      return { data: [], totalCount: 0 };
+    const rows = Array.isArray(result.data)
+      ? (result.data as FeaturedArticleRow[])
+      : [];
+
+    if (rows.length === 0) {
+      return { data: [], totalCount: 0, error: null };
     }
 
-    const totalCount = result.data[0].total_count;
-    const articles = result.data.map((article) => ({
+    const totalCount = rows[0].total_count ?? 0;
+    const articles = rows.map((article) => ({
       ...article,
       tag_names: article.tag_names ? article.tag_names.split(",") : [],
       tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
-      likes_count: article.likes_count || 0,
-      comments_count: article.comments_count || 0,
-      views_count: article.views_count || 0,
+      likes_count: Number(article.likes_count ?? 0),
+      comments_count: Number(article.comments_count ?? 0),
+      views_count: Number(article.views_count ?? 0),
     }));
 
-    return { data: articles, totalCount };
-  } catch (error) {
-    console.error("Error fetching featured articles:", error);
-    return { error: "Failed to fetch featured articles" };
+    return { data: articles, totalCount, error: null };
+  } catch (_error) {
+    return { data: [], totalCount: 0, error: "Failed to fetch featured articles" };
   }
 }

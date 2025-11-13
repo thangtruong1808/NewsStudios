@@ -10,6 +10,10 @@ import { getPublicIdFromUrl } from "../utils/cloudinaryUtils";
 import { deleteVideoFromCloudinary } from "../utils/cloudinaryServerUtils";
 import pool from "../db/query";
 
+type VideoCountRow = {
+  total: number;
+} & Record<string, unknown>;
+
 // Helper function to extract public ID from Cloudinary URL
 function extractPublicId(url: string): string | null {
   try {
@@ -41,7 +45,7 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
       FROM Videos v
       LEFT JOIN Articles a ON v.article_id = a.id
     `;
-    const countResult = await query(countQuery);
+    const countResult = await query<VideoCountRow>(countQuery);
 
     // Get paginated videos with consistent ordering
     const sqlQuery = `
@@ -52,14 +56,20 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
       LIMIT ? OFFSET ?
     `;
 
-    const result = await query(sqlQuery, [itemsPerPage, offset]);
+    const result = await query<Video>(sqlQuery, [itemsPerPage, offset]);
 
     if (result.error) {
       return { data: null, error: result.error, totalItems: 0 };
     }
 
-    const totalItems = countResult.data?.[0]?.total || 0;
-    const videos = result.data || [];
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as VideoCountRow[])
+      : [];
+    const totalItems = countRows.length > 0 ? Number(countRows[0].total ?? 0) : 0;
+
+    const videos = Array.isArray(result.data)
+      ? (result.data as Video[])
+      : [];
 
     return {
       data: videos,
@@ -68,7 +78,6 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
       totalPages: Math.ceil(totalItems / itemsPerPage),
     };
   } catch (error) {
-    console.error("Error fetching videos:", error);
     return { data: null, error: "Failed to fetch videos", totalItems: 0 };
   }
 }

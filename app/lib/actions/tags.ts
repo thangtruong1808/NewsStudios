@@ -5,6 +5,10 @@ import { query } from "../db/db";
 import { RowDataPacket } from "mysql2";
 import { Tag, TagFormData } from "../definition";
 
+type TagCountRow = {
+  total_count: number;
+} & Record<string, unknown>;
+
 interface QueryResult {
   data?: TagRow[];
   error?: string;
@@ -38,11 +42,20 @@ export async function getTags({
     const offset = (page - 1) * limit;
 
     // First, get the total count
-    const countResult = await query(`SELECT COUNT(*) as total_count FROM Tags`);
-    const totalCount = countResult.data?.[0]?.total_count || 0;
+    const countResult = await query<TagCountRow>(
+      `SELECT COUNT(*) as total_count FROM Tags`
+    );
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as TagCountRow[])
+      : [];
+    const totalCount = countRows.length > 0 ? Number(countRows[0].total_count ?? 0) : 0;
 
     // Then get the paginated data
-    const result = await query(
+    const result = await query<
+      Tag & {
+        article_count?: number | null;
+      }
+    >(
       `
       SELECT 
         t.*,
@@ -65,9 +78,17 @@ export async function getTags({
       };
     }
 
-    const tags = result.data.map((tag) => ({
+    const rows = Array.isArray(result.data)
+      ? (result.data as Array<
+          Tag & {
+            article_count?: number | null;
+          }
+        >)
+      : [];
+
+    const tags = rows.map((tag) => ({
       ...tag,
-      article_count: Number(tag.article_count) || 0,
+      article_count: Number(tag.article_count ?? 0),
     }));
 
     const start = offset + 1;
@@ -81,10 +102,18 @@ export async function getTags({
       end,
       currentPage: page,
       totalPages,
+      error: null,
     };
-  } catch (error) {
-    console.error("Error fetching tags:", error);
-    return { error: "Failed to fetch tags" };
+  } catch (_error) {
+    return {
+      data: [],
+      totalCount: 0,
+      start: 0,
+      end: 0,
+      currentPage: page,
+      totalPages: 0,
+      error: "Failed to fetch tags",
+    };
   }
 }
 
@@ -123,11 +152,18 @@ export async function getFilteredTags(
       ${whereClause}
     `;
 
-    const countResult = await query(countQuery, values);
-    const totalCount = countResult.data?.[0]?.total_count || 0;
+    const countResult = await query<TagCountRow>(countQuery, values);
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as TagCountRow[])
+      : [];
+    const totalCount = countRows.length > 0 ? Number(countRows[0].total_count ?? 0) : 0;
 
     // Then get the paginated data with article counts
-    const result = await query(
+    const result = await query<
+      Tag & {
+        article_count?: number | null;
+      }
+    >(
       `
       SELECT 
         t.*,
@@ -143,19 +179,29 @@ export async function getFilteredTags(
     );
 
     if (!result.data || result.data.length === 0) {
-      console.log("No tags found");
-      return { data: [], totalCount: 0 };
+      return { data: [], totalCount: 0, error: null };
     }
 
-    const tags = result.data.map((tag) => ({
+    const rows = Array.isArray(result.data)
+      ? (result.data as Array<
+          Tag & {
+            article_count?: number | null;
+          }
+        >)
+      : [];
+
+    if (rows.length === 0) {
+      return { data: [], totalCount: 0, error: null };
+    }
+
+    const tags = rows.map((tag) => ({
       ...tag,
-      article_count: Number(tag.article_count) || 0,
+      article_count: Number(tag.article_count ?? 0),
     }));
 
-    return { data: tags, totalCount };
-  } catch (error) {
-    console.error("Error fetching tags:", error);
-    return { error: "Failed to fetch tags" };
+    return { data: tags, totalCount, error: null };
+  } catch (_error) {
+    return { data: [], totalCount: 0, error: "Failed to fetch tags" };
   }
 }
 
@@ -293,14 +339,16 @@ export async function deleteTag(id: number) {
     );
 
     if (articlesResult.error || !articlesResult.data) {
-      console.error("Error checking articles:", articlesResult.error);
       return {
         data: null,
         error: "Failed to check related articles",
       };
     }
 
-    const articleCount = parseInt(articlesResult.data[0].count) || 0;
+    const countRows = Array.isArray(articlesResult.data)
+      ? (articlesResult.data as Array<{ count: number }>)
+      : [];
+    const articleCount = countRows.length > 0 ? Number(countRows[0].count ?? 0) : 0;
     if (articleCount > 0) {
       return {
         data: null,
@@ -312,7 +360,6 @@ export async function deleteTag(id: number) {
     const deleteResult = await query("DELETE FROM Tags WHERE id = ?", [id]);
 
     if (deleteResult.error) {
-      console.error("Error deleting tag:", deleteResult.error);
       return {
         data: null,
         error: "Failed to delete tag",
@@ -326,7 +373,6 @@ export async function deleteTag(id: number) {
       verifyDelete.error ||
       (verifyDelete.data && verifyDelete.data.length > 0)
     ) {
-      console.error("Error verifying deletion:", verifyDelete.error);
       return {
         data: null,
         error: "Failed to verify tag deletion",
@@ -335,7 +381,6 @@ export async function deleteTag(id: number) {
 
     return { data: true, error: null };
   } catch (error) {
-    console.error("Error in deleteTag:", error);
     return {
       data: null,
       error: error instanceof Error ? error.message : "Failed to delete tag",
