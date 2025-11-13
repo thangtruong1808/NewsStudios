@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  getAuthors,
-  deleteAuthor,
-} from "@/app/lib/actions/authors";
+import { getAuthors, deleteAuthor } from "@/app/lib/actions/authors";
 import { Author } from "@/app/lib/definition";
 import AuthorsTable from "../table/AuthorsTable";
 import AuthorsHeader from "../header/AuthorsHeader";
@@ -14,31 +11,13 @@ import TableSkeleton from "@/app/components/dashboard/shared/table/TableSkeleton
 import {
   showErrorToast,
   showConfirmationToast,
+  showSuccessToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
-import { toast } from "react-hot-toast";
 
-interface AuthorsStateProps {
-  children: (props: {
-    authors: Author[];
-    totalPages: number;
-    totalItems: number;
-    isLoading: boolean;
-    isDeleting: boolean;
-    currentPage: number;
-    itemsPerPage: number;
-    sortField: keyof Author;
-    sortDirection: "asc" | "desc";
-    searchQuery: string;
-    handlePageChange: (page: number) => void;
-    handleSort: (field: keyof Author) => void;
-    handleEdit: (author: Author) => void;
-    handleDelete: (author: Author) => void;
-    handleSearch: (term: string) => void;
-    handleItemsPerPageChange: (limit: number) => void;
-  }) => React.ReactNode;
-}
-
-export default function AuthorsState({ children }: AuthorsStateProps) {
+// Description: Manage authors listing state, routing, and table interactions for the dashboard.
+// Data created: 2024-11-13
+// Author: thangtruong
+export default function AuthorsState() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -48,8 +27,8 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [_isSearching, setIsSearching] = useState(false);
-  const [_isSorting, setIsSorting] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSorting, setIsSorting] = useState(false);
 
   // URL parameters with defaults
   const currentPage = Number(searchParams.get("page")) || 1;
@@ -62,7 +41,7 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (!_isSearching && !_isSorting) {
+        if (!isSearching && !isSorting) {
           setIsLoading(true);
         }
         const result = await getAuthors({
@@ -81,7 +60,12 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
         setTotalPages(result.totalPages || 1);
         setTotalItems(result.totalItems || 0);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        showErrorToast({
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch authors. Please try again.",
+        });
       } finally {
         setIsLoading(false);
         setIsSearching(false);
@@ -90,29 +74,38 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
     };
 
     fetchData();
-  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery, _isSearching, _isSorting]);
+  }, [
+    currentPage,
+    itemsPerPage,
+    sortField,
+    sortDirection,
+    searchQuery,
+    isSearching,
+    isSorting,
+  ]);
 
   // Event handlers
-  const handlePageChange = (_page: number) => {
+  const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams);
-    params.set("page", _page.toString());
+    params.set("page", page.toString());
     router.push(`/dashboard/author?${params.toString()}`);
   };
 
-  const handleSort = (_field: keyof Author) => {
+  const handleSort = (field: keyof Author) => {
     setIsSorting(true);
-    const newDirection = _field === sortField && sortDirection === "asc" ? "desc" : "asc";
+    const newDirection =
+      field === sortField && sortDirection === "asc" ? "desc" : "asc";
     const params = new URLSearchParams(searchParams);
-    params.set("sortField", _field as string);
+    params.set("sortField", field as string);
     params.set("sortDirection", newDirection);
     router.push(`/dashboard/author?${params.toString()}`);
   };
 
-  const handleEdit = (_author: Author) => {
-    router.push(`/dashboard/author/${_author.id}/edit`);
+  const handleEdit = (author: Author) => {
+    router.push(`/dashboard/author/${author.id}/edit`);
   };
 
-  const handleDelete = async (_author: Author) => {
+  const handleDelete = async (author: Author) => {
     const confirmPromise = new Promise<boolean>((resolve) => {
       showConfirmationToast({
         title: "Delete Author",
@@ -127,15 +120,15 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
 
     setIsDeleting(true);
     try {
-      const success = await deleteAuthor(Number(_author.id));
+      const deleteResult = await deleteAuthor(Number(author.id));
 
-      if (!success) {
-        throw new Error("Failed to delete author");
+      if (!deleteResult.success) {
+        throw new Error(deleteResult.error || "Failed to delete author");
       }
 
       router.refresh();
 
-      const result = await getAuthors({
+      const refreshedAuthors = await getAuthors({
         page: currentPage,
         limit: itemsPerPage,
         search: searchQuery,
@@ -143,24 +136,23 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
         sortDirection,
       });
 
-      if (result.error) {
-        throw new Error(result.error);
+      if (refreshedAuthors.error) {
+        throw new Error(refreshedAuthors.error);
       }
 
-      setAuthors(result.data || []);
-      setTotalPages(result.totalPages || 1);
-      setTotalItems(result.totalItems || 0);
+      setAuthors(refreshedAuthors.data || []);
+      setTotalPages(refreshedAuthors.totalPages || 1);
+      setTotalItems(refreshedAuthors.totalItems || 0);
 
-      if (result.data?.length === 0 && currentPage > 1) {
+      if (refreshedAuthors.data?.length === 0 && currentPage > 1) {
         const newPage = currentPage - 1;
         const params = new URLSearchParams(searchParams);
         params.set("page", newPage.toString());
         router.push(`/dashboard/author?${params.toString()}`);
       }
 
-      showErrorToast({ message: "Author deleted successfully" });
+      showSuccessToast({ message: "Author deleted successfully" });
     } catch (error) {
-      console.error("Error deleting author:", error);
       showErrorToast({
         message: error instanceof Error ? error.message : "Failed to delete author. Please try again.",
       });
@@ -169,22 +161,22 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
     }
   };
 
-  const handleSearch = (_term: string) => {
+  const handleSearch = (term: string) => {
     setIsSearching(true);
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
-    if (_term) {
-      params.set("query", _term);
+    if (term) {
+      params.set("query", term);
     } else {
       params.delete("query");
     }
     router.push(`/dashboard/author?${params.toString()}`);
   };
 
-  const handleItemsPerPageChange = (_limit: number) => {
+  const handleItemsPerPageChange = (limit: number) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
-    params.set("limit", _limit.toString());
+    params.set("limit", limit.toString());
     router.push(`/dashboard/author?${params.toString()}`);
   };
 
@@ -212,7 +204,7 @@ export default function AuthorsState({ children }: AuthorsStateProps) {
           totalPages={totalPages}
           itemsPerPage={itemsPerPage}
           totalItems={totalItems}
-          sortField={sortField as keyof Author}
+          sortField={sortField}
           sortDirection={sortDirection}
           searchQuery={searchQuery}
           isDeleting={isDeleting}

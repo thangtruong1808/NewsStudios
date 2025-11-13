@@ -5,7 +5,6 @@ import { Author } from "../../lib/definition";
 import { revalidatePath } from "next/cache";
 import { query } from "../db/db";
 import { RowDataPacket } from "mysql2";
-import { transaction } from "../db/query";
 
 interface AuthorRow extends RowDataPacket {
   id: number;
@@ -56,8 +55,10 @@ export async function getAuthorById(
 
     return { data: author };
   } catch (error) {
-    console.error("Error getting author by ID:", error);
-    return { error: "Failed to get author" };
+    return {
+      error:
+        error instanceof Error ? error.message : "Failed to get author",
+    };
   }
 }
 
@@ -154,10 +155,9 @@ export async function getAuthors({
       totalPages,
     };
   } catch (error) {
-    console.error("Database Error:", error);
     return {
       data: null,
-      error: "Failed to fetch authors.",
+      error: error instanceof Error ? error.message : "Failed to fetch authors.",
       totalItems: 0,
       totalPages: 0,
     };
@@ -178,7 +178,6 @@ export async function createAuthor(authorData: AuthorFormData) {
     revalidatePath("/dashboard/authors");
     return { success: true, error: null };
   } catch (error) {
-    console.error("Error creating author:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to create author",
@@ -205,7 +204,6 @@ export async function updateAuthor(id: number, authorData: AuthorFormData) {
     revalidatePath("/dashboard/authors");
     return { success: true, error: null };
   } catch (error) {
-    console.error("Error updating author:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to update author",
@@ -265,7 +263,6 @@ export async function deleteAuthor(id: number) {
     revalidatePath("/dashboard/authors");
     return { success: true, error: null };
   } catch (error) {
-    console.error("Error in deleteAuthor:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to delete author",
@@ -366,10 +363,9 @@ export async function searchAuthors({
       totalPages,
     };
   } catch (error) {
-    console.error("Database Error:", error);
     return {
       data: null,
-      error: "Failed to search authors.",
+      error: error instanceof Error ? error.message : "Failed to search authors.",
       totalItems: 0,
       totalPages: 0,
     };

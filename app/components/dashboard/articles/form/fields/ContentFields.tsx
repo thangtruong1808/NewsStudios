@@ -8,12 +8,16 @@ interface ContentFieldsProps {
   errors: FieldErrors<ArticleFormData>;
 }
 
+// Description: Provide article content textarea with validation messaging.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function ContentFields({
   register,
   errors,
 }: ContentFieldsProps) {
   return (
     <div className="space-y-6">
+      {/* Body content */}
       <div>
         <label className="block text-sm font-medium">
           Content <span className="text-red-500">*</span>

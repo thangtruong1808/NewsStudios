@@ -7,11 +7,15 @@ interface SettingsFieldsProps {
   register: UseFormRegister<ArticleFormData>;
 }
 
+// Description: Configure article settings toggles such as featured, trending, and priority.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function SettingsFields({
   register,
 }: SettingsFieldsProps) {
   return (
     <div className="space-y-6">
+      {/* Featured toggle */}
       <div className="flex items-center">
         <input
           type="checkbox"
@@ -21,6 +25,7 @@ export default function SettingsFields({
         <label className="ml-2 block text-sm">Featured Article</label>
       </div>
 
+      {/* Trending toggle */}
       <div className="flex items-center">
         <input
           type="checkbox"
@@ -30,6 +35,7 @@ export default function SettingsFields({
         <label className="ml-2 block text-sm">Trending Article</label>
       </div>
 
+      {/* Headline priority */}
       <div>
         <label className="block text-sm font-medium">Headline Priority</label>
         <input

@@ -134,6 +134,20 @@ export async function getFrontEndRelativeArticles(
     }
 
     const totalCount = Number(rows[0].total_count ?? 0);
+    const normalizeDate = (value: unknown): string => {
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      if (typeof value === "string" || typeof value === "number") {
+        const parsed = new Date(value);
+        if (!Number.isNaN(parsed.getTime())) {
+          return parsed.toISOString();
+        }
+        return String(value);
+      }
+      return "";
+    };
+
     const articles = rows.map((article) => {
       // Ensure tag_names and tag_colors are arrays and have the same length
       const tagNames = article.tag_names
@@ -165,7 +179,14 @@ export async function getFrontEndRelativeArticles(
         tag_colors: adjustedTagColors,
         likes_count: Number(article.likes_count) || 0,
         comments_count: Number(article.comments_count) || 0,
-        views_count: 0,
+        views_count: Number((article as { views_count?: number }).views_count ?? 0),
+        published_at: normalizeDate((article as { published_at?: unknown }).published_at),
+        updated_at: normalizeDate((article as { updated_at?: unknown }).updated_at),
+        is_featured: Boolean((article as { is_featured?: unknown }).is_featured),
+        is_trending: Boolean((article as { is_trending?: unknown }).is_trending),
+        headline_priority: Number(
+          (article as { headline_priority?: unknown }).headline_priority ?? 0
+        ),
       };
     });
 

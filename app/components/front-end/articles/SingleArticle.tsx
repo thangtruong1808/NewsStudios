@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { getArticleById } from "@/app/lib/actions/articles";
 import { getImagesByArticleId } from "@/app/lib/actions/front-end-images";
 import { getVideosByArticleId } from "@/app/lib/actions/front-end-videos";
-import { Article, Video } from "@/app/lib/definition";
+import { Article } from "@/app/lib/definition";
 import { AdditionalMedia, MediaItem } from "../latest-articles/types";
 import { Image } from "@/app/lib/definition";
 import ArticleSkeleton from "./ArticleSkeleton";
@@ -25,6 +25,9 @@ interface SingleArticleProps {
   onBookmark?: (articleId: number) => void; // Optional callback for bookmark action
 }
 
+// Description: Render article detail view with media galleries and share actions.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function SingleArticle({
   articleId,
   showBackButton = false,
@@ -66,16 +69,31 @@ export default function SingleArticle({
         }
 
         if (videosResult.data) {
+          type VideoRow = {
+            id?: number | string;
+            video_url?: string | null;
+            description?: string | null;
+          };
+
+          const rawVideos = Array.isArray(videosResult.data)
+            ? (videosResult.data as VideoRow[])
+            : [];
+
           // Map the videos to ensure we're using video_url
-          const formattedVideos = videosResult.data.map(video => ({
-            id: video.id,
-            url: video.video_url, // Use video_url instead of url
-            description: video.description || undefined
+          const formattedVideos = rawVideos.map((video) => ({
+            id: Number(video.id ?? 0),
+            url: typeof video.video_url === "string" ? video.video_url : "",
+            description:
+              typeof video.description === "string"
+                ? video.description
+                : undefined,
           }));
           setVideos(formattedVideos);
         }
       } catch (error) {
-        setError(error instanceof Error ? error.message : "Failed to fetch article");
+        setError(
+          error instanceof Error ? error.message : "Failed to fetch article"
+        );
       } finally {
         setIsLoading(false);
       }
@@ -118,24 +136,27 @@ export default function SingleArticle({
 
   // Prepare additional media
   const additionalMedia: AdditionalMedia = {
-    images: images.map(img => ({
+    images: images.map((img) => ({
       id: img.id,
       url: img.image_url,
       description: img.description || undefined,
-      isMainImage: false
+      isMainImage: false,
     })),
-    videos: videos.map(vid => ({
+    videos: videos.map((vid) => ({
       id: vid.id,
       url: vid.url,
-      description: vid.description || undefined
-    }))
+      description: vid.description || undefined,
+    })),
   };
 
   return (
     <div className="bg-white rounded-xl shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Article header */}
         <ArticleHeader article={article} />
+        {/* Metadata section */}
         <ArticleMetadata article={article} />
+        {/* Media galleries */}
         <ArticleMedia
           selectedImage={selectedImage}
           articleTitle={article.title}
@@ -146,16 +167,19 @@ export default function SingleArticle({
           onCloseVideoModal={closeVideoModal}
           articleId={article.id}
         />
+        {/* Primary content */}
         <ArticleContent content={article.content} />
+        {/* Tag list */}
         <ArticleTags
           tags={Array.isArray(article.tag_names)
             ? article.tag_names.map((name: string, index: number) => ({
               name,
               color: article.tag_colors?.[index] || "#6B7280",
-              id: article.tag_ids?.[index] || 0
+                id: article.tag_ids?.[index] || 0,
             }))
             : []}
         />
+        {/* Actions */}
         <ArticleActions
           showBackButton={showBackButton}
           isBookmarked={false}

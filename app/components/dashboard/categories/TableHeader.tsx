@@ -8,9 +8,12 @@ interface TableHeaderProps {
   columns: Column<Category>[];
   sortField: string;
   sortDirection: "asc" | "desc";
-  onSort: (_field: string) => void;
+  onSort: (field: string) => void;
 }
 
+// Description: Render table header with sortable columns and responsive visibility rules.
+// Data created: 2024-11-13
+// Author: thangtruong
 export function TableHeader({
   columns,
   sortField,

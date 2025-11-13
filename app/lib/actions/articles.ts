@@ -190,11 +190,25 @@ export async function getArticleById(id: number) {
 
   const article = rows[0];
   if (article) {
+    const normalizeDate = (value: unknown): string => {
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      if (typeof value === "string" || typeof value === "number") {
+        const parsed = new Date(value);
+        if (!Number.isNaN(parsed.getTime())) {
+          return parsed.toISOString();
+        }
+        return String(value);
+      }
+      return "";
+    };
+
     return {
       data: {
         ...article,
-        published_at: new Date(article.published_at),
-        updated_at: new Date(article.updated_at),
+        published_at: normalizeDate(article.published_at),
+        updated_at: normalizeDate(article.updated_at),
         is_featured: Boolean(article.is_featured),
         is_trending: Boolean(article.is_trending),
         headline_priority: Number(article.headline_priority),

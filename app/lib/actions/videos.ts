@@ -6,13 +6,53 @@ import { RowDataPacket } from "mysql2";
 import { Video } from "../definition";
 import mysql from "mysql2/promise";
 import { uploadToFTP } from "../utils/ftp";
-import { getPublicIdFromUrl } from "../utils/cloudinaryUtils";
 import { deleteVideoFromCloudinary } from "../utils/cloudinaryServerUtils";
 import pool from "../db/query";
 
 type VideoCountRow = {
   total: number;
 } & Record<string, unknown>;
+
+type VideoRow = {
+  id?: number | string;
+  article_id?: number | string | null;
+  video_url?: string | null;
+  description?: string | null;
+  created_at?: string | Date | null;
+  updated_at?: string | Date | null;
+  article_title?: string | null;
+};
+
+const normalizeDate = (value: unknown): string => {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+    return String(value);
+  }
+  return "";
+};
+
+const normalizeVideo = (video: VideoRow): Video => ({
+  id: Number(video.id ?? 0),
+  article_id: Number(video.article_id ?? 0),
+  video_url:
+    typeof video.video_url === "string" && video.video_url.length > 0
+      ? video.video_url
+      : undefined,
+  description:
+    typeof video.description === "string" && video.description.length > 0
+      ? video.description
+      : undefined,
+  created_at: normalizeDate(video.created_at),
+  updated_at: normalizeDate(video.updated_at),
+  article_title:
+    typeof video.article_title === "string" ? video.article_title : undefined,
+});
 
 // Helper function to extract public ID from Cloudinary URL
 function extractPublicId(url: string): string | null {
@@ -29,8 +69,7 @@ function extractPublicId(url: string): string | null {
     }
 
     return null;
-  } catch (error) {
-    console.error("Error extracting public ID:", error);
+  } catch (_error) {
     return null;
   }
 }
@@ -67,9 +106,10 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
       : [];
     const totalItems = countRows.length > 0 ? Number(countRows[0].total ?? 0) : 0;
 
-    const videos = Array.isArray(result.data)
-      ? (result.data as Video[])
+    const videoRows = Array.isArray(result.data)
+      ? (result.data as VideoRow[])
       : [];
+    const videos = videoRows.map(normalizeVideo);
 
     return {
       data: videos,
@@ -77,14 +117,14 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
       totalItems,
       totalPages: Math.ceil(totalItems / itemsPerPage),
     };
-  } catch (error) {
+  } catch (_error) {
     return { data: null, error: "Failed to fetch videos", totalItems: 0 };
   }
 }
 
 export async function getVideoById(id: number) {
   try {
-    const result = await query(
+    const result = await query<VideoRow>(
       `SELECT v.*, a.title as article_title 
        FROM Videos v
        LEFT JOIN Articles a ON v.article_id = a.id
@@ -96,9 +136,17 @@ export async function getVideoById(id: number) {
       return { data: null, error: result.error };
     }
 
-    return { data: result.data?.[0] || null, error: null };
-  } catch (error) {
-    console.error("Error fetching video:", error);
+    const rows = Array.isArray(result.data)
+      ? (result.data as VideoRow[])
+      : [];
+    const video = rows[0];
+
+    if (!video) {
+      return { data: null, error: "Video not found" };
+    }
+
+    return { data: normalizeVideo(video), error: null };
+  } catch (_error) {
     return { data: null, error: "Failed to fetch video" };
   }
 }
@@ -107,8 +155,6 @@ export async function createVideo(
   video: Omit<Video, "id" | "created_at" | "updated_at">
 ) {
   try {
-    console.log("Creating video in database:", video);
-
     if (!video.article_id) {
       throw new Error("Article ID is required");
     }
@@ -127,17 +173,13 @@ export async function createVideo(
       [video.article_id, video.video_url, description]
     );
 
-    console.log("Database insert result:", result);
-
     if (result.error) {
-      console.error("Database error:", result.error);
       return { success: false, error: result.error };
     }
 
     revalidatePath("/dashboard/videos");
     return { success: true, error: null };
-  } catch (error) {
-    console.error("Error creating video:", error);
+  } catch (_error) {
     return { success: false, error: "Failed to create video" };
   }
 }
@@ -171,18 +213,15 @@ export async function updateVideo(
       }
 
       // If there's a new video URL and it's different from the old one, delete the old video asynchronously
-      if (data.video_url && data.video_url !== oldVideoData.video_url) {
-        if (
-          oldVideoData.video_url &&
-          oldVideoData.video_url.includes("cloudinary.com")
-        ) {
-          const oldPublicId = extractPublicId(oldVideoData.video_url);
-          if (oldPublicId) {
-            // Delete the old video asynchronously without waiting for the result
-            deleteVideoFromCloudinary(oldPublicId).catch((error) => {
-              console.error("Error deleting old video from Cloudinary:", error);
-            });
-          }
+      if (
+        data.video_url &&
+        data.video_url !== oldVideoData.video_url &&
+        oldVideoData.video_url &&
+        oldVideoData.video_url.includes("cloudinary.com")
+      ) {
+        const oldPublicId = extractPublicId(oldVideoData.video_url);
+        if (oldPublicId) {
+          deleteVideoFromCloudinary(oldPublicId).catch(() => null);
         }
       }
 
@@ -190,7 +229,6 @@ export async function updateVideo(
       return true;
     });
   } catch (error) {
-    console.error("Error updating video:", error);
     throw error;
   }
 }
@@ -228,16 +266,8 @@ export async function deleteVideo(id: number) {
         const publicId = extractPublicId(video.video_url);
         if (publicId) {
           try {
-            const deleteResult = await deleteVideoFromCloudinary(publicId);
-            if (!deleteResult.success) {
-              console.error(
-                "Failed to delete video from Cloudinary:",
-                deleteResult.error
-              );
-              // Continue with database deletion even if Cloudinary deletion fails
-            }
-          } catch (error) {
-            console.error("Error deleting video from Cloudinary:", error);
+            await deleteVideoFromCloudinary(publicId);
+          } catch (_error) {
             // Continue with database deletion even if Cloudinary deletion fails
           }
         }
@@ -257,7 +287,6 @@ export async function deleteVideo(id: number) {
       return { success: true, error: null };
     });
   } catch (error) {
-    console.error("Error deleting video:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to delete video",
@@ -289,15 +318,14 @@ export async function uploadVideoToServer(
     }
 
     return { url };
-  } catch (error) {
-    console.error("Error uploading video:", error);
+  } catch (_error) {
     return { error: "Failed to upload video" };
   }
 }
 
 export async function searchVideos(searchQuery: string) {
   try {
-    const result = await query(
+    const result = await query<VideoRow>(
       `SELECT v.*, a.title as article_title 
        FROM Videos v
        LEFT JOIN Articles a ON v.article_id = a.id
@@ -310,7 +338,10 @@ export async function searchVideos(searchQuery: string) {
       return { data: [], error: result.error, totalItems: 0, totalPages: 0 };
     }
 
-    const videos = result.data as Video[];
+    const videoRows = Array.isArray(result.data)
+      ? (result.data as VideoRow[])
+      : [];
+    const videos = videoRows.map(normalizeVideo);
     return {
       data: videos,
       error: null,

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ChangeEventHandler } from "react";
 import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { ArticleFormData } from "../articleSchema";
 import { Tag } from "../../../../../lib/definition";
@@ -9,9 +10,12 @@ interface TagFieldsProps {
   errors: FieldErrors<ArticleFormData>;
   tags: Tag[];
   selectedTags: number[];
-  onTagChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onTagChange: ChangeEventHandler<HTMLSelectElement>;
 }
 
+// Description: Render selectable tag list allowing multi-select with validation feedback.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function TagFields({
   register,
   errors,
@@ -28,6 +32,7 @@ export default function TagFields({
 
   return (
     <div className="space-y-2">
+      {/* Tags multi-select */}
       <label htmlFor="tag_ids" className="block text-sm font-medium">
         Tags <span className="text-xs">(*)</span>
       </label>

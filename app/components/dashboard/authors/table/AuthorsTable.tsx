@@ -26,6 +26,8 @@ interface AuthorsTableProps {
   onItemsPerPageChange: (limit: number) => void;
 }
 
+type TableAuthor = Author & { sequence: number };
+
 export default function AuthorsTable({
   authors,
   currentPage,
@@ -46,7 +48,12 @@ export default function AuthorsTable({
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
 
-  const columns: Column<Author & { sequence?: number; actions?: never }>[] = [
+  const enrichedAuthors: TableAuthor[] = authors.map((author, index) => ({
+    ...author,
+    sequence: (currentPage - 1) * itemsPerPage + (index + 1),
+  }));
+
+  const baseColumns: Column<TableAuthor>[] = [
     {
       field: "sequence",
       label: "#",
@@ -126,74 +133,59 @@ export default function AuthorsTable({
   ];
 
   // Only add the actions column if the user is an admin
-  if (isAdmin) {
-    columns.push({
-      field: "actions",
-      label: "Actions",
-      sortable: false,
-      render: (_: unknown, author: Author) => (
-        <div className="flex justify-start items-start space-x-2">
-          <button
-            onClick={() => onEdit(author)}
-            className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-          >
-            <PencilIcon className="h-4 w-4" />
-            Edit
-          </button>
-          <button
-            onClick={() => onDelete(author)}
-            disabled={isDeleting}
-            className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
-          >
-            <TrashIcon className="h-4 w-4" />
-            Delete
-          </button>
-        </div>
-      ),
-    });
-  }
-
-  const handleSort = (_field: keyof Author) => {
-    onSort(_field);
+  const actionColumn: Column<TableAuthor> = {
+    field: "id",
+    label: "Actions",
+    sortable: false,
+    render: (_: string, author: TableAuthor) => (
+      <div className="flex justify-start items-start space-x-2">
+        <button
+          onClick={() => onEdit(author)}
+          className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+        >
+          <PencilIcon className="h-4 w-4" />
+          Edit
+        </button>
+        <button
+          onClick={() => onDelete(author)}
+          disabled={isDeleting}
+          className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+        >
+          <TrashIcon className="h-4 w-4" />
+          Delete
+        </button>
+      </div>
+    ),
   };
 
-  const handlePageChange = (_page: number) => {
-    onPageChange(_page);
-  };
+  const columns: Column<TableAuthor>[] = isAdmin
+    ? [...baseColumns, actionColumn]
+    : baseColumns;
 
-  const handleEdit = (_author: Author) => {
-    onEdit(_author);
-  };
-
-  const handleDelete = (_author: Author) => {
-    onDelete(_author);
-  };
-
-  const handleItemsPerPageChange = (_limit: number) => {
-    onItemsPerPageChange(_limit);
-  };
-
+  // Description: Render authors table with pagination, sorting, and admin actions.
+  // Data created: 2024-11-13
+  // Author: thangtruong
   return (
     <div className="flow-root">
       <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
           <Table
-            data={authors}
+            data={enrichedAuthors}
             columns={columns}
             currentPage={currentPage}
             totalPages={totalPages}
             itemsPerPage={itemsPerPage}
             totalItems={totalItems}
-            sortField={sortField}
+            sortField={sortField as keyof TableAuthor}
             sortDirection={sortDirection}
-            onSort={handleSort}
-            onPageChange={handlePageChange}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
+            onSort={(field) => onSort(field as keyof Author)}
+            onPageChange={onPageChange}
+            onEdit={(author) => onEdit(author)}
+            onDelete={(author) => onDelete(author)}
             isDeleting={isDeleting}
             searchQuery={searchQuery}
             isLoading={isLoading}
-            onItemsPerPageChange={handleItemsPerPageChange}
+            onItemsPerPageChange={onItemsPerPageChange}
           />
         </div>
       </div>

@@ -10,11 +10,14 @@ interface TableBodyProps {
   itemsPerPage: number;
 }
 
+// Description: Render table body rows for categories with responsive column visibility.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function TableBody({
   categories,
   columns,
-  currentPage,
-  itemsPerPage,
+  currentPage: _currentPage,
+  itemsPerPage: _itemsPerPage,
 }: TableBodyProps) {
   return (
     <tbody className="divide-y divide-gray-200 bg-white">

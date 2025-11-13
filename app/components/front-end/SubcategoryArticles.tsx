@@ -1,90 +1,102 @@
 "use client";
 
-// Component to display articles filtered by subcategory in a 5x5 grid layout
 import { useState, useEffect, useRef } from "react";
-import { getSubcategoryArticles } from "@/app/lib/actions/front-end-articles";
-import { getSubcategoryById } from "@/app/lib/actions/subcategories";
-import { getCategoryById } from "@/app/lib/actions/categories";
 import { Article } from "@/app/lib/definition";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
-import Grid from "@/app/components/front-end/shared/Grid";
 import Card from "@/app/components/front-end/shared/Card";
 import { FolderIcon } from "@heroicons/react/24/outline";
 import SubcategoryArticlesSkeleton from "./SubcategoryArticlesSkeleton";
 
-// Props interface for subcategory filtering
 type Props = {
   subcategory?: string;
 };
 
+type SubcategoryArticlesResponse = {
+  data: Article[];
+  totalCount: number;
+  error: string | null;
+};
+
+type SubcategoryInfo = {
+  name: string;
+  category_name: string;
+};
+
+// Description: Render subcategory-filtered articles grid with pagination.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function SubcategoryArticles({ subcategory }: Props) {
-  // State management for articles, loading, error, and pagination
+  // State: articles list and metadata.
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [subcategoryInfo, setSubcategoryInfo] = useState<{
-    name: string;
-    category_name: string;
-  } | null>(null);
-  const itemsPerPage = 10; // Use same itemsPerPage for both initial load and load more
+  const [subcategoryInfo, setSubcategoryInfo] = useState<SubcategoryInfo | null>(
+    null
+  );
+  const itemsPerPage = 10;
   const [hasMore, setHasMore] = useState(false);
   const articlesRef = useRef<Article[]>([]);
 
-  // Handle load more click
+  // Handlers: load-more pagination trigger.
   const handleLoadMore = () => {
     if (isLoading) return;
     setCurrentPage((prev) => prev + 1);
   };
 
-  // Fetch articles when subcategory or page changes
+  // Effects: fetch articles through API route.
   useEffect(() => {
     const fetchArticles = async () => {
       if (!subcategory) return;
 
       try {
         setIsLoading(true);
-        const result = await getSubcategoryArticles({
-          subcategoryId: subcategory,
-          page: currentPage,
-          itemsPerPage,
-        });
+        const response = await fetch(
+          `/api/articles/subcategory?subcategoryId=${encodeURIComponent(
+            subcategory
+          )}&page=${currentPage}&itemsPerPage=${itemsPerPage}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch articles");
+        }
+
+        const result = (await response.json()) as SubcategoryArticlesResponse;
 
         if (result.error) {
           throw new Error(result.error);
         }
 
-        const newArticles = result.data || [];
+        const newArticles = Array.isArray(result.data) ? result.data : [];
 
         if (currentPage === 1) {
-          // For page 1, just set the articles directly
           setArticles(newArticles);
           articlesRef.current = newArticles;
         } else {
-          // For page 2+, append the new articles
           const updatedArticles = [...articlesRef.current, ...newArticles];
           articlesRef.current = updatedArticles;
           setArticles(updatedArticles);
         }
 
-        setTotalCount(result.totalCount || 0);
+        setTotalCount(result.totalCount ?? 0);
+        setHasMore(result.totalCount > articlesRef.current.length);
 
-        // Calculate total loaded articles
-        const totalLoaded = articlesRef.current.length;
-        // Only show Load More if we have more articles to load
-        setHasMore(result.totalCount > totalLoaded);
-
-        // Set subcategory info from the first article
-        if (result.data && result.data.length > 0 && currentPage === 1) {
+        if (newArticles.length > 0 && currentPage === 1) {
           setSubcategoryInfo({
-            name: result.data[0].subcategory_name || "",
-            category_name: result.data[0].category_name || "",
+            name: newArticles[0].subcategory_name || "Articles",
+            category_name: newArticles[0].category_name || "Uncategorized",
           });
         }
-      } catch (error) {
+      } catch (fetchError) {
         setError(
-          error instanceof Error ? error.message : "Failed to fetch articles"
+          fetchError instanceof Error
+            ? fetchError.message
+            : "Failed to fetch articles"
         );
       } finally {
         setIsLoading(false);
@@ -94,34 +106,20 @@ export default function SubcategoryArticles({ subcategory }: Props) {
     fetchArticles();
   }, [subcategory, currentPage]);
 
-  // Fetch subcategory and category information
+  // Effects: reset pagination when subcategory changes.
   useEffect(() => {
-    const fetchSubcategoryInfo = async () => {
-      if (!subcategory) return;
-
-      try {
-        const subcategoryResult = await getSubcategoryById(parseInt(subcategory));
-        if (subcategoryResult.data) {
-          const categoryResult = await getCategoryById(subcategoryResult.data.category_id);
-          setSubcategoryInfo({
-            name: subcategoryResult.data.name,
-            category_name: categoryResult.data?.name || "Unknown Category"
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching subcategory info:", error);
-      }
-    };
-
-    fetchSubcategoryInfo();
+    setCurrentPage(1);
+    setArticles([]);
+    setHasMore(false);
+    setSubcategoryInfo(null);
   }, [subcategory]);
 
-  // Loading state display
-  if (isLoading) {
+  // Loading state: skeleton while fetching.
+  if (isLoading && articles.length === 0) {
     return <SubcategoryArticlesSkeleton />;
   }
 
-  // Error state display
+  // Error state: display message.
   if (error) {
     return (
       <div className="bg-red-50 p-4 rounded-md">
@@ -130,7 +128,7 @@ export default function SubcategoryArticles({ subcategory }: Props) {
     );
   }
 
-  // Empty state display
+  // Empty state: friendly fallback.
   if (articles.length === 0) {
     return (
       <>
@@ -182,7 +180,7 @@ export default function SubcategoryArticles({ subcategory }: Props) {
                 </h3>
                 <p className="text-sm sm:text-base text-gray-500 max-w-md">
                   {subcategory
-                    ? `We couldn't find any articles in the subcategory "${subcategoryInfo?.name || subcategory}" under category "${subcategoryInfo?.category_name || 'Loading...'}". Please check back later or explore other categories.`
+                    ? `We couldn't find any articles in the subcategory "${subcategoryInfo?.name || subcategory}" under category "${subcategoryInfo?.category_name || "Loading..."}". Please check back later or explore other categories.`
                     : "No articles are available at the moment. Please check back later."}
                 </p>
               </div>

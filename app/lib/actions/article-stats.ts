@@ -7,10 +7,9 @@ export async function getArticleStats() {
     );
 
     if (result.error) {
-      console.error('Error fetching article stats:', result.error);
       return {
         data: { totalArticles: 0 },
-        error: result.error
+        error: result.error,
       };
     }
 
@@ -19,7 +18,6 @@ export async function getArticleStats() {
       error: null
     };
   } catch (error) {
-    console.error('Error in getArticleStats:', error);
     return {
       data: { totalArticles: 0 },
       error: error instanceof Error ? error.message : 'Failed to fetch article stats'

@@ -30,6 +30,8 @@ import {
 } from "./fields";
 import { FormHeader, FormTabs, FormActions } from ".";
 import { useArticleForm } from "./hooks/useArticleForm";
+import type { ArticleFormData } from "./articleSchema";
+import { showErrorToast } from "@/app/components/dashboard/shared/toast/Toast";
 
 // Props interface defining the required data for the form
 interface ArticleFormProps {
@@ -40,6 +42,9 @@ interface ArticleFormProps {
   tags: Tag[];
 }
 
+// Description: Article creation and edit form with tabbed sections for content, media, and settings.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function ArticleForm({
   article,
   categories = [],
@@ -47,7 +52,6 @@ export default function ArticleForm({
   subcategories = [],
   tags: initialTags = [],
 }: ArticleFormProps) {
-  console.log('rendered');
   const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id ? Number(session.user.id) : undefined;
@@ -56,7 +60,6 @@ export default function ArticleForm({
   const {
     register,
     handleSubmit,
-    control,
     formState,
     isSubmitting,
     activeTab,
@@ -67,7 +70,6 @@ export default function ArticleForm({
     tags,
     imageUrl,
     videoUrl,
-    uploadProgress,
     handleTagChange,
     handleFileUpload,
     handleCategoryChange,
@@ -75,36 +77,17 @@ export default function ArticleForm({
     onSubmit,
     isFormEmpty,
     isEditMode,
-    getValues,
   } = useArticleForm({
     article,
-    categories,
-    authors,
     subcategories,
     tags: initialTags,
     userId,
   });
 
-  // Add a debug log for form submission
-  const onValid = (data: any) => {
-    console.log('[DEBUG] Form submission started');
-    console.log('[DEBUG] Raw form data:', data);
+  const onValid = (data: ArticleFormData) => onSubmit(data);
 
-    // Map string values to numbers where needed
-    const mappedData = {
-      ...data,
-      category_id: data.category_id ? Number(data.category_id) : undefined,
-      author_id: data.author_id ? Number(data.author_id) : undefined,
-      sub_category_id: data.sub_category_id ? Number(data.sub_category_id) : undefined,
-      tag_ids: Array.isArray(data.tag_ids) ? data.tag_ids.map(Number) : [],
-    };
-
-    console.log('[DEBUG] Mapped form data:', mappedData);
-    return onSubmit(mappedData);
-  };
-
-  const onInvalid = (errors: any) => {
-    console.log('[DEBUG] Form validation failed:', errors);
+  const onInvalid = () => {
+    showErrorToast({ message: "Please review the highlighted errors and try again." });
   };
 
   return (
@@ -130,7 +113,6 @@ export default function ArticleForm({
               <BasicFields
                 register={register}
                 errors={formState.errors}
-                control={control}
                 categories={categories}
                 authors={authors}
                 filteredSubcategories={filteredSubcategories}
@@ -156,7 +138,6 @@ export default function ArticleForm({
           {activeTab === "media" && (
             <MediaFields
               register={register}
-              errors={formState.errors}
               imageUrl={imageUrl}
               videoUrl={videoUrl}
               onFileUpload={handleFileUpload}

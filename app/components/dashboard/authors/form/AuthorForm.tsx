@@ -80,7 +80,6 @@ export default function AuthorForm({ author }: AuthorFormProps) {
       router.refresh();
     } catch (error) {
       showErrorToast({ message: "Something went wrong" });
-      console.error(error);
     }
   };
 
@@ -109,8 +108,6 @@ export default function AuthorForm({ author }: AuthorFormProps) {
         <AuthorFormFields
           register={register}
           errors={errors}
-          control={control}
-          isEditMode={isEditMode}
         />
 
         {/* Form action buttons */}

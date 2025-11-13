@@ -9,6 +9,9 @@ interface UseTableColumnsProps {
   onDelete: (id: number, name: string) => void;
 }
 
+// Description: Provide column definitions for the categories table including action handlers.
+// Data created: 2024-11-13
+// Author: thangtruong
 export function useTableColumns({ isDeleting, onDelete }: UseTableColumnsProps): Column<Category>[] {
   return [
     {

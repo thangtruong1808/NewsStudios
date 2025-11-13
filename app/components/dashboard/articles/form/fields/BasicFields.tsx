@@ -1,39 +1,34 @@
 "use client";
 
-import type {
-  UseFormRegister,
-  FieldErrors,
-  Control,
-} from "react-hook-form";
+import type { ChangeEventHandler } from "react";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { ArticleFormData } from "@/app/components/dashboard/articles/form/articleSchema";
 
 interface BasicFieldsProps {
   register: UseFormRegister<ArticleFormData>;
   errors: FieldErrors<ArticleFormData>;
-  control: Control<ArticleFormData>;
   categories: { id: number; name: string; description?: string }[];
   authors: { id: number; name: string }[];
   selectedCategory: string;
-  onCategoryChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onCategoryChange: ChangeEventHandler<HTMLSelectElement>;
   filteredSubcategories: { id: number; name: string; category_id: number }[];
 }
 
+// Description: Render core article fields for title, category, subcategory, and author inputs.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function BasicFields({
   register,
   errors,
-  control,
   categories,
   authors,
   selectedCategory,
   onCategoryChange,
   filteredSubcategories,
 }: BasicFieldsProps) {
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-    onCategoryChange(e);
-  };
-
   return (
     <div className="space-y-6">
+      {/* Title field */}
       <div>
         <label className="block text-sm font-medium ">
           Title <span className="text-xs">(*)</span>
@@ -48,6 +43,7 @@ export default function BasicFields({
         )}
       </div>
 
+      {/* Category and subcategory selectors */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <label className="block text-sm font-medium">
@@ -55,7 +51,7 @@ export default function BasicFields({
           </label>
           <select
             {...register("category_id")}
-            onChange={handleCategoryChange}
+            onChange={(event) => onCategoryChange(event)}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border px-2 py-2 text-sm [&>option:checked]:bg-gray-200 [&>option:checked]:text-black"
           >
             <option value="">Select a category</option>
@@ -103,6 +99,7 @@ export default function BasicFields({
         </div>
       </div>
 
+      {/* Author selector */}
       <div>
         <label className="block text-sm font-medium">
           Author <span className="text-xs">(*)</span>

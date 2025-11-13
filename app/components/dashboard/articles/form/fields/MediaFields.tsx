@@ -1,50 +1,49 @@
 "use client";
 
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister } from "react-hook-form";
 import type { ArticleFormData } from "../articleSchema";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
-import { useEffect } from "react";
+import type { UseArticleFormResult } from "../hooks/useArticleForm";
 
 interface MediaFieldsProps {
   register: UseFormRegister<ArticleFormData>;
-  errors: FieldErrors<ArticleFormData>;
   imageUrl: string | null;
   videoUrl: string | null;
-  onFileUpload: (file: File, type: "image" | "video") => Promise<void>;
-  onRemoveMedia: (type: "image" | "video") => void;
+  onFileUpload: UseArticleFormResult["handleFileUpload"];
+  onRemoveMedia: UseArticleFormResult["handleRemoveMedia"];
 }
 
+// Description: Manage media selection, preview, and removal controls for article assets.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function MediaFields({
   register,
-  errors,
   imageUrl,
   videoUrl,
   onFileUpload,
   onRemoveMedia,
 }: MediaFieldsProps) {
-  useEffect(() => {
-    console.log("[DEBUG] MediaFields mounted");
-  }, []);
+  register("image");
+  register("video");
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log("[DEBUG] Image file selected:", file);
-      await onFileUpload(file, "image");
+      await onFileUpload({ file, type: "image" });
     }
   };
 
   const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log("[DEBUG] Video file selected:", file);
-      await onFileUpload(file, "video");
+      await onFileUpload({ file, type: "video" });
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Image upload */}
       <div>
         <label
           htmlFor="image"
@@ -72,7 +71,7 @@ export default function MediaFields({
             />
             <button
               type="button"
-              onClick={() => onRemoveMedia("image")}
+              onClick={() => onRemoveMedia({ type: "image" })}
               className="absolute -top-2 -right-2 inline-flex items-center gap-1 rounded border border-red-500 px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors duration-200"
             >
               <XMarkIcon className="h-3.5 w-3.5" />
@@ -82,6 +81,7 @@ export default function MediaFields({
         )}
       </div>
 
+      {/* Video upload */}
       <div>
         <label
           htmlFor="video"
@@ -107,7 +107,7 @@ export default function MediaFields({
             />
             <button
               type="button"
-              onClick={() => onRemoveMedia("video")}
+              onClick={() => onRemoveMedia({ type: "video" })}
               className="absolute -top-2 -right-2 inline-flex items-center gap-1 rounded border border-red-500 px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors duration-200"
             >
               <XMarkIcon className="h-3.5 w-3.5" />

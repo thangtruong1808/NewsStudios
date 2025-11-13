@@ -15,26 +15,18 @@ export async function generateMetadata({ searchParams }: ExplorePageProps): Prom
   let description = 'Browse and discover a comprehensive collection of articles, videos, and multimedia content across diverse categories and tags. Find curated content from various topics and explore our extensive library of engaging media.';
 
   if (subcategory) {
-    try {
-      const subcategoryResult = await getSubcategoryById(parseInt(subcategory));
-      if (subcategoryResult.data) {
-        const categoryResult = await getCategoryById(subcategoryResult.data.category_id);
-        const categoryName = categoryResult.data?.name || 'Unknown Category';
-        title = `${subcategoryResult.data.name} Articles | NewsStudios`;
-        description = `Explore a comprehensive collection of articles in the ${subcategoryResult.data.name} subcategory under ${categoryName}. Discover curated content, trending topics, and engaging multimedia articles from our extensive library. Browse through high-quality content and stay updated with the latest news and insights.`;
-      }
-    } catch (error) {
-      console.error('Error fetching subcategory metadata:', error);
+    const subcategoryResult = await getSubcategoryById(parseInt(subcategory));
+    if (subcategoryResult.data) {
+      const categoryResult = await getCategoryById(subcategoryResult.data.category_id);
+      const categoryName = categoryResult.data?.name || 'Unknown Category';
+      title = `${subcategoryResult.data.name} Articles | NewsStudios`;
+      description = `Explore a comprehensive collection of articles in the ${subcategoryResult.data.name} subcategory under ${categoryName}. Discover curated content, trending topics, and engaging multimedia articles from our extensive library. Browse through high-quality content and stay updated with the latest news and insights.`;
     }
   } else if (categoryId) {
-    try {
-      const categoryResult = await getCategoryById(parseInt(categoryId));
-      if (categoryResult.data) {
-        title = `${categoryResult.data.name} Articles | NewsStudios`;
-        description = `Discover a comprehensive collection of articles in the ${categoryResult.data.name} category. Browse through curated content, trending topics, and engaging multimedia articles from our extensive library. Find high-quality content and stay updated with the latest news and insights across various subcategories.`;
-      }
-    } catch (error) {
-      console.error('Error fetching category metadata:', error);
+    const categoryResult = await getCategoryById(parseInt(categoryId));
+    if (categoryResult.data) {
+      title = `${categoryResult.data.name} Articles | NewsStudios`;
+      description = `Discover a comprehensive collection of articles in the ${categoryResult.data.name} category. Browse through curated content, trending topics, and engaging multimedia articles from our extensive library. Find high-quality content and stay updated with the latest news and insights across various subcategories.`;
     }
   }
 

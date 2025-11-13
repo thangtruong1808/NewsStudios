@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Category } from "@/app/lib/definition";
 import { TableHeader } from "./TableHeader";
 import TableBody from "./TableBody";
@@ -16,15 +15,15 @@ interface CategoriesTableProps {
   itemsPerPage: number;
   sortField: keyof Category;
   sortDirection: "asc" | "desc";
-  searchQuery: string;
   isDeleting: boolean;
-  isLoading: boolean;
   onSort: (field: keyof Category) => void;
   onPageChange: (page: number) => void;
   onDelete: (id: number, name: string) => void;
-  onSearch: (term: string) => void;
 }
 
+// Description: Render responsive categories table with desktop grid, mobile cards, and pagination controls.
+// Data created: 2024-11-13
+// Author: thangtruong
 export function CategoriesTable({
   categories,
   totalPages,
@@ -33,13 +32,10 @@ export function CategoriesTable({
   itemsPerPage,
   sortField,
   sortDirection,
-  searchQuery,
   isDeleting,
-  isLoading,
   onSort,
   onPageChange,
   onDelete,
-  onSearch,
 }: CategoriesTableProps) {
   const columns = useTableColumns({ isDeleting, onDelete });
 
@@ -49,6 +45,7 @@ export function CategoriesTable({
 
   return (
     <div className="space-y-4">
+      {/* Desktop table */}
       <div className="hidden md:block">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -68,17 +65,19 @@ export function CategoriesTable({
         </div>
       </div>
 
+      {/* Mobile cards */}
       <div className="md:hidden space-y-4">
         {categories.map((category) => (
           <MobileCategoryCard
             key={category.id}
             category={category}
-            onEdit={() => { }}
+            onEdit={undefined}
             onDelete={() => onDelete(category.id, category.name)}
           />
         ))}
       </div>
 
+      {/* Pagination footer */}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
@@ -88,4 +87,4 @@ export function CategoriesTable({
       />
     </div>
   );
-} 
+}

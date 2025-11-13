@@ -5,12 +5,121 @@ import { getHighlightArticles } from "@/app/lib/actions/highlight-articles";
 import { Article } from "@/app/lib/definition";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import { StarIcon } from "@heroicons/react/24/outline";
-import Grid from "@/app/components/front-end/shared/Grid";
 import Card from "@/app/components/front-end/shared/Card";
 import { ImageCarousel } from "@/app/components/front-end/shared/ImageCarousel";
 import HighlightArticlesSkeleton from "./HighlightArticlesSkeleton";
 
-// Component to display highlight articles in a grid layout
+type HighlightArticleRaw = {
+  id?: number | string;
+  title?: string | null;
+  content?: string | null;
+  image?: string | null;
+  category_id?: number | string | null;
+  sub_category_id?: number | string | null;
+  author_id?: number | string | null;
+  user_id?: number | string | null;
+  category_name?: string | null;
+  subcategory_name?: string | null;
+  author_name?: string | null;
+  published_at?: string | Date | null;
+  updated_at?: string | Date | null;
+  headline_priority?: number | string | null;
+  is_featured?: boolean | number | null;
+  is_trending?: boolean | number | null;
+  tag_names?: string[] | string | null;
+  tag_ids?: number[] | string | null;
+  tag_colors?: string[] | string | null;
+  likes_count?: number | string | null;
+  comments_count?: number | string | null;
+  views_count?: number | string | null;
+};
+
+const normalizeHighlightArticle = (
+  article: HighlightArticleRaw
+): Article => {
+  const parseStringArray = (value?: string[] | string | null): string[] => {
+    if (Array.isArray(value)) {
+      return value.filter(Boolean);
+    }
+    if (typeof value === "string") {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+    return [];
+  };
+
+  const parseIdArray = (value?: number[] | string | null): number[] => {
+    if (Array.isArray(value)) {
+      return value.map((item) => Number(item ?? 0));
+    }
+    if (typeof value === "string") {
+      return value
+        .split(",")
+        .map((item) => Number(item.trim()))
+        .filter((num) => !Number.isNaN(num));
+    }
+    return [];
+  };
+
+  const parseDate = (value?: string | Date | null): string => {
+    if (typeof value === "string") {
+      return value;
+    }
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    return "";
+  };
+
+  return {
+    id: Number(article.id ?? 0),
+    title: String(article.title ?? ""),
+    content: String(article.content ?? ""),
+    description: undefined,
+    category_id:
+      article.category_id !== undefined && article.category_id !== null
+        ? Number(article.category_id)
+        : undefined,
+    sub_category_id:
+      article.sub_category_id !== undefined && article.sub_category_id !== null
+        ? Number(article.sub_category_id)
+        : undefined,
+    author_id:
+      article.author_id !== undefined && article.author_id !== null
+        ? Number(article.author_id)
+        : undefined,
+    user_id:
+      article.user_id !== undefined && article.user_id !== null
+        ? Number(article.user_id)
+        : undefined,
+    image: typeof article.image === "string" ? article.image : undefined,
+    video: undefined,
+    published_at: parseDate(article.published_at),
+    is_featured: Boolean(article.is_featured),
+    headline_priority: Number(article.headline_priority ?? 0),
+    headline_image_url: undefined,
+    headline_video_url: undefined,
+    is_trending: Boolean(article.is_trending),
+    updated_at: parseDate(article.updated_at),
+    category_name:
+      typeof article.category_name === "string" ? article.category_name : undefined,
+    subcategory_name:
+      typeof article.subcategory_name === "string"
+        ? article.subcategory_name
+        : undefined,
+    author_name:
+      typeof article.author_name === "string" ? article.author_name : undefined,
+    tag_names: parseStringArray(article.tag_names),
+    tag_ids: parseIdArray(article.tag_ids),
+    tag_colors: parseStringArray(article.tag_colors),
+    likes_count: Number(article.likes_count ?? 0),
+    comments_count: Number(article.comments_count ?? 0),
+    views_count: Number(article.views_count ?? 0),
+  };
+};
+
+// Description: Showcase highlight articles with carousel, grid, and pagination controls.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function HighlightArticles() {
   // State management for articles, loading state, and error handling
   const [articles, setArticles] = useState<Article[]>([]);
@@ -37,7 +146,10 @@ export default function HighlightArticles() {
           throw new Error(result.error);
         }
 
-        const newArticles = result.data || [];
+        const rawArticles = Array.isArray(result.data)
+          ? (result.data as HighlightArticleRaw[])
+          : [];
+        const newArticles = rawArticles.map(normalizeHighlightArticle);
         if (page === 1) {
           setArticles(newArticles);
         } else {
@@ -55,8 +167,7 @@ export default function HighlightArticles() {
           result.totalCount > totalLoaded &&
           newArticles.length === ITEMS_PER_PAGE
         );
-      } catch (error) {
-        console.error("Error fetching highlight articles:", error);
+      } catch (_error) {
         setError("Failed to load highlight articles");
       } finally {
         setIsLoading(false);
@@ -162,28 +273,6 @@ export default function HighlightArticles() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
             {articles.slice(0, page * ITEMS_PER_PAGE).map((article) => {
               // Split tag strings into arrays safely
-              const tagNames = (() => {
-                const tagNamesValue = article.tag_names as string | string[] | undefined;
-                if (typeof tagNamesValue === "string") {
-                  return tagNamesValue.split(",").filter(Boolean);
-                }
-                if (Array.isArray(tagNamesValue)) {
-                  return tagNamesValue;
-                }
-                return [];
-              })();
-
-              const tagColors = (() => {
-                const tagColorsValue = article.tag_colors as string | string[] | undefined;
-                if (typeof tagColorsValue === "string") {
-                  return tagColorsValue.split(",").filter(Boolean);
-                }
-                if (Array.isArray(tagColorsValue)) {
-                  return tagColorsValue;
-                }
-                return [];
-              })();
-
               return (
                 <Card
                   key={article.id}
@@ -198,8 +287,8 @@ export default function HighlightArticles() {
                   viewsCount={article.views_count}
                   likesCount={article.likes_count}
                   commentsCount={article.comments_count}
-                  tags={tagNames}
-                  tagColors={tagColors}
+                  tags={article.tag_names}
+                  tagColors={article.tag_colors}
                 />
               );
             })}

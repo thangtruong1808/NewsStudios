@@ -1,62 +1,73 @@
 "use client";
 
-// Component to display articles filtered by category in a 5x5 grid layout
 import { useState, useEffect, useRef } from "react";
-import { getCategoryArticles } from "@/app/lib/actions/front-end-articles";
 import { Article } from "@/app/lib/definition";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
-import Grid from "@/app/components/front-end/shared/Grid";
 import Card from "@/app/components/front-end/shared/Card";
 import { FolderIcon } from "@heroicons/react/24/outline";
 import CategoryArticlesSkeleton from "./CategoryArticlesSkeleton";
 
-// Props interface for category filtering
 type Props = {
   categoryId?: string;
 };
 
+type CategoryArticlesResponse = {
+  data: Article[];
+  totalCount: number;
+  error: string | null;
+};
+
+// Description: Render category-filtered articles grid with pagination support.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function CategoryArticles({ categoryId }: Props) {
-  // State management for articles, loading, error, and pagination
+  // State: track articles and loading/error flags.
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [categoryInfo, setCategoryInfo] = useState<{
-    name: string;
-  } | null>(null);
-  const itemsPerPage = 10; // Use same itemsPerPage for both initial load and load more
+  const [categoryInfo, setCategoryInfo] = useState<{ name: string } | null>(
+    null
+  );
+  const itemsPerPage = 10;
   const [hasMore, setHasMore] = useState(false);
   const articlesRef = useRef<Article[]>([]);
 
-  // Handle load more click
+  // Handlers: pagination load-more trigger.
   const handleLoadMore = () => {
     if (isLoading) return;
     setCurrentPage((prev) => prev + 1);
   };
 
-  // Single useEffect to handle both initial load and pagination
+  // Effects: fetch category articles via API route.
   useEffect(() => {
     const fetchArticles = async () => {
       if (!categoryId) return;
 
       try {
         setIsLoading(true);
-        const result = await getCategoryArticles({
-          categoryId,
-          page: currentPage,
-          itemsPerPage,
-        });
+        const response = await fetch(
+          `/api/articles/category?categoryId=${encodeURIComponent(
+            categoryId
+          )}&page=${currentPage}&itemsPerPage=${itemsPerPage}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch articles");
+        }
+
+        const result = (await response.json()) as CategoryArticlesResponse;
 
         if (result.error) {
           throw new Error(result.error);
         }
 
-        if (!result.data) {
-          throw new Error("No data received");
-        }
-
-        const newArticles = result.data;
+        const newArticles = Array.isArray(result.data) ? result.data : [];
 
         if (currentPage === 1) {
           setArticles(newArticles);
@@ -67,19 +78,19 @@ export default function CategoryArticles({ categoryId }: Props) {
           setArticles(updatedArticles);
         }
 
-        setTotalCount(result.totalCount || 0);
-        const totalLoaded = articlesRef.current.length;
-        setHasMore(result.totalCount > totalLoaded);
+        setTotalCount(result.totalCount ?? 0);
+        setHasMore(result.totalCount > articlesRef.current.length);
 
-        // Set category info from the first article
-        if (result.data && result.data.length > 0 && currentPage === 1) {
+        if (newArticles.length > 0 && currentPage === 1) {
           setCategoryInfo({
-            name: result.data[0].category_name || "",
+            name: newArticles[0].category_name || "Articles",
           });
         }
-      } catch (error) {
+      } catch (fetchError) {
         setError(
-          error instanceof Error ? error.message : "Failed to fetch articles"
+          fetchError instanceof Error
+            ? fetchError.message
+            : "Failed to fetch articles"
         );
       } finally {
         setIsLoading(false);
@@ -89,15 +100,19 @@ export default function CategoryArticles({ categoryId }: Props) {
     fetchArticles();
   }, [categoryId, currentPage]);
 
-  // Calculate total loaded articles
-  const totalLoaded = articles.length;
+  useEffect(() => {
+    setCurrentPage(1);
+    setArticles([]);
+    setHasMore(false);
+    setCategoryInfo(null);
+  }, [categoryId]);
 
-  // Loading state display - only show on initial load
+  // Loading state: initial skeleton.
   if (isLoading && articles.length === 0) {
     return <CategoryArticlesSkeleton />;
   }
 
-  // Error state display
+  // Error state: display friendly message.
   if (error) {
     return (
       <div className="bg-red-50 p-4 rounded-md">
@@ -106,7 +121,7 @@ export default function CategoryArticles({ categoryId }: Props) {
     );
   }
 
-  // Empty state display
+  // Empty state: nothing to show fallback.
   if (articles.length === 0) {
     return (
       <div className="text-center py-8">

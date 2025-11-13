@@ -4,7 +4,6 @@ import { query } from "../db/db";
 import { User, UserFormData } from "../definition";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
-import { ResultSetHeader } from "mysql2";
 
 
 export async function getUsers(params?: {
@@ -108,7 +107,6 @@ export async function getUserByEmail(email: string) {
     const users = result.data as User[];
     return users[0] || null;
   } catch (error) {
-    console.error("Error getting user by email:", error);
     return null;
   }
 }
@@ -280,7 +278,6 @@ export async function updateUser(
       error: null,
     };
   } catch (error) {
-    console.error("Error updating user:", error);
     return {
       success: false,
       data: null,
@@ -325,7 +322,6 @@ export async function deleteUser(id: number) {
     revalidatePath("/dashboard/users");
     return { success: true, error: null };
   } catch (error) {
-    console.error("Error in deleteUser:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to delete user",

@@ -7,9 +7,6 @@ import ExpandableContent from "@/app/components/dashboard/shared/table/Expandabl
 import ExpandableTagList from "./ExpandableTagList";
 import { formatDateToLocal } from "@/app/lib/utils/dateFormatter";
 
-/**
- * Interface for the column configuration props
- */
 interface ArticlesTableColumnsProps {
   isDeleting: boolean;
   onEdit: (article: Article) => void;
@@ -17,14 +14,9 @@ interface ArticlesTableColumnsProps {
   isAdmin: boolean;
 }
 
-/**
- * ArticlesTableColumns Component
- * Defines the column configuration for the articles table, including:
- * - Column definitions with custom renderers
- * - Sorting capabilities
- * - Action buttons for edit and delete operations
- * - Expandable content for long text fields
- */
+// Description: Provide configured columns for the dashboard articles table including actions and formatters.
+// Data created: 2024-11-13
+// Author: thangtruong
 export function getArticlesTableColumns({
   isDeleting,
   onEdit,
@@ -33,7 +25,7 @@ export function getArticlesTableColumns({
 }: ArticlesTableColumnsProps): Column<
   Article & { sequence?: number; actions?: never }
 >[] {
-  // Define base columns without actions
+  // Base column definitions
   const baseColumns: Column<
     Article & { sequence?: number; actions?: never }
   >[] = [
@@ -133,7 +125,7 @@ export function getArticlesTableColumns({
       },
     ];
 
-  // Add actions column if user is admin
+  // Conditional actions column
   if (isAdmin) {
     baseColumns.push({
       field: "actions",

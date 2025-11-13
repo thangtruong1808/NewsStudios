@@ -63,10 +63,24 @@ export async function getHighlightArticles({
       return { data: [], error: null, totalCount: 0 };
     }
 
+    const normalizeDate = (value: unknown): string => {
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      if (typeof value === "string" || typeof value === "number") {
+        const parsed = new Date(value);
+        if (!Number.isNaN(parsed.getTime())) {
+          return parsed.toISOString();
+        }
+        return String(value);
+      }
+      return "";
+    };
+
     const articles = rows.map((article) => ({
       ...article,
-      published_at: new Date(article.published_at),
-      updated_at: new Date(article.updated_at),
+      published_at: normalizeDate(article.published_at),
+      updated_at: normalizeDate(article.updated_at),
       is_featured: Boolean(article.is_featured),
       is_trending: Boolean(article.is_trending),
       headline_priority: Number(article.headline_priority ?? 0),
@@ -75,7 +89,7 @@ export async function getHighlightArticles({
       tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
       likes_count: Number(article.likes_count ?? 0),
       comments_count: Number(article.comments_count ?? 0),
-      views_count: 0,
+      views_count: Number((article as { views_count?: number }).views_count ?? 0),
     }));
 
     const totalCount = Number(rows[0].total_count ?? 0);

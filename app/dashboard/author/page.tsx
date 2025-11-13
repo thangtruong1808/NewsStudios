@@ -8,17 +8,9 @@ export const metadata: Metadata = {
   authors: [{ name: 'thang-truong' }],
 };
 
-interface AuthorsPageProps {
-  searchParams: {
-    page?: string;
-    search?: string;
-    sortField?: string;
-    sortDirection?: "asc" | "desc";
-    query?: string;
-    limit?: string;
-  };
-}
-
-export default function AuthorsPage({ searchParams }: AuthorsPageProps) {
-  return <AuthorsPageClient searchParams={searchParams} />;
+// Description: Authors dashboard page wrapper exposing the client component.
+// Data created: 2024-11-13
+// Author: thangtruong
+export default function AuthorsPage() {
+  return <AuthorsPageClient />;
 }

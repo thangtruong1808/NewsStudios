@@ -4,16 +4,124 @@
 import { useState, useEffect } from "react";
 import { getFrontEndRelativeArticles } from "@/app/lib/actions/front-end-relative-articles";
 import { Article } from "@/app/lib/definition";
-import Grid from "@/app/components/front-end/shared/Grid";
 import Card from "@/app/components/front-end/shared/Card";
 
 import RelativeArticlesSkeleton from "./RelativeArticlesSkeleton";
+
+type RelativeArticleRaw = {
+  id?: number | string;
+  title?: string | null;
+  content?: string | null;
+  image?: string | null;
+  category_name?: string | null;
+  subcategory_name?: string | null;
+  author_name?: string | null;
+  published_at?: string | Date | null;
+  updated_at?: string | Date | null;
+  category_id?: number | string | null;
+  sub_category_id?: number | string | null;
+  author_id?: number | string | null;
+  user_id?: number | string | null;
+  tag_names?: string[] | string | null;
+  tag_colors?: string[] | string | null;
+  tag_ids?: number[] | string | null;
+  likes_count?: number | string | null;
+  comments_count?: number | string | null;
+  views_count?: number | string | null;
+  is_featured?: boolean | number | null;
+  is_trending?: boolean | number | null;
+  headline_priority?: number | string | null;
+};
+
+const normalizeRelativeArticle = (article: RelativeArticleRaw): Article => {
+  const parseStringArray = (value?: string[] | string | null): string[] => {
+    if (Array.isArray(value)) {
+      return value.filter(Boolean);
+    }
+    if (typeof value === "string") {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+    return [];
+  };
+
+  const parseNumberArray = (value?: number[] | string | null): number[] => {
+    if (Array.isArray(value)) {
+      return value.map((item) => Number(item ?? 0));
+    }
+    if (typeof value === "string") {
+      return value
+        .split(",")
+        .map((item) => Number(item.trim()))
+        .filter((num) => !Number.isNaN(num));
+    }
+    return [];
+  };
+
+  const parseDate = (value?: string | Date | null): string => {
+    if (typeof value === "string") {
+      return value;
+    }
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    return "";
+  };
+
+  return {
+    id: Number(article.id ?? 0),
+    title: String(article.title ?? ""),
+    content: String(article.content ?? ""),
+    description: undefined,
+    category_id:
+      article.category_id !== undefined && article.category_id !== null
+        ? Number(article.category_id)
+        : undefined,
+    sub_category_id:
+      article.sub_category_id !== undefined && article.sub_category_id !== null
+        ? Number(article.sub_category_id)
+        : undefined,
+    author_id:
+      article.author_id !== undefined && article.author_id !== null
+        ? Number(article.author_id)
+        : undefined,
+    user_id:
+      article.user_id !== undefined && article.user_id !== null
+        ? Number(article.user_id)
+        : undefined,
+    image: typeof article.image === "string" ? article.image : undefined,
+    video: undefined,
+    published_at: parseDate(article.published_at),
+    is_featured: Boolean(article.is_featured),
+    headline_priority: Number(article.headline_priority ?? 0),
+    headline_image_url: undefined,
+    headline_video_url: undefined,
+    is_trending: Boolean(article.is_trending),
+    updated_at: parseDate(article.updated_at),
+    category_name:
+      typeof article.category_name === "string" ? article.category_name : undefined,
+    subcategory_name:
+      typeof article.subcategory_name === "string"
+        ? article.subcategory_name
+        : undefined,
+    author_name:
+      typeof article.author_name === "string" ? article.author_name : undefined,
+    tag_names: parseStringArray(article.tag_names),
+    tag_ids: parseNumberArray(article.tag_ids),
+    tag_colors: parseStringArray(article.tag_colors),
+    likes_count: Number(article.likes_count ?? 0),
+    comments_count: Number(article.comments_count ?? 0),
+    views_count: Number(article.views_count ?? 0),
+  };
+};
 
 // Props interface for RelatedArticles component
 interface RelativeArticles {
   currentArticleId?: string; // Optional ID of current article to exclude from results
 }
 
+// Description: Display related articles grid with pagination and optional current-article filtering.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function RelativeArticles({
   currentArticleId,
 }: RelativeArticles) {
@@ -43,7 +151,10 @@ export default function RelativeArticles({
           throw new Error(result.error);
         }
 
-        const newArticles = result.data || [];
+        const rawArticles = Array.isArray(result.data)
+          ? (result.data as RelativeArticleRaw[])
+          : [];
+        const newArticles = rawArticles.map(normalizeRelativeArticle);
         if (page === 1) {
           setRelatedArticles(newArticles);
         } else {
@@ -61,8 +172,7 @@ export default function RelativeArticles({
           result.totalCount > totalLoaded &&
           newArticles.length === ITEMS_PER_PAGE
         );
-      } catch (error) {
-        console.error("Error fetching related articles:", error);
+      } catch (_error) {
         setError("Failed to load related articles");
       } finally {
         setIsLoading(false);
@@ -139,49 +249,24 @@ export default function RelativeArticles({
               <>
                 {/* Grid layout for related articles using custom grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-6">
-                  {relatedArticles.map((article) => {
-                    // Split tag strings into arrays safely
-                    const tagNames = (() => {
-                      const tagNamesValue = article.tag_names as string | string[] | undefined;
-                      if (typeof tagNamesValue === "string") {
-                        return tagNamesValue.split(",").filter(Boolean);
-                      }
-                      if (Array.isArray(tagNamesValue)) {
-                        return tagNamesValue;
-                      }
-                      return [];
-                    })();
-
-                    const tagColors = (() => {
-                      const tagColorsValue = article.tag_colors as string | string[] | undefined;
-                      if (typeof tagColorsValue === "string") {
-                        return tagColorsValue.split(",").filter(Boolean);
-                      }
-                      if (Array.isArray(tagColorsValue)) {
-                        return tagColorsValue;
-                      }
-                      return [];
-                    })();
-
-                    return (
-                      <Card
-                        key={article.id}
-                        title={article.title}
-                        description={article.content}
-                        imageUrl={article.image || undefined}
-                        link={`/articles/${article.id}`}
-                        category={article.category_name}
-                        subcategory={article.subcategory_name}
-                        author={article.author_name}
-                        date={article.published_at}
-                        viewsCount={article.views_count}
-                        likesCount={article.likes_count}
-                        commentsCount={article.comments_count}
-                        tags={tagNames}
-                        tagColors={tagColors}
-                      />
-                    );
-                  })}
+                  {relatedArticles.map((article) => (
+                    <Card
+                      key={article.id}
+                      title={article.title}
+                      description={article.content}
+                      imageUrl={article.image || undefined}
+                      link={`/articles/${article.id}`}
+                      category={article.category_name}
+                      subcategory={article.subcategory_name}
+                      author={article.author_name}
+                      date={article.published_at}
+                      viewsCount={article.views_count}
+                      likesCount={article.likes_count}
+                      commentsCount={article.comments_count}
+                      tags={article.tag_names}
+                      tagColors={article.tag_colors}
+                    />
+                  ))}
                 </div>
 
                 {/* Load More Button */}
