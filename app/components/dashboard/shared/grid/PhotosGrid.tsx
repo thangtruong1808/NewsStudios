@@ -4,16 +4,18 @@ import { Image } from "@/app/lib/definition";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import PhotoCard from "@/app/components/dashboard/photos/card/PhotoCard";
 
+/* eslint-disable no-unused-vars */
 interface PhotosGridProps {
   photos: Image[];
-  onEdit: (_payload: { item: Image }) => void;
-  onDelete: (_payload: { item: Image }) => void;
+  onEdit: ({ item }: { item: Image }) => void;
+  onDelete: ({ item }: { item: Image }) => void;
   isLoading?: boolean;
   isDeleting?: boolean;
   hasMore?: boolean;
   isLoadingMore?: boolean;
   onLoadMore?: () => void;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render dashboard photo thumbnails with loading state, empty state, and load-more control.
 // Data created: 2024-11-13

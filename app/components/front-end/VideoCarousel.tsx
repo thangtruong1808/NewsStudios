@@ -6,6 +6,7 @@ import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } 
 import VideoCarouselSkeleton from "./VideoCarouselSkeleton";
 import VideoModal from "./VideoModal";
 
+/* eslint-disable no-unused-vars */
 interface Video {
   id: number;
   article_id: number;
@@ -14,7 +15,11 @@ interface Video {
   article_title: string;
   updated_at: string;
 }
+/* eslint-enable no-unused-vars */
 
+// Description: Auto-playing video carousel with modal playback and thumbnail scrubber.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function VideoCarousel() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,14 +74,14 @@ export default function VideoCarousel() {
     setTimeout(() => setIsTransitioning(false), 500);
   }, [isTransitioning, videos.length]);
 
-  const prevVideo = useCallback(() => {
+const prevVideo = useCallback(() => {
     if (isTransitioning) return;
     setIsTransitioning(true);
     setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? videos.length - 1 : prevIndex - 1
     );
     setTimeout(() => setIsTransitioning(false), 500);
-  }, [isTransitioning]);
+  }, [isTransitioning, videos.length]);
 
   // Auto-slide functionality
   useEffect(() => {

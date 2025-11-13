@@ -114,24 +114,25 @@ const normalizeRelativeArticle = (article: RelativeArticleRaw): Article => {
   };
 };
 
+/* eslint-disable no-unused-vars */
 // Props interface for RelatedArticles component
-interface RelativeArticles {
+interface RelativeArticlesProps {
   currentArticleId?: string; // Optional ID of current article to exclude from results
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Display related articles grid with pagination and optional current-article filtering.
 // Data created: 2024-11-13
 // Author: thangtruong
 export default function RelativeArticles({
   currentArticleId,
-}: RelativeArticles) {
+}: RelativeArticlesProps) {
   // State management for articles, loading state, and error handling
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
   const ITEMS_PER_PAGE = 10;
 
   // Fetch and filter related articles on component mount or when currentArticleId changes
@@ -155,23 +156,17 @@ export default function RelativeArticles({
           ? (result.data as RelativeArticleRaw[])
           : [];
         const newArticles = rawArticles.map(normalizeRelativeArticle);
-        if (page === 1) {
-          setRelatedArticles(newArticles);
-        } else {
-          setRelatedArticles((prev) => [...prev, ...newArticles]);
-        }
-        setTotalCount(result.totalCount || 0);
 
-        // Calculate total loaded articles
-        const totalLoaded =
-          page === 1
-            ? newArticles.length
-            : relatedArticles.length + newArticles.length;
-        // Only show Load More if we have more articles to load and we received a full page
-        setHasMore(
-          result.totalCount > totalLoaded &&
-          newArticles.length === ITEMS_PER_PAGE
-        );
+        setRelatedArticles((prev) => {
+          const merged =
+            page === 1 ? newArticles : [...prev, ...newArticles];
+          const totalLoaded = merged.length;
+          setHasMore(
+            (result.totalCount || 0) > totalLoaded &&
+              newArticles.length === ITEMS_PER_PAGE
+          );
+          return merged;
+        });
       } catch (_error) {
         setError("Failed to load related articles");
       } finally {

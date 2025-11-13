@@ -1,7 +1,6 @@
 "use client";
 
-import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
-
+/* eslint-disable no-unused-vars */
 interface Column {
   key: string;
   label: string;
@@ -14,7 +13,11 @@ interface TableHeaderProps<T> {
   sortDirection: "asc" | "desc";
   onSort: (field: keyof T) => void;
 }
+/* eslint-enable no-unused-vars */
 
+// Description: Render generic table header for dashboard tables with sortable columns.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function TableHeader<T>({
   columns,
   sortField,

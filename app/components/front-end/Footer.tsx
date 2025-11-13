@@ -150,6 +150,9 @@ export default function Footer() {
             <p>Crafted with passion by thangtruong to showcase Next.js craftsmanship.</p>
             <HeartIcon className="h-5 w-5 text-pink-500" />
           </div>
+          <p className="mt-4 text-center text-xs text-gray-400">
+            © {currentYear} NewsStudios. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

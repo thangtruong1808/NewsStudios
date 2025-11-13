@@ -2,13 +2,15 @@
 
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 
+/* eslint-disable no-unused-vars */
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   totalItems: number;
   itemsPerPage: number;
-  onPageChange: (_payload: { page: number }) => void;
+  onPageChange: ({ page }: { page: number }) => void;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render responsive pagination controls for categories table.
 // Data created: 2024-11-13

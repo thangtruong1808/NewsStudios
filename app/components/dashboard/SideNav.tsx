@@ -7,29 +7,32 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import clsx from "clsx";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 /**
  * SideNav Component Props
  * @param onCollapse - Callback function to notify parent of collapse state changes
  */
+/* eslint-disable no-unused-vars */
 interface SideNavProps {
   onCollapse: (collapsed: boolean) => void;
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * SideNav Component
  * Responsive sidebar navigation with collapsible functionality
  * Features user profile, navigation links, and sign out button
  */
+// Description: Responsive dashboard side navigation with collapse toggles and user summary.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function SideNav({ onCollapse }: SideNavProps) {
-  const { data: session, status } = useSession({ required: true });
+  const { data: session } = useSession({ required: true });
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const pathname = usePathname();
 
   // Handle window resize for responsive behavior
   const handleResize = useCallback(() => {
@@ -52,19 +55,6 @@ export default function SideNav({ onCollapse }: SideNavProps) {
     onCollapse(newState);
   };
 
-  // Memoize user display name to prevent unnecessary recalculations
-  const userDisplayName = useMemo(() => {
-    if (!session?.user) return "";
-    if (session.user.firstname && session.user.lastname) {
-      return `${session.user.firstname} ${session.user.lastname}`;
-    }
-    return session.user.email || "";
-  }, [session?.user?.firstname, session?.user?.lastname, session?.user?.email]);
-
-  // Memoize user role to prevent unnecessary recalculations
-  const userRole = useMemo(() => {
-    return session?.user?.role || "";
-  }, [session?.user?.role]);
 
   return (
     <div

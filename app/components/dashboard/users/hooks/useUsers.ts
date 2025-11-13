@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { getUsers, searchUsers, deleteUser } from "@/app/lib/actions/users";
@@ -30,7 +30,7 @@ export function useUsers() {
   const [totalPages, setTotalPages] = useState(0);
   const [hasUsers, setHasUsers] = useState(false);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setIsLoading(true);
       const result = searchQuery
@@ -52,14 +52,15 @@ export function useUsers() {
         return;
       }
 
-      setUsers(result.data || []);
-      if ("totalItems" in result) {
+      const data = result.data || [];
+      setUsers(data);
+      if ("totalItems" in result && typeof result.totalItems === "number") {
         setTotalItems(result.totalItems);
       }
-      if ("totalPages" in result) {
+      if ("totalPages" in result && typeof result.totalPages === "number") {
         setTotalPages(result.totalPages);
       }
-      setHasUsers(result.data.length > 0);
+      setHasUsers(data.length > 0);
     } catch (error) {
       showErrorToast({
         message:
@@ -68,11 +69,11 @@ export function useUsers() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchQuery, currentPage, itemsPerPage, sortField, sortDirection]);
 
   useEffect(() => {
     fetchUsers();
-  }, [searchQuery, currentPage, itemsPerPage, sortField, sortDirection]);
+  }, [fetchUsers]);
 
   const handleSort = ({
     field,

@@ -1,5 +1,6 @@
-import { Article } from "@/app/lib/definition";
+import type { Article } from "@/app/lib/definition";
 
+/* eslint-disable no-unused-vars */
 export interface MediaItem {
   id: number;
   url: string;
@@ -24,8 +25,8 @@ export interface MediaThumbnailProps {
 
 export interface AdditionalMediaSectionProps {
   media: AdditionalMedia;
-  onImageClick: (url: string) => void;
-  onVideoClick: (url: string) => void;
+  onImageClick: (imageUrl: string) => void;
+  onVideoClick: (videoUrl: string) => void;
 }
 
 export interface MainMediaDisplayProps {
@@ -37,3 +38,4 @@ export interface VideoModalProps {
   videoUrl: string | null;
   onClose: () => void;
 }
+/* eslint-enable no-unused-vars */

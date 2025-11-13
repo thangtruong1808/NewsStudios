@@ -10,6 +10,7 @@ import { showErrorToast } from "@/app/components/dashboard/shared/toast/Toast";
 // Data created: 2024-11-13
 // Author: thangtruong
 
+/* eslint-disable no-unused-vars */
 interface CategoriesStateRenderProps {
   categories: Category[];
   totalPages: number;
@@ -21,17 +22,18 @@ interface CategoriesStateRenderProps {
   sortField: keyof Category;
   sortDirection: "asc" | "desc";
   searchQuery: string;
-  handlePageChange(_payload: { page: number }): void;
-  handleSort(_payload: { field: keyof Category }): void;
-  handleEdit(_payload: { item: Category }): void;
-  handleDelete(_payload: { item: Category }): void;
-  handleSearch(_payload: { term: string }): void;
-  handleItemsPerPageChange(_payload: { limit: number }): void;
+  handlePageChange({ page }: { page: number }): void;
+  handleSort({ field }: { field: keyof Category }): void;
+  handleEdit({ item }: { item: Category }): void;
+  handleDelete({ item }: { item: Category }): void;
+  handleSearch({ term }: { term: string }): void;
+  handleItemsPerPageChange({ limit }: { limit: number }): void;
 }
 
 interface CategoriesStateProps {
   children: (_props: CategoriesStateRenderProps) => React.ReactNode;
 }
+/* eslint-enable no-unused-vars */
 
 export default function CategoriesState({ children }: CategoriesStateProps) {
   const router = useRouter();

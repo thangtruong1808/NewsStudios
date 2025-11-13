@@ -1,10 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
+// Description: Render videos dashboard header with create CTA conditioned on admin role.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function VideosHeader() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";

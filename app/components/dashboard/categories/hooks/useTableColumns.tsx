@@ -4,10 +4,12 @@ import { Category } from "@/app/lib/definition";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { Column } from "@/app/components/dashboard/shared/table/TableTypes";
 
+/* eslint-disable no-unused-vars */
 interface UseTableColumnsProps {
   isDeleting: boolean;
-  onDelete(payload: { item: Category }): void;
+  onDelete({ item }: { item: Category }): void;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Provide column definitions for the categories table including action handlers.
 // Data created: 2024-11-13

@@ -1,28 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "react-hot-toast";
+import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { User } from "../../../../login/login-definitions";
-import {
-  createUser,
-  updateUser,
-  getUserById,
-} from "../../../../lib/actions/users";
-import { userSchema, UserFormValues } from "./userSchema";
+import { getUserById } from "../../../../lib/actions/users";
 import UserForm from "./UserForm";
 import UserFormLoading from "./UserFormLoading";
 import UserFormError from "./UserFormError";
-import { useSession } from "next-auth/react";
 
 interface UserFormContainerProps {
   userId?: string;
 }
 
+// Description: Fetch and prepare user data for the dashboard user form, handling loading and error states.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function UserFormContainer({ userId }: UserFormContainerProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(!!userId);
@@ -36,7 +30,7 @@ export default function UserFormContainer({ userId }: UserFormContainerProps) {
       if (userId) {
         try {
           setIsLoading(true);
-          const { data: user, error } = await getUserById(parseInt(userId));
+          const { data: user, error } = await getUserById(Number.parseInt(userId, 10));
 
           if (error) {
             setError(error);

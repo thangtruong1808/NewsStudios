@@ -1,13 +1,18 @@
 import { Article } from "@/app/lib/definition";
 import { TrendingArticleCard } from "./TrendingArticleCard";
 
+/* eslint-disable no-unused-vars */
 interface TrendingArticleListProps {
   articles: Article[];
   currentPage: number;
   totalPages: number;
-  onPageChange: (page: number) => void;
+  onPageChange: (targetPage: number) => void;
 }
+/* eslint-enable no-unused-vars */
 
+// Description: Paginated list rendering trending articles with navigation controls.
+// Data created: 2024-11-13
+// Author: thangtruong
 export const TrendingArticleList = ({
   articles,
   currentPage,

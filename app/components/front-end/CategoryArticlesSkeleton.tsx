@@ -1,9 +1,11 @@
 "use client";
 
 import { FolderIcon } from "@heroicons/react/24/outline";
-import Grid from "@/app/components/front-end/shared/Grid";
 import CardSkeleton from "@/app/components/front-end/shared/CardSkeleton";
 
+// Description: Skeleton placeholder for category articles list with header shimmer.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function CategoryArticlesSkeleton() {
   return (
     <>

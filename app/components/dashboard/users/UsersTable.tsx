@@ -1,45 +1,37 @@
 "use client";
 
-import { Table, Column } from "../../dashboard/shared/table";
-import { User } from "../../../lib/definition";
+import { Table } from "../../dashboard/shared/table";
+import type { Column } from "../../dashboard/shared/table";
+import type { User } from "../../../lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
 import { useSession } from "next-auth/react";
 
-/**
- * Props interface for UsersTable component
- * Defines the required data and callbacks for the table functionality
- */
+/* eslint-disable no-unused-vars */
 interface UsersTableProps {
   users: User[];
   currentPage: number;
   totalPages: number;
   itemsPerPage: number;
   totalItems: number;
-  sortField: keyof (User & { sequence?: number });
+  sortField: keyof User;
   sortDirection: "asc" | "desc";
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: (params: { field: keyof (User & { sequence?: number }) }) => void;
-  onPageChange: (params: { page: number }) => void;
-  onEdit: (params: { item: User }) => void;
-  onDelete: (params: { item: User }) => void;
-  onItemsPerPageChange: (params: { limit: number }) => void;
+  onSort: ({ field }: { field: keyof User }) => void;
+  onPageChange: ({ page }: { page: number }) => void;
+  onEdit: ({ item }: { item: User }) => void;
+  onDelete: ({ item }: { item: User }) => void;
+  onItemsPerPageChange: ({ limit }: { limit: number }) => void;
 }
+/* eslint-enable no-unused-vars */
 
-/**
- * UsersTable Component
- * Renders a data table for user management with features:
- * - Row numbering and user image display
- * - Sortable columns for user data
- * - Expandable description content
- * - Status badges with color coding
- * - Formatted date displays
- * - Action buttons for edit and delete operations (admin only)
- */
+// Description: Render dashboard users table with sortable columns, profile previews, and admin actions.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function UsersTable({
   users,
   currentPage,
@@ -60,7 +52,7 @@ export default function UsersTable({
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
 
-  // Define table columns with their properties and custom render functions
+  // Configure table columns and render helpers.
   const columns: Column<User & { sequence?: number; actions?: never }>[] = [
     // Sequence number column for row numbering
     {
@@ -68,7 +60,9 @@ export default function UsersTable({
       label: "#",
       sortable: false,
       render: ({ value }) => (
-        <span className="text-sm text-gray-500">{value}</span>
+        <span className="text-sm text-gray-500">
+          {typeof value === "number" ? value : Number(value ?? 0)}
+        </span>
       ),
     },
     // User image column with fallback to initials if no image
@@ -245,7 +239,7 @@ export default function UsersTable({
         sortDirection={sortDirection}
         onSort={({ field }) => {
           if (field === "sequence" || field === "actions") return;
-          onSort({ field });
+          onSort({ field: field as keyof User });
         }}
         onPageChange={({ page }) => onPageChange({ page })}
         onEdit={({ item }) => onEdit({ item })}

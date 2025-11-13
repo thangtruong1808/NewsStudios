@@ -1,9 +1,12 @@
-import { ClockIcon, NewspaperIcon } from "@heroicons/react/24/outline";
+import { ClockIcon } from "@heroicons/react/24/outline";
 
 interface ArticleHeaderProps {
   title: string;
 }
 
+// Description: Styled header banner for latest article section with gradient background.
+// Data created: 2024-11-13
+// Author: thangtruong
 export const ArticleHeader = ({ title }: ArticleHeaderProps) => (
   <div className="w-full relative overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-4 shadow-lg">
     {/* Decorative elements */}

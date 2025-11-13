@@ -3,15 +3,17 @@
 import { Column } from "./TableTypes";
 import { MobileView, TabletView, DesktopView } from "./views";
 
+/* eslint-disable no-unused-vars */
 interface ResponsiveTableProps<T> {
   data: T[];
   columns: Column<T>[];
   currentPage: number;
   itemsPerPage: number;
-  onEdit?: (_payload: { item: T }) => void;
-  onDelete?: (_payload: { item: T }) => void;
+  onEdit?: ({ item }: { item: T }) => void;
+  onDelete?: ({ item }: { item: T }) => void;
   isDeleting?: boolean;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Compose mobile, tablet, and desktop table views with consistent styling.
 // Data created: 2024-11-13

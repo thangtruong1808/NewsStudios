@@ -1,11 +1,13 @@
 "use client";
 
+/* eslint-disable no-unused-vars */
 interface EntriesSelectorProps {
   itemsPerPage: number;
   totalItems: number;
   currentPage: number;
-  onItemsPerPageChange: (_: { limit: number }) => void;
+  onItemsPerPageChange: ({ limit }: { limit: number }) => void;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render selectable page size controls with a summary of visible entries.
 // Data created: 2024-11-13

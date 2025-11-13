@@ -8,6 +8,7 @@ import ExpandableContent from "@/app/components/dashboard/shared/table/Expandabl
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
 import { useSession } from "next-auth/react";
 
+/* eslint-disable no-unused-vars */
 interface CategoriesTableProps {
   categories: Category[];
   currentPage: number;
@@ -19,12 +20,13 @@ interface CategoriesTableProps {
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort(_payload: { field: keyof Category }): void;
-  onPageChange(_payload: { page: number }): void;
-  onEdit(_payload: { item: Category }): void;
-  onDelete(_payload: { item: Category }): void;
-  onItemsPerPageChange(_payload: { limit: number }): void;
+  onSort({ field }: { field: keyof Category }): void;
+  onPageChange({ page }: { page: number }): void;
+  onEdit({ item }: { item: Category }): void;
+  onDelete({ item }: { item: Category }): void;
+  onItemsPerPageChange({ limit }: { limit: number }): void;
 }
+/* eslint-enable no-unused-vars */
 
 type CategoryRow = Category & { sequence: number; actions?: never };
 

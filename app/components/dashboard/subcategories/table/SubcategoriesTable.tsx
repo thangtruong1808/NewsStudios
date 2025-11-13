@@ -8,6 +8,7 @@ import ExpandableContent from "@/app/components/dashboard/shared/table/Expandabl
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
 import { useSession } from "next-auth/react";
 
+/* eslint-disable no-unused-vars */
 interface SubcategoriesTableProps {
   subcategories: SubCategory[];
   currentPage: number;
@@ -25,7 +26,11 @@ interface SubcategoriesTableProps {
   onDelete: (subcategory: SubCategory) => void;
   onItemsPerPageChange: (limit: number) => void;
 }
+/* eslint-enable no-unused-vars */
 
+// Description: Render subcategories table with pagination, sorting, and admin actions.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function SubcategoriesTable({
   subcategories,
   currentPage,
@@ -45,6 +50,10 @@ export default function SubcategoriesTable({
 }: SubcategoriesTableProps) {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
+  const augmentedSubcategories = subcategories.map((subcategory, index) => ({
+    ...subcategory,
+    sequence: (currentPage - 1) * itemsPerPage + index + 1,
+  }));
 
   const columns: Column<
     SubCategory & { sequence?: number; actions?: never }
@@ -53,22 +62,34 @@ export default function SubcategoriesTable({
       field: "sequence",
       label: "#",
       sortable: false,
-      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
+      render: ({ value }) => (
+        <span className="text-sm text-gray-500">
+          {typeof value === "number" ? value : Number(value ?? 0)}
+        </span>
+      ),
     },
     {
       field: "name",
       label: "Name",
       sortable: true,
-      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
+      render: ({ value }) => (
+        <span className="text-sm text-gray-500">
+          {typeof value === "string" ? value : String(value ?? "")}
+        </span>
+      ),
     },
     {
       field: "description",
       label: "Description",
       sortable: true,
-      render: (value: string) => (
+      render: ({ value }) => (
         <div className="w-64">
           <ExpandableContent
-            content={value || "No description"}
+            content={
+              typeof value === "string" && value.length > 0
+                ? value
+                : "No description"
+            }
             maxWords={10}
             className="text-sm text-gray-500"
           />
@@ -79,28 +100,38 @@ export default function SubcategoriesTable({
       field: "category_name",
       label: "Category",
       sortable: true,
-      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
+      render: ({ value }) => (
+        <span className="text-sm text-gray-500">
+          {typeof value === "string" ? value : String(value ?? "")}
+        </span>
+      ),
     },
     {
       field: "articles_count",
       label: "Articles",
       sortable: true,
-      render: (value: string) => (
+      render: ({ value }) => {
+        const total =
+          typeof value === "number"
+            ? value
+            : Number.parseInt(String(value ?? 0), 10);
+        return (
         <div className="w-20">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {parseInt(value) || 0}
+            {Number.isNaN(total) ? 0 : total}
           </span>
         </div>
-      ),
+        );
+      },
     },
     {
       field: "created_at",
       label: "Created At",
       sortable: true,
-      render: (value: string) => (
+      render: ({ value }) => (
         <div className="w-32">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {formatDateWithMonth(value)}
+            {formatDateWithMonth(String(value ?? ""))}
           </span>
         </div>
       ),
@@ -109,10 +140,10 @@ export default function SubcategoriesTable({
       field: "updated_at",
       label: "Updated At",
       sortable: true,
-      render: (value: string) => (
+      render: ({ value }) => (
         <div className="w-32">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {formatDateWithMonth(value)}
+            {formatDateWithMonth(String(value ?? ""))}
           </span>
         </div>
       ),
@@ -125,7 +156,7 @@ export default function SubcategoriesTable({
       field: "actions",
       label: "Actions",
       sortable: false,
-      render: (_: unknown, subcategory: SubCategory) => (
+      render: ({ row: subcategory }) => (
         <div className="flex justify-start items-start space-x-2">
           <button
             onClick={() => onEdit(subcategory)}
@@ -150,7 +181,7 @@ export default function SubcategoriesTable({
   return (
     <div className="">
       <Table
-        data={subcategories}
+        data={augmentedSubcategories}
         columns={columns}
         currentPage={currentPage}
         totalPages={totalPages}
@@ -158,14 +189,17 @@ export default function SubcategoriesTable({
         totalItems={totalItems}
         sortField={sortField}
         sortDirection={sortDirection}
-        onSort={onSort}
-        onPageChange={onPageChange}
-        onEdit={onEdit}
-        onDelete={onDelete}
+        onSort={({ field }) => {
+          if (field === "sequence" || field === "actions") return;
+          onSort(field as keyof SubCategory);
+        }}
+        onPageChange={({ page }) => onPageChange(page)}
+        onEdit={({ item }) => onEdit(item)}
+        onDelete={({ item }) => onDelete(item)}
         isDeleting={isDeleting}
         searchQuery={searchQuery}
         isLoading={isLoading}
-        onItemsPerPageChange={onItemsPerPageChange}
+        onItemsPerPageChange={({ limit }) => onItemsPerPageChange(limit)}
       />
     </div>
   );

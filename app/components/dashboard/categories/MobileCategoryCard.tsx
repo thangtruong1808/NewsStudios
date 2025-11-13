@@ -3,10 +3,12 @@
 import { Category } from "@/app/lib/definition";
 import { TrashIcon } from "@heroicons/react/24/outline";
 
+/* eslint-disable no-unused-vars */
 interface MobileCategoryCardProps {
   category: Category;
-  onDelete: (_payload: { item: Category }) => void;
+  onDelete: ({ item }: { item: Category }) => void;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render mobile-friendly category card with quick actions.
 // Data created: 2024-11-13

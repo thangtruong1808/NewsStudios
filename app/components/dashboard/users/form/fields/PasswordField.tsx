@@ -1,15 +1,21 @@
 "use client";
 
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { UserFormValues } from "../userSchema";
 import { useState } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
+/* eslint-disable no-unused-vars */
 interface PasswordFieldProps {
   register: UseFormRegister<UserFormValues>;
   errors: FieldErrors<UserFormValues>;
   isEditMode: boolean;
 }
+/* eslint-enable no-unused-vars */
+
+// Description: Render password input with toggle visibility for user form edits/creation.
+// Data created: 2024-11-13
+// Author: thangtruong
 
 export default function PasswordField({
   register,

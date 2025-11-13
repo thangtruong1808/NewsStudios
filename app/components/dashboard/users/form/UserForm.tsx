@@ -28,7 +28,6 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
     register,
     handleSubmit,
     formState: { errors, isSubmitting, isValid, isDirty },
-    control,
   } = useForm<UserFormValues>({
     resolver: zodResolver(isEditMode ? editUserSchema : createUserSchema),
     defaultValues: {
@@ -90,8 +89,6 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
           register={register}
           errors={errors}
           isEditMode={isEditMode}
-          control={control}
-          userId={user?.id}
           onImageUpload={handleImageUpload}
           imagePreview={imagePreview}
           isImageProcessing={isImageProcessing}

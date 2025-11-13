@@ -2,12 +2,14 @@
 
 import { Column } from "./TableTypes";
 
+/* eslint-disable no-unused-vars */
 interface TableHeaderProps<T> {
   columns: Column<T>[];
   sortField?: keyof T;
   sortDirection?: "asc" | "desc";
-  onSort?: (_payload: { field: keyof T }) => void;
+  onSort?: ({ field }: { field: keyof T }) => void;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render table headers with optional sort indicators and handlers.
 // Data created: 2024-11-13

@@ -4,16 +4,18 @@ import { Column } from "./TableTypes";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 
+/* eslint-disable no-unused-vars */
 interface TableRowProps<T extends { id: number }> {
   item: T;
   columns: Column<T>[];
-  onEdit?: (_payload: { item: T }) => void;
-  onDelete?: (_payload: { item: T }) => void;
+  onEdit?: ({ item }: { item: T }) => void;
+  onDelete?: ({ item }: { item: T }) => void;
   isDeleting?: boolean;
   index?: number;
   currentPage?: number;
   itemsPerPage?: number;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render a data row with optional admin action buttons for dashboard tables.
 // Data created: 2024-11-13

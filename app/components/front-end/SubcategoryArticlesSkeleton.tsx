@@ -1,8 +1,11 @@
 "use client";
 
 import { FolderIcon } from "@heroicons/react/24/outline";
-import { Grid, CardSkeleton } from "@/app/components/front-end/shared";
+import { CardSkeleton } from "@/app/components/front-end/shared";
 
+// Description: Skeleton placeholder for subcategory article listings and header metadata.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function SubcategoryArticlesSkeleton() {
   return (
     <>

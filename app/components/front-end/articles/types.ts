@@ -1,10 +1,4 @@
-export interface Media {
-  type: 'image' | 'video';
-  url: string;
-  id?: number;
-  description?: string;
-}
-
+/* eslint-disable no-unused-vars */
 export interface ArticleMediaProps {
   selectedImage: string | null;
   articleTitle: string;
@@ -21,9 +15,9 @@ export interface ArticleMediaProps {
       description?: string;
     }>;
   };
-  onImageClick: (url: string) => void;
-  onVideoClick: (url: string) => void;
+  onImageClick: (imageUrl: string) => void;
+  onVideoClick: (videoUrl: string) => void;
   selectedVideo: string | null;
   onCloseVideoModal: () => void;
-  articleId: number;
-} 
+}
+/* eslint-enable no-unused-vars */

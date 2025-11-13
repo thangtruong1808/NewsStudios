@@ -7,12 +7,14 @@ import ExpandableContent from "@/app/components/dashboard/shared/table/Expandabl
 import ExpandableTagList from "./ExpandableTagList";
 import { formatDateToLocal } from "@/app/lib/utils/dateFormatter";
 
+/* eslint-disable no-unused-vars */
 interface ArticlesTableColumnsProps {
   isDeleting: boolean;
   onEdit: (params: { item: Article }) => void;
   onDelete: (params: { item: Article }) => void;
   isAdmin: boolean;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Provide configured columns for the dashboard articles table including actions and formatters.
 // Data created: 2024-11-13

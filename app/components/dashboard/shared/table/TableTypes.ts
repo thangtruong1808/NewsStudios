@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import type { ReactNode } from "react";
 
 // Description: Shared table type contracts covering columns, table props, and responsive view props.
@@ -7,7 +8,7 @@ export interface Column<T> {
   field: keyof T;
   label: string;
   sortable?: boolean;
-  render?: (_payload: { value: T[keyof T]; row: T }) => ReactNode;
+  render?: ({ value, row }: { value: T[keyof T]; row: T }) => ReactNode;
 }
 
 export interface TableProps<T extends { id: number }> {
@@ -19,11 +20,11 @@ export interface TableProps<T extends { id: number }> {
   totalItems?: number;
   sortField?: keyof T;
   sortDirection?: "asc" | "desc";
-  onSort?: (_payload: { field: keyof T }) => void;
-  onPageChange?: (_payload: { page: number }) => void;
-  onItemsPerPageChange?: (_payload: { limit: number }) => void;
-  onEdit?: (_payload: { item: T }) => void;
-  onDelete?: (_payload: { item: T }) => void;
+  onSort?: ({ field }: { field: keyof T }) => void;
+  onPageChange?: ({ page }: { page: number }) => void;
+  onItemsPerPageChange?: ({ limit }: { limit: number }) => void;
+  onEdit?: ({ item }: { item: T }) => void;
+  onDelete?: ({ item }: { item: T }) => void;
   isDeleting?: boolean;
   isLoading?: boolean;
   searchQuery?: string;
@@ -32,9 +33,10 @@ export interface TableProps<T extends { id: number }> {
 export interface ViewProps<T extends { id: number }> {
   data: T[];
   columns: Column<T>[];
-  onEdit?: (_payload: { item: T }) => void;
-  onDelete?: (_payload: { item: T }) => void;
+  onEdit?: ({ item }: { item: T }) => void;
+  onDelete?: ({ item }: { item: T }) => void;
   isDeleting?: boolean;
   isLoading?: boolean;
   searchQuery?: string;
 }
+/* eslint-enable no-unused-vars */

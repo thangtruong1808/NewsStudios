@@ -8,13 +8,13 @@ import {
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
 
+/* eslint-disable no-unused-vars */
 interface PaginationProps {
   totalPages: number;
   currentPage: number;
   itemsPerPage: number;
   totalItems: number;
-  onPageChange?: (page: number) => void;
-  onItemsPerPageChange?: (limit: number) => void;
+  onPageChange?: (_page: number) => void;
   showFirstLast?: boolean;
   showPageNumbers?: boolean;
   maxPageNumbers?: number;
@@ -23,6 +23,7 @@ interface PaginationProps {
   activeButtonClassName?: string;
   disabledButtonClassName?: string;
 }
+/* eslint-enable no-unused-vars */
 
 export default function Pagination({
   totalPages,
@@ -30,7 +31,6 @@ export default function Pagination({
   itemsPerPage,
   totalItems,
   onPageChange,
-  onItemsPerPageChange,
   showFirstLast = true,
   showPageNumbers = true,
   maxPageNumbers = 5,

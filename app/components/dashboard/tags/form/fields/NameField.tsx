@@ -1,12 +1,18 @@
 "use client";
 
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { TagFormValues } from "../../types";
 
+/* eslint-disable no-unused-vars */
 interface NameFieldProps {
   register: UseFormRegister<TagFormValues>;
   errors: FieldErrors<TagFormValues>;
 }
+/* eslint-enable no-unused-vars */
+
+// Description: Render input control for required tag naming field.
+// Data created: 2024-11-13
+// Author: thangtruong
 
 export default function NameField({ register, errors }: NameFieldProps) {
   return (

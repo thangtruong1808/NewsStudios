@@ -6,12 +6,14 @@ import { PhotoActions } from "./PhotoActions";
 import { PhotoMetadata } from "./PhotoMetadata";
 import NextImage from "next/image";
 
+/* eslint-disable no-unused-vars */
 interface PhotoCardProps {
   photo: ImageType;
-  onEdit(_payload: { item: ImageType }): void;
-  onDelete(_payload: { item: ImageType }): void;
+  onEdit({ item }: { item: ImageType }): void;
+  onDelete({ item }: { item: ImageType }): void;
   isDeleting: boolean;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Display dashboard photo thumbnail with hover actions and metadata summary.
 // Data created: 2024-11-13

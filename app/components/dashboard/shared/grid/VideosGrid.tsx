@@ -12,16 +12,18 @@ import { useSession } from "next-auth/react";
 import { formatDateToLocal } from "@/app/lib/utils/dateFormatter";
 
 // Props interface for VideosGrid component
+/* eslint-disable no-unused-vars */
 interface VideosGridProps {
   videos: Video[]; // Array of video objects to display
-  onEdit: (_payload: { item: Video }) => void; // Callback for edit action
-  onDelete: (_payload: { item: Video }) => Promise<void>; // Callback for delete action
+  onEdit: ({ item }: { item: Video }) => void; // Callback for edit action
+  onDelete: ({ item }: { item: Video }) => Promise<void>; // Callback for delete action
   isLoading?: boolean; // Loading state indicator
   isDeleting?: boolean; // Deleting state indicator
   hasMore?: boolean; // Whether there are more videos to load
   isLoadingMore?: boolean; // Loading state for pagination
   onLoadMore?: () => void; // Callback for loading more videos
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render dashboard video cards with admin controls, skeletons, and load-more support.
 // Data created: 2024-11-13

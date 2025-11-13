@@ -1,12 +1,18 @@
 "use client";
 
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { UserFormValues } from "../userSchema";
 
+/* eslint-disable no-unused-vars */
 interface DescriptionFieldProps {
   register: UseFormRegister<UserFormValues>;
   errors: FieldErrors<UserFormValues>;
 }
+/* eslint-enable no-unused-vars */
+
+// Description: Render optional user description textarea within admin user form.
+// Data created: 2024-11-13
+// Author: thangtruong
 
 export default function DescriptionField({
   register,

@@ -62,8 +62,7 @@ const Card: React.FC<CardProps> = ({
     try {
       // Handle ISO date string
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        console.warn("Invalid date:", dateString);
+      if (Number.isNaN(date.getTime())) {
         return ""; // Return empty string if date is invalid
       }
 
@@ -76,8 +75,7 @@ const Card: React.FC<CardProps> = ({
       };
 
       return date.toLocaleDateString("en-US", options);
-    } catch (error) {
-      console.error("Error formatting date:", error);
+    } catch (_error) {
       return ""; // Return empty string if parsing fails
     }
   };
@@ -97,8 +95,8 @@ const Card: React.FC<CardProps> = ({
       }
       // Call the onShareClick handler if provided
       onShareClick?.();
-    } catch (error) {
-      console.error("Error sharing:", error);
+    } catch (_error) {
+      alert("Unable to share this article right now.");
     }
   };
 

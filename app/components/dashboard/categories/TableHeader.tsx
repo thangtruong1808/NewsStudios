@@ -4,12 +4,14 @@ import type { Column } from "@/app/components/dashboard/shared/table/TableTypes"
 import type { Category } from "@/app/lib/definition";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 
+/* eslint-disable no-unused-vars */
 interface TableHeaderProps {
   columns: Column<Category>[];
   sortField: keyof Category;
   sortDirection: "asc" | "desc";
-  onSort: (_payload: { field: keyof Category }) => void;
+  onSort: ({ field }: { field: keyof Category }) => void;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render table header with sortable columns and responsive visibility rules.
 // Data created: 2024-11-13

@@ -1,13 +1,15 @@
 "use client";
 
 // Interface defining the required props for the Pagination component
+/* eslint-disable no-unused-vars */
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   itemsPerPage: number;
   totalItems: number;
-  onPageChange: (_: { page: number }) => void;
+  onPageChange: ({ page }: { page: number }) => void;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render responsive pagination controls for dashboard data tables.
 // Data created: 2024-11-13

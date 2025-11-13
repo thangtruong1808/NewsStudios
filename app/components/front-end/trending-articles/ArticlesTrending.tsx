@@ -5,17 +5,18 @@ import { getFrontEndArticles } from "@/app/lib/actions/front-end-articles";
 import { Article } from "@/app/lib/definition";
 import { FireIcon } from "@heroicons/react/24/outline";
 import { ImageCarousel } from "@/app/components/front-end/shared/ImageCarousel";
-import Grid from "@/app/components/front-end/shared/Grid";
 import Card from "@/app/components/front-end/shared/Card";
 import ArticlesTrendingSkeleton from "./ArticlesTrendingSkeleton";
 
+// Description: Present trending articles with hero carousel and grid plus pagination.
+// Data created: 2024-11-13
+// Author: thangtruong
 export function ArticlesTrending() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
   const ITEMS_PER_PAGE = 10; // 5 columns × 2 rows
 
   // Fetch trending articles on component mount
@@ -36,25 +37,16 @@ export function ArticlesTrending() {
         }
 
         const newArticles = result.data || [];
-        if (page === 1) {
-          setArticles(newArticles);
-        } else {
-          setArticles((prev) => [...prev, ...newArticles]);
-        }
-        setTotalCount(result.totalCount || 0);
-
-        // Calculate total loaded articles
-        const totalLoaded =
-          page === 1
-            ? newArticles.length
-            : articles.length + newArticles.length;
-        // Only show Load More if we have more articles to load and we received a full page
-        setHasMore(
-          result.totalCount > totalLoaded &&
-          newArticles.length === ITEMS_PER_PAGE
-        );
-      } catch (error) {
-        console.error("Error fetching trending articles:", error);
+        setArticles((prev) => {
+          const merged = page === 1 ? newArticles : [...prev, ...newArticles];
+          const totalLoaded = merged.length;
+          setHasMore(
+            (result.totalCount || 0) > totalLoaded &&
+              newArticles.length === ITEMS_PER_PAGE
+          );
+          return merged;
+        });
+      } catch (_error) {
         setError("Failed to load trending articles");
       } finally {
         setIsLoading(false);
@@ -89,6 +81,14 @@ export function ArticlesTrending() {
     );
   }
 
+  const sortedCarouselArticles = [...articles]
+    .sort(
+      (a, b) =>
+        new Date(b.published_at || "").getTime() -
+        new Date(a.published_at || "").getTime()
+    )
+    .slice(0, 7);
+
   return (
     <>
       {/* Header section with title and description - Full width background */}
@@ -118,34 +118,15 @@ export function ArticlesTrending() {
         <div className="max-w-[1536px] mx-auto px-6">
           <div className="mb-4 h-[400px] w-full">
             <ImageCarousel
-              images={articles
-                .sort(
-                  (a, b) =>
-                    new Date(b.published_at || "").getTime() -
-                    new Date(a.published_at || "").getTime()
-                )
-                .slice(0, 7)
-                .map((article) => article.image || "")}
+              images={sortedCarouselArticles.map((article) => article.image || "")}
               alt="Trending Articles"
-              autoSlide={true}
+              autoSlide
               slideInterval={5000}
               className="rounded-lg overflow-hidden"
-              titles={articles
-                .sort(
-                  (a, b) =>
-                    new Date(b.published_at || "").getTime() -
-                    new Date(a.published_at || "").getTime()
-                )
-                .slice(0, 7)
-                .map((article) => article.title)}
-              dates={articles
-                .sort(
-                  (a, b) =>
-                    new Date(b.published_at || "").getTime() -
-                    new Date(a.published_at || "").getTime()
-                )
-                .slice(0, 7)
-                .map((article) => article.published_at || "")}
+              titles={sortedCarouselArticles.map((article) => article.title)}
+              dates={sortedCarouselArticles.map(
+                (article) => article.published_at || ""
+              )}
             />
           </div>
         </div>

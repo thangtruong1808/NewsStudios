@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
 
 export interface CarouselItem {
   id: string | number;
@@ -15,6 +14,7 @@ export interface CarouselItem {
 }
 
 // Props interface for the ImageCarousel component
+/* eslint-disable no-unused-vars */
 interface ImageCarouselProps {
   images: string[]; // Array of image URLs
   alt?: string; // Alt text for images
@@ -24,6 +24,7 @@ interface ImageCarouselProps {
   titles?: string[]; // Add titles array prop
   dates?: string[]; // Add dates array prop
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * ImageCarousel component for displaying images in a carousel/slider
@@ -42,7 +43,6 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   dates = [], // Add dates prop with default empty array
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(autoSlide);
   const [isHovered, setIsHovered] = useState(false);
 
   // Function to handle next slide
@@ -97,8 +97,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
       };
 
       return date.toLocaleDateString("en-US", options);
-    } catch (error) {
-      console.error("Error formatting date:", error);
+    } catch (_error) {
       return "";
     }
   };

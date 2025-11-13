@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { getHighlightArticles } from "@/app/lib/actions/highlight-articles";
 import { Article } from "@/app/lib/definition";
-import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import { StarIcon } from "@heroicons/react/24/outline";
 import Card from "@/app/components/front-end/shared/Card";
 import { ImageCarousel } from "@/app/components/front-end/shared/ImageCarousel";
@@ -127,7 +126,6 @@ export default function HighlightArticles() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
   const ITEMS_PER_PAGE = 6; // 3 columns × 2 rows
 
   // Fetch highlight articles on component mount
@@ -150,23 +148,17 @@ export default function HighlightArticles() {
           ? (result.data as HighlightArticleRaw[])
           : [];
         const newArticles = rawArticles.map(normalizeHighlightArticle);
-        if (page === 1) {
-          setArticles(newArticles);
-        } else {
-          setArticles((prev) => [...prev, ...newArticles]);
-        }
-        setTotalCount(result.totalCount || 0);
 
-        // Calculate total loaded articles
-        const totalLoaded =
-          page === 1
-            ? newArticles.length
-            : articles.length + newArticles.length;
-        // Only show Load More if we have more articles to load and we received a full page
-        setHasMore(
-          result.totalCount > totalLoaded &&
-          newArticles.length === ITEMS_PER_PAGE
-        );
+        setArticles((prev) => {
+          const merged =
+            page === 1 ? newArticles : [...prev, ...newArticles];
+          const totalLoaded = merged.length;
+          setHasMore(
+            (result.totalCount || 0) > totalLoaded &&
+              newArticles.length === ITEMS_PER_PAGE
+          );
+          return merged;
+        });
       } catch (_error) {
         setError("Failed to load highlight articles");
       } finally {
@@ -205,6 +197,14 @@ export default function HighlightArticles() {
     );
   }
 
+  const sortedCarouselArticles = [...articles]
+    .sort(
+      (a, b) =>
+        new Date(b.published_at || "").getTime() -
+        new Date(a.published_at || "").getTime()
+    )
+    .slice(0, 7);
+
   return (
     <>
       {/* Header section with title and description - Full width background */}
@@ -234,34 +234,15 @@ export default function HighlightArticles() {
         <div className="max-w-[1536px] mx-auto px-6">
           <div className="mb-4 h-[400px] w-full">
             <ImageCarousel
-              images={articles
-                .sort(
-                  (a, b) =>
-                    new Date(b.published_at || "").getTime() -
-                    new Date(a.published_at || "").getTime()
-                )
-                .slice(0, 7)
-                .map((article) => article.image || "")}
+              images={sortedCarouselArticles.map((article) => article.image || "")}
               alt="Highlight Articles"
-              autoSlide={true}
+              autoSlide
               slideInterval={5000}
               className="rounded-lg overflow-hidden"
-              titles={articles
-                .sort(
-                  (a, b) =>
-                    new Date(b.published_at || "").getTime() -
-                    new Date(a.published_at || "").getTime()
-                )
-                .slice(0, 7)
-                .map((article) => article.title)}
-              dates={articles
-                .sort(
-                  (a, b) =>
-                    new Date(b.published_at || "").getTime() -
-                    new Date(a.published_at || "").getTime()
-                )
-                .slice(0, 7)
-                .map((article) => article.published_at || "")}
+              titles={sortedCarouselArticles.map((article) => article.title)}
+              dates={sortedCarouselArticles.map(
+                (article) => article.published_at || ""
+              )}
             />
           </div>
         </div>

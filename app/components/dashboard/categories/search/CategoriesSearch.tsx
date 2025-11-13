@@ -2,10 +2,12 @@
 
 import Search from "@/app/components/dashboard/shared/search/Search";
 
+/* eslint-disable no-unused-vars */
 interface CategoriesSearchProps {
-  onSearch(_payload: { term: string }): void;
+  onSearch({ term }: { term: string }): void;
   defaultValue?: string;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Wrap shared search input for categories listing with default value support.
 // Data created: 2024-11-13

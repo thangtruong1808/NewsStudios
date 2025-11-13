@@ -4,13 +4,15 @@ import { Image } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 
+/* eslint-disable no-unused-vars */
 interface PhotoActionsProps {
   photo: Image;
-  onEdit(_payload: { item: Image }): void;
-  onDelete(_payload: { item: Image }): void;
+  onEdit({ item }: { item: Image }): void;
+  onDelete({ item }: { item: Image }): void;
   isDeleting: boolean;
   isVisible: boolean;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render admin-only action buttons for editing or deleting a dashboard photo card.
 // Data created: 2024-11-13

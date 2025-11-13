@@ -7,6 +7,7 @@ import Pagination from "./Pagination";
 import MobileCategoryCard from "./MobileCategoryCard";
 import { useTableColumns } from "./hooks/useTableColumns";
 
+/* eslint-disable no-unused-vars */
 interface CategoriesTableProps {
   categories: Category[];
   totalPages: number;
@@ -16,10 +17,11 @@ interface CategoriesTableProps {
   sortField: keyof Category;
   sortDirection: "asc" | "desc";
   isDeleting: boolean;
-  onSort(_payload: { field: keyof Category }): void;
-  onPageChange(_payload: { page: number }): void;
-  onDelete(_payload: { item: Category }): void;
+  onSort({ field }: { field: keyof Category }): void;
+  onPageChange({ page }: { page: number }): void;
+  onDelete({ item }: { item: Category }): void;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render responsive categories table with desktop grid, mobile cards, and pagination controls.
 // Data created: 2024-11-13

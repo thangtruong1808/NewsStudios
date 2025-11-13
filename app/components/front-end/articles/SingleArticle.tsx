@@ -5,8 +5,8 @@ import { getArticleById } from "@/app/lib/actions/articles";
 import { getImagesByArticleId } from "@/app/lib/actions/front-end-images";
 import { getVideosByArticleId } from "@/app/lib/actions/front-end-videos";
 import { Article } from "@/app/lib/definition";
-import { AdditionalMedia, MediaItem } from "../latest-articles/types";
-import { Image } from "@/app/lib/definition";
+import type { AdditionalMedia, MediaItem } from "../latest-articles/types";
+import type { Image } from "@/app/lib/definition";
 import ArticleSkeleton from "./ArticleSkeleton";
 import { TopButton } from "@/app/components/front-end/shared";
 
@@ -19,11 +19,13 @@ import ArticleTags from "./components/ArticleTags";
 import ArticleActions from "./components/ArticleActions";
 
 // Define the props interface for the SingleArticle component
+/* eslint-disable no-unused-vars */
 interface SingleArticleProps {
   articleId: number; // Required prop for the article ID
   showBackButton?: boolean; // Optional prop to control back button visibility
-  onBookmark?: (articleId: number) => void; // Optional callback for bookmark action
+  onBookmark?: (id: number) => void; // Optional callback for bookmark action
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render article detail view with media galleries and share actions.
 // Data created: 2024-11-13
@@ -165,7 +167,6 @@ export default function SingleArticle({
           onVideoClick={handleVideoSelect}
           selectedVideo={selectedVideo}
           onCloseVideoModal={closeVideoModal}
-          articleId={article.id}
         />
         {/* Primary content */}
         <ArticleContent content={article.content} />

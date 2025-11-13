@@ -14,6 +14,7 @@ import {
   showConfirmationToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 
+/* eslint-disable no-unused-vars */
 interface SubcategoriesStateProps {
   children: (props: {
     subcategories: SubCategory[];
@@ -34,7 +35,11 @@ interface SubcategoriesStateProps {
     handleItemsPerPageChange: (limit: number) => void;
   }) => React.ReactNode;
 }
+/* eslint-enable no-unused-vars */
 
+// Description: Manage subcategory list state including filters, pagination, and deletion flow.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function SubcategoriesState({
   children,
 }: SubcategoriesStateProps) {
@@ -85,7 +90,12 @@ export default function SubcategoriesState({
           setTotalItems(result.total);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        showErrorToast({
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to load subcategories.",
+        });
       } finally {
         setIsLoading(false);
         setIsSearching(false);
@@ -94,7 +104,15 @@ export default function SubcategoriesState({
     };
 
     fetchData();
-  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
+  }, [
+    currentPage,
+    itemsPerPage,
+    sortField,
+    sortDirection,
+    searchQuery,
+    isSearching,
+    isSorting,
+  ]);
 
   // Handler functions
   const handlePageChange = (page: number) => {
@@ -163,7 +181,6 @@ export default function SubcategoriesState({
 
       showSuccessToast({ message: "Subcategory deleted successfully" });
     } catch (error) {
-      console.error("Error deleting subcategory:", error);
       showErrorToast({
         message:
           error instanceof Error

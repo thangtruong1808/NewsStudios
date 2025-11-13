@@ -1,12 +1,18 @@
 "use client";
 
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { UserFormValues } from "../userSchema";
 
+/* eslint-disable no-unused-vars */
 interface RoleFieldProps {
   register: UseFormRegister<UserFormValues>;
   errors: FieldErrors<UserFormValues>;
 }
+/* eslint-enable no-unused-vars */
+
+// Description: Render role selection dropdown for user access control assignment.
+// Data created: 2024-11-13
+// Author: thangtruong
 
 export default function RoleField({ register, errors }: RoleFieldProps) {
   return (

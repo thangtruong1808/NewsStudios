@@ -1,6 +1,6 @@
 "use client";
 
-import {
+import type {
   UseFormRegister,
   FieldErrors,
   UseFormSetValue,
@@ -10,6 +10,7 @@ import { TagFormValues } from "../types";
 import { NameField, DescriptionField, ColorField } from "./fields";
 import { CategoryFields } from "./fields/CategoryFields";
 
+/* eslint-disable no-unused-vars */
 interface TagFormFieldsProps {
   register: UseFormRegister<TagFormValues>;
   errors: FieldErrors<TagFormValues>;
@@ -17,6 +18,11 @@ interface TagFormFieldsProps {
   watch: UseFormWatch<TagFormValues>;
   isEditMode?: boolean;
 }
+/* eslint-enable no-unused-vars */
+
+// Description: Compose individual tag form sections including category linkage and metadata fields.
+// Data created: 2024-11-13
+// Author: thangtruong
 
 export default function TagFormFields({
   register,

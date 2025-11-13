@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { CategoryFormData } from "../../../../lib/validations/categorySchema";
 
 interface FieldProps {
@@ -9,6 +8,9 @@ interface FieldProps {
   errors: FieldErrors<CategoryFormData>;
 }
 
+// Description: Render required name input for category creation/edit forms.
+// Data created: 2024-11-13
+// Author: thangtruong
 export function NameField({ register, errors }: FieldProps) {
   return (
     <div>
@@ -29,6 +31,9 @@ export function NameField({ register, errors }: FieldProps) {
   );
 }
 
+// Description: Render optional description textarea for category forms.
+// Data created: 2024-11-13
+// Author: thangtruong
 export function DescriptionField({ register, errors }: FieldProps) {
   return (
     <div>

@@ -1,5 +1,4 @@
-import { Category } from "@/app/lib/definition";
-
+/* eslint-disable no-unused-vars */
 export interface NavMenuSubcategory {
   id: number;
   name: string;
@@ -13,5 +12,6 @@ export interface NavMenuCategory {
 
 export interface MenuProps {
   categories: NavMenuCategory[];
-  isActive: (path: string) => boolean;
+  isActive: (routePath: string) => boolean;
 }
+/* eslint-enable no-unused-vars */

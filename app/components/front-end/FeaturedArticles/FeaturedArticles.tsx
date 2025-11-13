@@ -100,28 +100,13 @@ export default function FeaturedArticles() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
   const ITEMS_PER_PAGE = 8; // 4 columns × 2 rows
 
-  // Handle view click
-  const handleViewClick = (articleId: number) => {
-    // TODO: Integrate view tracking logic.
-  };
-
-  // Handle like click
-  const handleLikeClick = (articleId: number) => {
-    // TODO: Integrate like interaction logic.
-  };
-
-  // Handle comment click
-  const handleCommentClick = (articleId: number) => {
-    // TODO: Integrate comment interaction logic.
-  };
-
-  // Handle share click
-  const handleShareClick = (articleId: number) => {
-    // TODO: Integrate share interaction logic.
-  };
+  // Interaction handlers (placeholder for analytics integration)
+  const handleViewClick = () => {};
+  const handleLikeClick = () => {};
+  const handleCommentClick = () => {};
+  const handleShareClick = () => {};
 
   // Fetch featured articles on component mount
   useEffect(() => {
@@ -140,21 +125,17 @@ export default function FeaturedArticles() {
           ? (result.data as FeaturedArticleRaw[])
           : [];
         const newArticles = rawArticles.map(normalizeArticle);
-        if (page === 1) {
-          setArticles(newArticles);
-        } else {
-          setArticles((prev) => [...prev, ...newArticles]);
-        }
-        setTotalCount(result.totalCount || 0);
 
-        // Calculate total loaded articles
-        const totalLoaded =
-          page === 1 ? newArticles.length : articles.length + newArticles.length;
-        // Only show Load More if we have more articles to load and we received a full page
-        setHasMore(
-          result.totalCount > totalLoaded &&
-          newArticles.length === ITEMS_PER_PAGE
-        );
+        setArticles((prev) => {
+          const merged =
+            page === 1 ? newArticles : [...prev, ...newArticles];
+          const totalLoaded = merged.length;
+          setHasMore(
+            (result.totalCount || 0) > totalLoaded &&
+              newArticles.length === ITEMS_PER_PAGE
+          );
+          return merged;
+        });
       } catch (_error) {
         setError("Failed to load featured articles");
       } finally {
@@ -190,8 +171,13 @@ export default function FeaturedArticles() {
     );
   }
 
-  // Get all images from articles for the carousel
-  const allImages = articles.flatMap((article) => article.images);
+  const sortedCarouselArticles = [...articles]
+    .sort(
+      (a, b) =>
+        new Date(b.updated_at).getTime() -
+        new Date(a.updated_at).getTime()
+    )
+    .slice(0, 7);
 
   return (
     <>
@@ -222,34 +208,13 @@ export default function FeaturedArticles() {
         <div className="max-w-[1536px] mx-auto px-6">
           <div className="mb-4 h-[400px] w-full">
             <ImageCarousel
-              images={articles
-                .sort(
-                  (a, b) =>
-                    new Date(b.updated_at).getTime() -
-                    new Date(a.updated_at).getTime()
-                )
-                .slice(0, 7)
-                .map((article) => article.image)}
+              images={sortedCarouselArticles.map((article) => article.image)}
               alt="Featured Articles"
-              autoSlide={true}
+              autoSlide
               slideInterval={5000}
               className="rounded-lg overflow-hidden"
-              titles={articles
-                .sort(
-                  (a, b) =>
-                    new Date(b.updated_at).getTime() -
-                    new Date(a.updated_at).getTime()
-                )
-                .slice(0, 7)
-                .map((article) => article.title)}
-              dates={articles
-                .sort(
-                  (a, b) =>
-                    new Date(b.updated_at).getTime() -
-                    new Date(a.updated_at).getTime()
-                )
-                .slice(0, 7)
-                .map((article) => article.updated_at)}
+              titles={sortedCarouselArticles.map((article) => article.title)}
+              dates={sortedCarouselArticles.map((article) => article.updated_at)}
             />
           </div>
         </div>
@@ -276,10 +241,10 @@ export default function FeaturedArticles() {
                 likesCount={article.likes_count}
                 commentsCount={article.comments_count}
                 sharesCount={article.shares_count}
-                onViewClick={() => handleViewClick(article.id)}
-                onLikeClick={() => handleLikeClick(article.id)}
-                onCommentClick={() => handleCommentClick(article.id)}
-                onShareClick={() => handleShareClick(article.id)}
+                onViewClick={handleViewClick}
+                onLikeClick={handleLikeClick}
+                onCommentClick={handleCommentClick}
+                onShareClick={handleShareClick}
               />
             ))}
           </div>

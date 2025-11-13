@@ -3,28 +3,34 @@
 import { Table } from "@/app/components/dashboard/shared/table";
 import { Tag } from "@/app/lib/definition";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Column } from "@/app/components/dashboard/shared/table/TableTypes";
+import type { Column } from "@/app/components/dashboard/shared/table/TableTypes";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
 import { useSession } from "next-auth/react";
 
+/* eslint-disable no-unused-vars */
 interface TagsTableProps {
   tags: Tag[];
   currentPage: number;
   totalPages: number;
   itemsPerPage: number;
   totalItems: number;
-  sortField: keyof (Tag & { sequence?: number });
+  sortField: keyof Tag;
   sortDirection: "asc" | "desc";
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: (field: keyof (Tag & { sequence?: number })) => void;
-  onPageChange: (page: number) => void;
-  onEdit: (tag: Tag) => void;
-  onDelete: (tag: Tag) => void;
-  onItemsPerPageChange: (limit: number) => void;
+  onSort: ({ field }: { field: keyof Tag }) => void;
+  onPageChange: ({ page }: { page: number }) => void;
+  onEdit: ({ item }: { item: Tag }) => void;
+  onDelete: ({ item }: { item: Tag }) => void;
+  onItemsPerPageChange: ({ limit }: { limit: number }) => void;
 }
+/* eslint-enable no-unused-vars */
+
+// Description: Render dashboard tags table with admin actions, pagination, and formatted metadata columns.
+// Data created: 2024-11-13
+// Author: thangtruong
 
 export default function TagsTable({
   tags,
@@ -52,16 +58,20 @@ export default function TagsTable({
       field: "sequence",
       label: "#",
       sortable: false,
-      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
+      render: ({ value }) => (
+        <span className="text-sm text-gray-500">
+          {typeof value === "number" ? value : Number(value ?? 0)}
+        </span>
+      ),
     },
     {
       field: "name",
       label: "Name",
       sortable: true,
-      render: (value) => (
+      render: ({ value }) => (
         <div className="w-48">
           <ExpandableContent
-            content={value}
+            content={String(value ?? "")}
             maxWords={5}
             className="text-sm text-gray-500"
           />
@@ -72,10 +82,14 @@ export default function TagsTable({
       field: "description",
       label: "Description",
       sortable: true,
-      render: (value) => (
+      render: ({ value }) => (
         <div className="w-64">
           <ExpandableContent
-            content={value || "No description"}
+            content={
+              typeof value === "string" && value.length > 0
+                ? value
+                : "No description"
+            }
             maxWords={5}
             className="text-sm text-gray-500"
           />
@@ -86,51 +100,73 @@ export default function TagsTable({
       field: "articles_count",
       label: "Articles",
       sortable: true,
-      render: (value) => (
+      render: ({ value }) => {
+        const total =
+          typeof value === "number"
+            ? value
+            : Number.parseInt(String(value ?? 0), 10);
+        return (
         <div className="w-20">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {value || 0}
+            {Number.isNaN(total) ? 0 : total}
           </span>
         </div>
-      ),
+        );
+      },
     },
     {
       field: "categories_count",
       label: "Categories",
       sortable: true,
-      render: (value) => (
+      render: ({ value }) => {
+        const total =
+          typeof value === "number"
+            ? value
+            : Number.parseInt(String(value ?? 0), 10);
+        return (
         <div className="w-20">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {value || 0}
+            {Number.isNaN(total) ? 0 : total}
           </span>
         </div>
-      ),
+        );
+      },
     },
     {
       field: "subcategories_count",
       label: "Subcategories",
       sortable: true,
-      render: (value) => (
+      render: ({ value }) => {
+        const total =
+          typeof value === "number"
+            ? value
+            : Number.parseInt(String(value ?? 0), 10);
+        return (
         <div className="w-20">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {value || 0}
+            {Number.isNaN(total) ? 0 : total}
           </span>
         </div>
-      ),
+        );
+      },
     },
     {
       field: "color",
       label: "Color",
       sortable: true,
-      render: (value) => (
+      render: ({ value }) => (
         <div className="flex items-center space-x-2">
-          {value && (
+          {typeof value === "string" && value.length > 0 && (
             <div
               className="h-4 w-4 rounded-full border border-gray-300"
               style={{ backgroundColor: value }}
             />
           )}
-          <span className="text-sm text-gray-500">{value || "No color"}</span>
+          <span className="text-sm text-gray-500">
+            {typeof value === "string" && value.length > 0
+              ? value
+              : "No color"}
+          </span>
         </div>
       ),
     },
@@ -138,10 +174,10 @@ export default function TagsTable({
       field: "created_at",
       label: "Created At",
       sortable: true,
-      render: (value) => (
+      render: ({ value }) => (
         <div className="w-32">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {formatDateWithMonth(value)}
+            {formatDateWithMonth(String(value ?? ""))}
           </span>
         </div>
       ),
@@ -150,10 +186,10 @@ export default function TagsTable({
       field: "updated_at",
       label: "Updated At",
       sortable: true,
-      render: (value) => (
+      render: ({ value }) => (
         <div className="w-32">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {formatDateWithMonth(value)}
+            {formatDateWithMonth(String(value ?? ""))}
           </span>
         </div>
       ),
@@ -168,16 +204,16 @@ export default function TagsTable({
           field: "actions" as keyof (Tag & { sequence?: number }),
           label: "Actions",
           sortable: false,
-          render: (_: unknown, tag: Tag) => (
+          render: ({ row: tag }) => (
             <div className="flex space-x-2">
               <button
-                onClick={() => onEdit(tag)}
+                onClick={() => onEdit({ item: tag })}
                 className="text-blue-600 hover:text-blue-800"
               >
                 <PencilIcon className="h-5 w-5" />
               </button>
               <button
-                onClick={() => onDelete(tag)}
+                onClick={() => onDelete({ item: tag })}
                 disabled={isDeleting}
                 className="text-red-600 hover:text-red-800 disabled:opacity-50"
               >
@@ -206,12 +242,12 @@ export default function TagsTable({
         totalItems={totalItems}
         sortField={sortField}
         sortDirection={sortDirection}
-        onSort={onSort}
-        onPageChange={onPageChange}
-        onEdit={onEdit}
-        onDelete={onDelete}
+        onSort={({ field }) => onSort({ field })}
+        onPageChange={({ page }) => onPageChange({ page })}
+        onEdit={({ item }) => onEdit({ item })}
+        onDelete={({ item }) => onDelete({ item })}
         isDeleting={isDeleting}
-        onItemsPerPageChange={onItemsPerPageChange}
+        onItemsPerPageChange={({ limit }) => onItemsPerPageChange({ limit })}
         searchQuery={searchQuery}
         isLoading={isLoading}
       />

@@ -8,13 +8,15 @@ import {
 } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 
+/* eslint-disable no-unused-vars */
 interface MobileViewProps<T extends { id: number }> extends ViewProps<T> {
   currentPage?: number;
   itemsPerPage?: number;
-  onEdit?: (_payload: { item: T }) => void;
-  onDelete?: (_payload: { item: T }) => void;
+  onEdit?: ({ item }: { item: T }) => void;
+  onDelete?: ({ item }: { item: T }) => void;
   isDeleting?: boolean;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render mobile card layout for table data with admin action controls.
 // Data created: 2024-11-13

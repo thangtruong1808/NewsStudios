@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
+import type {
   UseFormRegister,
   FieldErrors,
   UseFormSetValue,
@@ -10,7 +10,9 @@ import {
 import { TagFormValues } from "../../types";
 import { getCategories } from "@/app/lib/actions/categories";
 import { getSubcategories } from "@/app/lib/actions/subcategories";
+import { showErrorToast } from "@/app/components/dashboard/shared/toast/Toast";
 
+/* eslint-disable no-unused-vars */
 interface CategoryFieldsProps {
   register: UseFormRegister<TagFormValues>;
   errors: FieldErrors<TagFormValues>;
@@ -18,6 +20,11 @@ interface CategoryFieldsProps {
   watch: UseFormWatch<TagFormValues>;
   isEditMode?: boolean;
 }
+/* eslint-enable no-unused-vars */
+
+// Description: Render category and subcategory selectors with dynamic data loading for tag forms.
+// Data created: 2024-11-13
+// Author: thangtruong
 
 export function CategoryFields({
   register,
@@ -36,6 +43,7 @@ export function CategoryFields({
   const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(false);
 
   const selectedCategoryId = watch("category_id");
+  const selectedSubcategoryId = watch("sub_category_id");
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -46,7 +54,12 @@ export function CategoryFields({
           setCategories(result.data);
         }
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        showErrorToast({
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to load categories. Please try again.",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -59,7 +72,7 @@ export function CategoryFields({
   useEffect(() => {
     const fetchSubcategories = async () => {
       // Don't reset subcategory on initial load if we have a category_id
-      if (!selectedCategoryId && !watch("sub_category_id")) {
+      if (!selectedCategoryId && !selectedSubcategoryId) {
         setValue("sub_category_id", 0);
         setSubcategories([]);
         return;
@@ -76,18 +89,23 @@ export function CategoryFields({
           setSubcategories(result.data);
         }
       } catch (error) {
-        console.error("Error fetching subcategories:", error);
+        showErrorToast({
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to load subcategories. Please try again.",
+        });
       } finally {
         setIsLoadingSubcategories(false);
       }
     };
 
     fetchSubcategories();
-  }, [selectedCategoryId, setValue, watch]);
+  }, [selectedCategoryId, selectedSubcategoryId, setValue]);
 
   // Handle category change
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value ? parseInt(e.target.value) : 0;
+  const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value ? parseInt(event.target.value, 10) : 0;
     setValue("category_id", value);
     // Only reset subcategory if we're changing the category
     if (value !== selectedCategoryId) {

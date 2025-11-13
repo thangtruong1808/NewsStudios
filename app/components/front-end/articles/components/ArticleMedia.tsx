@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { VideoModal } from "../../latest-articles/VideoModal";
-import { ArticleMediaProps } from "../types";
+import type { ArticleMediaProps } from "../types";
 
-const ArticleMedia = ({
+// Description: Display article media gallery with main image, thumbnails, and video previews.
+// Data created: 2024-11-13
+// Author: thangtruong
+function ArticleMedia({
   selectedImage,
   articleTitle,
   additionalMedia,
@@ -14,8 +17,7 @@ const ArticleMedia = ({
   onVideoClick,
   selectedVideo,
   onCloseVideoModal,
-  articleId,
-}: ArticleMediaProps) => {
+}: ArticleMediaProps) {
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [currentMainImage, setCurrentMainImage] = useState<string>(selectedImage || '');
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
@@ -160,6 +162,6 @@ const ArticleMedia = ({
       )}
     </div>
   );
-};
+}
 
 export default ArticleMedia;

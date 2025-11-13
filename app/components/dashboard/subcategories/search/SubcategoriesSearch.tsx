@@ -4,9 +4,11 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 import { SearchWrapper } from "@/app/components/dashboard/shared/search";
 
+/* eslint-disable no-unused-vars */
 interface SubcategoriesSearchProps {
   onSearch: (query: string) => void;
 }
+/* eslint-enable no-unused-vars */
 
 export default function SubcategoriesSearch({
   onSearch,

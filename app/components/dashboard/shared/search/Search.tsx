@@ -4,11 +4,13 @@ import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+/* eslint-disable no-unused-vars */
 interface SearchProps {
   placeholder: string;
-  onSearch?: (_value: string) => void;
+  onSearch?: (value: string) => void;
   defaultValue?: string;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Debounced dashboard search input syncing with URL parameters when no callback provided.
 // Data created: 2024-11-13

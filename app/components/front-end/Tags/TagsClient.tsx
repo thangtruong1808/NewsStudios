@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { TagIcon } from "@heroicons/react/24/outline";
 import { getFilteredTags } from "@/app/lib/actions/front-end-tags";
@@ -40,13 +40,13 @@ export default function TagsClient({ categories }: TagsClientProps) {
     }
   }, [selectedCategory, categories]);
 
-  const fetchTags = async (page: number = 1) => {
+  const fetchTags = useCallback(async (pageNumber: number = 1) => {
     try {
       setLoading(true);
       const result = await getFilteredTags(
         selectedCategory || undefined,
         selectedSubcategory || undefined,
-        page,
+        pageNumber,
         ITEMS_PER_PAGE
       );
 
@@ -55,27 +55,27 @@ export default function TagsClient({ categories }: TagsClientProps) {
       }
 
       const newTags = result.data || [];
-      if (page === 1) {
+      if (pageNumber === 1) {
         setTags(newTags);
       } else {
         setTags((prev) => [...prev, ...newTags]);
       }
 
       setTotalTags(result.totalCount);
-      setHasMore(result.totalCount > page * ITEMS_PER_PAGE);
+      setHasMore(result.totalCount > pageNumber * ITEMS_PER_PAGE);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch tags");
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCategory, selectedSubcategory, ITEMS_PER_PAGE]);
 
   useEffect(() => {
     setCurrentPage(1);
     setTags([]);
     fetchTags(1);
-  }, [selectedCategory, selectedSubcategory]);
+  }, [selectedCategory, selectedSubcategory, fetchTags]);
 
   const handleLoadMore = () => {
     const nextPage = currentPage + 1;

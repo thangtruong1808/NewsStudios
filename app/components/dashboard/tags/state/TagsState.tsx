@@ -10,6 +10,7 @@ import {
   showConfirmationToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 
+/* eslint-disable no-unused-vars */
 export interface TagsStateProps {
   children: (props: {
     tags: Tag[];
@@ -22,14 +23,15 @@ export interface TagsStateProps {
     sortField: keyof Tag;
     sortDirection: "asc" | "desc";
     searchQuery: string;
-    handlePageChange: (page: number) => void;
-    handleSort: (field: keyof (Tag & { sequence?: number })) => void;
-    handleEdit: (tag: Tag) => void;
-    handleDelete: (tag: Tag) => void;
-    handleSearch: (term: string) => void;
-    handleItemsPerPageChange: (limit: number) => void;
+    handlePageChange: ({ page }: { page: number }) => void;
+    handleSort: ({ field }: { field: keyof Tag }) => void;
+    handleEdit: ({ item }: { item: Tag }) => void;
+    handleDelete: ({ item }: { item: Tag }) => void;
+    handleSearch: ({ term }: { term: string }) => void;
+    handleItemsPerPageChange: ({ limit }: { limit: number }) => void;
   }) => React.ReactNode;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Provide tags management state container for dashboard pages.
 // Data created: 2024-11-13
@@ -47,7 +49,7 @@ export default function TagsState({ children }: TagsStateProps) {
 
   // Extract and parse URL parameters
   const currentPage = Number(searchParams.get("page")) || 1;
-  const itemsPerPage = Number(searchParams.get("itemsPerPage")) || 10;
+  const itemsPerPage = Number(searchParams.get("limit")) || 10;
   const searchQuery = searchParams.get("search") || "";
   const sortField =
     (searchParams.get("sortField") as keyof Tag) || "created_at";
@@ -63,17 +65,17 @@ export default function TagsState({ children }: TagsStateProps) {
 
         const result = searchQuery
           ? await searchTags(searchQuery, {
-            page: currentPage,
-            limit: itemsPerPage,
-            sortField,
-            sortDirection,
-          })
+              page: currentPage,
+              limit: itemsPerPage,
+              sortField,
+              sortDirection,
+            })
           : await getTags({
-            page: currentPage,
-            limit: itemsPerPage,
-            sortField,
-            sortDirection,
-          });
+              page: currentPage,
+              limit: itemsPerPage,
+              sortField,
+              sortDirection,
+            });
 
         setTags(result.data || []);
         if (result.totalCount !== undefined) {
@@ -90,15 +92,24 @@ export default function TagsState({ children }: TagsStateProps) {
     };
 
     fetchData();
-  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
+  }, [
+    currentPage,
+    itemsPerPage,
+    sortField,
+    sortDirection,
+    searchQuery,
+    isSearching,
+    isSorting,
+  ]);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = ({ page }: { page: number }) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
     router.push(`/dashboard/tags?${params.toString()}`);
   };
 
-  const handleSort = (field: keyof (Tag & { sequence?: number })) => {
+  const handleSort = ({ field }: { field: keyof Tag }) => {
+    if (field === "sequence") return;
     setIsSorting(true);
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
@@ -108,11 +119,11 @@ export default function TagsState({ children }: TagsStateProps) {
     router.push(`/dashboard/tags?${params.toString()}`);
   };
 
-  const handleEdit = (tag: Tag) => {
-    router.push(`/dashboard/tags/${tag.id}/edit`);
+  const handleEdit = ({ item }: { item: Tag }) => {
+    router.push(`/dashboard/tags/${item.id}/edit`);
   };
 
-  const handleDelete = async (tag: Tag) => {
+  const handleDelete = async ({ item }: { item: Tag }) => {
     const confirmPromise = new Promise<boolean>((resolve) => {
       showConfirmationToast({
         title: "Delete Tag",
@@ -128,7 +139,7 @@ export default function TagsState({ children }: TagsStateProps) {
 
     setIsDeleting(true);
     try {
-      const { error } = await deleteTag(tag.id);
+      const { error } = await deleteTag(item.id);
 
       if (error) {
         showErrorToast({ message: error });
@@ -141,17 +152,17 @@ export default function TagsState({ children }: TagsStateProps) {
       // Fetch fresh data after successful deletion
       const result = searchQuery
         ? await searchTags(searchQuery, {
-          page: currentPage,
-          limit: itemsPerPage,
-          sortField,
-          sortDirection,
-        })
+            page: currentPage,
+            limit: itemsPerPage,
+            sortField,
+            sortDirection,
+          })
         : await getTags({
-          page: currentPage,
-          limit: itemsPerPage,
-          sortField,
-          sortDirection,
-        });
+            page: currentPage,
+            limit: itemsPerPage,
+            sortField,
+            sortDirection,
+          });
 
       if ("error" in result && result.error) {
         throw new Error(result.error);
@@ -174,14 +185,18 @@ export default function TagsState({ children }: TagsStateProps) {
 
       showSuccessToast({ message: "Tag deleted successfully" });
     } catch (error) {
-      console.error("Error deleting tag:", error);
-      showErrorToast({ message: "Failed to delete tag. Please try again." });
+      showErrorToast({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete tag. Please try again.",
+      });
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const handleSearch = (term: string) => {
+  const handleSearch = ({ term }: { term: string }) => {
     setIsSearching(true);
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
@@ -193,10 +208,10 @@ export default function TagsState({ children }: TagsStateProps) {
     router.push(`/dashboard/tags?${params.toString()}`);
   };
 
-  const handleItemsPerPageChange = (limit: number) => {
+  const handleItemsPerPageChange = ({ limit }: { limit: number }) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
-    params.set("itemsPerPage", limit.toString());
+    params.set("limit", limit.toString());
     router.push(`/dashboard/tags?${params.toString()}`);
   };
 

@@ -3,10 +3,16 @@
 import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { UserFormValues } from "../userSchema";
 
+/* eslint-disable no-unused-vars */
 interface StatusFieldProps {
   register: UseFormRegister<UserFormValues>;
   errors: FieldErrors<UserFormValues>;
 }
+/* eslint-enable no-unused-vars */
+
+// Description: Render status selection dropdown for enabling or disabling user accounts.
+// Data created: 2024-11-13
+// Author: thangtruong
 
 export default function StatusField({ register, errors }: StatusFieldProps) {
   return (

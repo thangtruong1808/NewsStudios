@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { ChangeEvent } from "react";
 import {
   showSuccessToast,
   showErrorToast,
@@ -8,11 +9,13 @@ import {
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
 import { VideoCameraIcon } from "@heroicons/react/24/outline";
 
+/* eslint-disable no-unused-vars */
 interface VideoUploadProps {
   value: string;
-  onChange: (file: File | null) => void;
+  onChange: (fileValue: File | null) => void;
   selectedFile: File | null;
 }
+/* eslint-enable no-unused-vars */
 
 export default function VideoUpload({
   value,
@@ -50,8 +53,8 @@ export default function VideoUpload({
     }
   }, [selectedFile, value]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     setIsProcessing(true);
@@ -87,7 +90,6 @@ export default function VideoUpload({
       setUploadProgress(100);
       showSuccessToast({ message: "Video selected successfully" });
     } catch (error) {
-      console.error("Error processing video:", error);
       showErrorToast({
         message:
           error instanceof Error ? error.message : "Failed to process video",

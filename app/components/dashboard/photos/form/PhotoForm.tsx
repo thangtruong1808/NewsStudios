@@ -18,6 +18,7 @@ type PhotoFormData = z.infer<typeof photoSchema>;
 /**
  * Props interface for PhotoForm component
  */
+/* eslint-disable no-unused-vars */
 interface PhotoFormProps {
   articles: Article[];
   image?: Image;
@@ -33,14 +34,15 @@ interface PhotoFormProps {
   isFormEmpty: boolean;
   isImageAvailable: boolean;
   onInputChange: (
-    _event: React.ChangeEvent<
+    event: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => void;
-  onFileChange: (_event: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onClearFile: () => void;
-  onSubmit: (_event: React.FormEvent) => void;
+  onSubmit: (event: React.FormEvent) => void;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render dashboard photo create/edit form with upload preview and article linking.
 // Data created: 2024-11-13

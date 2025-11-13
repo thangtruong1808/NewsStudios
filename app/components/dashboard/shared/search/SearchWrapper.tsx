@@ -2,11 +2,13 @@
 
 import Search from "./Search";
 
+/* eslint-disable no-unused-vars */
 interface SearchWrapperProps {
   placeholder?: string;
-  onSearch?: (_term: string) => void;
+  onSearch?: (term: string) => void;
   defaultValue?: string;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Lightweight wrapper delivering shared search defaults for dashboard listings.
 // Data created: 2024-11-13

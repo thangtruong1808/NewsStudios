@@ -1,7 +1,8 @@
 "use client";
 
-import { DocumentTextIcon } from "@heroicons/react/24/outline";
-
+// Description: Skeleton loading state for relative articles layout with grid cards.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function RelativeArticlesInSingleArticleSkeleton() {
   // Create array for skeleton items
   const gridItems = Array.from({ length: 8 }, (_, index) => index);

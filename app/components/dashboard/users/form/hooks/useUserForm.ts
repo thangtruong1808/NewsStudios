@@ -22,7 +22,7 @@ import {
  */
 export function useUserForm(user?: User, isEditMode = false) {
   const router = useRouter();
-  const { data: session, update: updateSession } = useSession();
+  const { data: session } = useSession();
   const [isImageProcessing, setIsImageProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [processingFileName, setProcessingFileName] = useState("");
@@ -93,9 +93,7 @@ export function useUserForm(user?: User, isEditMode = false) {
 
       // Only upload to Cloudinary if there's a selected file
       if (selectedFile) {
-        console.log("Uploading selected file to Cloudinary:", selectedFile);
         const uploadResult = await uploadToCloudinary(selectedFile, "image");
-        console.log("Cloudinary upload result:", uploadResult);
 
         if (!uploadResult.success) {
           throw new Error(uploadResult.error || "Failed to upload image");
@@ -106,7 +104,6 @@ export function useUserForm(user?: User, isEditMode = false) {
         }
 
         imageUrl = uploadResult.url;
-        console.log("Image URL set to:", imageUrl);
       }
 
       if (isEditMode && user) {
@@ -129,8 +126,6 @@ export function useUserForm(user?: User, isEditMode = false) {
 
           // Check if the updated user is the current user
           const isCurrentUser = session?.user?.id === user.id.toString();
-          const isAdminUpdatingAdmin =
-            session?.user?.role === "admin" && user.role === "admin";
 
           if (isCurrentUser) {
             // If updating own profile, sign out and redirect to login
@@ -165,7 +160,6 @@ export function useUserForm(user?: User, isEditMode = false) {
         }
       }
     } catch (error) {
-      console.error("Error in handleSubmit:", error);
       showErrorToast({
         message: error instanceof Error ? error.message : "An error occurred",
       });

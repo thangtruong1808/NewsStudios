@@ -2,9 +2,10 @@
 
 import { FireIcon } from "@heroicons/react/24/outline";
 
+// Description: Skeleton structure for trending articles carousel and grid display.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function ArticlesTrendingSkeleton() {
-  // Create arrays for skeleton items
-  const carouselItems = Array.from({ length: 7 }, (_, index) => index);
   const gridItems = Array.from({ length: 10 }, (_, index) => index);
 
   return (

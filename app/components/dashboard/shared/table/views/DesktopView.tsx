@@ -5,13 +5,15 @@ import TableHeader from "../TableHeader";
 import TableRow from "../TableRow";
 import { DocumentIcon } from "@heroicons/react/24/outline";
 
+/* eslint-disable no-unused-vars */
 interface DesktopViewProps<T extends { id: number }> extends ViewProps<T> {
   currentPage?: number;
   itemsPerPage?: number;
   sortField?: keyof T;
   sortDirection?: "asc" | "desc";
-  onSort?: (_payload: { field: keyof T }) => void;
+  onSort?: ({ field }: { field: keyof T }) => void;
 }
+/* eslint-enable no-unused-vars */
 
 // Description: Render desktop table layout with skeleton, empty states, and sequence-aware rows.
 // Data created: 2024-11-13

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getArticles } from "@/app/lib/actions/articles";
-import { Article } from "@/app/lib/definition";
+import type { Article } from "@/app/lib/definition";
 
 interface GetExploreStatsProps {
   type?: "trending";
@@ -17,6 +17,9 @@ interface Stats {
   totalComments: number;
 }
 
+// Description: Fetch aggregate article statistics for explore views with optional filters.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function GetExploreStats({
   type,
   tag,
@@ -59,21 +62,6 @@ export default function GetExploreStats({
           );
         }
 
-        // Get the most viewed article
-        const mostViewed = [...filteredArticles].sort(
-          (a, b) => b.views_count - a.views_count
-        )[0];
-
-        // Get the most liked article
-        const mostLiked = [...filteredArticles].sort(
-          (a, b) => b.likes_count - a.likes_count
-        )[0];
-
-        // Get the most commented article
-        const mostCommented = [...filteredArticles].sort(
-          (a, b) => b.comments_count - a.comments_count
-        )[0];
-
         const totalViews = filteredArticles.reduce(
           (sum, article) => sum + article.views_count,
           0
@@ -94,7 +82,6 @@ export default function GetExploreStats({
           totalComments,
         });
       } catch (error) {
-        console.error("Error fetching stats:", error);
         setError(
           error instanceof Error ? error.message : "Failed to fetch stats"
         );

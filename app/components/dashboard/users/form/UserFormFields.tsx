@@ -1,7 +1,7 @@
 "use client";
 
-import { UseFormRegister, FieldErrors, Control } from "react-hook-form";
-import { UserFormValues } from "./userSchema";
+import type { ChangeEvent } from "react";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import {
   ImageField,
   NameFields,
@@ -11,53 +11,44 @@ import {
   StatusField,
   DescriptionField,
 } from "./fields";
+import { UserFormValues } from "./userSchema";
 
-/**
- * Props interface for the UserFormFields component
- * Handles form field registration, validation errors, and form control
- */
+/* eslint-disable no-unused-vars */
 interface UserFormFieldsProps {
-  register: UseFormRegister<UserFormValues>; // Form field registration function
-  errors: FieldErrors<UserFormValues>; // Form validation errors
-  isEditMode: boolean; // Flag to determine if form is in edit mode
-  control: Control<UserFormValues>; // Form control for field watching
-  userId?: number; // Optional user ID for session updates
-  onImageUpload: (file: File) => Promise<void>; // Image upload handler
-  imagePreview: string | null; // Current image preview URL
-  isImageProcessing: boolean; // Whether the image is being processed
-  processingFileName: string; // Name of the file being processed
-  uploadProgress: number; // Upload progress percentage
+  register: UseFormRegister<UserFormValues>;
+  errors: FieldErrors<UserFormValues>;
+  isEditMode: boolean;
+  onImageUpload: (file: File) => Promise<void>;
+  imagePreview: string | null;
+  isImageProcessing: boolean;
+  processingFileName?: string;
+  uploadProgress?: number;
 }
+/* eslint-enable no-unused-vars */
 
-/**
- * UserFormFields Component
- * Renders and manages all form fields for user creation and editing.
- * Handles image upload, preview, and validation.
- */
+// Description: Assemble user form sections including image upload, identity, roles, and metadata fields.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function UserFormFields({
   register,
   errors,
   isEditMode,
-  control,
-  userId,
   onImageUpload,
   imagePreview,
   isImageProcessing,
   processingFileName,
-  uploadProgress,
+  uploadProgress = 0,
 }: UserFormFieldsProps) {
-  /**
-   * Handles image file selection and triggers upload
-   */
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // Handle profile image selection and trigger upload workflow.
+  const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
     await onImageUpload(file);
   };
 
   return (
     <div className="space-y-6">
-      {/* Grid layout for form fields */}
+      {/* Grid layout for primary user fields */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Image upload field with preview */}
         <ImageField
@@ -70,27 +61,23 @@ export default function UserFormFields({
           uploadProgress={uploadProgress}
         />
 
-        {/* Name fields (first name and last name) */}
+        {/* Name fields (first and last name) */}
         <NameFields register={register} errors={errors} />
 
-        {/* Email field with validation */}
+        {/* Email field */}
         <EmailField register={register} errors={errors} />
 
-        {/* Password field with show/hide functionality */}
-        <PasswordField
-          register={register}
-          errors={errors}
-          isEditMode={isEditMode}
-        />
+        {/* Password field */}
+        <PasswordField register={register} errors={errors} isEditMode={isEditMode} />
 
-        {/* Role selection field */}
+        {/* Role selection */}
         <RoleField register={register} errors={errors} />
 
-        {/* Status selection field */}
+        {/* Status selection */}
         <StatusField register={register} errors={errors} />
       </div>
 
-      {/* Description field (full width) */}
+      {/* Description field */}
       <DescriptionField register={register} errors={errors} />
     </div>
   );

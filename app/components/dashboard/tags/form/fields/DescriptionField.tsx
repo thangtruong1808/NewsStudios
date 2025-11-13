@@ -1,12 +1,18 @@
 "use client";
 
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors } from "react-hook-form";
 import { TagFormValues } from "@/app/components/dashboard/tags/types";
 
+/* eslint-disable no-unused-vars */
 interface DescriptionFieldProps {
   register: UseFormRegister<TagFormValues>;
   errors: FieldErrors<TagFormValues>;
 }
+/* eslint-enable no-unused-vars */
+
+// Description: Render textarea capture for optional tag description details.
+// Data created: 2024-11-13
+// Author: thangtruong
 
 export default function DescriptionField({
   register,
