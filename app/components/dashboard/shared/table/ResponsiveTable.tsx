@@ -8,8 +8,8 @@ interface ResponsiveTableProps<T> {
   columns: Column<T>[];
   currentPage: number;
   itemsPerPage: number;
-  onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
+  onEdit?: (_payload: { item: T }) => void;
+  onDelete?: (_payload: { item: T }) => void;
   isDeleting?: boolean;
 }
 

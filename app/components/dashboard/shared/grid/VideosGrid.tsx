@@ -8,18 +8,14 @@ import {
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
-import {
-  showConfirmationToast,
-  showErrorToast,
-} from "@/app/components/dashboard/shared/toast/Toast";
 import { useSession } from "next-auth/react";
 import { formatDateToLocal } from "@/app/lib/utils/dateFormatter";
 
 // Props interface for VideosGrid component
 interface VideosGridProps {
   videos: Video[]; // Array of video objects to display
-  onEdit: (video: Video) => void; // Callback for edit action
-  onDelete: (video: Video) => void; // Callback for delete action
+  onEdit: (_payload: { item: Video }) => void; // Callback for edit action
+  onDelete: (_payload: { item: Video }) => Promise<void>; // Callback for delete action
   isLoading?: boolean; // Loading state indicator
   isDeleting?: boolean; // Deleting state indicator
   hasMore?: boolean; // Whether there are more videos to load
@@ -27,6 +23,9 @@ interface VideosGridProps {
   onLoadMore?: () => void; // Callback for loading more videos
 }
 
+// Description: Render dashboard video cards with admin controls, skeletons, and load-more support.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function VideosGrid({
   videos,
   onEdit,
@@ -46,11 +45,9 @@ export default function VideosGrid({
   const handleDelete = async (video: Video) => {
     setIsDeletingLocal(true);
     try {
-      await onDelete(video);
+      await onDelete({ item: video });
     } catch (error) {
-      console.error("Error deleting video:", error);
-      // Let the parent component handle the error toast
-      throw error; // Re-throw the error to be handled by the parent
+      throw error; // Re-throw so parent can surface feedback
     } finally {
       setIsDeletingLocal(false);
     }
@@ -170,7 +167,7 @@ export default function VideosGrid({
             {isAdmin && (
               <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() => onEdit(video)}
+                  onClick={() => onEdit({ item: video })}
                   className="p-1.5 bg-white rounded-full shadow-sm hover:bg-blue-100 transition-colors"
                   title="Edit"
                 >

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 interface SearchProps {
   placeholder: string;
-  onSearch?: (term: string) => void;
+  onSearch?: (_value: string) => void;
   defaultValue?: string;
 }
 

@@ -19,11 +19,11 @@ interface CategoriesTableProps {
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: (params: { field: keyof Category }) => void;
-  onPageChange: (params: { page: number }) => void;
-  onEdit: (params: { item: Category }) => void;
-  onDelete: (params: { item: Category }) => void;
-  onItemsPerPageChange: (params: { limit: number }) => void;
+  onSort(_payload: { field: keyof Category }): void;
+  onPageChange(_payload: { page: number }): void;
+  onEdit(_payload: { item: Category }): void;
+  onDelete(_payload: { item: Category }): void;
+  onItemsPerPageChange(_payload: { limit: number }): void;
 }
 
 type CategoryRow = Category & { sequence: number; actions?: never };

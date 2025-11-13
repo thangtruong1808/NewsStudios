@@ -6,12 +6,15 @@ import { useSession } from "next-auth/react";
 
 interface PhotoActionsProps {
   photo: Image;
-  onEdit: (_photo: Image) => void;
-  onDelete: (_photo: Image) => void;
+  onEdit(_payload: { item: Image }): void;
+  onDelete(_payload: { item: Image }): void;
   isDeleting: boolean;
   isVisible: boolean;
 }
 
+// Description: Render admin-only action buttons for editing or deleting a dashboard photo card.
+// Data created: 2024-11-13
+// Author: thangtruong
 export function PhotoActions({
   photo,
   onEdit,
@@ -32,14 +35,14 @@ export function PhotoActions({
         }`}
     >
       <button
-        onClick={() => onEdit(photo)}
+        onClick={() => onEdit({ item: photo })}
         className="p-2 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm"
         title="Edit photo"
       >
         <PencilIcon className="h-5 w-5" />
       </button>
       <button
-        onClick={() => onDelete(photo)}
+        onClick={() => onDelete({ item: photo })}
         disabled={isDeleting}
         className="p-2 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         title="Delete photo"

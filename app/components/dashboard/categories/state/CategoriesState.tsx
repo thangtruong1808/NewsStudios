@@ -21,16 +21,16 @@ interface CategoriesStateRenderProps {
   sortField: keyof Category;
   sortDirection: "asc" | "desc";
   searchQuery: string;
-  handlePageChange: (params: { page: number }) => void;
-  handleSort: (params: { field: keyof Category }) => void;
-  handleEdit: (params: { item: Category }) => void;
-  handleDelete: (params: { item: Category }) => void;
-  handleSearch: (params: { term: string }) => void;
-  handleItemsPerPageChange: (params: { limit: number }) => void;
+  handlePageChange(_payload: { page: number }): void;
+  handleSort(_payload: { field: keyof Category }): void;
+  handleEdit(_payload: { item: Category }): void;
+  handleDelete(_payload: { item: Category }): void;
+  handleSearch(_payload: { term: string }): void;
+  handleItemsPerPageChange(_payload: { limit: number }): void;
 }
 
 interface CategoriesStateProps {
-  children: (props: CategoriesStateRenderProps) => React.ReactNode;
+  children: (_props: CategoriesStateRenderProps) => React.ReactNode;
 }
 
 export default function CategoriesState({ children }: CategoriesStateProps) {

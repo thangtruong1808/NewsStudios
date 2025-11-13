@@ -8,7 +8,7 @@ interface TableHeaderProps {
   columns: Column<Category>[];
   sortField: keyof Category;
   sortDirection: "asc" | "desc";
-  onSort: (params: { field: keyof Category }) => void;
+  onSort: (_payload: { field: keyof Category }) => void;
 }
 
 // Description: Render table header with sortable columns and responsive visibility rules.

@@ -4,7 +4,7 @@ interface EntriesSelectorProps {
   itemsPerPage: number;
   totalItems: number;
   currentPage: number;
-  onItemsPerPageChange: (params: { limit: number }) => void;
+  onItemsPerPageChange: (_: { limit: number }) => void;
 }
 
 // Description: Render selectable page size controls with a summary of visible entries.

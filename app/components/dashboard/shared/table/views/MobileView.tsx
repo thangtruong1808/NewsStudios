@@ -11,8 +11,8 @@ import { useSession } from "next-auth/react";
 interface MobileViewProps<T extends { id: number }> extends ViewProps<T> {
   currentPage?: number;
   itemsPerPage?: number;
-  onEdit?: (params: { item: T }) => void;
-  onDelete?: (params: { item: T }) => void;
+  onEdit?: (_payload: { item: T }) => void;
+  onDelete?: (_payload: { item: T }) => void;
   isDeleting?: boolean;
 }
 

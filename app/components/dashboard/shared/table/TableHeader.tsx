@@ -6,7 +6,7 @@ interface TableHeaderProps<T> {
   columns: Column<T>[];
   sortField?: keyof T;
   sortDirection?: "asc" | "desc";
-  onSort?: (params: { field: keyof T }) => void;
+  onSort?: (_payload: { field: keyof T }) => void;
 }
 
 // Description: Render table headers with optional sort indicators and handlers.

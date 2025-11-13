@@ -12,10 +12,9 @@ interface ImageCleanupHandlerProps {
   onCleanupComplete: () => void;
 }
 
-/**
- * ImageCleanupHandler Component
- * Handles cleanup of old images when a new image is uploaded in edit mode
- */
+// Description: Automatically delete the previously uploaded image after a successful replacement.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function ImageCleanupHandler({
   previousImageUrl,
   onCleanupComplete,
@@ -74,7 +73,7 @@ export default function ImageCleanupHandler({
         setIsCleaning(false);
       }
     }
-  }, [previousImageUrl, onCleanupComplete]);
+  }, [previousImageUrl, isCleaning, onCleanupComplete]);
 
   // Automatically trigger cleanup when component mounts
   useEffect(() => {

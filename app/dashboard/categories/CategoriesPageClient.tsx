@@ -34,9 +34,7 @@ export default function CategoriesPageClient() {
           {/* Search functionality */}
           <div className="my-6">
             <div className="w-full">
-              <CategoriesSearch
-                onSearch={(term) => handleSearch({ term })}
-              />
+              <CategoriesSearch onSearch={handleSearch} />
             </div>
           </div>
 

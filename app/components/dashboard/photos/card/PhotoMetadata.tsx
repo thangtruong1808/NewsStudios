@@ -8,6 +8,9 @@ interface PhotoMetadataProps {
   photo: Image;
 }
 
+// Description: Display article linkage and timestamps for a dashboard photo card.
+// Data created: 2024-11-13
+// Author: thangtruong
 export function PhotoMetadata({ photo }: PhotoMetadataProps) {
   return (
     <div className="p-2 space-y-2">
@@ -23,13 +26,7 @@ export function PhotoMetadata({ photo }: PhotoMetadataProps) {
             <span className="text-xs font-medium whitespace-nowrap">
               Article Title:
             </span>
-            <div
-              className="text-xs text-gray-500 truncate"
-            // className={`text-xs text-gray-500 truncate ${photo.article_title.length < 550
-            //   ? "min-h-[1rem]"
-            //   : "min-h-[2rem]"
-            //   }`}
-            >
+            <div className="text-xs text-gray-500 truncate">
               {photo.article_title}
             </div>
           </div>

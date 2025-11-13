@@ -3,7 +3,7 @@
 import Search from "@/app/components/dashboard/shared/search/Search";
 
 interface CategoriesSearchProps {
-  onSearch: (term: string) => void;
+  onSearch(_payload: { term: string }): void;
   defaultValue?: string;
 }
 
@@ -15,7 +15,7 @@ export default function CategoriesSearch({
   defaultValue = "",
 }: CategoriesSearchProps) {
   const handleSearch = (term: string) => {
-    onSearch(term);
+    onSearch({ term });
   };
 
   return (

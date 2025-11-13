@@ -6,7 +6,7 @@ interface PaginationProps {
   totalPages: number;
   itemsPerPage: number;
   totalItems: number;
-  onPageChange: (params: { page: number }) => void;
+  onPageChange: (_: { page: number }) => void;
 }
 
 // Description: Render responsive pagination controls for dashboard data tables.
@@ -15,14 +15,9 @@ interface PaginationProps {
 export default function Pagination({
   currentPage,
   totalPages,
-  itemsPerPage,
-  totalItems,
   onPageChange,
 }: PaginationProps) {
   // Calculate the range of items being displayed
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-
   return (
     <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6">
       {/* Mobile view pagination controls */}

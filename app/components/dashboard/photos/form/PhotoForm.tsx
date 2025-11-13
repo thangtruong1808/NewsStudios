@@ -24,7 +24,6 @@ interface PhotoFormProps {
   isSubmitting: boolean;
   uploadProgress: number;
   isImageProcessing: boolean;
-  selectedFile: File | null;
   previewUrl: string | null;
   formValues: {
     file: File | null;
@@ -34,27 +33,24 @@ interface PhotoFormProps {
   isFormEmpty: boolean;
   isImageAvailable: boolean;
   onInputChange: (
-    e: React.ChangeEvent<
+    _event: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => void;
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileChange: (_event: React.ChangeEvent<HTMLInputElement>) => void;
   onClearFile: () => void;
-  onSubmit: (e: React.FormEvent) => void;
-  onCancel: () => void;
+  onSubmit: (_event: React.FormEvent) => void;
 }
 
-/**
- * PhotoForm Component
- * Form component for creating and editing photos
- */
+// Description: Render dashboard photo create/edit form with upload preview and article linking.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function PhotoForm({
   articles,
   image,
   isSubmitting,
   uploadProgress,
   isImageProcessing,
-  selectedFile,
   previewUrl,
   formValues,
   isFormEmpty,
@@ -63,7 +59,6 @@ export default function PhotoForm({
   onFileChange,
   onClearFile,
   onSubmit,
-  onCancel,
 }: PhotoFormProps) {
   const router = useRouter();
   const isEditMode = !!image;

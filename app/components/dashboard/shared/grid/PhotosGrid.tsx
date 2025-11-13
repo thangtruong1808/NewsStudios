@@ -6,8 +6,8 @@ import PhotoCard from "@/app/components/dashboard/photos/card/PhotoCard";
 
 interface PhotosGridProps {
   photos: Image[];
-  onEdit: (photo: Image) => void;
-  onDelete: (photo: Image) => void;
+  onEdit: (_payload: { item: Image }) => void;
+  onDelete: (_payload: { item: Image }) => void;
   isLoading?: boolean;
   isDeleting?: boolean;
   hasMore?: boolean;
@@ -15,6 +15,9 @@ interface PhotosGridProps {
   onLoadMore?: () => void;
 }
 
+// Description: Render dashboard photo thumbnails with loading state, empty state, and load-more control.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function PhotosGrid({
   photos,
   onEdit,

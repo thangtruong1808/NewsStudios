@@ -4,7 +4,7 @@ import Search from "./Search";
 
 interface SearchWrapperProps {
   placeholder?: string;
-  onSearch?: (...[term]: [string]) => void;
+  onSearch?: (_term: string) => void;
   defaultValue?: string;
 }
 

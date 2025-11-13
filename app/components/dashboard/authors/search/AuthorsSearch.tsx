@@ -3,7 +3,7 @@
 import Search from "@/app/components/dashboard/shared/search/Search";
 
 interface AuthorsSearchProps {
-  onSearch: (term: string) => void;
+  onSearch(_payload: { term: string }): void;
 }
 
 // Description: Wrap shared search input for authors listing.
@@ -11,7 +11,7 @@ interface AuthorsSearchProps {
 // Author: thangtruong
 export default function AuthorsSearch({ onSearch }: AuthorsSearchProps) {
   const handleSearch = (term: string) => {
-    onSearch(term);
+    onSearch({ term });
   };
 
   return (

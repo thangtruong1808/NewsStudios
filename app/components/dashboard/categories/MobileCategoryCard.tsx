@@ -5,7 +5,7 @@ import { TrashIcon } from "@heroicons/react/24/outline";
 
 interface MobileCategoryCardProps {
   category: Category;
-  onDelete: (params: { item: Category }) => void;
+  onDelete: (_payload: { item: Category }) => void;
 }
 
 // Description: Render mobile-friendly category card with quick actions.
@@ -33,7 +33,7 @@ export default function MobileCategoryCard({
         </div>
         <div className="flex gap-2">
           <button
-          onClick={() => onDelete({ item: category })}
+            onClick={() => onDelete({ item: category })}
             className="rounded-md border border-red-500 p-2 text-red-500 hover:bg-red-50"
           >
             <TrashIcon className="w-5 h-5" />

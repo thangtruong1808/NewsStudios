@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getVideos, searchVideos, deleteVideo } from "@/app/lib/actions/videos";
 import VideosHeader from "@/app/components/dashboard/videos/header/index";
@@ -28,19 +28,11 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 //   totalPages?: number;
 // }
 
-/**
- * VideosPageClient Component
- * Main page for managing videos with features for:
- * - Pagination and infinite scroll
- * - Search functionality
- * - Video grid display
- * - CRUD operations
- * - Loading states
- * - Error handling with toast notifications
- */
+// Description: Manage dashboard videos listing with search, pagination, refresh, and admin actions.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function VideosPageClient() {
   const router = useRouter();
-  const videosRef = useRef<Video[]>([]);
 
   // State management for videos list, loading states, and pagination
   const [videos, setVideos] = useState<Video[]>([]);
@@ -48,21 +40,20 @@ export default function VideosPageClient() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
   const [searchQuery, setSearchQuery] = useState("");
   const [hasMore, setHasMore] = useState(true);
 
   // Update ref when videos change
-  useEffect(() => {
-    videosRef.current = videos;
-  }, [videos]);
-
   // Fetch videos with pagination and search
   const fetchVideos = useCallback(async () => {
     try {
-      setIsLoadingMore(true);
+      if (currentPage === 1) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
       const result = searchQuery
         ? await searchVideos(searchQuery)
         : await getVideos(currentPage, itemsPerPage);
@@ -77,11 +68,11 @@ export default function VideosPageClient() {
         setVideos((prev) => [...prev, ...(result.data || [])]);
       }
 
-      setTotalItems(result.totalItems || 0);
       setHasMore((result.data?.length || 0) === itemsPerPage);
     } catch (error) {
-      console.error("Error fetching videos:", error);
-      showErrorToast({ message: "Failed to load videos" });
+      showErrorToast({
+        message: error instanceof Error ? error.message : "Failed to load videos",
+      });
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
@@ -89,7 +80,7 @@ export default function VideosPageClient() {
   }, [currentPage, itemsPerPage, searchQuery]);
 
   // Handle video deletion
-  const handleDelete = async (video: Video) => {
+  const handleDelete = useCallback(async ({ item }: { item: Video }) => {
     try {
       setIsDeleting(true);
       const confirmPromise = new Promise<boolean>((resolve) => {
@@ -97,27 +88,28 @@ export default function VideosPageClient() {
           title: "Delete Video",
           message: "Are you sure you want to delete this video?",
           onConfirm: () => resolve(true),
-          onCancel: () => resolve(false)
+          onCancel: () => resolve(false),
         });
       });
 
       const confirmed = await confirmPromise;
       if (!confirmed) return;
 
-      const result = await deleteVideo(video.id);
+      const result = await deleteVideo(item.id);
       if (result.error) {
         throw new Error(result.error);
       }
 
-      setVideos((prev) => prev.filter((v) => v.id !== video.id));
+      setVideos((prev) => prev.filter((video) => video.id !== item.id));
       showSuccessToast({ message: "Video deleted successfully" });
     } catch (error) {
-      console.error("Error deleting video:", error);
-      showErrorToast({ message: "Failed to delete video" });
+      showErrorToast({
+        message: error instanceof Error ? error.message : "Failed to delete video",
+      });
     } finally {
       setIsDeleting(false);
     }
-  };
+  }, []);
 
   // Handle refresh
   const handleRefresh = async () => {
@@ -129,14 +121,7 @@ export default function VideosPageClient() {
 
   // Initialize and cleanup video fetching
   useEffect(() => {
-    let isMounted = true;
-    const fetchData = async () => {
-      await fetchVideos();
-    };
-    fetchData();
-    return () => {
-      isMounted = false;
-    };
+    fetchVideos();
   }, [fetchVideos]);
 
   // Handle search functionality
@@ -151,9 +136,12 @@ export default function VideosPageClient() {
   }, []);
 
   // Navigate to edit page for a specific video
-  const handleEdit = (video: Video) => {
-    router.push(`/dashboard/videos/${video.id}/edit`);
-  };
+  const handleEdit = useCallback(
+    ({ item }: { item: Video }) => {
+      router.push(`/dashboard/videos/${item.id}/edit`);
+    },
+    [router]
+  );
 
   return (
     <div className="">

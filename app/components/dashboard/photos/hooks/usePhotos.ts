@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getImages, searchImages, deleteImage } from "@/app/lib/actions/images";
 import { Image } from "@/app/lib/definition";
 import {
@@ -9,22 +9,6 @@ import {
   showErrorToast,
   showConfirmationToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
-
-// Interface for image data from database
-interface ImageRow {
-  id: number;
-  article_id: number | null;
-  image_url: string;
-  description: string | null;
-  type: "banner" | "video" | "thumbnail" | "gallery";
-  entity_type: "advertisement" | "article" | "author" | "category";
-  entity_id: number;
-  is_featured: boolean;
-  display_order: number;
-  created_at: Date;
-  updated_at: Date;
-  article_title?: string;
-}
 
 // Interface for paginated API response
 interface ImagesResult {
@@ -45,16 +29,11 @@ interface SearchResult {
   };
 }
 
-// Helper function to convert database row to Image type
-const convertImageRowToImage = (row: ImageRow): Image => ({
-  ...row,
-  created_at: row.created_at.toISOString(),
-  updated_at: row.updated_at.toISOString(),
-});
-
+// Description: Manage dashboard photo listing state with search, pagination, and delete actions.
+// Data created: 2024-11-13
+// Author: thangtruong
 export function usePhotos() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // State management
   const [photos, setPhotos] = useState<Image[]>([]);
@@ -73,8 +52,10 @@ export function usePhotos() {
     async (isRefresh = false) => {
       if (isRefresh) {
         setIsRefreshing(true);
-      } else {
+      } else if (currentPage === 1) {
         setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
       }
       try {
         const result = searchQuery
@@ -143,7 +124,6 @@ export function usePhotos() {
           }
         }
       } catch (error) {
-        console.error("Error fetching photos:", error);
         showErrorToast({
           message:
             error instanceof Error ? error.message : "Failed to fetch photos",
@@ -156,6 +136,7 @@ export function usePhotos() {
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
+        setIsLoadingMore(false);
       }
     },
     [currentPage, itemsPerPage, searchQuery]
@@ -163,14 +144,10 @@ export function usePhotos() {
 
   // Initialize and cleanup photo fetching
   useEffect(() => {
-    let isMounted = true;
     const fetchData = async () => {
       await fetchPhotos();
     };
     fetchData();
-    return () => {
-      isMounted = false;
-    };
   }, [fetchPhotos]);
 
   // Search functionality handlers
@@ -186,6 +163,7 @@ export function usePhotos() {
 
   // Load more photos for pagination
   const handleLoadMore = useCallback(() => {
+    setIsLoadingMore(true);
     setCurrentPage((prev) => prev + 1);
   }, []);
 
@@ -197,19 +175,18 @@ export function usePhotos() {
   }, [fetchPhotos]);
 
   // Navigate to edit page for a specific photo
-  const handleEdit = async (photo: Image) => {
+  const handleEdit = async ({ item }: { item: Image }) => {
     try {
       // TODO: Implement photo update logic here
       await new Promise((resolve) => setTimeout(resolve, 100)); // Temporary delay
-      router.push(`/dashboard/photos/${photo.id}/edit`);
+      router.push(`/dashboard/photos/${item.id}/edit`);
     } catch (error) {
-      console.error("Error editing photo:", error);
       showErrorToast({ message: "Failed to edit photo" });
     }
   };
 
   // Delete photo with confirmation
-  const handleDelete = async (photo: Image) => {
+  const handleDelete = async ({ item }: { item: Image }) => {
     const confirmPromise = new Promise<boolean>((resolve) => {
       showConfirmationToast({
         title: "Delete Photo",
@@ -225,7 +202,7 @@ export function usePhotos() {
 
     setIsDeleting(true);
     try {
-      const result = await deleteImage(photo.id);
+      const result = await deleteImage(item.id);
 
       if (!result.success) {
         throw new Error(result.error || "Failed to delete photo");
@@ -237,7 +214,6 @@ export function usePhotos() {
       setCurrentPage(1);
       await fetchPhotos(true);
     } catch (error) {
-      console.error("Error deleting photo:", error);
       showErrorToast({ message: "Failed to delete photo" });
     } finally {
       setIsDeleting(false);

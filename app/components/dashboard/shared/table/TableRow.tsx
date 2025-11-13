@@ -7,8 +7,8 @@ import { useSession } from "next-auth/react";
 interface TableRowProps<T extends { id: number }> {
   item: T;
   columns: Column<T>[];
-  onEdit?: (params: { item: T }) => void;
-  onDelete?: (params: { item: T }) => void;
+  onEdit?: (_payload: { item: T }) => void;
+  onDelete?: (_payload: { item: T }) => void;
   isDeleting?: boolean;
   index?: number;
   currentPage?: number;

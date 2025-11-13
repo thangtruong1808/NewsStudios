@@ -39,7 +39,7 @@ export default function Table<T extends { id: number }>({
             itemsPerPage={itemsPerPage}
             totalItems={totalItems}
             currentPage={currentPage}
-            onItemsPerPageChange={(limit) =>
+            onItemsPerPageChange={({ limit }) =>
               onItemsPerPageChange({ limit })
             }
           />
@@ -118,7 +118,7 @@ export default function Table<T extends { id: number }>({
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-                onPageChange={(page) => onPageChange({ page })}
+              onPageChange={({ page }) => onPageChange({ page })}
               totalItems={totalItems}
               itemsPerPage={itemsPerPage}
             />

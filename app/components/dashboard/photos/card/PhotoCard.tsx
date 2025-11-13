@@ -8,11 +8,14 @@ import NextImage from "next/image";
 
 interface PhotoCardProps {
   photo: ImageType;
-  onEdit: (_photo: ImageType) => void;
-  onDelete: (_photo: ImageType) => void;
+  onEdit(_payload: { item: ImageType }): void;
+  onDelete(_payload: { item: ImageType }): void;
   isDeleting: boolean;
 }
 
+// Description: Display dashboard photo thumbnail with hover actions and metadata summary.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function PhotoCard({
   photo,
   onEdit,

@@ -19,11 +19,11 @@ interface AuthorsTableProps {
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: (_field: keyof Author) => void;
-  onPageChange: (_page: number) => void;
-  onEdit: (_author: Author) => void;
-  onDelete: (_author: Author) => void;
-  onItemsPerPageChange: (_limit: number) => void;
+  onSort(_payload: { field: keyof Author }): void;
+  onPageChange(_payload: { page: number }): void;
+  onEdit(_payload: { item: Author }): void;
+  onDelete(_payload: { item: Author }): void;
+  onItemsPerPageChange(_payload: { limit: number }): void;
 }
 
 type TableAuthor = Author & { sequence: number };

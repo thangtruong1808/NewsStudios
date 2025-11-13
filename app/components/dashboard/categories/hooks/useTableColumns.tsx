@@ -6,7 +6,7 @@ import { Column } from "@/app/components/dashboard/shared/table/TableTypes";
 
 interface UseTableColumnsProps {
   isDeleting: boolean;
-  onDelete: (params: { item: Category }) => void;
+  onDelete(payload: { item: Category }): void;
 }
 
 // Description: Provide column definitions for the categories table including action handlers.

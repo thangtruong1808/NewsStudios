@@ -7,7 +7,7 @@ export interface Column<T> {
   field: keyof T;
   label: string;
   sortable?: boolean;
-  render?: (params: { value: T[keyof T]; row: T }) => ReactNode;
+  render?: (_payload: { value: T[keyof T]; row: T }) => ReactNode;
 }
 
 export interface TableProps<T extends { id: number }> {
@@ -19,11 +19,11 @@ export interface TableProps<T extends { id: number }> {
   totalItems?: number;
   sortField?: keyof T;
   sortDirection?: "asc" | "desc";
-  onSort?: (params: { field: keyof T }) => void;
-  onPageChange?: (params: { page: number }) => void;
-  onItemsPerPageChange?: (params: { limit: number }) => void;
-  onEdit?: (params: { item: T }) => void;
-  onDelete?: (params: { item: T }) => void;
+  onSort?: (_payload: { field: keyof T }) => void;
+  onPageChange?: (_payload: { page: number }) => void;
+  onItemsPerPageChange?: (_payload: { limit: number }) => void;
+  onEdit?: (_payload: { item: T }) => void;
+  onDelete?: (_payload: { item: T }) => void;
   isDeleting?: boolean;
   isLoading?: boolean;
   searchQuery?: string;
@@ -32,8 +32,8 @@ export interface TableProps<T extends { id: number }> {
 export interface ViewProps<T extends { id: number }> {
   data: T[];
   columns: Column<T>[];
-  onEdit?: (params: { item: T }) => void;
-  onDelete?: (params: { item: T }) => void;
+  onEdit?: (_payload: { item: T }) => void;
+  onDelete?: (_payload: { item: T }) => void;
   isDeleting?: boolean;
   isLoading?: boolean;
   searchQuery?: string;

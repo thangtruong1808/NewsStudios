@@ -16,9 +16,9 @@ interface CategoriesTableProps {
   sortField: keyof Category;
   sortDirection: "asc" | "desc";
   isDeleting: boolean;
-  onSort: (...args: [keyof Category]) => void;
-  onPageChange: (...args: [number]) => void;
-  onDelete: (...args: [number, string]) => void;
+  onSort(_payload: { field: keyof Category }): void;
+  onPageChange(_payload: { page: number }): void;
+  onDelete(_payload: { item: Category }): void;
 }
 
 // Description: Render responsive categories table with desktop grid, mobile cards, and pagination controls.

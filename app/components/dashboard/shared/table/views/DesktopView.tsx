@@ -10,7 +10,7 @@ interface DesktopViewProps<T extends { id: number }> extends ViewProps<T> {
   itemsPerPage?: number;
   sortField?: keyof T;
   sortDirection?: "asc" | "desc";
-  onSort?: (params: { field: keyof T }) => void;
+  onSort?: (_payload: { field: keyof T }) => void;
 }
 
 // Description: Render desktop table layout with skeleton, empty states, and sequence-aware rows.

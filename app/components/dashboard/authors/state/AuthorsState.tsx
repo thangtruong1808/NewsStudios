@@ -161,7 +161,7 @@ export default function AuthorsState() {
     }
   };
 
-  const handleSearch = (term: string) => {
+  const handleSearch = ({ term }: { term: string }) => {
     setIsSearching(true);
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");

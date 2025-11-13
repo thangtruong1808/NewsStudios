@@ -8,6 +8,9 @@ import { SearchWrapper } from "@/app/components/dashboard/shared/search";
 import { useRouter } from "next/navigation";
 import { Image } from "@/app/lib/definition";
 
+// Description: Assemble dashboard photos page with search, refresh, grid, and pagination controls.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function PhotosPageClient() {
   const router = useRouter();
   const {
@@ -23,8 +26,8 @@ export default function PhotosPageClient() {
     handleDelete,
   } = usePhotos();
 
-  const handleEditClick = (photo: Image) => {
-    router.push(`/dashboard/photos/${photo.id}/edit`);
+  const handleEditClick = ({ item }: { item: Image }) => {
+    router.push(`/dashboard/photos/${item.id}/edit`);
   };
 
   return (

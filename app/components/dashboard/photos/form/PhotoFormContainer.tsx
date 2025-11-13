@@ -264,7 +264,6 @@ export default function PhotoFormContainer({
           isSubmitting={isSubmitting}
           uploadProgress={uploadProgress}
           isImageProcessing={isImageProcessing}
-          selectedFile={selectedFile}
           previewUrl={previewUrl}
           formValues={formValues}
           isFormEmpty={isFormEmpty}
@@ -273,7 +272,6 @@ export default function PhotoFormContainer({
           onFileChange={handleFileChange}
           onClearFile={handleClearFile}
           onSubmit={handleSubmit}
-          onCancel={() => router.push("/dashboard/photos")}
         />
       </div>
 
