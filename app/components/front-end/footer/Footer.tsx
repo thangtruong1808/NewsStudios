@@ -1,22 +1,27 @@
-"use client";
-
 import Link from "next/link";
-import { categories } from "@/app/lib/data/categories";
+import { getNavCategories } from "@/app/lib/actions/categories";
 
-export default function Footer() {
+// Component Info
+// Description: Simplified footer variant listing categories and static quick links.
+// Data created: Category list fetched from the database for footer navigation.
+// Author: thangtruong
+
+export default async function Footer() {
+  const { data } = await getNavCategories();
+  const categories = (data ?? []).map((category) => ({ id: category.id, name: category.name }));
+
   return (
     <footer className="bg-gray-900 text-white">
-      <div className="max-w-[1536px] mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Categories Section */}
+      <div className="mx-auto max-w-[1536px] px-4 py-12">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
-            <h3 className="text-lg font-semibold mb-4">Categories</h3>
+            <h3 className="mb-4 text-lg font-semibold">Categories</h3>
             <ul className="space-y-2">
               {categories.map((category) => (
                 <li key={category.id}>
                   <Link
                     href={`/explore?categoryId=${category.id}`}
-                    className="text-gray-400 hover:text-white transition-colors"
+                    className="text-gray-400 transition-colors hover:text-white"
                   >
                     {category.name}
                   </Link>
@@ -25,55 +30,41 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Quick Links Section */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <h3 className="mb-4 text-lg font-semibold">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link
-                  href="/"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
+                <Link href="/" className="text-gray-400 transition-colors hover:text-white">
                   Home
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/explore"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
+                <Link href="/explore" className="text-gray-400 transition-colors hover:text-white">
                   Explore
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/about"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
+                <Link href="/about" className="text-gray-400 transition-colors hover:text-white">
                   About
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/contact"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
+                <Link href="/contact" className="text-gray-400 transition-colors hover:text-white">
                   Contact
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Social Media Section */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
+            <h3 className="mb-4 text-lg font-semibold">Follow Us</h3>
             <ul className="space-y-2">
               <li>
                 <a
                   href="https://twitter.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 transition-colors hover:text-white"
                 >
                   Twitter
                 </a>
@@ -83,7 +74,7 @@ export default function Footer() {
                   href="https://facebook.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 transition-colors hover:text-white"
                 >
                   Facebook
                 </a>
@@ -93,7 +84,7 @@ export default function Footer() {
                   href="https://instagram.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 transition-colors hover:text-white"
                 >
                   Instagram
                 </a>
@@ -103,7 +94,7 @@ export default function Footer() {
                   href="https://linkedin.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 transition-colors hover:text-white"
                 >
                   LinkedIn
                 </a>
@@ -111,24 +102,18 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact Section */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact</h3>
-            <ul className="space-y-2">
-              <li className="text-gray-400">Email: info@example.com</li>
-              <li className="text-gray-400">Phone: +1 234 567 890</li>
-              <li className="text-gray-400">
-                Address: 123 Street, City, Country
-              </li>
+            <h3 className="mb-4 text-lg font-semibold">Contact</h3>
+            <ul className="space-y-2 text-gray-400">
+              <li>Email: info@example.com</li>
+              <li>Phone: +1 234 567 890</li>
+              <li>Address: 123 Street, City, Country</li>
             </ul>
           </div>
         </div>
 
-        {/* Copyright Section */}
-        <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
-          <p>
-            &copy; {new Date().getFullYear()} Your Company. All rights reserved.
-          </p>
+        <div className="mt-8 border-t border-gray-800 pt-8 text-center text-gray-400">
+          <p>&copy; {new Date().getFullYear()} Your Company. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -1,6 +1,6 @@
 "use server";
 
-import { query } from "../db/db";
+import { query } from "../db/query";
 import { SubCategory } from "../definition";
 import { revalidatePath } from "next/cache";
 
@@ -34,74 +34,76 @@ export async function getSubcategories({
   categoryId,
 }: GetSubcategoriesParams = {}): Promise<GetSubcategoriesResult> {
   try {
-    const offset = (page - 1) * limit;
-    let conditions = [];
-    let params = [];
+    const limitValue = Math.max(1, Number(limit) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
+    const searchable = search.trim();
+    const conditions: string[] = [];
+    const params: Array<string | number> = [];
 
-    // Add search condition if search term exists
-    if (search) {
-      conditions.push(
-        `(s.name LIKE ? OR s.description LIKE ? OR c.name LIKE ?)`
-      );
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    if (searchable) {
+      conditions.push(`(s.name LIKE ? OR s.description LIKE ? OR c.name LIKE ?)`);
+      params.push(`%${searchable}%`, `%${searchable}%`, `%${searchable}%`);
     }
 
-    // Add category filter if categoryId exists
     if (categoryId) {
       conditions.push(`s.category_id = ?`);
       params.push(categoryId);
     }
 
-    const whereClause =
-      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    // Handle special sorting for computed fields
-    let orderBy;
-    if (sortField === "articles_count") {
-      orderBy = `ORDER BY (SELECT COUNT(*) FROM Articles a WHERE a.sub_category_id = s.id) ${sortDirection}`;
-    } else if (sortField === "category_name") {
-      orderBy = `ORDER BY c.name ${sortDirection}`;
-    } else {
-      orderBy = `ORDER BY s.${sortField} ${sortDirection}`;
-    }
+    const orderBy = (() => {
+      if (sortField === "articles_count") {
+        return `ORDER BY (SELECT COUNT(*) FROM Articles a WHERE a.sub_category_id = s.id) ${sortDirection}`;
+      }
+      if (sortField === "category_name") {
+        return `ORDER BY c.name ${sortDirection}`;
+      }
+      return `ORDER BY s.${sortField} ${sortDirection}`;
+    })();
 
-    // Get total count for pagination
-    const countQuery = `
-      SELECT COUNT(*) as count
-      FROM SubCategories s
-      LEFT JOIN Categories c ON s.category_id = c.id
-      ${whereClause}
-    `;
-    const countResult = await query(countQuery, params);
+    const countResult = await query<{ count: number }>(
+      `SELECT COUNT(*) as count
+       FROM SubCategories s
+       LEFT JOIN Categories c ON s.category_id = c.id
+       ${whereClause}`,
+      params
+    );
+
     if (countResult.error || !countResult.data) {
-      throw new Error(countResult.error || "Failed to get count");
-    }
-    const total = parseInt(countResult.data[0].count);
-
-    // Get paginated data with articles count
-    const dataQuery = `
-      SELECT 
-        s.*, 
-        c.name as category_name,
-        (SELECT COUNT(*) FROM Articles a WHERE a.sub_category_id = s.id) as articles_count
-      FROM SubCategories s
-      LEFT JOIN Categories c ON s.category_id = c.id
-      ${whereClause}
-      ${orderBy}
-      LIMIT ? 
-      OFFSET ?
-    `;
-
-    const result = await query(dataQuery, [...params, limit, offset]);
-
-    if (result.error || !result.data) {
-      throw new Error(result.error || "Failed to fetch data");
+      return {
+        data: null,
+        error: countResult.error ?? "Failed to fetch subcategories.",
+        total: 0,
+      };
     }
 
-    // Convert the counts to numbers and ensure proper data types
-    const subcategories = (result.data as any[]).map((subcategory) => ({
+    const total = Number(countResult.data[0]?.count ?? 0);
+
+    const dataResult = await query<any>(
+      `SELECT
+         s.*,
+         c.name as category_name,
+         (SELECT COUNT(*) FROM Articles a WHERE a.sub_category_id = s.id) as articles_count
+       FROM SubCategories s
+       LEFT JOIN Categories c ON s.category_id = c.id
+       ${whereClause}
+       ${orderBy}
+       LIMIT ${limitValue} OFFSET ${offsetValue}`,
+      params
+    );
+
+    if (dataResult.error || !dataResult.data) {
+      return {
+        data: null,
+        error: dataResult.error ?? "Failed to fetch subcategories.",
+        total,
+      };
+    }
+
+    const subcategories = (dataResult.data as any[]).map((subcategory) => ({
       ...subcategory,
-      articles_count: parseInt(subcategory.articles_count) || 0,
+      articles_count: Number(subcategory.articles_count ?? 0),
       created_at: new Date(subcategory.created_at),
       updated_at: new Date(subcategory.updated_at),
     })) as SubCategory[];
@@ -111,8 +113,7 @@ export async function getSubcategories({
       error: null,
       total,
     };
-  } catch (error) {
-    console.error("Database Error:", error);
+  } catch (_error) {
     return {
       data: null,
       error: "Failed to fetch subcategories.",
@@ -140,8 +141,7 @@ export async function getSubcategoryById(id: number) {
 export async function createSubcategory(data: SubcategoryFormData) {
   try {
     const result = await query(
-      `INSERT INTO SubCategories (name, description, category_id) 
-       VALUES (?, ?, ?)`,
+      `INSERT INTO SubCategories (name, description, category_id) VALUES (?, ?, ?)`,
       [data.name, data.description || null, data.category_id]
     );
 
@@ -151,8 +151,7 @@ export async function createSubcategory(data: SubcategoryFormData) {
 
     revalidatePath("/dashboard/subcategories");
     return { success: true, error: null };
-  } catch (error) {
-    console.error("Error creating subcategory:", error);
+  } catch (_error) {
     return {
       success: false,
       error: "Failed to create subcategory",
@@ -181,8 +180,7 @@ export async function updateSubcategory(
 
     revalidatePath("/dashboard/subcategories");
     return { success: true, error: null };
-  } catch (error) {
-    console.error("Error updating subcategory:", error);
+  } catch (_error) {
     return { success: false, error: "Failed to update subcategory" };
   }
 }
@@ -216,8 +214,7 @@ export async function deleteSubcategory(id: number) {
 
     revalidatePath("/dashboard/subcategories");
     return { success: true, error: null };
-  } catch (error) {
-    console.error("Error deleting subcategory:", error);
+  } catch (_error) {
     return { success: false, error: "Failed to delete subcategory" };
   }
 }
@@ -230,7 +227,8 @@ export async function searchSubcategories(
   sortDirection = "desc"
 ) {
   try {
-    const offset = (page - 1) * limit;
+    const limitValue = Math.max(1, Number(limit) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
     const searchCondition = `WHERE s.name LIKE ? OR s.description LIKE ? OR c.name LIKE ?`;
     const searchParams = [
       `%${searchQuery}%`,
@@ -238,30 +236,28 @@ export async function searchSubcategories(
       `%${searchQuery}%`,
     ];
 
-    // Handle special sorting for computed fields
-    let orderBy;
-    if (sortField === "articles_count") {
-      orderBy = `ORDER BY (SELECT COUNT(*) FROM Articles a WHERE a.sub_category_id = s.id) ${sortDirection}`;
-    } else if (sortField === "category_name") {
-      orderBy = `ORDER BY c.name ${sortDirection}`;
-    } else {
-      orderBy = `ORDER BY s.${sortField} ${sortDirection}`;
-    }
+    const orderBy = (() => {
+      if (sortField === "articles_count") {
+        return `ORDER BY (SELECT COUNT(*) FROM Articles a WHERE a.sub_category_id = s.id) ${sortDirection}`;
+      }
+      if (sortField === "category_name") {
+        return `ORDER BY c.name ${sortDirection}`;
+      }
+      return `ORDER BY s.${sortField} ${sortDirection}`;
+    })();
 
-    // Get total count for search results
-    const countQuery = `
-      SELECT COUNT(*) as count
-      FROM SubCategories s
-      LEFT JOIN Categories c ON s.category_id = c.id
-      ${searchCondition}
-    `;
-    const countResult = await query(countQuery, searchParams);
+    const countResult = await query<{ count: number }>(
+      `SELECT COUNT(*) as count
+       FROM SubCategories s
+       LEFT JOIN Categories c ON s.category_id = c.id
+       ${searchCondition}`,
+      searchParams
+    );
     if (countResult.error || !countResult.data) {
       throw new Error(countResult.error || "Failed to get count");
     }
-    const total = parseInt(countResult.data[0].count);
+    const total = Number(countResult.data[0]?.count ?? 0);
 
-    // Get paginated search results
     const dataQuery = `
       SELECT 
         s.*, 
@@ -271,20 +267,18 @@ export async function searchSubcategories(
       LEFT JOIN Categories c ON s.category_id = c.id
       ${searchCondition}
       ${orderBy}
-      LIMIT ? 
-      OFFSET ?
+      LIMIT ${limitValue} OFFSET ${offsetValue}
     `;
 
-    const result = await query(dataQuery, [...searchParams, limit, offset]);
+    const result = await query(dataQuery, searchParams);
 
     if (result.error || !result.data) {
       throw new Error(result.error || "Failed to fetch data");
     }
 
-    // Convert the counts to numbers and ensure proper data types
     const subcategories = (result.data as any[]).map((subcategory) => ({
       ...subcategory,
-      articles_count: parseInt(subcategory.articles_count) || 0,
+      articles_count: Number(subcategory.articles_count ?? 0),
       created_at: new Date(subcategory.created_at),
       updated_at: new Date(subcategory.updated_at),
     })) as SubCategory[];
@@ -294,8 +288,7 @@ export async function searchSubcategories(
       error: null,
       total,
     };
-  } catch (error) {
-    console.error("Database Error:", error);
+  } catch (_error) {
     return {
       data: null,
       error: "Failed to search subcategories.",

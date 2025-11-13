@@ -10,12 +10,12 @@ interface ToastProps {
   message?: string;
   duration?: number;
   position?:
-    | "top-left"
-    | "top-center"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-center"
-    | "bottom-right";
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right";
 }
 
 /**
@@ -37,12 +37,9 @@ interface ConfirmationToastProps extends ToastProps {
  */
 export const showSuccessToast = ({
   message = "Operation completed successfully",
-  duration = 3000,
-  position = "top-right",
+  duration = 7000,
+  position = "bottom-left",
 }: ToastProps = {}) => {
-  // Dismiss all existing toasts before showing a new one
-  toast.dismiss();
-
   return toast.success(message, {
     duration,
     position,
@@ -63,12 +60,9 @@ export const showSuccessToast = ({
  */
 export const showInfoToast = ({
   message = "Information",
-  duration = 3000,
-  position = "top-right",
+  duration = 7000,
+  position = "bottom-left",
 }: ToastProps = {}) => {
-  // Dismiss all existing toasts before showing a new one
-  toast.dismiss();
-
   toast(message, {
     duration,
     position,
@@ -89,12 +83,9 @@ export const showInfoToast = ({
  */
 export const showWarningToast = ({
   message = "Warning",
-  duration = 3000,
-  position = "top-right",
+  duration = 7000,
+  position = "bottom-left",
 }: ToastProps = {}) => {
-  // Dismiss all existing toasts before showing a new one
-  toast.dismiss();
-
   toast(message, {
     duration,
     position,
@@ -115,12 +106,9 @@ export const showWarningToast = ({
  */
 export const showErrorToast = ({
   message = "An error occurred",
-  duration = 3000,
-  position = "top-right",
+  duration = 7000,
+  position = "bottom-left",
 }: ToastProps = {}) => {
-  // Dismiss all existing toasts before showing a new one
-  toast.dismiss();
-
   toast.error(message, {
     duration,
     position,
@@ -154,12 +142,9 @@ export const showConfirmationToast = ({
   onCancel,
   confirmText = "Confirm",
   cancelText = "Cancel",
-  duration = 5000,
-  position = "top-center",
+  duration = 7000,
+  position = "bottom-left",
 }: ConfirmationToastProps) => {
-  // Dismiss all existing toasts before showing a new one
-  toast.dismiss();
-
   toast(
     (t) => (
       <div className="flex flex-col gap-2 bg-gray-50 rounded-md p-4 border border-gray-200">

@@ -4,10 +4,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Category } from "@/app/lib/definition";
 import { getCategories } from "@/app/lib/actions/categories";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  showSuccessToast,
-  showErrorToast,
-} from "@/app/components/dashboard/shared/toast/Toast";
+import { showErrorToast } from "@/app/components/dashboard/shared/toast/Toast";
+
+// Component Info
+// Description: Client state manager for dashboard categories table interactions.
+// Data created: Local pagination, sorting, and search state synced with server data.
+// Author: thangtruong
 
 interface CategoriesStateProps {
   children: (props: {
@@ -38,8 +40,6 @@ export default function CategoriesState({ children }: CategoriesStateProps) {
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-  const [isSorting, setIsSorting] = useState(false);
   const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
   const [itemsPerPage, setItemsPerPage] = useState(Number(searchParams.get("limit")) || 10);
   const [sortField, setSortField] = useState((searchParams.get("sortField") as keyof Category) || "created_at");
@@ -47,44 +47,28 @@ export default function CategoriesState({ children }: CategoriesStateProps) {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
 
   const fetchCategories = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      console.log('Fetching categories with params:', {
-        page: currentPage,
-        limit: itemsPerPage,
-        sortField,
-        sortDirection,
-        search: searchQuery,
-      });
+    setIsLoading(true);
+    const result = await getCategories({
+      page: currentPage,
+      limit: itemsPerPage,
+      sortField,
+      sortDirection,
+      search: searchQuery,
+    });
 
-      const result = await getCategories({
-        page: currentPage,
-        limit: itemsPerPage,
-        sortField,
-        sortDirection,
-        search: searchQuery,
-      });
-
-      if (result.error) {
-        console.error('Error fetching categories:', result.error);
-        showErrorToast({ message: result.error });
-        return;
-      }
-
-      if (result.data) {
-        console.log('Categories fetched successfully:', result.data);
-        setCategories(result.data);
-        setTotalPages(result.totalPages);
-        setTotalItems(result.totalItems);
-      } else {
-        console.log('No categories data received');
-      }
-    } catch (error) {
-      console.error('Exception in fetchCategories:', error);
-      showErrorToast({ message: "Failed to fetch categories" });
-    } finally {
+    if (result.error) {
+      showErrorToast({ message: result.error });
+      setCategories([]);
+      setTotalPages(1);
+      setTotalItems(0);
       setIsLoading(false);
+      return;
     }
+
+    setCategories(result.data ?? []);
+    setTotalPages(result.totalPages);
+    setTotalItems(result.totalItems);
+    setIsLoading(false);
   }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
 
   useEffect(() => {
@@ -106,6 +90,8 @@ export default function CategoriesState({ children }: CategoriesStateProps) {
 
   const handleDelete = (_id: number, _name: string) => {
     // TODO: Implement delete functionality
+    setIsDeleting(true);
+    setIsDeleting(false);
   };
 
   const handleSearch = (_term: string) => {

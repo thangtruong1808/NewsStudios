@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -19,8 +19,13 @@ import {
   showSuccessToast,
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
-import { XMarkIcon, CheckIcon, FolderIcon } from "@heroicons/react/24/outline";
+import { FolderIcon } from "@heroicons/react/24/outline";
 import { NameField, DescriptionField, CategoryField } from "./fields";
+
+// Component Info
+// Description: Form for creating or editing subcategories within the dashboard.
+// Data created: React Hook Form state tied to subcategory mutations and category lookup.
+// Author: thangtruong
 
 interface SubcategoryFormProps {
   subcategoryId?: string;
@@ -30,7 +35,6 @@ export default function SubcategoryForm({
   subcategoryId,
 }: SubcategoryFormProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -44,103 +48,94 @@ export default function SubcategoryForm({
     resolver: zodResolver(subcategorySchema),
   });
 
-  // Watch form values to determine if form is empty
   const formValues = watch();
   const isFormEmpty =
     !formValues.name && !formValues.description && !formValues.category_id;
 
-  // Fetch categories on component mount
   useEffect(() => {
     const fetchCategories = async () => {
-      const result = await getCategories({});
-      if (result.data) {
-        setCategories(result.data as Category[]);
+      const result = await getCategories({ limit: 100, sortField: "name", sortDirection: "asc" });
+      if (result.error || !result.data) {
+        showErrorToast({ message: result.error ?? "Failed to load categories" });
+        setCategories([]);
+        return;
       }
+      setCategories(result.data as Category[]);
     };
     fetchCategories();
   }, []);
 
-  // Fetch subcategory data if in edit mode
   useEffect(() => {
     const fetchSubcategory = async () => {
-      if (subcategoryId) {
-        try {
-          const numericId = parseInt(subcategoryId, 10);
-          if (isNaN(numericId)) {
-            setError("Invalid subcategory ID");
-            showErrorToast({ message: "Invalid subcategory ID" });
-            return;
-          }
+      if (!subcategoryId) return;
 
-          const { data, error } = await getSubcategoryById(numericId);
-          if (error) {
-            setError(error);
-            showErrorToast({ message: error || "Failed to load subcategory" });
-          } else if (data) {
-            reset({
-              name: data.name,
-              description: data.description,
-              category_id: data.category_id,
-            });
-          }
-        } catch (err) {
-          setError("Failed to load subcategory");
-          showErrorToast({ message: "Failed to load subcategory" });
-        }
+      const numericId = Number(subcategoryId);
+      if (Number.isNaN(numericId)) {
+        setError("Invalid subcategory ID");
+        showErrorToast({ message: "Invalid subcategory ID" });
+        return;
+      }
+
+      const { data, error: fetchError } = await getSubcategoryById(numericId);
+      if (fetchError) {
+        setError(fetchError);
+        showErrorToast({ message: fetchError });
+        return;
+      }
+      if (data) {
+        reset({
+          name: data.name,
+          description: data.description,
+          category_id: data.category_id,
+        });
       }
     };
 
     fetchSubcategory();
   }, [subcategoryId, reset]);
 
-  // Handle form submission
   const onSubmit = async (data: SubcategoryFormData) => {
     try {
-      setIsSubmitting(true);
       setError(null);
 
       if (subcategoryId) {
-        const numericId = parseInt(subcategoryId, 10);
-        if (isNaN(numericId)) {
+        const numericId = Number(subcategoryId);
+        if (Number.isNaN(numericId)) {
           setError("Invalid subcategory ID");
           showErrorToast({ message: "Invalid subcategory ID" });
           return;
         }
 
-        const { error } = await updateSubcategory(numericId, data);
-        if (error) {
-          setError(error);
-          showErrorToast({ message: error });
-        } else {
-          showSuccessToast({ message: "Subcategory updated successfully" });
-          router.push("/dashboard/subcategories");
-          router.refresh();
+        const { error: updateError } = await updateSubcategory(numericId, data);
+        if (updateError) {
+          setError(updateError);
+          showErrorToast({ message: updateError });
+          return;
         }
+
+        showSuccessToast({ message: "Subcategory updated successfully" });
       } else {
-        const response = await createSubcategory(data);
-        if (!response.success) {
-          setError(response.error);
-          showErrorToast({
-            message: response.error || "Failed to create subcategory",
-          });
-        } else {
-          showSuccessToast({ message: "Subcategory created successfully" });
-          router.push("/dashboard/subcategories");
-          router.refresh();
+        const { success, error: createError } = await createSubcategory(data);
+        if (!success) {
+          setError(createError ?? "Failed to create subcategory");
+          showErrorToast({ message: createError ?? "Failed to create subcategory" });
+          return;
         }
+        showSuccessToast({ message: "Subcategory created successfully" });
       }
-    } catch (err) {
+
+      router.push("/dashboard/subcategories");
+      router.refresh();
+    } catch (_err) {
       setError("An unexpected error occurred");
       showErrorToast({ message: "An unexpected error occurred" });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-400">
-        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+    <div className="rounded-lg bg-white shadow-md">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-400 px-6 py-4">
+        <h2 className="flex items-center gap-2 text-xl font-semibold text-white">
           <FolderIcon className="h-8 w-8" />
           {subcategoryId ? "Edit Subcategory" : "Create New Subcategory"}
         </h2>
@@ -151,14 +146,12 @@ export default function SubcategoryForm({
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6">
         {/* Required Fields Note */}
-        <p className="text-xs">
-          Fields marked with an asterisk (*) are required
-        </p>
+        <p className="text-xs">Fields marked with an asterisk (*) are required</p>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
             {error}
           </div>
         )}
@@ -181,18 +174,18 @@ export default function SubcategoryForm({
           />
         </div>
 
-        <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+        <div className="flex justify-end space-x-4 border-t border-gray-200 pt-4">
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={formIsSubmitting || isFormEmpty}
-            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-400 border border-transparent rounded-md hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex justify-center rounded-md border border-transparent bg-gradient-to-r from-blue-600 to-blue-400 px-4 py-2 text-sm font-medium text-white transition hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {formIsSubmitting
               ? "Processing..."

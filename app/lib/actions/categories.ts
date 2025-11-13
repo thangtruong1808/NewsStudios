@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { query } from "../db/db";
+import { query } from "../db/query";
 import { CategoryFormData } from "../validations/categorySchema";
 import { Category } from "../definition";
 
@@ -28,59 +28,66 @@ export async function getCategories({
   sortDirection = "desc",
 }: GetCategoriesParams = {}): Promise<GetCategoriesResult> {
   try {
-    const offset = (page - 1) * limit;
-    const searchCondition = search
-      ? `WHERE c.name LIKE ? OR c.description LIKE ?`
+    const limitValue = Math.max(1, Number(limit) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
+    const searchable = search.trim();
+    const whereClause = searchable
+      ? "WHERE c.name LIKE ? OR c.description LIKE ?"
       : "";
-    const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
+    const searchParams = searchable ? [`%${searchable}%`, `%${searchable}%`] : [];
 
-    // Handle special sorting for computed fields
-    let orderBy;
-    if (sortField === "subcategories_count") {
-      orderBy = `ORDER BY (SELECT COUNT(*) FROM SubCategories sc WHERE sc.category_id = c.id) ${sortDirection}`;
-    } else if (sortField === "articles_count") {
-      orderBy = `ORDER BY (SELECT COUNT(*) FROM Articles a WHERE a.category_id = c.id) ${sortDirection}`;
-    } else {
-      orderBy = `ORDER BY c.${sortField} ${sortDirection}`;
-    }
+    const orderBy = (() => {
+      if (sortField === "subcategories_count") {
+        return `ORDER BY (SELECT COUNT(*) FROM SubCategories sc WHERE sc.category_id = c.id) ${sortDirection}`;
+      }
+      if (sortField === "articles_count") {
+        return `ORDER BY (SELECT COUNT(*) FROM Articles a WHERE a.category_id = c.id) ${sortDirection}`;
+      }
+      return `ORDER BY c.${sortField} ${sortDirection}`;
+    })();
 
-    // Get total count for pagination
-    const countQuery = `
-      SELECT COUNT(*) as count
-      FROM Categories c
-      ${searchCondition}
-    `;
-    const countResult = await query(countQuery, searchParams);
+    const countResult = await query<{ total: number }>(
+      `SELECT COUNT(*) as total FROM Categories c ${whereClause}`,
+      searchParams
+    );
+
     if (countResult.error || !countResult.data) {
-      throw new Error(countResult.error || "Failed to get count");
-    }
-    const totalItems = parseInt(countResult.data[0].count);
-    const totalPages = Math.ceil(totalItems / limit);
-
-    // Get paginated data with subcategories and articles count
-    const dataQuery = `
-      SELECT 
-        c.*,
-        (SELECT COUNT(*) FROM SubCategories sc WHERE sc.category_id = c.id) as subcategories_count,
-        (SELECT COUNT(*) FROM Articles a WHERE a.category_id = c.id) as articles_count
-      FROM Categories c
-      ${searchCondition}
-      ${orderBy}
-      LIMIT ? 
-      OFFSET ?
-    `;
-
-    const result = await query(dataQuery, [...searchParams, limit, offset]);
-
-    if (result.error || !result.data) {
-      throw new Error(result.error || "Failed to fetch data");
+      return {
+        data: null,
+        error: countResult.error ?? "Failed to fetch categories.",
+        totalItems: 0,
+        totalPages: 0,
+      };
     }
 
-    // Convert the counts to numbers and ensure proper data types
-    const categories = (result.data as any[]).map((category) => ({
+    const totalItems = Number(countResult.data[0]?.total ?? 0);
+    const totalPages = Math.max(1, Math.ceil(totalItems / limitValue));
+
+    const dataResult = await query<any>(
+      `SELECT
+         c.*,
+         (SELECT COUNT(*) FROM SubCategories sc WHERE sc.category_id = c.id) as subcategories_count,
+         (SELECT COUNT(*) FROM Articles a WHERE a.category_id = c.id) as articles_count
+       FROM Categories c
+       ${whereClause}
+       ${orderBy}
+       LIMIT ${limitValue} OFFSET ${offsetValue}`,
+      searchParams
+    );
+
+    if (dataResult.error || !dataResult.data) {
+      return {
+        data: null,
+        error: dataResult.error ?? "Failed to fetch categories.",
+        totalItems,
+        totalPages,
+      };
+    }
+
+    const categories = (dataResult.data as any[]).map((category) => ({
       ...category,
-      subcategories_count: parseInt(category.subcategories_count) || 0,
-      articles_count: parseInt(category.articles_count) || 0,
+      subcategories_count: Number(category.subcategories_count ?? 0),
+      articles_count: Number(category.articles_count ?? 0),
       created_at: new Date(category.created_at),
       updated_at: new Date(category.updated_at),
     })) as Category[];
@@ -91,8 +98,7 @@ export async function getCategories({
       totalItems,
       totalPages,
     };
-  } catch (error) {
-    console.error("Database Error:", error);
+  } catch (_error) {
     return {
       data: null,
       error: "Failed to fetch categories.",
@@ -110,8 +116,7 @@ export async function getCategoryById(id: number) {
     }
     const category = (result.data as any[])?.[0] || null;
     return { data: category as Category | null, error: null };
-  } catch (error) {
-    console.error("Error fetching category:", error);
+  } catch (_error) {
     return { data: null, error: "Failed to fetch category" };
   }
 }
@@ -124,8 +129,7 @@ export async function createCategory(data: CategoryFormData) {
     ]);
     revalidatePath("/dashboard/categories");
     return { data: null, error: null };
-  } catch (error) {
-    console.error("Error creating category:", error);
+  } catch (_error) {
     return { data: null, error: "Failed to create category" };
   }
 }
@@ -138,8 +142,7 @@ export async function updateCategory(id: number, data: CategoryFormData) {
     );
     revalidatePath("/dashboard/categories");
     return { data: null, error: null };
-  } catch (error) {
-    console.error("Error updating category:", error);
+  } catch (_error) {
     return { data: null, error: "Failed to update category" };
   }
 }
@@ -188,8 +191,7 @@ export async function deleteCategory(id: number) {
     await query("DELETE FROM Categories WHERE id = ?", [id]);
     revalidatePath("/dashboard/categories");
     return { data: null, error: null };
-  } catch (error) {
-    console.error("Error deleting category:", error);
+  } catch (_error) {
     return { data: null, error: "Failed to delete category" };
   }
 }
@@ -204,8 +206,68 @@ export async function searchCategories(searchQuery: string) {
       return { data: null, error: result.error };
     }
     return { data: result.data as Category[], error: null };
-  } catch (error) {
-    console.error("Error searching categories:", error);
+  } catch (_error) {
     return { data: null, error: "Failed to search categories" };
+  }
+}
+
+export interface NavSubcategory {
+  id: number;
+  name: string;
+}
+
+export interface NavCategory {
+  id: number;
+  name: string;
+  subcategories: NavSubcategory[];
+}
+
+export async function getNavCategories(): Promise<{
+  data: NavCategory[] | null;
+  error: string | null;
+}> {
+  try {
+    const result = await query<{
+      category_id: number;
+      category_name: string;
+      subcategory_id: number | null;
+      subcategory_name: string | null;
+    }>(
+      `SELECT
+         c.id AS category_id,
+         c.name AS category_name,
+         s.id AS subcategory_id,
+         s.name AS subcategory_name
+       FROM Categories c
+       LEFT JOIN SubCategories s ON s.category_id = c.id
+       ORDER BY c.name ASC, s.name ASC`
+    );
+
+    if (result.error || !result.data) {
+      return { data: null, error: result.error ?? "Failed to fetch navigation categories." };
+    }
+
+    const map = new Map<number, NavCategory>();
+
+    for (const row of result.data) {
+      if (!map.has(row.category_id)) {
+        map.set(row.category_id, {
+          id: row.category_id,
+          name: row.category_name,
+          subcategories: [],
+        });
+      }
+      if (row.subcategory_id && row.subcategory_name) {
+        map.get(row.category_id)!.subcategories.push({
+          id: row.subcategory_id,
+          name: row.subcategory_name,
+        });
+      }
+    }
+
+    const categories = Array.from(map.values());
+    return { data: categories, error: null };
+  } catch (_error) {
+    return { data: null, error: "Failed to fetch navigation categories." };
   }
 }

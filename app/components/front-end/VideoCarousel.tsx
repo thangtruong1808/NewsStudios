@@ -37,7 +37,11 @@ export default function VideoCarousel() {
           throw new Error(result.error);
         }
 
-        setVideos(result.data || []);
+        const videosData: Video[] = Array.isArray(result.data)
+          ? (result.data as Video[])
+          : [];
+
+        setVideos(videosData);
       } catch (error) {
         setError(error instanceof Error ? error.message : "Failed to fetch videos");
       } finally {

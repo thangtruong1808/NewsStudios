@@ -14,20 +14,23 @@ export async function query<T = any>(
   data: T[] | null;
   error: string | null;
 }> {
-  let _client;
+  let client: Awaited<ReturnType<typeof getConnection>> | undefined;
   try {
-    _client = await getConnection();
-    if (!_client.connection) {
+    client = await getConnection();
+    if (!client.connection) {
       throw new Error("Failed to get database connection");
     }
-    const [rows] = await _client.connection.execute(text, params);
+    const [rows] = await client.connection.execute(text, params);
     return { data: rows as T[], error: null };
   } catch (error) {
-    console.error("Database query error:", error);
     return {
       data: null,
       error: error instanceof Error ? error.message : "Database query failed",
     };
+  } finally {
+    if (client?.connection) {
+      client.connection.release();
+    }
   }
 }
 
@@ -35,30 +38,16 @@ export async function query<T = any>(
 export async function transaction<T>(
   callback: (client: TransactionClient) => Promise<T>
 ): Promise<T> {
-  console.log("Starting transaction");
   const connection = await pool.getConnection();
-  console.log("Transaction connection established");
-
   try {
-    console.log("Beginning transaction");
     await connection.beginTransaction();
-
-    console.log("Executing transaction callback");
     const result = await callback(connection);
-    console.log("Transaction callback completed successfully");
-
-    console.log("Committing transaction");
     await connection.commit();
-    console.log("Transaction committed successfully");
-
     return result;
   } catch (error) {
-    console.error("Transaction error:", error);
-    console.log("Rolling back transaction");
     await connection.rollback();
     throw error;
   } finally {
-    console.log("Releasing transaction connection");
     connection.release();
   }
 }

@@ -56,7 +56,10 @@ export async function getArticles({
       throw new Error(countResult.error);
     }
 
-    const totalCount = countResult.data?.[0]?.total || 0;
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as Array<{ total: number }>)
+      : [];
+    const totalCount = countRows.length > 0 && typeof countRows[0]?.total === "number" ? countRows[0].total : 0;
 
     // Then get the articles with pagination
     const result = await query(
@@ -83,12 +86,10 @@ export async function getArticles({
     );
 
     if (result.error) {
-      console.error("Error fetching articles:", result.error);
       throw new Error(result.error);
     }
 
     if (!result.data || result.data.length === 0) {
-      console.log("No articles found in query result");
       return {
         data: [],
         totalCount: 0,
@@ -99,13 +100,24 @@ export async function getArticles({
       };
     }
 
-    const articles = result.data.map((article) => ({
+    const rawArticles = Array.isArray(result.data)
+      ? (result.data as Array<
+          ArticleWithJoins & {
+            tag_names?: string | null;
+            tag_colors?: string | null;
+            likes_count?: number | null;
+            comments_count?: number | null;
+          }
+        >)
+      : [];
+
+    const articles = rawArticles.map((article) => ({
       ...article,
       tag_names: article.tag_names ? article.tag_names.split(",") : [],
       tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
-      likes_count: article.likes_count || 0,
-      comments_count: article.comments_count || 0,
-      views_count: article.views_count || 0,
+      likes_count: Number(article.likes_count ?? 0),
+      comments_count: Number(article.comments_count ?? 0),
+      views_count: Number((article as { views_count?: number }).views_count ?? 0),
     }));
 
     const start = offset + 1;
@@ -121,8 +133,7 @@ export async function getArticles({
       totalPages,
     };
   } catch (error) {
-    console.error("Error in getArticles:", error);
-    return { error: error instanceof Error ? error.message : "Failed to fetch articles" };
+    throw error;
   }
 }
 
@@ -154,7 +165,20 @@ export async function getArticleById(id: number) {
   if (error) return { data: null, error };
 
   // Transform the data to ensure all required fields are present and properly formatted
-  const article = data?.[0];
+  const rows = Array.isArray(data)
+    ? (data as Array<
+        ArticleWithJoins & {
+          tag_names?: string | null;
+          tag_ids?: string | null;
+          tag_colors?: string | null;
+          likes_count?: number | null;
+          comments_count?: number | null;
+          views_count?: number | null;
+        }
+      >)
+    : [];
+
+  const article = rows[0];
   if (article) {
     return {
       data: {
@@ -167,9 +191,9 @@ export async function getArticleById(id: number) {
         tag_names: article.tag_names ? article.tag_names.split(",") : [],
         tag_ids: article.tag_ids ? article.tag_ids.split(",").map(Number) : [],
         tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
-        likes_count: Number(article.likes_count) || 0,
-        comments_count: Number(article.comments_count) || 0,
-        views_count: 0, // Set default value since Views table doesn't exist
+        likes_count: Number(article.likes_count ?? 0),
+        comments_count: Number(article.comments_count ?? 0),
+        views_count: Number(article.views_count ?? 0),
       },
       error: null,
     };

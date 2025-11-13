@@ -8,16 +8,5 @@ import { Toaster } from "react-hot-toast";
 // Author: thangtruong
 
 export default function ToasterProvider() {
-  return (
-    <Toaster
-      position="top-center"
-      toastOptions={{
-        duration: 7000,
-        style: {
-          fontSize: "0.95rem",
-          fontWeight: 500,
-        },
-      }}
-    />
-  );
+  return <Toaster position="bottom-left" />;
 }
