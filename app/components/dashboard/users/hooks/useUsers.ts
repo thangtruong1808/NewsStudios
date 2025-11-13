@@ -52,15 +52,19 @@ export function useUsers() {
         return;
       }
 
-      const data = result.data || [];
+      const data = Array.isArray(result.data) ? result.data : [];
       setUsers(data);
-      if ("totalItems" in result && typeof result.totalItems === "number") {
-        setTotalItems(result.totalItems);
-      }
-      if ("totalPages" in result && typeof result.totalPages === "number") {
-        setTotalPages(result.totalPages);
-      }
-      setHasUsers(data.length > 0);
+      const computedTotalItems =
+        "totalItems" in result && typeof result.totalItems === "number"
+          ? result.totalItems
+          : data.length;
+      const computedTotalPages =
+        "totalPages" in result && typeof result.totalPages === "number"
+          ? result.totalPages
+          : Math.max(1, Math.ceil(computedTotalItems / itemsPerPage));
+      setTotalItems(computedTotalItems);
+      setTotalPages(computedTotalPages);
+      setHasUsers(computedTotalItems > 0);
     } catch (error) {
       showErrorToast({
         message:
@@ -80,18 +84,24 @@ export function useUsers() {
   }: {
     field: keyof (User & { sequence?: number });
   }) => {
+    if (field === "sequence") return;
     const params = new URLSearchParams(searchParams);
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
     params.set("sortField", field as string);
     params.set("sortDirection", newDirection);
-    router.push(`?${params.toString()}`);
+    const target = params.toString();
+    if (target === searchParams.toString()) return;
+    router.push(`?${target}`);
   };
 
   const handlePageChange = ({ page }: { page: number }) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
-    router.push(`?${params.toString()}`);
+    if (page === currentPage) return;
+    const target = params.toString();
+    if (target === searchParams.toString()) return;
+    router.push(`?${target}`);
   };
 
   const handleEdit = ({ item }: { item: User }) => {
@@ -153,10 +163,13 @@ export function useUsers() {
   };
 
   const handleItemsPerPageChange = ({ limit }: { limit: number }) => {
+    if (limit === itemsPerPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("limit", limit.toString());
     params.set("page", "1"); // Reset to first page when changing items per page
-    router.push(`?${params.toString()}`);
+    const target = params.toString();
+    if (target === searchParams.toString()) return;
+    router.push(`?${target}`);
   };
 
   return {

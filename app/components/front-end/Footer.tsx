@@ -22,7 +22,6 @@ const navCategoriesPromise = getNavCategories();
 export default function Footer() {
   const { data } = use(navCategoriesPromise);
   const categories = (data ?? []).map((category) => ({ id: category.id, name: category.name }));
-  const currentYear = new Date().getFullYear();
 
   const midPoint = Math.ceil(categories.length / 2);
   const firstColumn = categories.slice(0, midPoint);
@@ -147,12 +146,11 @@ export default function Footer() {
         <div className="mt-12 border-t border-gray-200 pt-8">
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
             <HeartIcon className="h-5 w-5 text-pink-500" />
-            <p>Crafted with passion by thangtruong to showcase Next.js craftsmanship.</p>
+            <p>
+              Crafted with passion by thangtruong • © {new Date().getFullYear()}
+            </p>
             <HeartIcon className="h-5 w-5 text-pink-500" />
           </div>
-          <p className="mt-4 text-center text-xs text-gray-400">
-            © {currentYear} NewsStudios. All rights reserved.
-          </p>
         </div>
       </div>
     </footer>

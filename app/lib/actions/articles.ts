@@ -29,7 +29,20 @@ export async function getArticles({
   sortDirection = "desc",
 }: GetArticlesParams = {}) {
   try {
-    const offset = (page - 1) * limit;
+    const safePage = Number.isFinite(page) && page > 0 ? Number(page) : 1;
+    const safeLimit = Number.isFinite(limit) && limit > 0 ? Number(limit) : 10;
+    const offset = (safePage - 1) * safeLimit;
+    const allowedSortFields = new Set<keyof Article | string>([
+      "published_at",
+      "created_at",
+      "updated_at",
+      "title",
+      "views_count",
+    ]);
+    const safeSortField = allowedSortFields.has(sortField)
+      ? sortField
+      : "published_at";
+    const safeDirection = sortDirection === "asc" ? "ASC" : "DESC";
 
     // Build the WHERE clause based on search parameter
     const whereClause = search
@@ -38,8 +51,8 @@ export async function getArticles({
 
     // Build the query parameters
     const queryParams = search
-      ? [`%${search}%`, `%${search}%`, limit, offset]
-      : [limit, offset];
+      ? [`%${search}%`, `%${search}%`]
+      : [];
 
     // First, get the total count
     const countQuery = `
@@ -77,8 +90,8 @@ export async function getArticles({
       LEFT JOIN Tags t ON at.tag_id = t.id
       ${whereClause}
       GROUP BY a.id
-      ORDER BY a.${sortField} ${sortDirection}
-      LIMIT ? OFFSET ?
+      ORDER BY a.${safeSortField} ${safeDirection}
+      LIMIT ${safeLimit} OFFSET ${offset}
     `,
       queryParams
     );
@@ -120,15 +133,16 @@ export async function getArticles({
     }));
 
     const start = offset + 1;
-    const end = Math.min(offset + limit, totalCount);
-    const totalPages = Math.ceil(totalCount / limit);
+    const end = Math.min(offset + safeLimit, totalCount);
+    const totalPages =
+      totalCount > 0 ? Math.ceil(totalCount / safeLimit) : 1;
 
     return {
       data: articles,
       totalCount,
       start,
       end,
-      currentPage: page,
+      currentPage: safePage,
       totalPages,
       error: null,
     };

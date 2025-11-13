@@ -95,6 +95,16 @@ export async function createImage(data: {
 }
 
 // Function to get all images
+const IMAGE_SORT_FIELDS = new Set([
+  "created_at",
+  "updated_at",
+  "description",
+  "type",
+  "entity_type",
+  "entity_id",
+  "display_order",
+]);
+
 export async function getImages({
   page = 1,
   limit = 10,
@@ -109,46 +119,61 @@ export async function getImages({
   searchQuery?: string;
 }) {
   try {
-    const offset = (page - 1) * limit;
-    let queryStr = `
+    const safePage = Number.isFinite(page) && page > 0 ? Number(page) : 1;
+    const safeLimit =
+      Number.isFinite(limit) && limit > 0 ? Number(limit) : 10;
+    const offset = (safePage - 1) * safeLimit;
+    const safeSortField = IMAGE_SORT_FIELDS.has(sortField ?? "")
+      ? (sortField as string)
+      : "created_at";
+    const safeDirection = sortDirection === "asc" ? "ASC" : "DESC";
+    const trimmedSearch = searchQuery.trim();
+    const baseSelect = `
       SELECT i.*, a.title as article_title
       FROM Images i
       LEFT JOIN Articles a ON i.article_id = a.id
     `;
-
-    const queryParams: any[] = [];
-
-    if (searchQuery) {
-      queryStr += `
-        WHERE i.description LIKE ? 
-        OR a.title LIKE ?
-      `;
-      const searchParam = `%${searchQuery}%`;
-      queryParams.push(searchParam, searchParam);
-    }
-
-    queryStr += `
-      ORDER BY i.${sortField} ${sortDirection}
-      LIMIT ? OFFSET ?
+    const baseCount = `
+      SELECT COUNT(*) as total
+      FROM Images i
+      LEFT JOIN Articles a ON i.article_id = a.id
     `;
-    queryParams.push(limit, offset);
+    const whereClause = trimmedSearch
+      ? `
+        WHERE i.description LIKE ?
+        OR a.title LIKE ?
+      `
+      : "";
+    const searchParams = trimmedSearch
+      ? [`%${trimmedSearch}%`, `%${trimmedSearch}%`]
+      : [];
 
-    const result = await query(queryStr, queryParams);
-    const countResult = await query<ImageCountRow>(
-      "SELECT COUNT(*) as total FROM Images" +
-        (searchQuery ? " WHERE description LIKE ?" : ""),
-      searchQuery ? [`%${searchQuery}%`] : []
-    );
+    const queryStr = `
+      ${baseSelect}
+      ${whereClause}
+      ORDER BY i.${safeSortField} ${safeDirection}
+      LIMIT ${safeLimit} OFFSET ${offset}
+    `;
+
+    const countQuery = `
+      ${baseCount}
+      ${whereClause}
+    `;
+
+    const result = await query<ImageRow>(queryStr, searchParams);
+    const countResult = await query<ImageCountRow>(countQuery, searchParams);
 
     if (result.error || countResult.error) {
-      throw new Error(result.error || countResult.error || "An unknown error occurred");
+      throw new Error(
+        result.error || countResult.error || "An unknown error occurred"
+      );
     }
 
     const countRows = Array.isArray(countResult.data)
       ? (countResult.data as ImageCountRow[])
       : [];
     const total = countRows.length > 0 ? Number(countRows[0].total ?? 0) : 0;
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = total > 0 ? Math.ceil(total / safeLimit) : 1;
 
     return {
       images: result.data || [],

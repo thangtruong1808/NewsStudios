@@ -104,31 +104,30 @@ export default function SubcategoriesState({
     };
 
     fetchData();
-  }, [
-    currentPage,
-    itemsPerPage,
-    sortField,
-    sortDirection,
-    searchQuery,
-    isSearching,
-    isSorting,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
 
   // Handler functions
   const handlePageChange = (page: number) => {
+    if (page === currentPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
-    router.push(`/dashboard/subcategories?${params.toString()}`);
+    const target = params.toString();
+    if (target === searchParams.toString()) return;
+    router.push(`/dashboard/subcategories?${target}`);
   };
 
   const handleSort = (field: keyof SubCategory) => {
-    setIsSorting(true);
+    if (field === "sequence") return;
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
     const params = new URLSearchParams(searchParams);
     params.set("sortField", field as string);
     params.set("sortDirection", newDirection);
-    router.push(`/dashboard/subcategories?${params.toString()}`);
+    const target = params.toString();
+    if (target === searchParams.toString()) return;
+    setIsSorting(true);
+    router.push(`/dashboard/subcategories?${target}`);
   };
 
   const handleEdit = (subcategory: SubCategory) => {
@@ -193,6 +192,7 @@ export default function SubcategoriesState({
   };
 
   const handleSearch = (term: string) => {
+    if (term === searchQuery) return;
     setIsSearching(true);
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
@@ -205,6 +205,7 @@ export default function SubcategoriesState({
   };
 
   const handleItemsPerPageChange = (limit: number) => {
+    if (limit === itemsPerPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
     params.set("limit", limit.toString());

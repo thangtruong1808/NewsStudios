@@ -64,7 +64,12 @@ export function useArticles() {
         setTotalPages(result.totalPages || 1);
         setTotalItems(result.totalCount || 0);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        showErrorToast({
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch articles. Please try again.",
+        });
       } finally {
         setIsLoading(false);
         setIsSearching(false);
@@ -86,14 +91,23 @@ export function useArticles() {
   const handleSort = (field: keyof Article) => {
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
-    if (field === sortField && newDirection === sortDirection) {
-      return;
-    }
+    const isSameSortState = field === sortField && newDirection === sortDirection;
     setIsSorting(true);
     const params = new URLSearchParams(searchParams);
-    params.set("sortField", field as string);
-    params.set("sortDirection", newDirection);
-    router.push(`/dashboard/articles?${params.toString()}`);
+    if (isSameSortState) {
+      params.delete("sortField");
+      params.delete("sortDirection");
+    } else {
+      params.set("sortField", field as string);
+      params.set("sortDirection", newDirection);
+    }
+    const nextSearch = params.toString();
+    const currentSearch = searchParams.toString();
+    if (nextSearch === currentSearch) {
+      setIsSorting(false);
+      return;
+    }
+    router.push(nextSearch ? `/dashboard/articles?${nextSearch}` : "/dashboard/articles");
   };
 
   const handleEdit = (article: Article) => {
@@ -153,7 +167,6 @@ export function useArticles() {
 
       showSuccessToast({ message: "Article deleted successfully" });
     } catch (error) {
-      console.error("Error deleting article:", error);
       showErrorToast({
         message:
           error instanceof Error
@@ -166,6 +179,7 @@ export function useArticles() {
   };
 
   const handleSearch = (term: string) => {
+    if (term === searchQuery) return;
     setIsSearching(true);
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
@@ -174,7 +188,7 @@ export function useArticles() {
     } else {
       params.delete("query");
     }
-    router.push(`/dashboard/articles?${params.toString()}`);
+    router.push(params.toString() ? `/dashboard/articles?${params.toString()}` : "/dashboard/articles");
   };
 
   const handleItemsPerPageChange = (limit: number) => {

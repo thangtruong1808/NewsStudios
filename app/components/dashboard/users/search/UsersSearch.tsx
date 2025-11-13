@@ -22,6 +22,8 @@ export default function UsersSearch() {
    * - Preserving other existing URL parameters
    */
   const handleSearch = (term: string) => {
+    const current = searchParams.get("query") || "";
+    if (term === current) return;
     const params = new URLSearchParams(searchParams);
     if (term) {
       params.set("query", term);

@@ -3,7 +3,6 @@
 import Table from "@/app/components/dashboard/shared/table/Table";
 import type { Column } from "@/app/components/dashboard/shared/table/TableTypes";
 import { SubCategory } from "@/app/lib/definition";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
 import { useSession } from "next-auth/react";
@@ -50,6 +49,7 @@ export default function SubcategoriesTable({
 }: SubcategoriesTableProps) {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
+
   const augmentedSubcategories = subcategories.map((subcategory, index) => ({
     ...subcategory,
     sequence: (currentPage - 1) * itemsPerPage + index + 1,
@@ -114,11 +114,11 @@ export default function SubcategoriesTable({
             ? value
             : Number.parseInt(String(value ?? 0), 10);
         return (
-        <div className="w-20">
-          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {Number.isNaN(total) ? 0 : total}
-          </span>
-        </div>
+          <div className="w-20">
+            <span className="text-sm text-gray-500 whitespace-nowrap text-left">
+              {Number.isNaN(total) ? 0 : total}
+            </span>
+          </div>
         );
       },
     },
@@ -148,31 +148,12 @@ export default function SubcategoriesTable({
     },
   ];
 
-  // Only add the actions column if the user is an admin
   if (isAdmin) {
     columns.push({
-      field: "id",
+      field: "actions",
       label: "Actions",
       sortable: false,
-      render: ({ row: subcategory }) => (
-        <div className="flex justify-start items-start space-x-2">
-          <button
-            onClick={() => onEdit(subcategory)}
-            className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-          >
-            <PencilIcon className="h-4 w-4" />
-            Edit
-          </button>
-          <button
-            onClick={() => onDelete(subcategory)}
-            disabled={isDeleting}
-            className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
-          >
-            <TrashIcon className="h-4 w-4" />
-            Delete
-          </button>
-        </div>
-      ),
+      render: () => null,
     });
   }
 

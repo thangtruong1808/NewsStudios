@@ -295,9 +295,9 @@ export async function deleteVideo(id: number) {
 
 export async function uploadVideoToServer(
   file: File,
-  article_id: number | null = null,
+  article_id: number | null,
   description: string | null = null
-) {
+): Promise<{ url?: string; error?: string }> {
   try {
     // Upload to FTP server
     const { url, error } = await uploadToFTP(file);
@@ -309,7 +309,7 @@ export async function uploadVideoToServer(
     // Save to database
     const result = await query(
       "INSERT INTO Videos (article_id, video_url, description, created_at) VALUES (?, ?, ?, NOW())",
-      [article_id, url, description]
+      [article_id, url, description ?? null]
     );
 
     if (result.error) {
@@ -317,8 +317,11 @@ export async function uploadVideoToServer(
     }
 
     return { url };
-  } catch (_error) {
-    return { error: "Failed to upload video" };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : "Failed to upload video",
+    };
   }
 }
 

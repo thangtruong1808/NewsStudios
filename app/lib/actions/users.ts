@@ -6,6 +6,16 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
 
+const USER_SORT_FIELDS = new Set([
+  "firstname",
+  "lastname",
+  "email",
+  "role",
+  "status",
+  "created_at",
+  "updated_at",
+]);
+
 export async function getUsers(params?: {
   page?: number;
   limit?: number;
@@ -13,11 +23,20 @@ export async function getUsers(params?: {
   sortDirection?: "asc" | "desc";
 }) {
   try {
-    const page = params?.page || 1;
-    const limit = params?.limit || 10;
+    const page =
+      Number.isFinite(params?.page) && (params?.page ?? 0) > 0
+        ? Number(params?.page)
+        : 1;
+    const limit =
+      Number.isFinite(params?.limit) && (params?.limit ?? 0) > 0
+        ? Number(params?.limit)
+        : 10;
     const offset = (page - 1) * limit;
-    const sortField = params?.sortField || "created_at";
-    const sortDirection = params?.sortDirection || "desc";
+    const sortField = USER_SORT_FIELDS.has(params?.sortField ?? "")
+      ? (params?.sortField as string)
+      : "created_at";
+    const sortDirection =
+      params?.sortDirection === "asc" ? "asc" : "desc";
 
     type UserCountRow = {
       total: number;
@@ -34,18 +53,19 @@ export async function getUsers(params?: {
 
     const sqlQuery = `
       SELECT * FROM Users 
-      ORDER BY ${sortField} ${sortDirection}
-      LIMIT ? OFFSET ?
+      ORDER BY ${sortField} ${sortDirection.toUpperCase()}
+      LIMIT ${limit} OFFSET ${offset}
     `;
 
-    const result = await query(sqlQuery, [limit, offset]);
+    const result = await query<User>(sqlQuery);
     if (result.error) {
       return { data: [], error: result.error, totalItems: 0, totalPages: 0 };
     }
 
-    const totalPages = Math.ceil(totalItems / limit);
+    const totalPages =
+      totalItems > 0 ? Math.ceil(totalItems / limit) : 1;
     return {
-      data: result.data as User[],
+      data: (result.data as User[]) ?? [],
       error: null,
       totalItems,
       totalPages,
@@ -343,11 +363,20 @@ export async function searchUsers(
       return getUsers(params);
     }
 
-    const page = params?.page || 1;
-    const limit = params?.limit || 10;
+    const page =
+      Number.isFinite(params?.page) && (params?.page ?? 0) > 0
+        ? Number(params?.page)
+        : 1;
+    const limit =
+      Number.isFinite(params?.limit) && (params?.limit ?? 0) > 0
+        ? Number(params?.limit)
+        : 10;
     const offset = (page - 1) * limit;
-    const sortField = params?.sortField || "created_at";
-    const sortDirection = params?.sortDirection || "desc";
+    const sortField = USER_SORT_FIELDS.has(params?.sortField ?? "")
+      ? (params?.sortField as string)
+      : "created_at";
+    const sortDirection =
+      params?.sortDirection === "asc" ? "asc" : "desc";
 
     type UserCountRow = {
       total: number;
@@ -376,16 +405,14 @@ export async function searchUsers(
       WHERE firstname LIKE ? 
       OR lastname LIKE ? 
       OR email LIKE ?
-      ORDER BY ${sortField} ${sortDirection}
-      LIMIT ? OFFSET ?
+      ORDER BY ${sortField} ${sortDirection.toUpperCase()}
+      LIMIT ${limit} OFFSET ${offset}
     `;
 
-    const result = await query(sqlQuery, [
+    const result = await query<User>(sqlQuery, [
       searchPattern,
       searchPattern,
-      searchPattern,
-      limit,
-      offset,
+      searchPattern
     ]);
 
     if (result.error) {
@@ -397,9 +424,10 @@ export async function searchUsers(
       };
     }
 
-    const totalPages = Math.ceil(totalItems / limit);
+    const totalPages =
+      totalItems > 0 ? Math.ceil(totalItems / limit) : 1;
     return {
-      data: result.data as User[],
+      data: (result.data as User[]) ?? [],
       error: null,
       totalItems,
       totalPages,

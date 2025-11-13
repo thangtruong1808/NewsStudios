@@ -92,17 +92,11 @@ export default function TagsState({ children }: TagsStateProps) {
     };
 
     fetchData();
-  }, [
-    currentPage,
-    itemsPerPage,
-    sortField,
-    sortDirection,
-    searchQuery,
-    isSearching,
-    isSorting,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
 
   const handlePageChange = ({ page }: { page: number }) => {
+    if (page === currentPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
     router.push(`/dashboard/tags?${params.toString()}`);
@@ -110,13 +104,15 @@ export default function TagsState({ children }: TagsStateProps) {
 
   const handleSort = ({ field }: { field: keyof Tag | "sequence" }) => {
     if (field === "sequence") return;
-    setIsSorting(true);
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
     const params = new URLSearchParams(searchParams);
     params.set("sortField", field as string);
     params.set("sortDirection", newDirection);
-    router.push(`/dashboard/tags?${params.toString()}`);
+    const nextSearch = params.toString();
+    if (nextSearch === searchParams.toString()) return;
+    setIsSorting(true);
+    router.push(`/dashboard/tags?${nextSearch}`);
   };
 
   const handleEdit = ({ item }: { item: Tag }) => {
@@ -209,6 +205,7 @@ export default function TagsState({ children }: TagsStateProps) {
   };
 
   const handleItemsPerPageChange = ({ limit }: { limit: number }) => {
+    if (limit === itemsPerPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
     params.set("limit", limit.toString());

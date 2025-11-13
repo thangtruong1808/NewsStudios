@@ -74,31 +74,29 @@ export default function AuthorsState() {
     };
 
     fetchData();
-  }, [
-    currentPage,
-    itemsPerPage,
-    sortField,
-    sortDirection,
-    searchQuery,
-    isSearching,
-    isSorting,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
 
   // Event handlers
   const handlePageChange = ({ page }: { page: number }) => {
+    if (page === currentPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
-    router.push(`/dashboard/author?${params.toString()}`);
+    const target = params.toString();
+    if (target === searchParams.toString()) return;
+    router.push(`/dashboard/author?${target}`);
   };
 
   const handleSort = ({ field }: { field: keyof Author }) => {
-    setIsSorting(true);
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
     const params = new URLSearchParams(searchParams);
     params.set("sortField", field as string);
     params.set("sortDirection", newDirection);
-    router.push(`/dashboard/author?${params.toString()}`);
+    const target = params.toString();
+    if (target === searchParams.toString()) return;
+    setIsSorting(true);
+    router.push(`/dashboard/author?${target}`);
   };
 
   const handleEdit = ({ item }: { item: Author }) => {
@@ -162,6 +160,7 @@ export default function AuthorsState() {
   };
 
   const handleSearch = ({ term }: { term: string }) => {
+    if (term === searchQuery) return;
     setIsSearching(true);
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
@@ -174,6 +173,7 @@ export default function AuthorsState() {
   };
 
   const handleItemsPerPageChange = ({ limit }: { limit: number }) => {
+    if (limit === itemsPerPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
     params.set("limit", limit.toString());
