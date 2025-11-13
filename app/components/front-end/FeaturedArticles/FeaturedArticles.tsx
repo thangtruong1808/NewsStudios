@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Card from "../shared/Card";
-import Grid from "../shared/Grid";
 import { ImageCarousel } from "../shared/ImageCarousel";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { getFeaturedArticles } from "@/app/lib/actions/featured-articles";
@@ -27,6 +26,74 @@ interface Article {
   images: string[];
 }
 
+type FeaturedArticleRaw = {
+  id?: number | string;
+  title?: string | null;
+  content?: string | null;
+  image?: string | null;
+  category_name?: string | null;
+  subcategory_name?: string | null;
+  author_name?: string | null;
+  created_at?: string | Date | null;
+  updated_at?: string | Date | null;
+  tag_names?: string[] | string | null;
+  tag_colors?: string[] | string | null;
+  views_count?: number | string | null;
+  likes_count?: number | string | null;
+  comments_count?: number | string | null;
+  shares_count?: number | string | null;
+  images?: string[] | string | null;
+};
+
+const normalizeArticle = (article: FeaturedArticleRaw): Article => {
+  const parseStringArray = (value?: string[] | string | null): string[] => {
+    if (Array.isArray(value)) {
+      return value.filter(Boolean);
+    }
+    if (typeof value === "string") {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+    return [];
+  };
+
+  const parseDate = (value?: string | Date | null): string => {
+    if (typeof value === "string") {
+      return value;
+    }
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    return "";
+  };
+
+  return {
+    id: Number(article.id ?? 0),
+    title: String(article.title ?? ""),
+    content: String(article.content ?? ""),
+    image: typeof article.image === "string" ? article.image : "",
+    category_name:
+      typeof article.category_name === "string" ? article.category_name : "",
+    subcategory_name:
+      typeof article.subcategory_name === "string"
+        ? article.subcategory_name
+        : "",
+    author_name:
+      typeof article.author_name === "string" ? article.author_name : "",
+    created_at: parseDate(article.created_at),
+    updated_at: parseDate(article.updated_at),
+    tag_names: parseStringArray(article.tag_names),
+    tag_colors: parseStringArray(article.tag_colors),
+    views_count: Number(article.views_count ?? 0),
+    likes_count: Number(article.likes_count ?? 0),
+    comments_count: Number(article.comments_count ?? 0),
+    shares_count: Number(article.shares_count ?? 0),
+    images: parseStringArray(article.images),
+  };
+};
+
+// Description: Display featured articles with carousel, grid, and load-more controls.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function FeaturedArticles() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,26 +105,22 @@ export default function FeaturedArticles() {
 
   // Handle view click
   const handleViewClick = (articleId: number) => {
-    // console.log("View clicked for article:", articleId);
-    // Add your view handling logic here
+    // TODO: Integrate view tracking logic.
   };
 
   // Handle like click
   const handleLikeClick = (articleId: number) => {
-    // console.log("Like clicked for article:", articleId);
-    // Add your like handling logic here
+    // TODO: Integrate like interaction logic.
   };
 
   // Handle comment click
   const handleCommentClick = (articleId: number) => {
-    // console.log("Comment clicked for article:", articleId);
-    // Add your comment handling logic here
+    // TODO: Integrate comment interaction logic.
   };
 
   // Handle share click
   const handleShareClick = (articleId: number) => {
-    // console.log("Share clicked for article:", articleId);
-    // Add your share handling logic here
+    // TODO: Integrate share interaction logic.
   };
 
   // Fetch featured articles on component mount
@@ -73,7 +136,10 @@ export default function FeaturedArticles() {
           throw new Error(result.error);
         }
 
-        const newArticles = result.data || [];
+        const rawArticles = Array.isArray(result.data)
+          ? (result.data as FeaturedArticleRaw[])
+          : [];
+        const newArticles = rawArticles.map(normalizeArticle);
         if (page === 1) {
           setArticles(newArticles);
         } else {
@@ -83,15 +149,13 @@ export default function FeaturedArticles() {
 
         // Calculate total loaded articles
         const totalLoaded =
-          page === 1
-            ? newArticles.length
-            : articles.length + newArticles.length;
+          page === 1 ? newArticles.length : articles.length + newArticles.length;
         // Only show Load More if we have more articles to load and we received a full page
         setHasMore(
           result.totalCount > totalLoaded &&
           newArticles.length === ITEMS_PER_PAGE
         );
-      } catch (error) {
+      } catch (_error) {
         setError("Failed to load featured articles");
       } finally {
         setIsLoading(false);
