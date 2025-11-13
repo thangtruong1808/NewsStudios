@@ -10,8 +10,15 @@ interface ImageRow extends RowDataPacket {
   article_id: number | null;
   image_url: string;
   description: string | null;
-  created_at: Date;
-  updated_at: Date;
+  type: Image["type"];
+  entity_type: Image["entity_type"];
+  entity_id: number | null;
+  is_featured: boolean | 0 | 1;
+  display_order: number | null;
+  created_at: Date | string;
+  updated_at: Date | string;
+  article_title?: string | null;
+  article_slug?: string | null;
 }
 
 type ImageCountRow = {
@@ -175,8 +182,34 @@ export async function getImages({
     const total = countRows.length > 0 ? Number(countRows[0].total ?? 0) : 0;
     const totalPages = total > 0 ? Math.ceil(total / safeLimit) : 1;
 
+    const rows = Array.isArray(result.data)
+      ? (result.data as ImageRow[])
+      : [];
+
+    const images: Image[] = rows.map((row) => ({
+      id: row.id,
+      article_id: row.article_id,
+      image_url: row.image_url,
+      description: row.description ?? null,
+      type: row.type,
+      entity_type: row.entity_type,
+      entity_id: Number(row.entity_id ?? 0),
+      is_featured: Boolean(row.is_featured),
+      display_order: Number(row.display_order ?? 0),
+      created_at:
+        row.created_at instanceof Date
+          ? row.created_at.toISOString()
+          : new Date(row.created_at).toISOString(),
+      updated_at:
+        row.updated_at instanceof Date
+          ? row.updated_at.toISOString()
+          : new Date(row.updated_at).toISOString(),
+      article_title: row.article_title ?? undefined,
+      article_slug: row.article_slug ?? undefined,
+    }));
+
     return {
-      images: result.data || [],
+      images,
       totalPages,
       totalItems: total,
     };

@@ -10,24 +10,8 @@ import {
   showConfirmationToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 
-// Interface for paginated API response
-interface ImagesResult {
-  images: Image[];
-  totalPages: number;
-  totalItems: number;
-}
-
-// Interface for search API response
-interface SearchResult {
-  data: Image[];
-  error: string | null;
-  pagination: {
-    total: number;
-    totalPages: number;
-    currentPage: number;
-    itemsPerPage: number;
-  };
-}
+type ImagesResult = Awaited<ReturnType<typeof getImages>>;
+type SearchResult = Awaited<ReturnType<typeof searchImages>>;
 
 // Description: Manage dashboard photo listing state with search, pagination, and delete actions.
 // Data created: 2024-11-13
@@ -58,18 +42,8 @@ export function usePhotos() {
         setIsLoadingMore(true);
       }
       try {
-        const result = searchQuery
-          ? await searchImages(searchQuery)
-          : await getImages({
-              page: currentPage,
-              limit: itemsPerPage,
-              sortField: "created_at",
-              sortDirection: "desc",
-              searchQuery: "",
-            });
-
         if (searchQuery) {
-          const searchResult = result as SearchResult;
+          const searchResult: SearchResult = await searchImages(searchQuery);
           if (searchResult.error) {
             showErrorToast({ message: searchResult.error });
             if (currentPage === 1) {
@@ -92,20 +66,31 @@ export function usePhotos() {
             } else {
               setPhotos((prev) => [...prev, ...convertedPhotos]);
             }
-            setTotalItems(searchResult.pagination.total);
-            setHasMore(
-              searchResult.pagination.total > currentPage * itemsPerPage
-            );
+            const total = searchResult.pagination?.total ?? convertedPhotos.length;
+            setTotalItems(total);
+            setHasMore(total > currentPage * itemsPerPage);
           } else {
             setHasMore(false);
           }
         } else {
-          const imagesResult = result as ImagesResult;
-          if (!imagesResult.images) {
-            throw new Error("No images data received");
+          const { images, totalItems: total, totalPages: _totalPages } = (await getImages({
+            page: currentPage,
+            limit: itemsPerPage,
+            sortField: "created_at",
+            sortDirection: "desc",
+            searchQuery: "",
+          })) as ImagesResult;
+
+          if (!images || images.length === 0) {
+            if (currentPage === 1) {
+              setPhotos([]);
+              setTotalItems(0);
+            }
+            setHasMore(false);
+            return;
           }
 
-          const convertedPhotos = imagesResult.images.map((img) => ({
+          const convertedPhotos = images.map((img) => ({
             ...img,
             created_at: new Date(img.created_at).toISOString(),
             updated_at: new Date(img.updated_at).toISOString(),
@@ -117,8 +102,8 @@ export function usePhotos() {
             } else {
               setPhotos((prev) => [...prev, ...convertedPhotos]);
             }
-            setTotalItems(imagesResult.totalItems);
-            setHasMore(imagesResult.totalItems > currentPage * itemsPerPage);
+            setTotalItems(total);
+            setHasMore(total > currentPage * itemsPerPage);
           } else {
             setHasMore(false);
           }

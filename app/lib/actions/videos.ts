@@ -75,7 +75,12 @@ function extractPublicId(url: string): string | null {
 
 export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
   try {
-    const offset = (page - 1) * itemsPerPage;
+    const safePage = Number.isFinite(page) && page > 0 ? Number(page) : 1;
+    const safeLimit =
+      Number.isFinite(itemsPerPage) && itemsPerPage > 0
+        ? Number(itemsPerPage)
+        : 12;
+    const offset = (safePage - 1) * safeLimit;
 
     // Get total count with the same conditions as the main query
     const countQuery = `
@@ -94,7 +99,7 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
       LIMIT ? OFFSET ?
     `;
 
-    const result = await query<Video>(sqlQuery, [itemsPerPage, offset]);
+    const result = await query<Video>(sqlQuery, [safeLimit, offset]);
 
     if (result.error) {
       return { data: null, error: result.error, totalItems: 0 };
@@ -114,7 +119,7 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
       data: videos,
       error: null,
       totalItems,
-      totalPages: Math.ceil(totalItems / itemsPerPage),
+      totalPages: totalItems > 0 ? Math.ceil(totalItems / safeLimit) : 1,
     };
   } catch (_error) {
     return { data: null, error: "Failed to fetch videos", totalItems: 0 };
@@ -202,9 +207,17 @@ export async function updateVideo(
       const oldVideoData = oldVideo[0] as Video;
 
       // Update the video in the database first
+      const nextArticleId =
+        data.article_id ?? oldVideoData.article_id ?? null;
+      const nextVideoUrl = data.video_url ?? oldVideoData.video_url ?? "";
+      const nextDescription =
+        data.description !== undefined
+          ? data.description
+          : oldVideoData.description ?? null;
+
       const [result] = await client.query<ResultSetHeader>(
         "UPDATE Videos SET article_id = ?, video_url = ?, description = ? WHERE id = ?",
-        [data.article_id, data.video_url || "", data.description || null, id]
+        [nextArticleId, nextVideoUrl, nextDescription, id]
       );
 
       if (!result || result.affectedRows === 0) {
