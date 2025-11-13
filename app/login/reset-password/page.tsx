@@ -1,72 +1,43 @@
 "use client";
 
-
+import Link from "next/link";
 import { Suspense } from "react";
 import ResetPasswordForm from "./ResetPasswordForm";
-import { NewspaperIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
+import Logo from "@/app/components/front-end/shared/Logo";
 
-/**
- * ResetPasswordPage Component
- * Main reset password page component that handles password reset requests.
- * Features:
- * - Email-based password reset
- * - Form validation
- * - Error handling
- * - Responsive layout with gradient styling
- */
+// Component Info
+// Description: Reset password entry page featuring brand context and the reset form card.
+// Data created: Layout wrappers that present the reset flow within a centered viewport.
+// Author: thangtruong
+
 export default function ResetPasswordPage() {
-
   return (
-    <>
-      <div className="bg-white rounded-2xl shadow-xl">
-        {/* Header section with blue background */}
-        <div className="relative w-full bg-gradient-to-r from-blue-600 to-blue-400 mb-3 py-12 rounded-t-2xl overflow-hidden">
-          {/* Decorative circles */}
-          <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-500 rounded-full opacity-20 blur-2xl" />
-          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-400 rounded-full opacity-20 blur-2xl" />
+    <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-blue-100">
+      {/* Decorative background */}
+      <div className="pointer-events-none absolute inset-0 select-none opacity-40 [background-image:radial-gradient(circle_at_top,_rgba(59,130,246,0.18),transparent_60%),radial-gradient(circle_at_bottom,_rgba(14,116,144,0.14),transparent_55%)]" />
 
-          {/* Content container */}
-          <div className="relative z-10 flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-white mb-2">
-                Reset Password
-              </h1>
-              <p className="text-blue-100">
-                Enter your email to reset your password
-              </p>
+      {/* Page container */}
+      <div className="relative mx-auto flex min-h-screen w-full max-w-5xl items-center px-6 py-16 sm:px-10 lg:px-12 xl:px-16">
+        <div className="w-full rounded-3xl bg-white shadow-2xl ring-1 ring-slate-200/70">
+          {/* Card header */}
+          <div className="border-b border-slate-200 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 px-6 py-10 text-center text-white">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/15 shadow-inner">
+              <Link href="/" aria-label="NewsStudios home" className="inline-flex items-center justify-center">
+                <Logo />
+              </Link>
             </div>
+            <h1 className="mt-6 text-3xl font-semibold">Reset your password</h1>
+            <p className="mt-2 text-sm text-blue-100">Enter your email and create a new secure password for your NewsStudios account.</p>
+          </div>
+
+          {/* Form content */}
+          <div className="px-6 pb-10 pt-8">
+            <Suspense fallback={<div className="text-center text-sm text-slate-500">Loading form...</div>}>
+              <ResetPasswordForm />
+            </Suspense>
           </div>
         </div>
-
-        {/* Welcome section with logo and title */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center h-16">
-            {/* Logo and Brand section with hover effects */}
-            <Link href="/" className="flex items-center space-x-3 group">
-              {/* Icon container with gradient background and blur effect */}
-              <div className="relative">
-                {/* Gradient background with hover opacity transition */}
-                <div className="absolute inset-0 rounded-lg blur opacity-20 group-hover:opacity-30 transition-opacity" />
-                <div className="relative p-2 rounded-lg ">
-                  <NewspaperIcon className="h-8 w-8 text-blue-500" />
-                </div>
-              </div>
-              {/* Brand name with blue text color */}
-              <div className="flex items-center">
-                <span className="text-2xl font-bold text-blue-500">
-                  YourNewsHub
-                </span>
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        {/* Reset password form with suspense boundary */}
-        <Suspense fallback={<div>Loading...</div>}>
-          <ResetPasswordForm />
-        </Suspense>
       </div>
-    </>
+    </section>
   );
 }

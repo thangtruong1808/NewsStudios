@@ -12,6 +12,11 @@ import SubmitButton from "./components/SubmitButton";
 import PasswordToggle from "./components/PasswordToggle";
 import { LoginFormData, FormErrors, validateForm } from "./utils/validation";
 
+// Component Info
+// Description: Credential-based login form with validation, error handling, and helper tips.
+// Data created: Local form state, validation messages, and controlled input handling.
+// Author: thangtruong
+
 export default function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined
@@ -65,7 +70,6 @@ export default function LoginForm() {
       router.push("/dashboard");
       router.refresh();
     } catch (error) {
-      console.error("Login error:", error);
       setErrorMessage("An unexpected error occurred.");
     } finally {
       setIsPending(false);
@@ -73,8 +77,8 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="mx-auto w-full max-w-[360px] space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-4">
           <FormInput
             id="email"
@@ -118,40 +122,31 @@ export default function LoginForm() {
 
         <ErrorMessage message={errorMessage} />
 
-        <div className="flex justify-end">
-          <div className="text-sm">
-            <Link
-              href="/login/reset-password"
-              className="font-medium text-blue-400 hover:text-blue-600 transition-colors duration-200"
-            >
-              Forgot your password?
-            </Link>
-          </div>
+        <div className="flex justify-end text-sm">
+          <Link
+            href="/login/reset-password"
+            className="font-semibold text-blue-500 transition-colors duration-200 hover:text-blue-600"
+          >
+            Forgot password?
+          </Link>
         </div>
 
-        <div className="">
-          <SubmitButton isPending={isPending} />
-        </div>
-        <div className="flex flex-col items-start py-4">
-          <p>
-            <label
-              className="block text-gray-500 text-sm mb-2"
-              htmlFor="username"
-            >
-              Username:<span className="px-3">thang.t@gmail.com</span>
-            </label>
-          </p>
-          <p>
-            <label
-              className="block text-gray-500 text-sm mb-2"
-              htmlFor="password"
-            >
-              Password:
-              <span className="px-3">()_+Thang!@#$%^&</span>
-            </label>
-          </p>
-        </div>
+        <SubmitButton isPending={isPending} />
       </form>
+
+      <div className="rounded-xl bg-slate-50 px-4 py-4 text-sm text-slate-600 shadow-inner ring-1 ring-slate-200/60">
+        <p className="font-semibold text-slate-700">Need demo credentials?</p>
+        <div className="mt-2 space-y-1">
+          <div className="flex items-center justify-between rounded-md bg-white px-3 py-2 shadow-sm">
+            <span className="text-slate-500">Username</span>
+            <span className="font-medium text-slate-800">thang.t@gmail.com</span>
+          </div>
+          <div className="flex items-center justify-between rounded-md bg-white px-3 py-2 shadow-sm">
+            <span className="text-slate-500">Password</span>
+            <span className="font-medium text-slate-800">()_+Thang!@#$%^&</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

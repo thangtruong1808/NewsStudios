@@ -60,48 +60,48 @@ export default function DesktopMenu({
   }, []);
 
   return (
-    <div className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 xl:gap-8">
-      <div className="flex items-center">
+    <div className="flex w-full items-center justify-between gap-6 rounded-xl border border-slate-200 bg-white/80 px-6 py-3 shadow-sm">
+      <div className="flex items-center gap-8">
         <Link href="/" className="inline-flex items-center" aria-label="Go to homepage">
           <Logo />
         </Link>
-      </div>
 
-      <div className="min-w-0">
-        <div className="mx-auto flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm xl:text-base">
-          {!isLoading &&
-            categories.map((category) => (
-              <div key={category.id} className="group relative">
-                <Link
-                  href={`/explore?categoryId=${category.id}`}
-                  className={`px-1 font-medium transition-colors duration-150 hover:text-blue-500 ${isActive(`/category/${category.id}`) ? "text-blue-600" : "text-gray-600"
-                    }`}
-                >
-                  {category.name}
-                </Link>
+        <div className="hidden min-w-0 flex-1 items-center lg:flex">
+          <div className="mx-auto flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm xl:text-base">
+            {!isLoading &&
+              categories.map((category) => (
+                <div key={category.id} className="group relative">
+                  <Link
+                    href={`/explore?categoryId=${category.id}`}
+                    className={`px-1 font-medium transition-colors duration-150 hover:text-blue-500 ${isActive(`/category/${category.id}`) ? "text-blue-600" : "text-gray-600"
+                      }`}
+                  >
+                    {category.name}
+                  </Link>
 
-                <div
-                  className="absolute left-1/2 hidden w-48 -translate-x-1/2 rounded-md bg-white shadow-lg ring-1 ring-black/10 group-hover:block"
-                  style={{ top: "calc(100% + 12px)" }}
-                >
-                  <div className="py-2">
-                    {getSubcategoriesForCategory(category.id).map((subcategory) => (
-                      <Link
-                        key={subcategory.id}
-                        href={`/explore?subcategoryId=${subcategory.id}`}
-                        className="block px-3 py-2 text-xs text-gray-700 transition-colors duration-150 hover:bg-gray-100 hover:text-blue-500 sm:text-sm"
-                      >
-                        {subcategory.name}
-                      </Link>
-                    ))}
+                  <div
+                    className="absolute left-1/2 hidden w-48 -translate-x-1/2 rounded-md bg-white shadow-lg ring-1 ring-black/10 group-hover:block"
+                    style={{ top: "calc(100% + 12px)" }}
+                  >
+                    <div className="py-2">
+                      {getSubcategoriesForCategory(category.id).map((subcategory) => (
+                        <Link
+                          key={subcategory.id}
+                          href={`/explore?subcategoryId=${subcategory.id}`}
+                          className="block px-3 py-2 text-xs text-gray-700 transition-colors duration-150 hover:bg-gray-100 hover:text-blue-500 sm:text-sm"
+                        >
+                          {subcategory.name}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+          </div>
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex items-center">
         {session?.user ? (
           <div className="relative" ref={dropdownRef}>
             <button

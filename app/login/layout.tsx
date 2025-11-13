@@ -5,14 +5,21 @@ export const metadata: Metadata = {
   description: "Login to your account",
 };
 
+// Component Info
+// Description: Route layout providing page-level background and spacing for login screens.
+// Data created: Outer wrappers that frame login content within a centered viewport.
+// Author: thangtruong
+
 export default function LoginLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      <div className="w-full max-w-xl mx-auto p-4">{children}</div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-50">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl items-center justify-center px-6 py-12 sm:px-10 lg:px-12 xl:px-16">
+        {children}
+      </div>
     </div>
   );
 }

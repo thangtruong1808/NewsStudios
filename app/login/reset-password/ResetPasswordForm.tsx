@@ -14,11 +14,14 @@ import PasswordToggle from "../components/PasswordToggle";
 import { resetPasswordSchema, ResetPasswordFormData } from "./schema";
 import { resetPassword } from "../actions/reset-password";
 
+// Component Info
+// Description: Handles reset-password form submission with validation and Next.js navigation.
+// Data created: Local form state, validation feedback, and password reset mutation requests.
+// Author: thangtruong
+
 export default function ResetPasswordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | undefined>(
-    undefined
-  );
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
@@ -49,7 +52,7 @@ export default function ResetPasswordForm() {
 
       toast.success("Password reset successful");
       router.push("/login");
-    } catch (error) {
+    } catch (_error) {
       setErrorMessage("An error occurred while resetting your password");
     } finally {
       setIsSubmitting(false);
@@ -57,8 +60,10 @@ export default function ResetPasswordForm() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <section className="mx-auto w-full max-w-[420px] space-y-6">
+      {/* Reset form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Credentials fields */}
         <div className="space-y-4">
           <FormInput
             id="email"
@@ -69,12 +74,7 @@ export default function ResetPasswordForm() {
             name={register("email").name}
             error={errors.email?.message}
             placeholder="you@example.com"
-            icon={
-              <AtSymbolIcon
-                className="h-5 w-5 text-gray-400"
-                aria-hidden="true"
-              />
-            }
+            icon={<AtSymbolIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />}
             autoComplete="email"
             isReactHookForm={true}
           />
@@ -88,9 +88,7 @@ export default function ResetPasswordForm() {
             name={register("password").name}
             error={errors.password?.message}
             placeholder="Enter your new password"
-            icon={
-              <KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-            }
+            icon={<KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />}
             rightElement={
               <PasswordToggle
                 showPassword={showPassword}
@@ -110,15 +108,11 @@ export default function ResetPasswordForm() {
             name={register("confirmPassword").name}
             error={errors.confirmPassword?.message}
             placeholder="Confirm your new password"
-            icon={
-              <KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-            }
+            icon={<KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />}
             rightElement={
               <PasswordToggle
                 showPassword={showConfirmPassword}
-                togglePassword={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
+                togglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
               />
             }
             autoComplete="new-password"
@@ -128,26 +122,25 @@ export default function ResetPasswordForm() {
 
         <ErrorMessage message={errorMessage} />
 
+        {/* Submit button */}
         <div className="pt-4">
           <SubmitButton
             isPending={isSubmitting}
-            text={{
-              default: "Reset Password",
-              pending: "Resetting...",
-            }}
+            text={{ default: "Reset Password", pending: "Resetting..." }}
           />
         </div>
 
-        <div className="text-center text-sm text-gray-600 py-4">
+        {/* Back to login */}
+        <div className="py-4 text-center text-sm text-gray-600">
           Remember your password?{" "}
           <Link
             href="/login"
-            className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200"
+            className="font-medium text-indigo-600 transition-colors duration-200 hover:text-indigo-500"
           >
             Back to Login
           </Link>
         </div>
       </form>
-    </div>
+    </section>
   );
 }
