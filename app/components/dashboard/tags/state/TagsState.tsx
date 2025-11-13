@@ -31,6 +31,9 @@ export interface TagsStateProps {
   }) => React.ReactNode;
 }
 
+// Description: Provide tags management state container for dashboard pages.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function TagsState({ children }: TagsStateProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,25 +63,25 @@ export default function TagsState({ children }: TagsStateProps) {
 
         const result = searchQuery
           ? await searchTags(searchQuery, {
-              page: currentPage,
-              limit: itemsPerPage,
-              sortField,
-              sortDirection,
-            })
+            page: currentPage,
+            limit: itemsPerPage,
+            sortField,
+            sortDirection,
+          })
           : await getTags({
-              page: currentPage,
-              limit: itemsPerPage,
-              sortField,
-              sortDirection,
-            });
+            page: currentPage,
+            limit: itemsPerPage,
+            sortField,
+            sortDirection,
+          });
 
         setTags(result.data || []);
         if (result.totalCount !== undefined) {
           setTotalItems(result.totalCount);
           setTotalPages(Math.ceil(result.totalCount / itemsPerPage));
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+      } catch (_error) {
+        showErrorToast({ message: "Failed to load tags. Please try again." });
       } finally {
         setIsLoading(false);
         setIsSearching(false);
@@ -138,19 +141,19 @@ export default function TagsState({ children }: TagsStateProps) {
       // Fetch fresh data after successful deletion
       const result = searchQuery
         ? await searchTags(searchQuery, {
-            page: currentPage,
-            limit: itemsPerPage,
-            sortField,
-            sortDirection,
-          })
+          page: currentPage,
+          limit: itemsPerPage,
+          sortField,
+          sortDirection,
+        })
         : await getTags({
-            page: currentPage,
-            limit: itemsPerPage,
-            sortField,
-            sortDirection,
-          });
+          page: currentPage,
+          limit: itemsPerPage,
+          sortField,
+          sortDirection,
+        });
 
-      if (result.error) {
+      if ("error" in result && result.error) {
         throw new Error(result.error);
       }
 
@@ -197,6 +200,7 @@ export default function TagsState({ children }: TagsStateProps) {
     router.push(`/dashboard/tags?${params.toString()}`);
   };
 
+  // Render children with current tag state controls
   return (
     <>
       {children({
