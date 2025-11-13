@@ -1,6 +1,7 @@
 import { Toaster } from "react-hot-toast";
 import { redirect } from "next/navigation";
 import clsx from "clsx";
+import Link from "next/link";
 import Logo from "../components/front-end/shared/Logo";
 import { fontClasses } from "../components/fonts";
 import { getAuthSession } from "../lib/auth";
@@ -45,9 +46,9 @@ export default async function LayoutDashboard({
             fontClasses.robotoMono
           )}
         >
-          <div className="p-4 text-blue-500">
+          <Link href="/" aria-label="Return to homepage" className="block p-4 text-blue-500">
             <Logo />
-          </div>
+          </Link>
         </div>
 
         {/* Title section with blue text color */}

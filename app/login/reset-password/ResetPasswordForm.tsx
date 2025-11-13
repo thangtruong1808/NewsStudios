@@ -1,62 +1,66 @@
 "use client";
 
-import { useState } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { AtSymbolIcon, KeyIcon } from "@heroicons/react/24/outline";
 import FormInput from "../components/FormInput";
-import ErrorMessage from "../components/ErrorMessage";
-import SubmitButton from "../components/SubmitButton";
-import PasswordToggle from "../components/PasswordToggle";
-import { resetPasswordSchema, ResetPasswordFormData } from "./schema";
+import SubmitButton from "./components/SubmitButton";
+import { resetPasswordFormSchema, ResetPasswordFormValues } from "./schema";
 import { resetPassword } from "../actions/reset-password";
 
 // Component Info
 // Description: Handles reset-password form submission with validation and Next.js navigation.
-// Data created: Local form state, validation feedback, and password reset mutation requests.
+// Data created: Local react-hook-form state and password update mutations.
 // Author: thangtruong
 
 export default function ResetPasswordForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-
+  const [isPending, startTransition] = useTransition();
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors },
-    watch,
-  } = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
+    reset,
+  } = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
-  const email = watch("email");
-  const password = watch("password");
-  const confirmPassword = watch("confirmPassword");
+  const onSubmit = (values: ResetPasswordFormValues) => {
+    startTransition(() => {
+      resetPassword({
+        email: values.email.trim().toLowerCase(),
+        password: values.password,
+        confirmPassword: values.confirmPassword,
+      })
+        .then((response) => {
+          if (!response || response.error) {
+            toast.error(response?.error ?? "Unable to reset password. Please try again.", {
+              duration: 7000,
+            });
+            return;
+          }
 
-  const onSubmit = async (data: ResetPasswordFormData) => {
-    try {
-      setIsSubmitting(true);
-      setErrorMessage(undefined);
-      const result = await resetPassword(data);
-
-      if (result.error) {
-        setErrorMessage(result.error);
-        return;
-      }
-
-      toast.success("Password reset successful");
-      router.push("/login");
-    } catch (_error) {
-      setErrorMessage("An error occurred while resetting your password");
-    } finally {
-      setIsSubmitting(false);
-    }
+          toast.success(`Password updated successfully, ${response.firstname ?? "user"}!`, {
+            duration: 7000,
+          });
+          reset();
+          router.push("/login");
+        })
+        .catch(() => {
+          toast.error("Unable to reset password. Please try again later.", {
+            duration: 7000,
+          });
+        });
+    });
   };
 
   return (
@@ -65,70 +69,66 @@ export default function ResetPasswordForm() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Credentials fields */}
         <div className="space-y-4">
-          <FormInput
-            id="email"
-            type="email"
-            label="Email Address"
-            value={email}
-            onChange={register("email").onChange}
-            name={register("email").name}
-            error={errors.email?.message}
-            placeholder="you@example.com"
-            icon={<AtSymbolIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />}
-            autoComplete="email"
-            isReactHookForm={true}
+          <Controller
+            control={control}
+            name="email"
+            render={({ field }) => (
+              <FormInput
+                id="email"
+                type="email"
+                label="Email Address"
+                value={field.value}
+                onChange={field.onChange}
+                name={field.name}
+                error={errors.email?.message}
+                placeholder="you@example.com"
+                icon={<AtSymbolIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />}
+                autoComplete="email"
+              />
+            )}
           />
 
-          <FormInput
-            id="password"
-            type={showPassword ? "text" : "password"}
-            label="New Password"
-            value={password}
-            onChange={register("password").onChange}
-            name={register("password").name}
-            error={errors.password?.message}
-            placeholder="Enter your new password"
-            icon={<KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />}
-            rightElement={
-              <PasswordToggle
-                showPassword={showPassword}
-                togglePassword={() => setShowPassword(!showPassword)}
+          <Controller
+            control={control}
+            name="password"
+            render={({ field }) => (
+              <FormInput
+                id="password"
+                type="password"
+                label="New Password"
+                value={field.value}
+                onChange={field.onChange}
+                name={field.name}
+                error={errors.password?.message}
+                placeholder="Enter your new password"
+                icon={<KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />}
+                autoComplete="new-password"
               />
-            }
-            autoComplete="new-password"
-            isReactHookForm={true}
+            )}
           />
 
-          <FormInput
-            id="confirmPassword"
-            type={showConfirmPassword ? "text" : "password"}
-            label="Confirm New Password"
-            value={confirmPassword}
-            onChange={register("confirmPassword").onChange}
-            name={register("confirmPassword").name}
-            error={errors.confirmPassword?.message}
-            placeholder="Confirm your new password"
-            icon={<KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />}
-            rightElement={
-              <PasswordToggle
-                showPassword={showConfirmPassword}
-                togglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
+          <Controller
+            control={control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormInput
+                id="confirmPassword"
+                type="password"
+                label="Confirm New Password"
+                value={field.value}
+                onChange={field.onChange}
+                name={field.name}
+                error={errors.confirmPassword?.message}
+                placeholder="Confirm your new password"
+                icon={<KeyIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />}
+                autoComplete="new-password"
               />
-            }
-            autoComplete="new-password"
-            isReactHookForm={true}
+            )}
           />
         </div>
-
-        <ErrorMessage message={errorMessage} />
 
         {/* Submit button */}
-        <div className="pt-4">
-          <SubmitButton
-            isPending={isSubmitting}
-            text={{ default: "Reset Password", pending: "Resetting..." }}
-          />
-        </div>
+        <SubmitButton isPending={isPending}>Reset Password</SubmitButton>
 
         {/* Back to login */}
         <div className="py-4 text-center text-sm text-gray-600">

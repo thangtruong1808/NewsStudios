@@ -2,6 +2,11 @@
 
 import React from "react";
 
+// Component Info
+// Description: Generic input field with label and error state for the reset password flow.
+// Data created: Styled input elements bound to react-hook-form.
+// Author: thangtruong
+
 interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;

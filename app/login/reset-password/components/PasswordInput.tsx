@@ -4,6 +4,11 @@ import React, { useState, forwardRef } from "react";
 import FormInput from "./FormInput";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
+// Component Info
+// Description: Password field wrapper with visibility toggle for reset password forms.
+// Data created: Forward-ref input supporting react-hook-form integration.
+// Author: thangtruong
+
 interface PasswordInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
   label: string;

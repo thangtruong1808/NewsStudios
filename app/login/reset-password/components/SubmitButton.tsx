@@ -3,21 +3,26 @@
 import React from "react";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 
+// Component Info
+// Description: Styled submit button with loading indicator for reset password actions.
+// Data created: Button element reflecting pending state during form submission.
+// Author: thangtruong
+
 interface SubmitButtonProps {
-  isLoading: boolean;
+  isPending: boolean;
   children: React.ReactNode;
   className?: string;
 }
 
 export default function SubmitButton({
-  isLoading,
+  isPending,
   children,
   className = "",
 }: SubmitButtonProps) {
   return (
     <button
       type="submit"
-      disabled={isLoading}
+      disabled={isPending}
       className={`group relative flex w-full justify-center rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 py-3 px-4 text-sm font-medium text-white 
       hover:from-indigo-700 hover:to-indigo-800 
       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
@@ -31,9 +36,9 @@ export default function SubmitButton({
           aria-hidden="true"
         />
       </span>
-      {isLoading ? (
+      {isPending ? (
         <svg
-          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+          className="-ml-1 mr-3 h-5 w-5 animate-spin text-white"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

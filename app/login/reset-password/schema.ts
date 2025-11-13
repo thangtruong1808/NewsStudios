@@ -2,24 +2,33 @@
 
 import { z } from "zod";
 
-export const resetPasswordSchema = z
+// Schema Info
+// Description: Validation rules for reset password form fields.
+// Data created: Zod schema ensuring valid email and matching passwords.
+// Author: thangtruong
+
+export const resetPasswordFormSchema = z
   .object({
     email: z
       .string()
-      .min(1, "Email is required")
-      .email("Please enter a valid email address"),
+      .trim()
+      .min(1, "Email address is required.")
+      .email("Please enter a valid email address."),
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/,
-        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-      ),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+      .min(8, "Password must be at least 8 characters."),
+    confirmPassword: z
+      .string()
+      .min(8, "Confirm password must be at least 8 characters."),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Passwords do not match.",
+        path: ["confirmPassword"],
+      });
+    }
   });
 
-export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>;
