@@ -31,15 +31,13 @@ export default function VideoCarousel() {
     const fetchVideos = async () => {
       try {
         setIsLoading(true);
-        const result = await getAllVideos();
+        const { data, error: fetchError } = await getAllVideos();
 
-        if (result.error) {
-          throw new Error(result.error);
+        if (fetchError) {
+          throw new Error(fetchError);
         }
 
-        const videosData: Video[] = Array.isArray(result.data)
-          ? (result.data as Video[])
-          : [];
+        const videosData: Video[] = Array.isArray(data) ? (data as Video[]) : [];
 
         setVideos(videosData);
       } catch (error) {

@@ -18,8 +18,7 @@ export async function getVideosByArticleId(articleId: number) {
     }
 
     return { data: result.data || [], error: null };
-  } catch (error) {
-    console.error("Error fetching videos by article ID:", error);
+  } catch (_error) {
     return { data: null, error: "Failed to fetch videos" };
   }
 }
@@ -38,8 +37,7 @@ export async function getAllVideos() {
     }
 
     return { data: result.data || [], error: null };
-  } catch (error) {
-    console.error("Error fetching videos:", error);
+  } catch (_error) {
     return { data: null, error: "Failed to fetch videos" };
   }
 }
