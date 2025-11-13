@@ -4,10 +4,13 @@ import Search from "./Search";
 
 interface SearchWrapperProps {
   placeholder?: string;
-  onSearch?: (term: string) => void;
+  onSearch?: (...[term]: [string]) => void;
   defaultValue?: string;
 }
 
+// Description: Lightweight wrapper delivering shared search defaults for dashboard listings.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function SearchWrapper({
   placeholder = "Search...",
   onSearch,

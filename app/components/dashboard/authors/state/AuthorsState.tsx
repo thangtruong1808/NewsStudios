@@ -85,13 +85,13 @@ export default function AuthorsState() {
   ]);
 
   // Event handlers
-  const handlePageChange = (page: number) => {
+  const handlePageChange = ({ page }: { page: number }) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
     router.push(`/dashboard/author?${params.toString()}`);
   };
 
-  const handleSort = (field: keyof Author) => {
+  const handleSort = ({ field }: { field: keyof Author }) => {
     setIsSorting(true);
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
@@ -101,11 +101,11 @@ export default function AuthorsState() {
     router.push(`/dashboard/author?${params.toString()}`);
   };
 
-  const handleEdit = (author: Author) => {
-    router.push(`/dashboard/author/${author.id}/edit`);
+  const handleEdit = ({ item }: { item: Author }) => {
+    router.push(`/dashboard/author/${item.id}/edit`);
   };
 
-  const handleDelete = async (author: Author) => {
+  const handleDelete = async ({ item }: { item: Author }) => {
     const confirmPromise = new Promise<boolean>((resolve) => {
       showConfirmationToast({
         title: "Delete Author",
@@ -120,7 +120,7 @@ export default function AuthorsState() {
 
     setIsDeleting(true);
     try {
-      const deleteResult = await deleteAuthor(Number(author.id));
+      const deleteResult = await deleteAuthor(Number(item.id));
 
       if (!deleteResult.success) {
         throw new Error(deleteResult.error || "Failed to delete author");
@@ -173,7 +173,7 @@ export default function AuthorsState() {
     router.push(`/dashboard/author?${params.toString()}`);
   };
 
-  const handleItemsPerPageChange = (limit: number) => {
+  const handleItemsPerPageChange = ({ limit }: { limit: number }) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
     params.set("limit", limit.toString());

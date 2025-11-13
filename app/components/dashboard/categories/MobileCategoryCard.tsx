@@ -1,12 +1,11 @@
 "use client";
 
 import { Category } from "@/app/lib/definition";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { TrashIcon } from "@heroicons/react/24/outline";
 
 interface MobileCategoryCardProps {
   category: Category;
-  onEdit?: (category: Category) => void;
-  onDelete: (category: Category) => void;
+  onDelete: (params: { item: Category }) => void;
 }
 
 // Description: Render mobile-friendly category card with quick actions.
@@ -14,7 +13,6 @@ interface MobileCategoryCardProps {
 // Author: thangtruong
 export default function MobileCategoryCard({
   category,
-  onEdit,
   onDelete,
 }: MobileCategoryCardProps) {
   return (
@@ -35,13 +33,7 @@ export default function MobileCategoryCard({
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => onEdit?.(category)}
-            className="rounded-md border border-blue-500 p-2 text-blue-500 hover:bg-blue-50"
-          >
-            <PencilIcon className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => onDelete(category)}
+          onClick={() => onDelete({ item: category })}
             className="rounded-md border border-red-500 p-2 text-red-500 hover:bg-red-50"
           >
             <TrashIcon className="w-5 h-5" />

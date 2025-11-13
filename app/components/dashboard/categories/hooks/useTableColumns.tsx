@@ -6,7 +6,7 @@ import { Column } from "@/app/components/dashboard/shared/table/TableTypes";
 
 interface UseTableColumnsProps {
   isDeleting: boolean;
-  onDelete: (id: number, name: string) => void;
+  onDelete: (params: { item: Category }) => void;
 }
 
 // Description: Provide column definitions for the categories table including action handlers.
@@ -38,10 +38,10 @@ export function useTableColumns({ isDeleting, onDelete }: UseTableColumnsProps):
       field: "id",
       label: "Actions",
       sortable: false,
-      render: (_value: string, category: Category) => (
+      render: ({ row: category }) => (
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onDelete(category.id, category.name)}
+            onClick={() => onDelete({ item: category })}
             disabled={isDeleting}
             className="text-red-600 hover:text-red-800 disabled:opacity-50"
           >

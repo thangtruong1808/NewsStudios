@@ -47,7 +47,6 @@ export default function AuthorForm({ author }: AuthorFormProps) {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    control,
     watch,
   } = useForm<AuthorFormData>({
     resolver: zodResolver(authorSchema),
@@ -67,7 +66,7 @@ export default function AuthorForm({ author }: AuthorFormProps) {
    * Processes form data for both create and edit modes
    * Handles success/error notifications and navigation
    */
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: AuthorFormData) => {
     try {
       if (isEditMode && author) {
         await updateAuthor(author.id, data);

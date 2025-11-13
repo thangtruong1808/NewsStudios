@@ -9,8 +9,8 @@ import { formatDateToLocal } from "@/app/lib/utils/dateFormatter";
 
 interface ArticlesTableColumnsProps {
   isDeleting: boolean;
-  onEdit: (article: Article) => void;
-  onDelete: (article: Article) => void;
+  onEdit: (params: { item: Article }) => void;
+  onDelete: (params: { item: Article }) => void;
   isAdmin: boolean;
 }
 
@@ -33,8 +33,8 @@ export function getArticlesTableColumns({
         field: "sequence",
         label: "#",
         sortable: false,
-        render: (_, item) => {
-          const index = item.sequence || 0;
+        render: ({ row }) => {
+          const index = row.sequence || 0;
           return String(index + 1);
         },
       },
@@ -42,9 +42,9 @@ export function getArticlesTableColumns({
         field: "title",
         label: "Title",
         sortable: true,
-        render: (value) => (
+        render: ({ value }) => (
           <ExpandableContent
-            content={value}
+            content={String(value ?? "")}
             maxWords={20}
             className="font-medium text-gray-900"
           />
@@ -54,9 +54,9 @@ export function getArticlesTableColumns({
         field: "content",
         label: "Content",
         sortable: true,
-        render: (value) => (
+        render: ({ value }) => (
           <ExpandableContent
-            content={value}
+            content={String(value ?? "")}
             maxWords={20}
             className="text-gray-600"
           />
@@ -81,12 +81,17 @@ export function getArticlesTableColumns({
         field: "tag_names",
         label: "Tags",
         sortable: false,
-        render: (value, row) => (
-          <ExpandableTagList
-            tags={Array.isArray(value) ? value : []}
-            tagColors={row.tag_colors || []}
-          />
-        ),
+        render: ({ value, row }) => {
+          const safeTags = Array.isArray(value)
+            ? value.map((tag) => String(tag))
+            : [];
+
+          const safeColors = Array.isArray(row.tag_colors)
+            ? row.tag_colors.map((color) => String(color))
+            : [];
+
+          return <ExpandableTagList tags={safeTags} tagColors={safeColors} />;
+        },
       },
       {
         field: "views_count",
@@ -107,9 +112,9 @@ export function getArticlesTableColumns({
         field: "published_at",
         label: "Published At",
         sortable: true,
-        render: (value) => (
+        render: ({ value }) => (
           <div className="min-w-[120px]">
-            {formatDateToLocal(value)}
+            {formatDateToLocal(String(value))}
           </div>
         ),
       },
@@ -117,9 +122,9 @@ export function getArticlesTableColumns({
         field: "updated_at",
         label: "Updated At",
         sortable: true,
-        render: (value) => (
+        render: ({ value }) => (
           <div className="min-w-[120px]">
-            {formatDateToLocal(value)}
+            {formatDateToLocal(String(value))}
           </div>
         ),
       },
@@ -131,17 +136,17 @@ export function getArticlesTableColumns({
       field: "actions",
       label: "Actions",
       sortable: false,
-      render: (_, row) => (
+      render: ({ row }) => (
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => onEdit(row)}
+            onClick={() => onEdit({ item: row })}
             className="text-blue-600 hover:text-blue-900"
             aria-label="Edit article"
           >
             <PencilIcon className="h-5 w-5" />
           </button>
           <button
-            onClick={() => onDelete(row)}
+            onClick={() => onDelete({ item: row })}
             disabled={isDeleting}
             className="text-red-600 hover:text-red-900 disabled:opacity-50"
             aria-label="Delete article"

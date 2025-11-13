@@ -1,14 +1,14 @@
 "use client";
 
-import { Column } from "./types";
-import { Category } from "../../../lib/definition";
+import type { Column } from "@/app/components/dashboard/shared/table/TableTypes";
+import type { Category } from "@/app/lib/definition";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 
 interface TableHeaderProps {
   columns: Column<Category>[];
-  sortField: string;
+  sortField: keyof Category;
   sortDirection: "asc" | "desc";
-  onSort: (field: string) => void;
+  onSort: (params: { field: keyof Category }) => void;
 }
 
 // Description: Render table header with sortable columns and responsive visibility rules.
@@ -24,15 +24,17 @@ export function TableHeader({
     <thead className="bg-gray-50">
       <tr>
         {columns.map((column) => {
-          const isMobileVisible = ["id", "name"].includes(column.field);
+          const isMobileVisible = ["id", "name"].includes(column.field as string);
           return (
             <th
-              key={column.field}
+              key={String(column.field)}
               scope="col"
               className={`px-3 py-3 text-left text-xs font-medium text-gray-900 sm:text-sm ${column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
                 } border-b border-zinc-300 ${isMobileVisible ? "table-cell" : "hidden md:table-cell"
                 }`}
-              onClick={() => column.sortable && onSort(column.field)}
+              onClick={() =>
+                column.sortable && onSort({ field: column.field })
+              }
             >
               <div className="group inline-flex items-center">
                 <span>{column.label}</span>

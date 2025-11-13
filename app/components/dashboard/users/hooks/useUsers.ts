@@ -74,7 +74,11 @@ export function useUsers() {
     fetchUsers();
   }, [searchQuery, currentPage, itemsPerPage, sortField, sortDirection]);
 
-  const handleSort = (field: keyof (User & { sequence?: number })) => {
+  const handleSort = ({
+    field,
+  }: {
+    field: keyof (User & { sequence?: number });
+  }) => {
     const params = new URLSearchParams(searchParams);
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
@@ -83,19 +87,19 @@ export function useUsers() {
     router.push(`?${params.toString()}`);
   };
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = ({ page }: { page: number }) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
     router.push(`?${params.toString()}`);
   };
 
-  const handleEdit = (user: User) => {
-    router.push(`/dashboard/users/${user.id}/edit`);
+  const handleEdit = ({ item }: { item: User }) => {
+    router.push(`/dashboard/users/${item.id}/edit`);
   };
 
-  const handleDelete = async (user: User) => {
+  const handleDelete = async ({ item }: { item: User }) => {
     // Check if the user is trying to delete themselves
-    const isSelfDeletion = session?.user?.id === user.id.toString();
+    const isSelfDeletion = session?.user?.id === item.id.toString();
 
     const confirmMessage = isSelfDeletion
       ? "You are about to delete your own account. This action cannot be undone. Are you sure you want to proceed?"
@@ -115,7 +119,7 @@ export function useUsers() {
 
     setIsDeleting(true);
     try {
-      const result = await deleteUser(user.id);
+      const result = await deleteUser(item.id);
       if (result.success) {
         showSuccessToast({ message: "User deleted successfully" });
 
@@ -131,7 +135,7 @@ export function useUsers() {
 
           // If current page is empty after deletion, go to previous page
           if (users.length === 1 && currentPage > 1) {
-            handlePageChange(currentPage - 1);
+            handlePageChange({ page: currentPage - 1 });
           }
         }
       } else {
@@ -147,7 +151,7 @@ export function useUsers() {
     }
   };
 
-  const handleItemsPerPageChange = (limit: number) => {
+  const handleItemsPerPageChange = ({ limit }: { limit: number }) => {
     const params = new URLSearchParams(searchParams);
     params.set("limit", limit.toString());
     params.set("page", "1"); // Reset to first page when changing items per page

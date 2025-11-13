@@ -6,30 +6,31 @@ import { getCategories } from "@/app/lib/actions/categories";
 import { useRouter, useSearchParams } from "next/navigation";
 import { showErrorToast } from "@/app/components/dashboard/shared/toast/Toast";
 
-// Component Info
-// Description: Client state manager for dashboard categories table interactions.
-// Data created: Local pagination, sorting, and search state synced with server data.
+// Description: Manage dashboard categories table state including pagination, sorting, and filters.
+// Data created: 2024-11-13
 // Author: thangtruong
 
+interface CategoriesStateRenderProps {
+  categories: Category[];
+  totalPages: number;
+  totalItems: number;
+  isLoading: boolean;
+  isDeleting: boolean;
+  currentPage: number;
+  itemsPerPage: number;
+  sortField: keyof Category;
+  sortDirection: "asc" | "desc";
+  searchQuery: string;
+  handlePageChange: (params: { page: number }) => void;
+  handleSort: (params: { field: keyof Category }) => void;
+  handleEdit: (params: { item: Category }) => void;
+  handleDelete: (params: { item: Category }) => void;
+  handleSearch: (params: { term: string }) => void;
+  handleItemsPerPageChange: (params: { limit: number }) => void;
+}
+
 interface CategoriesStateProps {
-  children: (props: {
-    categories: Category[];
-    totalPages: number;
-    totalItems: number;
-    isLoading: boolean;
-    isDeleting: boolean;
-    currentPage: number;
-    itemsPerPage: number;
-    sortField: keyof Category;
-    sortDirection: "asc" | "desc";
-    searchQuery: string;
-    handlePageChange: (_page: number) => void;
-    handleSort: (_field: keyof Category) => void;
-    handleEdit: (_category: Category) => void;
-    handleDelete: (_id: number, _name: string) => void;
-    handleSearch: (_term: string) => void;
-    handleItemsPerPageChange: (_limit: number) => void;
-  }) => React.ReactNode;
+  children: (props: CategoriesStateRenderProps) => React.ReactNode;
 }
 
 export default function CategoriesState({ children }: CategoriesStateProps) {
@@ -75,32 +76,33 @@ export default function CategoriesState({ children }: CategoriesStateProps) {
     fetchCategories();
   }, [fetchCategories]);
 
-  const handlePageChange = (_page: number) => {
-    setCurrentPage(_page);
+  const handlePageChange = ({ page }: { page: number }) => {
+    setCurrentPage(page);
   };
 
-  const handleSort = (_field: keyof Category) => {
-    setSortField(_field);
+  const handleSort = ({ field }: { field: keyof Category }) => {
+    setSortField(field);
     setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
   };
 
-  const handleEdit = (category: Category) => {
-    router.push(`/dashboard/categories/${category.id}/edit`);
+  const handleEdit = ({ item }: { item: Category }) => {
+    router.push(`/dashboard/categories/${item.id}/edit`);
   };
 
-  const handleDelete = (_id: number, _name: string) => {
+  const handleDelete = ({ item }: { item: Category }) => {
     // TODO: Implement delete functionality
+    void item;
     setIsDeleting(true);
     setIsDeleting(false);
   };
 
-  const handleSearch = (_term: string) => {
-    setSearchQuery(_term);
+  const handleSearch = ({ term }: { term: string }) => {
+    setSearchQuery(term);
     setCurrentPage(1);
   };
 
-  const handleItemsPerPageChange = (_limit: number) => {
-    setItemsPerPage(_limit);
+  const handleItemsPerPageChange = ({ limit }: { limit: number }) => {
+    setItemsPerPage(limit);
     setCurrentPage(1);
   };
 

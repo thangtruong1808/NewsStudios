@@ -4,9 +4,12 @@ interface EntriesSelectorProps {
   itemsPerPage: number;
   totalItems: number;
   currentPage: number;
-  onItemsPerPageChange: (limit: number) => void;
+  onItemsPerPageChange: (params: { limit: number }) => void;
 }
 
+// Description: Render selectable page size controls with a summary of visible entries.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function EntriesSelector({
   itemsPerPage,
   totalItems,
@@ -22,7 +25,9 @@ export default function EntriesSelector({
         <span className="text-sm">Show</span>
         <select
           value={itemsPerPage}
-          onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+          onChange={(event) =>
+            onItemsPerPageChange({ limit: Number(event.target.value) })
+          }
           className="rounded-md border-gray-300 text-sm focus:border-violet-500 focus:ring-violet-500"
         >
           <option value={5}>5</option>

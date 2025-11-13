@@ -11,11 +11,14 @@ import { useSession } from "next-auth/react";
 interface TabletViewProps<T extends { id: number }> extends ViewProps<T> {
   currentPage?: number;
   itemsPerPage?: number;
-  onEdit?: (item: T) => void;
-  onDelete?: (item: T) => void;
+  onEdit?: (params: { item: T }) => void;
+  onDelete?: (params: { item: T }) => void;
   isDeleting?: boolean;
 }
 
+// Description: Render tablet-friendly cards for table data with edit/delete actions.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function TabletView<T extends { id: number }>({
   data,
   columns,
@@ -74,28 +77,33 @@ export default function TabletView<T extends { id: number }>({
               className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow hover:bg-gray-100"
             >
               <div className="space-y-2">
-                {displayColumns.map((column) => (
-                  <div key={String(column.field)} className="flex items-start">
-                    <div className="w-1/3 font-medium text-xs">
-                      {column.label}:
+                {displayColumns.map((column) => {
+                  const rawValue =
+                    column.field === "sequence"
+                      ? String(sequence)
+                      : item[column.field as keyof T];
+
+                  return (
+                    <div key={String(column.field)} className="flex items-start">
+                      <div className="w-1/3 font-medium text-xs">
+                        {column.label}:
+                      </div>
+                      <div className="w-2/3 text-xs">
+                        {column.render
+                          ? column.render({
+                              value: rawValue as T[keyof T],
+                              row: item,
+                            })
+                          : String(rawValue)}
+                      </div>
                     </div>
-                    <div className="w-2/3 text-xs">
-                      {column.render
-                        ? column.render(
-                            column.field === "sequence"
-                              ? String(sequence)
-                              : (item[column.field as keyof T] as string),
-                            item
-                          )
-                        : String(item[column.field as keyof T])}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {isAdmin && (onEdit || onDelete) && (
                   <div className="flex justify-start space-x-2 pt-2 border-t">
                     {onEdit && (
                       <button
-                        onClick={() => onEdit(item)}
+                        onClick={() => onEdit({ item })}
                         className="inline-flex items-center gap-1 rounded border border-blue-500 px-2.5 py-1 text-xs font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
                       >
                         <PencilIcon className="h-3.5 w-3.5" />
@@ -104,9 +112,9 @@ export default function TabletView<T extends { id: number }>({
                     )}
                     {onDelete && (
                       <button
-                        onClick={() => onDelete(item)}
+                        onClick={() => onDelete({ item })}
                         disabled={isDeleting}
-                        className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+                        className="inline-flex items-center gap-1 rounded border border-red-500 px-2.5 py-1 text-xs	font-medium text-red-500 hover:bg-red-50 transition-colors	duration-200 disabled:opacity-50"
                       >
                         <TrashIcon className="h-3.5 w-3.5" />
                         Delete

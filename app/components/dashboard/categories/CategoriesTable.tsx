@@ -16,9 +16,9 @@ interface CategoriesTableProps {
   sortField: keyof Category;
   sortDirection: "asc" | "desc";
   isDeleting: boolean;
-  onSort: (field: keyof Category) => void;
-  onPageChange: (page: number) => void;
-  onDelete: (id: number, name: string) => void;
+  onSort: (...args: [keyof Category]) => void;
+  onPageChange: (...args: [number]) => void;
+  onDelete: (...args: [number, string]) => void;
 }
 
 // Description: Render responsive categories table with desktop grid, mobile cards, and pagination controls.
@@ -39,10 +39,6 @@ export function CategoriesTable({
 }: CategoriesTableProps) {
   const columns = useTableColumns({ isDeleting, onDelete });
 
-  const handleSort = (field: string) => {
-    onSort(field as keyof Category);
-  };
-
   return (
     <div className="space-y-4">
       {/* Desktop table */}
@@ -53,14 +49,9 @@ export function CategoriesTable({
               columns={columns}
               sortField={sortField}
               sortDirection={sortDirection}
-              onSort={handleSort}
+              onSort={onSort}
             />
-            <TableBody
-              categories={categories}
-              columns={columns}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
-            />
+            <TableBody categories={categories} columns={columns} />
           </table>
         </div>
       </div>
@@ -71,8 +62,7 @@ export function CategoriesTable({
           <MobileCategoryCard
             key={category.id}
             category={category}
-            onEdit={undefined}
-            onDelete={() => onDelete(category.id, category.name)}
+            onDelete={onDelete}
           />
         ))}
       </div>
@@ -83,7 +73,7 @@ export function CategoriesTable({
         totalPages={totalPages}
         totalItems={totalItems}
         itemsPerPage={itemsPerPage}
-        onPageChange={onPageChange}
+        onPageChange={({ page }) => onPageChange({ page })}
       />
     </div>
   );

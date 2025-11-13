@@ -10,13 +10,12 @@ interface DesktopViewProps<T extends { id: number }> extends ViewProps<T> {
   itemsPerPage?: number;
   sortField?: keyof T;
   sortDirection?: "asc" | "desc";
-  onSort?: (field: keyof T) => void;
+  onSort?: (params: { field: keyof T }) => void;
 }
 
-/**
- * DesktopView component for displaying table data in a traditional table format
- * Used for medium and larger screens (md: breakpoint and up)
- */
+// Description: Render desktop table layout with skeleton, empty states, and sequence-aware rows.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function DesktopView<T extends { id: number }>({
   data,
   columns,

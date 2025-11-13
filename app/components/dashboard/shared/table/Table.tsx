@@ -7,6 +7,9 @@ import MobileView from "./views/MobileView";
 import Pagination from "./Pagination";
 import EntriesSelector from "./EntriesSelector";
 
+// Description: Render a responsive dashboard table with pagination and adaptive layouts.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function Table<T extends { id: number }>({
   data,
   columns,
@@ -36,7 +39,9 @@ export default function Table<T extends { id: number }>({
             itemsPerPage={itemsPerPage}
             totalItems={totalItems}
             currentPage={currentPage}
-            onItemsPerPageChange={onItemsPerPageChange}
+            onItemsPerPageChange={(limit) =>
+              onItemsPerPageChange({ limit })
+            }
           />
         </div>
       )}
@@ -113,7 +118,7 @@ export default function Table<T extends { id: number }>({
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={onPageChange}
+                onPageChange={(page) => onPageChange({ page })}
               totalItems={totalItems}
               itemsPerPage={itemsPerPage}
             />

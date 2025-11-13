@@ -19,12 +19,14 @@ interface CategoriesTableProps {
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: (field: keyof Category) => void;
-  onPageChange: (page: number) => void;
-  onEdit: (category: Category) => void;
-  onDelete: (id: number, name: string) => void;
-  onItemsPerPageChange: (limit: number) => void;
+  onSort: (params: { field: keyof Category }) => void;
+  onPageChange: (params: { page: number }) => void;
+  onEdit: (params: { item: Category }) => void;
+  onDelete: (params: { item: Category }) => void;
+  onItemsPerPageChange: (params: { limit: number }) => void;
 }
+
+type CategoryRow = Category & { sequence: number; actions?: never };
 
 export function CategoriesTable({
   categories,
@@ -46,65 +48,93 @@ export function CategoriesTable({
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
 
-  const columns: Column<Category & { sequence?: number; actions?: never }>[] = [
+  const enrichedCategories: CategoryRow[] = categories.map((category, index) => ({
+    ...category,
+    sequence: (currentPage - 1) * itemsPerPage + (index + 1),
+  }));
+
+  const columns: Column<CategoryRow>[] = [
     {
       field: "sequence",
       label: "#",
       sortable: false,
-      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
+      render: ({ value }) => (
+        <span className="text-sm text-gray-500">
+          {typeof value === "number" ? value : Number(value ?? 0)}
+        </span>
+      ),
     },
     {
       field: "name",
       label: "Name",
       sortable: true,
-      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
+      render: ({ value }) => (
+        <span className="text-sm text-gray-500">
+          {typeof value === "string" ? value : String(value ?? "")}
+        </span>
+      ),
     },
     {
       field: "description",
       label: "Description",
       sortable: true,
-      render: (value: string) => (
-        <div className="w-64">
-          <ExpandableContent
-            content={value || "No description"}
-            maxWords={10}
-            className="text-sm text-gray-500"
-          />
-        </div>
-      ),
+      render: ({ value }) => {
+        const text =
+          typeof value === "string" ? value : String(value ?? "No description");
+
+        return (
+          <div className="w-64">
+            <ExpandableContent
+              content={text || "No description"}
+              maxWords={10}
+              className="text-sm text-gray-500"
+            />
+          </div>
+        );
+      },
     },
     {
       field: "subcategories_count",
       label: "Subcategories",
       sortable: true,
-      render: (value: string) => (
-        <div className="w-20">
-          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {parseInt(value) || 0}
-          </span>
-        </div>
-      ),
+      render: ({ value }) => {
+        const total =
+          typeof value === "number" ? value : Number.parseInt(String(value ?? 0), 10);
+
+        return (
+          <div className="w-20">
+            <span className="text-sm text-gray-500 whitespace-nowrap text-left">
+              {Number.isNaN(total) ? 0 : total}
+            </span>
+          </div>
+        );
+      },
     },
     {
       field: "articles_count",
       label: "Articles",
       sortable: true,
-      render: (value: string) => (
-        <div className="w-20">
-          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {parseInt(value) || 0}
-          </span>
-        </div>
-      ),
+      render: ({ value }) => {
+        const total =
+          typeof value === "number" ? value : Number.parseInt(String(value ?? 0), 10);
+
+        return (
+          <div className="w-20">
+            <span className="text-sm text-gray-500 whitespace-nowrap text-left">
+              {Number.isNaN(total) ? 0 : total}
+            </span>
+          </div>
+        );
+      },
     },
     {
       field: "created_at",
       label: "Created At",
       sortable: true,
-      render: (value: string) => (
+      render: ({ value }) => (
         <div className="w-32">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {formatDateWithMonth(value)}
+            {formatDateWithMonth(String(value ?? ""))}
           </span>
         </div>
       ),
@@ -113,10 +143,10 @@ export function CategoriesTable({
       field: "updated_at",
       label: "Updated At",
       sortable: true,
-      render: (value: string) => (
+      render: ({ value }) => (
         <div className="w-32">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {formatDateWithMonth(value)}
+            {formatDateWithMonth(String(value ?? ""))}
           </span>
         </div>
       ),
@@ -129,17 +159,17 @@ export function CategoriesTable({
       field: "actions",
       label: "Actions",
       sortable: false,
-      render: (_: unknown, category: Category) => (
+      render: ({ row: category }) => (
         <div className="flex justify-start items-start space-x-2">
           <button
-            onClick={() => onEdit(category)}
+            onClick={() => onEdit({ item: category })}
             className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
           >
             <PencilIcon className="h-4 w-4" />
             Edit
           </button>
           <button
-            onClick={() => onDelete(category.id, category.name)}
+            onClick={() => onDelete({ item: category })}
             disabled={isDeleting}
             className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
           >
@@ -153,8 +183,8 @@ export function CategoriesTable({
 
   return (
     <div className="">
-      <Table
-        data={categories}
+      <Table<CategoryRow>
+        data={enrichedCategories}
         columns={columns}
         currentPage={currentPage}
         totalPages={totalPages}
@@ -162,14 +192,19 @@ export function CategoriesTable({
         totalItems={totalItems}
         sortField={sortField}
         sortDirection={sortDirection}
-        onSort={onSort}
-        onPageChange={onPageChange}
-        onEdit={onEdit}
-        onDelete={(category) => onDelete(category.id, category.name)}
+        onSort={({ field }) => {
+          if (field === "sequence" || field === "actions") return;
+          onSort({ field: field as keyof Category });
+        }}
+        onPageChange={({ page }) => onPageChange({ page })}
+        onEdit={({ item }) => onEdit({ item })}
+        onDelete={({ item }) => onDelete({ item })}
         isDeleting={isDeleting}
         searchQuery={searchQuery}
         isLoading={isLoading}
-        onItemsPerPageChange={onItemsPerPageChange}
+        onItemsPerPageChange={({ limit }) =>
+          onItemsPerPageChange({ limit })
+        }
       />
     </div>
   );

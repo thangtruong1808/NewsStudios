@@ -13,6 +13,9 @@ interface ResponsiveTableProps<T> {
   isDeleting?: boolean;
 }
 
+// Description: Compose mobile, tablet, and desktop table views with consistent styling.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function ResponsiveTable<T extends { id: number }>({
   data,
   columns,

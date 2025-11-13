@@ -2,23 +2,16 @@
 
 import { Column } from "./TableTypes";
 
-/**
- * Props interface for the TableHeader component
- * @template T - The type of data being displayed in the table
- */
 interface TableHeaderProps<T> {
-  columns: Column<T>[]; // Array of column configurations
-  sortField?: keyof T; // Currently active sort field
-  sortDirection?: "asc" | "desc"; // Current sort direction
-  onSort?: (field: keyof T) => void; // Callback function for sort events
+  columns: Column<T>[];
+  sortField?: keyof T;
+  sortDirection?: "asc" | "desc";
+  onSort?: (params: { field: keyof T }) => void;
 }
 
-/**
- * TableHeader Component
- * Renders the header row of a table with sortable columns and sort indicators.
- * Supports dynamic column configuration and sorting functionality.
- * @template T - The type of data being displayed in the table
- */
+// Description: Render table headers with optional sort indicators and handlers.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function TableHeader<T>({
   columns,
   sortField,
@@ -40,9 +33,10 @@ export default function TableHeader<T>({
                 ? "cursor-pointer hover:underline hover:text-blue-600 rounded-sm"
                 : ""
             }`}
-            onClick={() =>
-              column.sortable !== false && onSort?.(column.field as keyof T)
-            }
+            onClick={() => {
+              if (column.sortable === false) return;
+              onSort?.({ field: column.field as keyof T });
+            }}
           >
             {/* Column header content with sort indicator */}
             <div

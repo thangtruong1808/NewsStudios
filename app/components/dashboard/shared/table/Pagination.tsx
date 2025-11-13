@@ -6,9 +6,12 @@ interface PaginationProps {
   totalPages: number;
   itemsPerPage: number;
   totalItems: number;
-  onPageChange: (page: number) => void;
+  onPageChange: (params: { page: number }) => void;
 }
 
+// Description: Render responsive pagination controls for dashboard data tables.
+// Data created: 2024-11-13
+// Author: thangtruong
 export default function Pagination({
   currentPage,
   totalPages,
@@ -25,14 +28,14 @@ export default function Pagination({
       {/* Mobile view pagination controls */}
       <div className="flex flex-1 justify-between sm:hidden">
         <button
-          onClick={() => onPageChange(currentPage - 1)}
+          onClick={() => onPageChange({ page: currentPage - 1 })}
           disabled={currentPage === 1}
           className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
         >
           Previous
         </button>
         <button
-          onClick={() => onPageChange(currentPage + 1)}
+          onClick={() => onPageChange({ page: currentPage + 1 })}
           disabled={currentPage === totalPages}
           className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
         >
@@ -48,7 +51,7 @@ export default function Pagination({
         >
           {/* First page button */}
           <button
-            onClick={() => onPageChange(1)}
+            onClick={() => onPageChange({ page: 1 })}
             disabled={currentPage === 1}
             className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-500 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
           >
@@ -69,7 +72,7 @@ export default function Pagination({
 
           {/* Previous page button */}
           <button
-            onClick={() => onPageChange(currentPage - 1)}
+            onClick={() => onPageChange({ page: currentPage - 1 })}
             disabled={currentPage === 1}
             className="relative inline-flex items-center px-2 py-2 text-gray-500 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
           >
@@ -92,7 +95,7 @@ export default function Pagination({
           {[...Array(totalPages)].map((_, index) => (
             <button
               key={index + 1}
-              onClick={() => onPageChange(index + 1)}
+              onClick={() => onPageChange({ page: index + 1 })}
               className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
                 currentPage === index + 1
                   ? "z-10 bg-gradient-to-r from-blue-600 to-blue-400 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
@@ -105,7 +108,7 @@ export default function Pagination({
 
           {/* Next page button */}
           <button
-            onClick={() => onPageChange(currentPage + 1)}
+            onClick={() => onPageChange({ page: currentPage + 1 })}
             disabled={currentPage === totalPages}
             className="relative inline-flex items-center px-2 py-2 text-gray-500 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
           >
@@ -126,7 +129,7 @@ export default function Pagination({
 
           {/* Last page button */}
           <button
-            onClick={() => onPageChange(totalPages)}
+            onClick={() => onPageChange({ page: totalPages })}
             disabled={currentPage === totalPages}
             className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-500 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
           >

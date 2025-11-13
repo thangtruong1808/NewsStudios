@@ -19,11 +19,11 @@ interface AuthorsTableProps {
   searchQuery: string;
   isDeleting: boolean;
   isLoading: boolean;
-  onSort: (field: keyof Author) => void;
-  onPageChange: (page: number) => void;
-  onEdit: (author: Author) => void;
-  onDelete: (author: Author) => void;
-  onItemsPerPageChange: (limit: number) => void;
+  onSort: (_field: keyof Author) => void;
+  onPageChange: (_page: number) => void;
+  onEdit: (_author: Author) => void;
+  onDelete: (_author: Author) => void;
+  onItemsPerPageChange: (_limit: number) => void;
 }
 
 type TableAuthor = Author & { sequence: number };
@@ -58,62 +58,85 @@ export default function AuthorsTable({
       field: "sequence",
       label: "#",
       sortable: false,
-      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
+      render: ({ value }) => (
+        <span className="text-sm text-gray-500">
+          {typeof value === "number" ? value : Number(value ?? 0)}
+        </span>
+      ),
     },
     {
       field: "name",
       label: "Name",
       sortable: true,
-      render: (value) => <span className="text-sm text-gray-500">{value}</span>,
+      render: ({ value }) => (
+        <span className="text-sm text-gray-500">
+          {typeof value === "string" ? value : String(value ?? "")}
+        </span>
+      ),
     },
     {
       field: "description",
       label: "Description",
       sortable: true,
-      render: (value: string) => (
-        <div className="w-fit max-w-[300px]">
-          <ExpandableContent
-            content={value || "No description"}
-            maxWords={10}
-            className="text-sm text-gray-500"
-          />
-        </div>
-      ),
+      render: ({ value }) => {
+        const text =
+          typeof value === "string" ? value : String(value ?? "No description");
+
+        return (
+          <div className="w-fit max-w-[300px]">
+            <ExpandableContent
+              content={text || "No description"}
+              maxWords={10}
+              className="text-sm text-gray-500"
+            />
+          </div>
+        );
+      },
     },
     {
       field: "articles_count",
       label: "Articles",
       sortable: true,
-      render: (value: string) => (
-        <div className="w-20">
-          <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {parseInt(value) || 0}
-          </span>
-        </div>
-      ),
+      render: ({ value }) => {
+        const total =
+          typeof value === "number" ? value : Number.parseInt(String(value ?? 0), 10);
+
+        return (
+          <div className="w-20">
+            <span className="text-sm text-gray-500 whitespace-nowrap text-left">
+              {Number.isNaN(total) ? 0 : total}
+            </span>
+          </div>
+        );
+      },
     },
     {
       field: "bio",
       label: "Bio",
       sortable: true,
-      render: (value: string) => (
-        <div className="w-fit max-w-[300px]">
-          <ExpandableContent
-            content={value || "No bio"}
-            maxWords={10}
-            className="text-sm text-gray-500"
-          />
-        </div>
-      ),
+      render: ({ value }) => {
+        const text =
+          typeof value === "string" ? value : String(value ?? "No bio");
+
+        return (
+          <div className="w-fit max-w-[300px]">
+            <ExpandableContent
+              content={text || "No bio"}
+              maxWords={10}
+              className="text-sm text-gray-500"
+            />
+          </div>
+        );
+      },
     },
     {
       field: "created_at",
       label: "Created At",
       sortable: true,
-      render: (value: string) => (
+      render: ({ value }) => (
         <div className="w-32">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {formatDateWithMonth(value)}
+            {formatDateWithMonth(String(value ?? ""))}
           </span>
         </div>
       ),
@@ -122,10 +145,10 @@ export default function AuthorsTable({
       field: "updated_at",
       label: "Updated At",
       sortable: true,
-      render: (value: string) => (
+      render: ({ value }) => (
         <div className="w-32">
           <span className="text-sm text-gray-500 whitespace-nowrap text-left">
-            {formatDateWithMonth(value)}
+            {formatDateWithMonth(String(value ?? ""))}
           </span>
         </div>
       ),
@@ -137,19 +160,19 @@ export default function AuthorsTable({
     field: "id",
     label: "Actions",
     sortable: false,
-    render: (_: string, author: TableAuthor) => (
+    render: ({ row: author }) => (
       <div className="flex justify-start items-start space-x-2">
         <button
-          onClick={() => onEdit(author)}
-          className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+          onClick={() => onEdit({ item: author })}
+          className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors	duration-200"
         >
           <PencilIcon className="h-4 w-4" />
           Edit
         </button>
         <button
-          onClick={() => onDelete(author)}
+          onClick={() => onDelete({ item: author })}
           disabled={isDeleting}
-          className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors	duration-200 disabled:opacity-50"
         >
           <TrashIcon className="h-4 w-4" />
           Delete
@@ -169,7 +192,7 @@ export default function AuthorsTable({
     <div className="flow-root">
       <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-          <Table
+          <Table<TableAuthor>
             data={enrichedAuthors}
             columns={columns}
             currentPage={currentPage}
@@ -178,14 +201,19 @@ export default function AuthorsTable({
             totalItems={totalItems}
             sortField={sortField as keyof TableAuthor}
             sortDirection={sortDirection}
-            onSort={(field) => onSort(field as keyof Author)}
-            onPageChange={onPageChange}
-            onEdit={(author) => onEdit(author)}
-            onDelete={(author) => onDelete(author)}
+            onSort={({ field }) => {
+              if (field === "sequence") return;
+              onSort({ field: field as keyof Author });
+            }}
+            onPageChange={({ page }) => onPageChange({ page })}
+            onEdit={({ item }) => onEdit({ item })}
+            onDelete={({ item }) => onDelete({ item })}
             isDeleting={isDeleting}
             searchQuery={searchQuery}
             isLoading={isLoading}
-            onItemsPerPageChange={onItemsPerPageChange}
+            onItemsPerPageChange={({ limit }) =>
+              onItemsPerPageChange({ limit })
+            }
           />
         </div>
       </div>
