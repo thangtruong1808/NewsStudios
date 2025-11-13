@@ -22,7 +22,10 @@ export default function DesktopMenu({ categories, isActive }: MenuProps) {
           </Link>
 
           {category.subcategories.length > 0 && (
-            <div className="absolute left-1/2 hidden -translate-x-1/2 group-hover:block" style={{ top: "100%" }}>
+            <div
+              className="absolute left-1/2 hidden -translate-x-1/2 group-hover:block z-50"
+              style={{ top: "100%" }}
+            >
               <div className="relative top-3 overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black/10">
                 {category.subcategories.map((subcategory) => (
                   <Link

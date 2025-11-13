@@ -28,8 +28,13 @@ export default function NavBarClient({ categories }: NavBarClientProps) {
   );
 
   return (
-    <header className="w-full border-b border-slate-200 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70">
-      <div className="mx-auto flex w-full max-w-[1536px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-10 xl:px-16">
+    <>
+      {/* Maintenance banner */}
+      <div className="w-full bg-blue-50 px-4 py-2 text-center text-xs font-medium text-blue-700 sm:text-sm">
+        We&apos;re currently upgrading the layout; you may notice minor issues. Please contact thangtruong if you need assistance.
+      </div>
+      <header className="relative z-50 w-full border-b border-slate-200 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70">
+        <div className="mx-auto flex w-full max-w-[1536px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-10 xl:px-16">
         {/* Logo section */}
         <Link href="/" aria-label="Go to homepage" className="inline-flex items-center gap-2 text-base font-semibold text-slate-800">
           <Logo />
@@ -64,7 +69,8 @@ export default function NavBarClient({ categories }: NavBarClientProps) {
           <MobileMenu categories={categories} isActive={isActive} />
         </div>
       </div>
-    </header>
+      </header>
+    </>
   );
 }
 

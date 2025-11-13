@@ -77,15 +77,19 @@ export function useArticles() {
 
   // Event handlers
   const handlePageChange = (page: number) => {
+    if (page === currentPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
     router.push(`/dashboard/articles?${params.toString()}`);
   };
 
   const handleSort = (field: keyof Article) => {
-    setIsSorting(true);
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
+    if (field === sortField && newDirection === sortDirection) {
+      return;
+    }
+    setIsSorting(true);
     const params = new URLSearchParams(searchParams);
     params.set("sortField", field as string);
     params.set("sortDirection", newDirection);
@@ -174,6 +178,7 @@ export function useArticles() {
   };
 
   const handleItemsPerPageChange = (limit: number) => {
+    if (limit === itemsPerPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
     params.set("limit", limit.toString());
