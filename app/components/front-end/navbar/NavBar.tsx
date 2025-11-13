@@ -1,53 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import PortfolioNotice from "../PortfolioNotice";
-import type { MenuProps } from "./types";
-import MobileMenu from "./MobileMenu";
+import { Inter, Playfair_Display } from "next/font/google";
+import Logo from "../shared/Logo";
 import DesktopMenu from "./DesktopMenu";
+import MobileMenu from "./MobileMenu";
 import { categories } from "@/app/lib/data/categories";
+import type { MenuProps } from "./types";
+
+// Component Info
+// Description: Responsive navigation shell coordinating desktop and mobile menus.
+// Data created: Active-path matcher passed to child menus alongside category data.
+// Author: thangtruong
+
+const navBodyFont = Inter({ subsets: ["latin"], weight: ["500", "600"], display: "swap" });
+const navAccentFont = Playfair_Display({ subsets: ["latin"], weight: ["600"], display: "swap", variable: "--font-nav-accent" });
 
 export default function NavBar() {
-  const [isLoading] = useState(false);
   const pathname = usePathname();
 
-  const isActive = (path: string) => pathname === path;
+  const isActive: MenuProps["isActive"] = useMemo(
+    () => (path: string) => pathname === path,
+    [pathname]
+  );
 
   return (
-    <>
-      <PortfolioNotice />
-      <div className="w-screen bg-gray-100 relative left-1/2 right-1/2 -mx-[50vw]">
-        <div className="max-w-[1536px] mx-auto">
-          <nav className="w-full py-6">
-            {/* Navigation Section */}
-            <div className="w-full">
-              <div className="w-full">
-                {/* flex justify-between items-center */}
-                <div className=" py-2">
-                  {/* Desktop Menu */}
-                  <div className="hidden lg:block w-full">
-                    <DesktopMenu
-                      categories={categories}
-                      isLoading={isLoading}
-                      isActive={isActive}
-                    />
-                  </div>
+    <header
+      className={`${navBodyFont.className} ${navAccentFont.variable} w-full border-b border-slate-200 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70`}
+    >
+      <div className="mx-auto flex w-full max-w-[1536px] items-center justify-between gap-4 px-6 py-3 sm:px-10 lg:px-12 xl:px-16">
+        <Link
+          href="/"
+          aria-label="Go to homepage"
+          className="inline-flex items-center gap-2 text-base font-semibold text-slate-800"
+        >
+          <Logo />
+        </Link>
 
-                  {/* Mobile Menu */}
-                  <div className="lg:hidden flex items-center justify-end px-6">
-                    <MobileMenu
-                      categories={categories}
-                      isLoading={isLoading}
-                      isActive={isActive}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </nav>
+        <div className="hidden flex-1 pl-8 lg:flex" style={{ fontFamily: "var(--font-nav-accent)" }}>
+          <DesktopMenu categories={categories} isLoading={false} isActive={isActive} />
+        </div>
+
+        <div className="flex lg:hidden">
+          <MobileMenu categories={categories} isLoading={false} isActive={isActive} />
         </div>
       </div>
-    </>
+    </header>
   );
 }

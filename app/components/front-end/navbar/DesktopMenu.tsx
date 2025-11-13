@@ -10,6 +10,11 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
+// Component Info
+// Description: Desktop navigation layout with logo, category links, and user menu.
+// Data created: Dropdown visibility state for user account actions.
+// Author: thangtruong
+
 export default function DesktopMenu({
   categories,
   isLoading,
@@ -21,38 +26,26 @@ export default function DesktopMenu({
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const getSubcategoriesForCategory = (categoryId: number) => {
-    return subcategories.filter((sub) => sub.category_id === categoryId);
-  };
+  const getSubcategoriesForCategory = (categoryId: number) =>
+    subcategories.filter((sub) => sub.category_id === categoryId);
 
   const handleSignOut = async () => {
     try {
-      // Close the dropdown first
       setIsDropdownOpen(false);
+      await signOut({ redirect: false, callbackUrl: "/" });
 
-      // Clear any existing session data
-      await signOut({
-        redirect: false,
-        callbackUrl: '/'
-      });
-
-      // Handle redirection based on current page
-      if (pathname === '/') {
-        // If on home page, stay on home page
-        router.push('/');
-      } else if (pathname.startsWith('/dashboard')) {
-        // If on dashboard, redirect to login with clean URL
-        router.replace('/login');
+      if (pathname === "/") {
+        router.push("/");
+      } else if (pathname.startsWith("/dashboard")) {
+        router.replace("/login");
       } else {
-        // For any other page, redirect to home
-        router.push('/');
+        router.push("/");
       }
-    } catch (error) {
-      console.error('Error during sign out:', error);
+    } catch (_error) {
+      // Silent fail: NextAuth manages session state
     }
   };
 
-  // Handle click outside to close dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -60,122 +53,93 @@ export default function DesktopMenu({
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   return (
-    <div className="flex w-full">
-      {/* Home Section */}
-      <div className="flex items-center justify-center w-1/4 lg:w-1/5 xl:w-1/4">
-        <Link
-          href="/"
-          className={`text-sm font-medium ${isActive("/") ? "text-black" : "text-gray-500 hover:text-gray-900"
-            }`}
-        >
+    <div className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 xl:gap-8">
+      <div className="flex items-center">
+        <Link href="/" className="inline-flex items-center" aria-label="Go to homepage">
           <Logo />
         </Link>
       </div>
 
-      {/* Categories Section */}
-      <div className="flex items-center justify-center space-x-4 md:space-x-6 lg:space-x-8 w-2/4 lg:w-3/5 xl:w-2/4">
-        {!isLoading &&
-          categories.map((category) => (
-            <div key={category.id} className="relative group">
-              <div className="flex items-center">
+      <div className="min-w-0">
+        <div className="mx-auto flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm xl:text-base">
+          {!isLoading &&
+            categories.map((category) => (
+              <div key={category.id} className="group relative">
                 <Link
                   href={`/explore?categoryId=${category.id}`}
-                  className={`text-gray-500 font hover:text-lg text-sm xl:text-lg hover:text-blue-500 hover:font-bold font-medium px-1 ${isActive(`/category/${category.id}`)
-                    // ? "text-black"
-                    // : "text-gray-500 hover:text-blue-900"
+                  className={`px-1 font-medium transition-colors duration-150 hover:text-blue-500 ${isActive(`/category/${category.id}`) ? "text-blue-600" : "text-gray-600"
                     }`}
                 >
                   {category.name}
                 </Link>
-              </div>
 
-              {/* Dropdown Menu */}
-              <div
-                className="absolute left-0 w-40 md:w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 hidden group-hover:block mt-2 hover:text-blue-500"
-                style={{ top: "100%", marginTop: "0" }}
-              >
                 <div
-                  className="py-2"
-                  role="menu"
-                  aria-orientation="vertical"
-                  aria-labelledby="options-menu"
+                  className="absolute left-1/2 hidden w-48 -translate-x-1/2 rounded-md bg-white shadow-lg ring-1 ring-black/10 group-hover:block"
+                  style={{ top: "calc(100% + 12px)" }}
                 >
-                  {getSubcategoriesForCategory(category.id).map(
-                    (subcategory) => (
+                  <div className="py-2">
+                    {getSubcategoriesForCategory(category.id).map((subcategory) => (
                       <Link
                         key={subcategory.id}
                         href={`/explore?subcategoryId=${subcategory.id}`}
-                        className="block px-2 md:px-2 py-2 text-xs md:text-sm text-gray-700 hover:text-blue-500 hover:bg-gray-100 hover:font-bold rounded-md"
-                        role="menuitem"
+                        className="block px-3 py-2 text-xs text-gray-700 transition-colors duration-150 hover:bg-gray-100 hover:text-blue-500 sm:text-sm"
                       >
                         {subcategory.name}
                       </Link>
-                    )
-                  )}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+        </div>
       </div>
 
-      {/* Login/User Section */}
-      <div className="flex items-center justify-center w-1/4 lg:w-1/5 xl:w-1/4">
+      <div className="flex justify-end">
         {session?.user ? (
           <div className="relative" ref={dropdownRef}>
             <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`text-sm md:text-md font-medium ${isActive("/profile") ? "text-black" : "text-gray-500"
+              onClick={() => setIsDropdownOpen((prev) => !prev)}
+              className={`flex flex-col items-center rounded-md border-2 border-gray-500 px-3 py-1.5 text-sm font-medium transition-all duration-150 hover:border-blue-500 hover:text-blue-500 ${isActive("/profile") ? "text-blue-600" : "text-gray-600"
                 }`}
+              aria-haspopup="menu"
+              aria-expanded={isDropdownOpen}
             >
-              <span className="flex flex-col items-center border-2 border-gray-500 px-2 py-1 rounded-md hover:text-blue-500 hover:border-blue-500">
-                {session.user.user_image ? (
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                    <Image
-                      src={session.user.user_image}
-                      alt={`${session.user.firstname} ${session.user.lastname}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ) : (
-                  <UserIcon className="h-5 w-5" />
-                )}
-                <div className="flex items-center mt-1">
-                  <span className="text-sm text-center">
-                    {session.user.firstname} {session.user.lastname}
-                  </span>
-                  <ChevronDownIcon
-                    className={`h-4 w-4 ml-1 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''
-                      }`}
+              {session.user.user_image ? (
+                <span className="relative h-8 w-8 overflow-hidden rounded-full">
+                  <Image
+                    src={session.user.user_image}
+                    alt={`${session.user.firstname} ${session.user.lastname}`}
+                    fill
+                    className="object-cover"
                   />
-                </div>
+                </span>
+              ) : (
+                <UserIcon className="h-5 w-5" />
+              )}
+              <span className="mt-1 text-center text-sm">
+                {session.user.firstname} {session.user.lastname}
               </span>
+              <ChevronDownIcon
+                className={`h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+              />
             </button>
 
-            {/* User Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-auto min-w-[120px] rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                <div
-                  className="py-1"
-                  role="menu"
-                  aria-orientation="vertical"
-                  aria-labelledby="user-menu"
+              <div className="absolute right-0 mt-3 w-40 rounded-md bg-white py-1 shadow-lg ring-1 ring-black/10" role="menu">
+                <button
+                  onClick={handleSignOut}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 transition-colors duration-150 hover:bg-gray-100 hover:text-blue-500"
+                  role="menuitem"
                 >
-                  <button
-                    onClick={handleSignOut}
-                    className="flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:text-blue-500 w-full"
-                    role="menuitem"
-                  >
-                    <span>Sign Out</span>
-                  </button>
-                </div>
+                  Sign Out
+                </button>
               </div>
             )}
           </div>
@@ -184,13 +148,11 @@ export default function DesktopMenu({
             href="/login"
             target="_blank"
             rel="noopener noreferrer"
-            className={`text-sm md:text-md font-medium ${isActive("/login") ? "text-black" : "text-gray-500"
+            className={`flex items-center gap-2 rounded-md border-2 border-gray-400 px-3 py-1.5 text-sm font-medium transition-all duration-150 hover:border-blue-500 hover:text-blue-500 ${isActive("/login") ? "text-blue-600" : "text-gray-600"
               }`}
           >
-            <span className="flex flex-col xl:flex-row items-center border-2 border-gray-400 px-2 py-1 rounded-md hover:text-blue-500 hover:border-blue-500">
-              <UserIcon className="h-5 w-5" />
-              <span className="mt-1 xl:mt-0 xl:ml-1 text-sm">Login</span>
-            </span>
+            <UserIcon className="h-5 w-5" />
+            <span>Login</span>
           </Link>
         )}
       </div>

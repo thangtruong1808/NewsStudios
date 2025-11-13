@@ -1,60 +1,85 @@
+// Component meta
+// Description: Provide pooled MySQL helpers for NewsStudios backend.
+// Data created: Connection pool instances and transaction helpers.
+// Author: thangtruong
+
 import mysql from "mysql2/promise";
 
-// Database configuration with fallback values for development
-const dbConfig = {
-  host: process.env.DB_HOST || "srv876.hstgr.io",
-  user: process.env.DB_USER || "u506579725_thangtruong",
-  password: process.env.DB_PASSWORD || "052025ThangTruong!@",
-  database: process.env.DB_NAME || "u506579725_nextjs_mysql",
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+// Env guard section
+const requiredEnvVars = [
+  "DB_HOST",
+  "DB_USER",
+  "DB_PASSWORD",
+  "DB_NAME",
+  "DB_PORT",
+];
+
+const missingVars = requiredEnvVars.filter((key) => !process.env[key]);
+
+if (missingVars.length > 0) {
+  throw new Error(
+    `Missing database environment variables: ${missingVars.join(", ")}`
+  );
+}
+
+// Config section
+const dbConfig: mysql.PoolOptions = {
+  host: process.env.DB_HOST as string,
+  user: process.env.DB_USER as string,
+  password: process.env.DB_PASSWORD as string,
+  database: process.env.DB_NAME as string,
+  port: Number(process.env.DB_PORT),
   waitForConnections: true,
-  connectionLimit: 20, // Increased from 3 to 20 for better performance
-  queueLimit: 0, // Removed queue limit to prevent connection blocking
+  connectionLimit: 20,
+  queueLimit: 0,
   enableKeepAlive: true,
-  keepAliveInitialDelay: 10000, // Increased to 10 seconds
-  connectTimeout: 30000, // Increased to 30 seconds
-  idleTimeout: 60000, // Keep idle connections for 60 seconds
-  maxIdle: 5, // Increased to match connectionLimit
+  keepAliveInitialDelay: 10000,
+  connectTimeout: 30000,
+  idleTimeout: 60000,
+  maxIdle: 5,
 };
 
-// Create the connection pool
+// Pool section
 const pool = mysql.createPool(dbConfig);
 
-// Test the connection and log the result
-pool
-  .getConnection()
-  .then((_connection) => {
-    _connection.release();
-  })
-  .catch((err) => {
-    throw new Error(`Failed to connect to database: ${err.message}`);
-  });
+// Health check section
+async function verifyPoolConnection() {
+  const connection = await pool.getConnection();
+  connection.release();
+}
+
+void verifyPoolConnection().catch((err) => {
+  throw new Error(`Failed to connect to database: ${err.message}`);
+});
 
 export default pool;
 
-// Query function with improved error handling
-export async function query<T = any>(
+// Query helper section
+/**
+ * Run a SQL query with an optional parameter list.
+ */
+export async function query<T = unknown>(
   text: string,
   params?: any[]
 ): Promise<{
   data: T[] | null;
   error: string | null;
 }> {
-  let _connection;
+  let connection: mysql.PoolConnection | undefined;
   try {
-    _connection = await pool.getConnection();
-    const [rows] = await _connection.execute(text, params);
+    connection = await pool.getConnection();
+    const [rows] = await connection.execute(text, params);
     return { data: rows as T[], error: null };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Database query failed";
-    
-    // Enhanced error handling with specific error types
+
     if (error instanceof Error) {
       if (error.message.includes("ECONNREFUSED")) {
         return {
           data: null,
-          error: "Database connection refused. Please check if the database server is running.",
+          error:
+            "Database connection refused. Please check if the database server is running.",
         };
       }
       if (error.message.includes("ER_ACCESS_DENIED_ERROR")) {
@@ -84,44 +109,46 @@ export async function query<T = any>(
     }
     return { data: null, error: errorMessage };
   } finally {
-    if (_connection) {
+    if (connection) {
       try {
-        _connection.release();
-      } catch (error) {
-        // Silent error handling for connection release
+        connection.release();
+      } catch (_releaseError) {
+        // Ignore release errors to avoid masking primary failure.
       }
     }
   }
 }
 
-// Transaction function with proper connection handling
+// Transaction helper section
+/**
+ * Execute a callback within a transaction, committing when it succeeds.
+ */
 export async function transaction<T>(
   callback: (connection: mysql.PoolConnection) => Promise<T>
 ): Promise<T> {
-  const _connection = await pool.getConnection();
+  const connection = await pool.getConnection();
   try {
-    await _connection.beginTransaction();
-    const result = await callback(_connection);
-    await _connection.commit();
+    await connection.beginTransaction();
+    const result = await callback(connection);
+    await connection.commit();
     return result;
   } catch (error) {
-    await _connection.rollback();
+    await connection.rollback();
     throw error;
   } finally {
-    _connection.release();
+    connection.release();
   }
 }
 
+// Connection lifecycle section
 /**
- * Gets a connection from the pool
- * @returns A database connection
+ * Obtain a pooled connection for manual control.
  */
 export async function getConnection() {
   try {
-    const _connection = await pool.getConnection();
-    return { connection: _connection, error: null };
+    const connection = await pool.getConnection();
+    return { connection, error: null };
   } catch (error) {
-    console.error("Database connection error:", error);
     return {
       connection: null,
       error:
@@ -131,16 +158,15 @@ export async function getConnection() {
 }
 
 /**
- * Begins a transaction
- * @param connection The database connection
- * @returns The result of starting the transaction
+ * Begin a transaction on an existing connection.
  */
-export async function beginTransaction(_connection: mysql.PoolConnection) {
+export async function beginTransaction(
+  connection: mysql.PoolConnection
+) {
   try {
-    await _connection.beginTransaction();
+    await connection.beginTransaction();
     return { error: null };
   } catch (error) {
-    console.error("Transaction begin error:", error);
     return {
       error:
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -149,16 +175,15 @@ export async function beginTransaction(_connection: mysql.PoolConnection) {
 }
 
 /**
- * Commits a transaction
- * @param connection The database connection
- * @returns The result of committing the transaction
+ * Commit the current transaction.
  */
-export async function commitTransaction(_connection: mysql.PoolConnection) {
+export async function commitTransaction(
+  connection: mysql.PoolConnection
+) {
   try {
-    await _connection.commit();
+    await connection.commit();
     return { error: null };
   } catch (error) {
-    console.error("Transaction commit error:", error);
     return {
       error:
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -167,16 +192,15 @@ export async function commitTransaction(_connection: mysql.PoolConnection) {
 }
 
 /**
- * Rollbacks a transaction
- * @param connection The database connection
- * @returns The result of rolling back the transaction
+ * Roll back the current transaction.
  */
-export async function rollbackTransaction(_connection: mysql.PoolConnection) {
+export async function rollbackTransaction(
+  connection: mysql.PoolConnection
+) {
   try {
-    await _connection.rollback();
+    await connection.rollback();
     return { error: null };
   } catch (error) {
-    console.error("Transaction rollback error:", error);
     return {
       error:
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -185,15 +209,15 @@ export async function rollbackTransaction(_connection: mysql.PoolConnection) {
 }
 
 /**
- * Releases a connection back to the pool
- * @param connection The database connection to release
+ * Release a connection back to the pool.
  */
-export async function releaseConnection(_connection: mysql.PoolConnection) {
+export async function releaseConnection(
+  connection: mysql.PoolConnection
+) {
   try {
-    _connection.release();
+    connection.release();
     return { error: null };
   } catch (error) {
-    console.error("Connection release error:", error);
     return {
       error:
         error instanceof Error ? error.message : "An unknown error occurred",

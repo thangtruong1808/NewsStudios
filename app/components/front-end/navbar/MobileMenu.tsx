@@ -10,193 +10,147 @@ import Logo from "../shared/Logo";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 
-export default function MobileMenu({
-  categories,
-  isLoading,
-  isActive,
-}: MenuProps) {
+// Component Info
+// Description: Mobile navigation drawer with category accordion and account controls.
+// Data created: Internal state for drawer visibility and active accordions.
+// Author: thangtruong
+
+export default function MobileMenu({ categories, isLoading, isActive }: MenuProps) {
   const { data: session } = useSession();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileActiveDropdown, setMobileActiveDropdown] = useState<number | null>(null);
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-  const mobileMenuRef = useRef<HTMLDivElement>(null);
-  const userDropdownRef = useRef<HTMLDivElement>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
 
-  // Handle click outside to close mobile menu and dropdowns
+  const closeDrawer = () => {
+    setIsDrawerOpen(false);
+    setActiveCategoryId(null);
+    setIsAccountOpen(false);
+  };
+
+  const toggleDrawer = () => {
+    setIsDrawerOpen((prev) => !prev);
+    setActiveCategoryId(null);
+    setIsAccountOpen(false);
+  };
+
+  const toggleCategoryAccordion = (categoryId: number) => {
+    setActiveCategoryId((prev) => (prev === categoryId ? null : categoryId));
+  };
+
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      // Handle mobile menu
-      if (
-        mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(event.target as Node)
-      ) {
-        setMobileMenuOpen(false);
-        setMobileActiveDropdown(null);
-        setIsUserDropdownOpen(false);
-      }
-
-      // Handle user dropdown specifically
-      if (
-        userDropdownRef.current &&
-        !userDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsUserDropdownOpen(false);
-      }
-    };
-
+    function handleClickOutside(event: MouseEvent) {
+      if (drawerRef.current && !drawerRef.current.contains(event.target as Node)) closeDrawer();
+      if (accountRef.current && !accountRef.current.contains(event.target as Node)) setIsAccountOpen(false);
+    }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Prevent body scroll when mobile menu is open
   useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
+    document.body.style.overflow = isDrawerOpen ? "hidden" : "";
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
     };
-  }, [mobileMenuOpen]);
-
-  const handleMobileCategoryClick = (categoryId: number) => {
-    if (mobileActiveDropdown === categoryId) {
-      setMobileActiveDropdown(null);
-      return;
-    }
-    setMobileActiveDropdown(categoryId);
-  };
+  }, [isDrawerOpen]);
 
   const handleSignOut = async () => {
     try {
-      // Close all menus and dropdowns first
-      setMobileMenuOpen(false);
-      setMobileActiveDropdown(null);
-      setIsUserDropdownOpen(false);
-
-      // Clear any existing session data
-      await signOut({
-        redirect: false,
-        callbackUrl: '/'
-      });
-
-      // Handle redirection based on current page
-      if (pathname === '/') {
-        // If on home page, stay on home page
-        router.push('/');
-      } else if (pathname.startsWith('/dashboard')) {
-        // If on dashboard, redirect to login with clean URL
-        router.replace('/login');
-      } else {
-        // For any other page, redirect to home
-        router.push('/');
-      }
-    } catch (error) {
-      console.error('Error during sign out:', error);
+      closeDrawer();
+      await signOut({ redirect: false, callbackUrl: "/" });
+      if (pathname === "/") router.push("/");
+      else if (pathname.startsWith("/dashboard")) router.replace("/login");
+      else router.push("/");
+    } catch (_error) {
+      // Silent: session state managed by NextAuth
     }
   };
 
-  const getSubcategoriesForCategory = (categoryId: number) => {
-    return subcategories.filter((sub) => sub.category_id === categoryId);
-  };
+  const getSubcategoriesForCategory = (categoryId: number) => subcategories.filter((sub) => sub.category_id === categoryId);
 
   return (
-    <div className="relative lg:hidden" ref={mobileMenuRef}>
+    <div className="lg:hidden" ref={drawerRef}>
       <button
-        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 border border-gray-300 hover:text-blue-500 hover:border-blue-500"
+        onClick={toggleDrawer}
+        className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-blue-500 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
-        <span className="sr-only">Open main menu</span>
-
-        <span className="flex items-center gap-2 hover:text-blue-500 hover:font-bold">
-          <span className="text-md font-medium">Menu</span>
-          <Bars3Icon className="block h-7 w-7" aria-hidden="true" />
-        </span>
+        <span className="sr-only">Toggle navigation</span>
+        <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+        <span>Menu</span>
       </button>
 
-      {/* Mobile Off-Canvas Drawer */}
-      <div
-        className={`fixed inset-0 z-50 transform transition-transform duration-300 ease-in-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-      >
-        {/* Backdrop */}
+      <div className={`fixed inset-0 z-40 transition-all duration-300 ${isDrawerOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
         <div
-          className={`absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ${mobileMenuOpen ? "opacity-100" : "opacity-0"
-            }`}
-          onClick={() => {
-            setMobileMenuOpen(false);
-            setMobileActiveDropdown(null);
-            setIsUserDropdownOpen(false);
-          }}
+          className={`absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 ${isDrawerOpen ? "opacity-100" : "opacity-0"}`}
         />
 
-        {/* Drawer Content */}
-        <div className="fixed inset-y-0 left-0 w-full max-w-xs bg-white shadow-xl">
-          <div className="h-full flex flex-col">
-            {/* Drawer Header */}
-            <div className="px-4 py-6 border-b border-gray-200 flex items-center justify-between">
+        <div
+          className={`absolute inset-y-0 left-0 flex w-full max-w-sm transform flex-col bg-white shadow-2xl transition-transform duration-300 ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"}`}
+        >
+          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-5">
+            <Link href="/" onClick={closeDrawer} aria-label="Go to homepage">
               <Logo />
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setMobileActiveDropdown(null);
-                  setIsUserDropdownOpen(false);
-                }}
-                className="p-1 rounded-md text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 border border-2 border-gray-300 hover:text-blue-500 hover:border-blue-500"
+            </Link>
+            <button
+              onClick={toggleDrawer}
+              className="rounded-md border border-slate-300 p-2 text-slate-500 transition hover:border-blue-500 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <span className="sr-only">Close navigation</span>
+              <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            <div className="px-5 py-4">
+              <Link
+                href="/"
+                onClick={closeDrawer}
+                className={`block rounded-lg px-4 py-3 text-sm font-medium transition hover:bg-blue-50 hover:text-blue-600 ${isActive("/") ? "bg-blue-50 text-blue-600" : "text-slate-700"
+                  }`}
               >
-                <span className="sr-only ">Close menu</span>
-                <XMarkIcon className="h-6 w-6 text-gray-400 hover:text-blue-500 hover:border-blue-500" aria-hidden="true" />
-              </button>
+                Home
+              </Link>
             </div>
 
-            {/* Drawer Body */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="px-2 py-4">
-                <Link
-                  href="/"
-                  className={`block px-4 py-2 text-md text-gray-700 hover:text-blue-500 hover:font-bold hover:bg-gray-100 rounded-md ${isActive("/") ? "bg-gray-50" : ""
-                    }`}
-                >
-                  Home
-                </Link>
+            <div className="px-5 py-4">
+              <p className="px-4 pb-3 text-xs uppercase tracking-wide text-slate-500">Browse Categories</p>
+              <div className="space-y-2">
                 {!isLoading &&
                   categories.map((category) => {
-                    const hasSubcategories = getSubcategoriesForCategory(category.id).length > 0;
+                    const subcats = getSubcategoriesForCategory(category.id);
+                    const expanded = activeCategoryId === category.id;
+
                     return (
-                      <div key={category.id}>
+                      <div key={category.id} className="rounded-lg border border-slate-200">
                         <button
-                          onClick={() => handleMobileCategoryClick(category.id)}
-                          className={`w-full text-left px-4 py-2 text-md text-gray-700 hover:text-blue-500 hover:font-bold hover:bg-gray-100 rounded-md flex items-center justify-between ${isActive(`/category/${category.id}`)
-                            ? "bg-gray-50"
-                            : ""
+                          onClick={() => toggleCategoryAccordion(category.id)}
+                          className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-600 ${isActive(`/category/${category.id}`) ? "bg-blue-50 text-blue-600" : ""
                             }`}
+                          aria-expanded={expanded}
                         >
-                          <span>{category.name}</span>
-                          {hasSubcategories && (
+                          <span className="truncate">{category.name}</span>
+                          {subcats.length > 0 && (
                             <ChevronDownIcon
-                              className={`h-5 w-5 transition-transform duration-200 ${mobileActiveDropdown === category.id ? "transform rotate-180" : ""
-                                }`}
+                              className={`h-5 w-5 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
                             />
                           )}
                         </button>
-                        {mobileActiveDropdown === category.id && (
-                          <div className="pl-4">
-                            {getSubcategoriesForCategory(category.id).map(
-                              (subcategory) => (
-                                <Link
-                                  key={subcategory.id}
-                                  href={`/explore?subcategoryId=${subcategory.id}`}
-                                  className="block px-4 py-2 text-sm text-gray-600 hover:text-blue-500 hover:font-bold hover:bg-gray-100 rounded-md"
-                                >
-                                  {subcategory.name}
-                                </Link>
-                              )
-                            )}
+
+                        {expanded && subcats.length > 0 && (
+                          <div className="space-y-2 border-t border-slate-100 bg-slate-50 py-2">
+                            {subcats.map((subcategory) => (
+                              <Link
+                                key={subcategory.id}
+                                href={`/explore?subcategoryId=${subcategory.id}`}
+                                onClick={closeDrawer}
+                                className="block rounded-md px-4 py-2 text-sm text-slate-600 transition hover:bg-blue-50 hover:text-blue-600"
+                              >
+                                {subcategory.name}
+                              </Link>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -204,64 +158,60 @@ export default function MobileMenu({
                   })}
               </div>
             </div>
+          </div>
 
-            {/* Drawer Footer */}
-            <div className="border-t border-gray-200 p-4">
-              {session?.user ? (
-                <div className="relative" ref={userDropdownRef}>
-                  <button
-                    onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                    className="w-full flex flex-col items-center border-2 border-gray-500 px-2 py-1 rounded-md hover:text-blue-500 hover:border-blue-500"
-                  >
+          <div className="border-t border-slate-200 px-5 py-6">
+            {session?.user ? (
+              <div className="space-y-3" ref={accountRef}>
+                <button
+                  onClick={() => setIsAccountOpen((prev) => !prev)}
+                  className={`flex items-center justify-between gap-2 rounded-lg border-2 border-slate-500 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-500 hover:text-blue-500 ${isAccountOpen ? "text-blue-600" : ""
+                    }`}
+                  aria-expanded={isAccountOpen}
+                >
+                  <span className="flex items-center gap-2">
                     {session.user.user_image ? (
-                      <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                      <span className="relative h-8 w-8 overflow-hidden rounded-full">
                         <Image
                           src={session.user.user_image}
                           alt={`${session.user.firstname} ${session.user.lastname}`}
                           fill
                           className="object-cover"
                         />
-                      </div>
+                      </span>
                     ) : (
                       <UserIcon className="h-5 w-5" />
                     )}
-                    <div className="flex items-center mt-1">
-                      <span className="text-sm text-center">
-                        {session.user.firstname} {session.user.lastname}
-                      </span>
-                      <ChevronDownIcon
-                        className={`h-4 w-4 ml-1 transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''
-                          }`}
-                      />
-                    </div>
-                  </button>
+                    <span>
+                      {session.user.firstname} {session.user.lastname}
+                    </span>
+                  </span>
+                  <ChevronDownIcon
+                    className={`h-5 w-5 transition-transform duration-200 ${isAccountOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
 
-                  {/* User Dropdown Menu */}
-                  {isUserDropdownOpen && (
-                    <div className="absolute bottom-full left-0 right-0 mb-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                      <div className="py-1">
-                        <button
-                          onClick={handleSignOut}
-                          className="flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:text-blue-500 w-full"
-                        >
-                          <span>Sign Out</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2 border-2 border-gray-500 rounded-md hover:text-blue-500 hover:border-blue-500"
-                >
-                  <UserIcon className="h-5 w-5" />
-                  <span className="text-sm font-medium">Login</span>
-                </Link>
-              )}
-            </div>
+                {isAccountOpen && (
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                  >
+                    Sign Out
+                  </button>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeDrawer}
+                className="flex items-center justify-center gap-2 rounded-lg border-2 border-slate-500 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-500 hover:text-blue-500"
+              >
+                <UserIcon className="h-5 w-5" />
+                <span>Login</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>
