@@ -5,15 +5,23 @@ import type { ReactNode } from "react";
 // Data created: 2024-11-13
 // Author: thangtruong
 export interface Column<T> {
-  field: keyof T;
+  field: keyof T | "actions";
   label: string;
   sortable?: boolean;
-  render?: ({ value, row }: { value: T[keyof T]; row: T }) => ReactNode;
+  render?: ({
+    value,
+    row,
+  }: {
+    value: T extends Record<string, unknown>
+      ? T[keyof T] | undefined
+      : unknown;
+    row: T;
+  }) => ReactNode;
 }
 
 export interface TableProps<T extends { id: number }> {
-  data: T[];
-  columns: Column<T>[];
+  data: (T & { sequence?: number })[];
+  columns: Column<T & { sequence?: number }>[];
   currentPage?: number;
   itemsPerPage?: number;
   totalPages?: number;
@@ -31,8 +39,8 @@ export interface TableProps<T extends { id: number }> {
 }
 
 export interface ViewProps<T extends { id: number }> {
-  data: T[];
-  columns: Column<T>[];
+  data: (T & { sequence?: number })[];
+  columns: Column<T & { sequence?: number }>[];
   onEdit?: ({ item }: { item: T }) => void;
   onDelete?: ({ item }: { item: T }) => void;
   isDeleting?: boolean;
