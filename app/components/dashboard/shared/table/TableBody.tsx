@@ -29,7 +29,7 @@ export default function TableBody<T extends { id: number }>({
             const rawValue =
               column.field === "actions"
                 ? undefined
-                : (item[column.field as keyof T] as T[keyof T] | undefined);
+                : (item[column.field as keyof T] as T[keyof T]) ?? undefined;
 
             return (
               <td
@@ -40,7 +40,7 @@ export default function TableBody<T extends { id: number }>({
                 <div className="flex justify-start items-start">
                   {column.render
                     ? column.render({
-                      value: rawValue,
+                      value: rawValue as never,
                       row: item,
                     })
                     : rawValue !== undefined
