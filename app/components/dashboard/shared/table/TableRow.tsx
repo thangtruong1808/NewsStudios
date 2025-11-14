@@ -48,7 +48,7 @@ export default function TableRow<T extends { id: number }>({
         const rawValue =
           column.field === "sequence"
             ? String(sequence)
-            : item[column.field as keyof T];
+            : (item[column.field as keyof T] as T[keyof T] | undefined);
 
         return (
           <td
@@ -57,10 +57,12 @@ export default function TableRow<T extends { id: number }>({
           >
             {column.render
               ? column.render({
-                  value: rawValue as T[keyof T],
-                  row: item,
-                })
-              : String(rawValue)}
+                value: rawValue as never,
+                row: item,
+              })
+              : rawValue !== undefined
+                ? String(rawValue)
+                : ""}
           </td>
         );
       })}
