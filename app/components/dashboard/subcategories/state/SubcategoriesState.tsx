@@ -118,7 +118,6 @@ export default function SubcategoriesState({
   };
 
   const handleSort = (field: keyof SubCategory) => {
-    if (field === "sequence") return;
     const newDirection =
       field === sortField && sortDirection === "asc" ? "desc" : "asc";
     const params = new URLSearchParams(searchParams);
