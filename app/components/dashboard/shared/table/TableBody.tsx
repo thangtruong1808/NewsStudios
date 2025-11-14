@@ -26,22 +26,26 @@ export default function TableBody<T extends { id: number }>({
             {(currentPage - 1) * itemsPerPage + index + 1}
           </td>
           {columns.map((column) => {
-            const rawValue = item[column.field as keyof T];
+            const rawValue =
+              column.field === "actions"
+                ? undefined
+                : (item[column.field as keyof T] as T[keyof T] | undefined);
 
             return (
               <td
                 key={String(column.field)}
-                className={`px-3 py-4 text-sm text-gray-500 ${
-                  column.field === "actions" ? "text-left" : ""
-                }`}
+                className={`px-3 py-4 text-sm text-gray-500 ${column.field === "actions" ? "text-left" : ""
+                  }`}
               >
                 <div className="flex justify-start items-start">
                   {column.render
                     ? column.render({
-                        value: rawValue as T[keyof T],
-                        row: item,
-                      })
-                    : String(rawValue)}
+                      value: rawValue,
+                      row: item,
+                    })
+                    : rawValue !== undefined
+                      ? String(rawValue)
+                      : ""}
                 </div>
               </td>
             );
