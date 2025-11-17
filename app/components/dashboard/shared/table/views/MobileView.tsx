@@ -71,6 +71,7 @@ export default function MobileView<T extends { id: number }>({
           </div>
         </div>
       ) : (
+        // Render paginated card items
         data.map((item, index) => {
           const sequence = (currentPage - 1) * itemsPerPage + index + 1;
           return (
@@ -83,7 +84,7 @@ export default function MobileView<T extends { id: number }>({
                   const rawValue =
                     column.field === "sequence"
                       ? String(sequence)
-                      : item[column.field as keyof T];
+                      : (item[column.field as keyof T] as T[keyof T] | undefined);
 
                   return (
                     <div key={String(column.field)} className="flex items-start">
@@ -93,15 +94,18 @@ export default function MobileView<T extends { id: number }>({
                       <div className="w-2/3 text-xs">
                         {column.render
                           ? column.render({
-                              value: rawValue as T[keyof T],
+                              value: rawValue as never,
                               row: item,
                             })
-                          : String(rawValue)}
+                          : rawValue !== undefined
+                          ? String(rawValue)
+                          : ""}
                       </div>
                     </div>
                   );
                 })}
                 {isAdmin && (onEdit || onDelete) && (
+                  // Render admin action buttons
                   <div className="flex justify-start space-x-2 pt-2 border-t">
                     {onEdit && (
                       <button
