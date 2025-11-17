@@ -319,17 +319,23 @@ export async function uploadVideoToServer(
       return { error };
     }
 
+    const normalizedUrl = url ?? undefined;
+
+    if (!normalizedUrl) {
+      return { error: "Video uploaded but URL was not returned." };
+    }
+
     // Save to database
     const result = await query(
       "INSERT INTO Videos (article_id, video_url, description, created_at) VALUES (?, ?, ?, NOW())",
-      [article_id, url, description ?? null]
+      [article_id, normalizedUrl, description ?? null]
     );
 
     if (result.error) {
       return { error: result.error };
     }
 
-    return { url };
+    return { url: normalizedUrl };
   } catch (error) {
     return {
       error:
