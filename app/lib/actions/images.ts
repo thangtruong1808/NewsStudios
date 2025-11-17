@@ -233,14 +233,22 @@ export async function getImageById(id: number) {
     }
 
     const image = images[0];
+    const createdAt =
+      image.created_at instanceof Date
+        ? image.created_at
+        : new Date(image.created_at);
+    const updatedAt =
+      image.updated_at instanceof Date
+        ? image.updated_at
+        : new Date(image.updated_at);
     return {
       data: {
         id: image.id,
         article_id: image.article_id,
         image_url: image.image_url,
         description: image.description || undefined,
-        created_at: image.created_at.toISOString(),
-        updated_at: image.updated_at.toISOString(),
+        created_at: createdAt.toISOString(),
+        updated_at: updatedAt.toISOString(),
       },
       error: null,
     };
