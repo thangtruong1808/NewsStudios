@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { query } from "../db/query";
 import { CategoryFormData } from "../validations/categorySchema";
 import { Category } from "../definition";
+import { resolveTableName } from "../db/tableNameResolver";
 
 interface GetCategoriesParams {
   page?: number;
@@ -227,6 +228,18 @@ export async function getNavCategories(): Promise<{
   error: string | null;
 }> {
   try {
+    // Resolve table names with proper casing
+    const [categoriesTable, subcategoriesTable] = await Promise.all([
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+    ]);
+
+    // Validate table names are resolved
+    if (!categoriesTable || !subcategoriesTable) {
+      return { data: null, error: "Failed to resolve table names." };
+    }
+
+    // Query categories and subcategories
     const result = await query<{
       category_id: number;
       category_name: string;
@@ -238,8 +251,8 @@ export async function getNavCategories(): Promise<{
          c.name AS category_name,
          s.id AS subcategory_id,
          s.name AS subcategory_name
-       FROM Categories c
-       LEFT JOIN SubCategories s ON s.category_id = c.id
+       FROM \`${categoriesTable}\` c
+       LEFT JOIN \`${subcategoriesTable}\` s ON s.category_id = c.id
        ORDER BY c.name ASC, s.name ASC`
     );
 
@@ -247,6 +260,7 @@ export async function getNavCategories(): Promise<{
       return { data: null, error: result.error ?? "Failed to fetch navigation categories." };
     }
 
+    // Transform query results into category structure
     const map = new Map<number, NavCategory>();
 
     for (const row of result.data) {

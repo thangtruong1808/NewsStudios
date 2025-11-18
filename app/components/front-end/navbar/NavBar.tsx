@@ -4,13 +4,14 @@ import { getNavCategories } from "@/app/lib/actions/categories";
 
 // Component Info
 // Description: Server wrapper preparing navigation data for the client navbar.
-// Data created: Category and subcategory lists sourced from the database.
+// Date created: 2024
 // Author: thangtruong
 
 const navCategoriesPromise = getNavCategories();
 
 export default function NavBar() {
-  const { data: categories } = use(navCategoriesPromise);
+  const result = use(navCategoriesPromise);
+  const categories = result.data ?? [];
 
-  return <NavBarClient categories={categories ?? []} />;
+  return <NavBarClient categories={categories} />;
 }

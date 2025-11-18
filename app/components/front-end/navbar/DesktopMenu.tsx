@@ -5,14 +5,21 @@ import { MenuProps } from "./types";
 
 // Component Info
 // Description: Desktop navigation list rendering categories and their submenus.
-// Data created: None; consumes prepared navigation categories.
+// Date created: 2024
 // Author: thangtruong
 
 export default function DesktopMenu({ categories, isActive }: MenuProps) {
+  // Early return if no categories
+  if (categories.length === 0) {
+    return null;
+  }
+
   return (
     <div className="flex w-full flex-wrap items-center justify-center gap-4 text-sm xl:text-base">
+      {/* Category links with dropdown submenus */}
       {categories.map((category) => (
         <div key={category.id} className="group relative">
+          {/* Main category link */}
           <Link
             href={`/explore?categoryId=${category.id}`}
             className={`px-1 font-medium transition-colors duration-150 hover:text-blue-500 ${isActive(`/category/${category.id}`) ? "text-blue-600" : "text-gray-600"
@@ -21,6 +28,7 @@ export default function DesktopMenu({ categories, isActive }: MenuProps) {
             {category.name}
           </Link>
 
+          {/* Subcategory dropdown menu */}
           {category.subcategories.length > 0 && (
             <div
               className="absolute left-1/2 hidden -translate-x-1/2 group-hover:block z-50"
