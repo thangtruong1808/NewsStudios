@@ -8,7 +8,6 @@ import { Article } from "@/app/lib/definition";
 import type { AdditionalMedia, MediaItem } from "../latest-articles/types";
 import type { Image } from "@/app/lib/definition";
 import ArticleSkeleton from "./ArticleSkeleton";
-import { TopButton } from "@/app/components/front-end/shared";
 
 // Import subcomponents
 import ArticleHeader from "./components/ArticleHeader";
@@ -18,22 +17,20 @@ import ArticleContent from "./components/ArticleContent";
 import ArticleTags from "./components/ArticleTags";
 import ArticleActions from "./components/ArticleActions";
 
+// Component Info
+// Description: Render article detail view with media galleries and share actions.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 // Define the props interface for the SingleArticle component
-/* eslint-disable no-unused-vars */
 interface SingleArticleProps {
   articleId: number; // Required prop for the article ID
   showBackButton?: boolean; // Optional prop to control back button visibility
-  onBookmark?: (id: number) => void; // Optional callback for bookmark action
 }
-/* eslint-enable no-unused-vars */
 
-// Description: Render article detail view with media galleries and share actions.
-// Data created: 2024-11-13
-// Author: thangtruong
 export default function SingleArticle({
   articleId,
   showBackButton = false,
-  onBookmark,
 }: SingleArticleProps) {
   const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -181,14 +178,8 @@ export default function SingleArticle({
             : []}
         />
         {/* Actions */}
-        <ArticleActions
-          showBackButton={showBackButton}
-          isBookmarked={false}
-          onBookmark={() => onBookmark?.(article.id)}
-        />
+        <ArticleActions showBackButton={showBackButton} />
       </div>
-
-      <TopButton />
     </div>
   );
 }
