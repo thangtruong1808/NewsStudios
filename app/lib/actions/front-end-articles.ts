@@ -465,6 +465,10 @@ export async function getCategoryArticles({
   }
 }
 
+/**
+ * Fetches articles filtered by a specific tag with pagination
+ * Used in tag-specific article listings
+ */
 export async function getArticlesByTag({
   tagId,
   page = 1,
@@ -479,14 +483,36 @@ export async function getArticlesByTag({
   error: string | null;
 }> {
   try {
+    // Resolve table names with proper casing
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable, viewsTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
+      resolveTableName("Views"),
+    ]);
+
+    // Validate table names are resolved
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable || !viewsTable) {
+      return {
+        data: null,
+        totalCount: 0,
+        error: "Failed to resolve table names.",
+      };
+    }
+
     const offset = (page - 1) * itemsPerPage;
     
     // First get the total count of articles with this tag
     const countResult = await query(
       `
       SELECT COUNT(DISTINCT a.id) as total
-      FROM Articles a
-      INNER JOIN Article_Tags at ON a.id = at.article_id
+      FROM \`${articlesTable}\` a
+      INNER JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
       WHERE at.tag_id = ?
     `,
       [tagId]
@@ -509,8 +535,8 @@ export async function getArticlesByTag({
       `
       WITH FilteredArticles AS (
         SELECT DISTINCT a.id
-        FROM Articles a
-        INNER JOIN Article_Tags at ON a.id = at.article_id
+        FROM \`${articlesTable}\` a
+        INNER JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
         WHERE at.tag_id = ?
       )
       SELECT 
@@ -524,15 +550,15 @@ export async function getArticlesByTag({
         COUNT(DISTINCT cm.id) as comments_count,
         COUNT(DISTINCT v.id) as views_count
       FROM FilteredArticles fa
-      INNER JOIN Articles a ON fa.id = a.id
-      LEFT JOIN Categories c ON a.category_id = c.id
-      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-      LEFT JOIN Authors au ON a.author_id = au.id
-      LEFT JOIN Article_Tags at ON a.id = at.article_id
-      LEFT JOIN Tags t ON at.tag_id = t.id
-      LEFT JOIN Likes l ON a.id = l.article_id
-      LEFT JOIN Comments cm ON a.id = cm.article_id
-      LEFT JOIN Views v ON a.id = v.article_id
+      INNER JOIN \`${articlesTable}\` a ON fa.id = a.id
+      LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id
+      LEFT JOIN \`${subcategoriesTable}\` sc ON a.sub_category_id = sc.id
+      LEFT JOIN \`${authorsTable}\` au ON a.author_id = au.id
+      LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
+      LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
+      LEFT JOIN \`${likesTable}\` l ON a.id = l.article_id
+      LEFT JOIN \`${commentsTable}\` cm ON a.id = cm.article_id
+      LEFT JOIN \`${viewsTable}\` v ON a.id = v.article_id
       GROUP BY a.id
       ORDER BY a.published_at DESC
       LIMIT ? OFFSET ?

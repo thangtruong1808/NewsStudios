@@ -5,42 +5,43 @@ import RelativeArticles from "@/app/components/front-end/relative-articles/Relat
 import Tags from "../components/front-end/Tags/Tags";
 import VideoCarousel from "../components/front-end/VideoCarousel";
 
+// Component Info
+// Description: Home page layout orchestrating video carousel, featured articles, highlights, trending, related articles, and tags sections.
+// Date created: 2024-12-19
+// Author: thangtruong
+
 export default function Home() {
   return (
-    <>
-      {/* VideoCarousel  Section */}
-      <div className="mb-12">
+    <main className="min-h-screen bg-white">
+      {/* Video Carousel Section - Hero section */}
+      <section className="mb-16 md:mb-20">
         <VideoCarousel />
-      </div>
+      </section>
+
       {/* Featured Articles Section */}
-      <div id="featured-articles" className="m-12">
+      <section id="featured-articles" className="mb-16 md:mb-20">
         <FeaturedArticles />
-      </div>
-      {/* <div>
-        <hr className="my-12 bg-gray-200 py-8 relative left-1/2 right-1/2 -mx-[50vw]" />
-      </div> */}
+      </section>
+
       {/* Highlight Articles Section */}
-      <div id="highlight-articles" className="m-12">
+      <section id="highlight-articles" className="mb-16 md:mb-20">
         <HighlightArticles />
-      </div>
+      </section>
 
       {/* Trending Articles Section */}
-      <div id="trending-articles" className="m-12">
+      <section id="trending-articles" className="mb-16 md:mb-20">
         <ArticlesTrending />
-      </div>
+      </section>
 
       {/* Related Articles Section */}
-      <div id="related-articles" className="m-12">
+      <section id="related-articles" className="mb-16 md:mb-20">
         <RelativeArticles />
-      </div>
+      </section>
 
       {/* Tags Section */}
-      <div className="m-12">
+      <section className="mb-16 md:mb-20">
         <Tags />
-      </div>
-
-      {/* Top Button */}
-      {/* <TopButton /> */}
-    </>
+      </section>
+    </main>
   );
 }

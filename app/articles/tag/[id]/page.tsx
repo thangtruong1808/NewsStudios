@@ -2,6 +2,11 @@ import { Metadata } from 'next';
 import TagArticlesClient from './TagArticlesClient';
 import { getTagById } from '@/app/lib/actions/tags';
 
+// Component Info
+// Description: Server component generating metadata and rendering tag articles page.
+// Date created: 2024-12-19
+// Author: thangtruong
+
 interface TagArticlesProps {
   params: {
     id: string;
@@ -19,8 +24,8 @@ export async function generateMetadata({ params }: TagArticlesProps): Promise<Me
       title = `Articles tagged "${tag.name}" | NewsStudios`;
       description = `Discover a comprehensive collection of articles tagged with "${tag.name}". Browse through curated content, trending topics, and engaging multimedia articles from our extensive library. Find high-quality content and stay updated with the latest news and insights related to this topic.`;
     }
-  } catch (error) {
-    console.error('Error fetching tag metadata:', error);
+  } catch (_error) {
+    // Silent: fallback metadata already set
   }
 
   return {

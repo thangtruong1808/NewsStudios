@@ -2,6 +2,12 @@
 
 import { query } from "../db/db";
 import { Tag, TagFormData } from "../definition";
+import { resolveTableName } from "../db/tableNameResolver";
+
+// Component Info
+// Description: Server actions for tag CRUD operations and queries.
+// Date created: 2024-12-19
+// Author: thangtruong
 
 type TagCountRow = {
   total_count: number;
@@ -190,6 +196,18 @@ export async function getFilteredTags(
 
 export async function getTagById(id: number) {
   try {
+    // Resolve table names with proper casing
+    const [tagsTable, categoriesTable, subcategoriesTable] = await Promise.all([
+      resolveTableName("Tags"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+    ]);
+
+    // Validate table names are resolved
+    if (!tagsTable || !categoriesTable || !subcategoriesTable) {
+      return { data: null, error: "Failed to resolve table names." };
+    }
+
     const result = await query(
       `
       SELECT 
@@ -203,9 +221,9 @@ export async function getTagById(id: number) {
         DATE_FORMAT(t.updated_at, '%Y-%m-%d %H:%i:%s') as updated_at,
         c.name as category_name,
         sc.name as sub_category_name
-      FROM Tags t
-      LEFT JOIN Categories c ON t.category_id = c.id
-      LEFT JOIN SubCategories sc ON t.sub_category_id = sc.id
+      FROM \`${tagsTable}\` t
+      LEFT JOIN \`${categoriesTable}\` c ON t.category_id = c.id
+      LEFT JOIN \`${subcategoriesTable}\` sc ON t.sub_category_id = sc.id
       WHERE t.id = ?
     `,
       [id]
@@ -230,10 +248,10 @@ export async function getTagById(id: number) {
       },
       error: null,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : "Failed to fetch tag",
+      error: "Failed to fetch tag",
     };
   }
 }

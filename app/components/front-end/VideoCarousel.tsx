@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getAllVideos } from "@/app/lib/actions/front-end-videos";
-import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from "@heroicons/react/24/outline";
+import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon, ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/outline";
 import VideoCarouselSkeleton from "./VideoCarouselSkeleton";
 import VideoModal from "./VideoModal";
 
@@ -17,8 +17,9 @@ interface Video {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Auto-playing video carousel with modal playback and thumbnail scrubber.
-// Data created: 2024-11-13
+// Date created: 2024-12-19
 // Author: thangtruong
 export default function VideoCarousel() {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -102,6 +103,16 @@ const prevVideo = useCallback(() => {
     setSelectedVideoIndex(null);
   };
 
+  // Scroll to top handler
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Scroll to bottom handler
+  const scrollToBottom = () => {
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+  };
+
   if (isLoading) {
     return <VideoCarouselSkeleton />;
   }
@@ -125,130 +136,165 @@ const prevVideo = useCallback(() => {
   const currentVideo = videos[currentIndex];
 
   return (
-    <div className="relative h-[400px] w-full overflow-hidden rounded-lg bg-gray-100">
-      <div
-        className="relative h-full w-full"
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
-      >
-        {/* Video Player Container */}
-        <div className="relative h-full w-full">
-          <div className="relative h-full w-full">
-            <video
-              src={currentVideo.video_url}
-              className="h-full w-full object-cover"
-            />
-            <button
-              onClick={() => handleVideoClick(currentIndex)}
-              className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-40 transition-all duration-300"
-              aria-label="Play video"
-            >
-              <PlayIcon className="h-16 w-16 text-white" />
-            </button>
-          </div>
-
-          {/* Title Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-5">
-            <h3 className="text-md font-bold text-white mb-1">
-              <span className="text-gray-200 text-sm ml-1">
-                <CalendarIcon className="inline-block h-4 w-4 mr-1" />
-                {new Date(currentVideo.updated_at).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-                <span> - </span></span>{currentVideo.article_title}
-            </h3>
+    <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+      <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+        {/* Header section */}
+        <div className="mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-purple-100">
+              <PlayIcon className="h-6 w-6 text-purple-600" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Latest Videos</h2>
+              <p className="text-sm text-gray-500 mt-1">Watch our featured video content</p>
+            </div>
           </div>
         </div>
 
-        {/* Navigation Buttons */}
-        <button
-          onClick={prevVideo}
-          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-all duration-300"
-          aria-label="Previous video"
-        >
-          <ChevronLeftIcon className="h-6 w-6 text-gray-700" />
-        </button>
-        <button
-          onClick={nextVideo}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-all duration-300"
-          aria-label="Next video"
-        >
-          <ChevronRightIcon className="h-6 w-6 text-gray-700" />
-        </button>
-
-        {/* Auto-play Toggle */}
-        <button
-          onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-          className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-all duration-300"
-          aria-label={isAutoPlaying ? "Pause auto-play" : "Start auto-play"}
-        >
-          {isAutoPlaying ? (
-            <PauseIcon className="h-5 w-5 text-gray-700" />
-          ) : (
-            <PlayIcon className="h-5 w-5 text-gray-700" />
-          )}
-        </button>
-
-        {/* Thumbnails Strip */}
-        <div className="absolute bottom-16 left-0 right-0 bg-black/30 p-2">
-          <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-            {videos.map((video, index) => (
-              <div key={video.id} className="relative group">
-                <div className="relative aspect-video w-24 overflow-hidden rounded-lg">
-                  <video
-                    ref={el => videoRefs.current[index] = el}
-                    className="w-full h-full object-cover"
-                    muted
-                    playsInline
-                    preload="metadata"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-30 transition-all duration-300" />
-                  <button
-                    onClick={() => {
-                      if (isTransitioning) return;
-                      setIsTransitioning(true);
-                      setCurrentIndex(index);
-                      handleVideoClick(index);
-                      setTimeout(() => setIsTransitioning(false), 500);
-                    }}
-                    className={`absolute inset-0 w-full flex items-center justify-center ${index === currentIndex ? 'ring-2 ring-white' : ''}`}
-                  >
-                    <PlayIcon className="h-6 w-6 text-white" />
-                  </button>
-                </div>
+        {/* Video Carousel Container */}
+        <div className="relative h-[400px] w-full overflow-hidden rounded-lg bg-gray-100 shadow-lg">
+          <div
+            className="relative h-full w-full"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+          >
+            {/* Video Player Container */}
+            <div className="relative h-full w-full">
+              <div className="relative h-full w-full">
+                <video
+                  src={currentVideo.video_url}
+                  className="h-full w-full object-cover"
+                />
+                <button
+                  onClick={() => handleVideoClick(currentIndex)}
+                  className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-40 transition-all duration-300"
+                  aria-label="Play video"
+                >
+                  <PlayIcon className="h-16 w-16 text-white" />
+                </button>
               </div>
-            ))}
+
+              {/* Title Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-5">
+                <h3 className="text-md font-bold text-white mb-1">
+                  <span className="text-gray-200 text-sm ml-1">
+                    <CalendarIcon className="inline-block h-4 w-4 mr-1" />
+                    {new Date(currentVideo.updated_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                    <span> - </span></span>{currentVideo.article_title}
+                </h3>
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <button
+              onClick={prevVideo}
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-all duration-300"
+              aria-label="Previous video"
+            >
+              <ChevronLeftIcon className="h-6 w-6 text-gray-700" />
+            </button>
+            <button
+              onClick={nextVideo}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-all duration-300"
+              aria-label="Next video"
+            >
+              <ChevronRightIcon className="h-6 w-6 text-gray-700" />
+            </button>
+
+            {/* Auto-play Toggle */}
+            <button
+              onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-all duration-300"
+              aria-label={isAutoPlaying ? "Pause auto-play" : "Start auto-play"}
+            >
+              {isAutoPlaying ? (
+                <PauseIcon className="h-5 w-5 text-gray-700" />
+              ) : (
+                <PlayIcon className="h-5 w-5 text-gray-700" />
+              )}
+            </button>
+
+            {/* Thumbnails Strip */}
+            <div className="absolute bottom-16 left-0 right-0 bg-black/30 p-2">
+              <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
+                {videos.map((video, index) => (
+                  <div key={video.id} className="relative group">
+                    <div className="relative aspect-video w-24 overflow-hidden rounded-lg">
+                      <video
+                        ref={el => videoRefs.current[index] = el}
+                        className="w-full h-full object-cover"
+                        muted
+                        playsInline
+                        preload="metadata"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-40 group-hover:bg-opacity-30 transition-all duration-300" />
+                      <button
+                        onClick={() => {
+                          if (isTransitioning) return;
+                          setIsTransitioning(true);
+                          setCurrentIndex(index);
+                          handleVideoClick(index);
+                          setTimeout(() => setIsTransitioning(false), 500);
+                        }}
+                        className={`absolute inset-0 w-full flex items-center justify-center ${index === currentIndex ? 'ring-2 ring-white' : ''}`}
+                      >
+                        <PlayIcon className="h-6 w-6 text-white" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Video Counter */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+              {videos.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    if (isTransitioning) return;
+                    setIsTransitioning(true);
+                    setCurrentIndex(index);
+                    setTimeout(() => setIsTransitioning(false), 500);
+                  }}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentIndex ? "bg-white w-4" : "bg-white/50"}`}
+                  aria-label={`Go to video ${index + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Video Counter */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-          {videos.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                if (isTransitioning) return;
-                setIsTransitioning(true);
-                setCurrentIndex(index);
-                setTimeout(() => setIsTransitioning(false), 500);
-              }}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentIndex ? "bg-white w-4" : "bg-white/50"
-                }`}
-              aria-label={`Go to video ${index + 1}`}
-            />
-          ))}
-        </div>
-      </div>
+        {/* Scroll to Top Button */}
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-24 right-6 z-50 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-label="Scroll to top"
+        >
+          <ArrowUpIcon className="h-6 w-6" />
+        </button>
 
-      {/* Video Modal */}
-      <VideoModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        videoUrl={selectedVideoIndex !== null ? videos[selectedVideoIndex].video_url : currentVideo.video_url}
-        title={selectedVideoIndex !== null ? videos[selectedVideoIndex].article_title : currentVideo.article_title}
-      />
+        {/* Scroll to Bottom Button */}
+        <button
+          onClick={scrollToBottom}
+          className="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-label="Scroll to bottom"
+        >
+          <ArrowDownIcon className="h-6 w-6" />
+        </button>
+
+        {/* Video Modal */}
+        <VideoModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          videoUrl={selectedVideoIndex !== null ? videos[selectedVideoIndex].video_url : currentVideo.video_url}
+          title={selectedVideoIndex !== null ? videos[selectedVideoIndex].article_title : currentVideo.article_title}
+        />
+      </div>
     </div>
   );
 } 

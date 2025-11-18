@@ -8,8 +8,9 @@ import { ImageCarousel } from "@/app/components/front-end/shared/ImageCarousel";
 import Card from "@/app/components/front-end/shared/Card";
 import ArticlesTrendingSkeleton from "./ArticlesTrendingSkeleton";
 
+// Component Info
 // Description: Present trending articles with hero carousel and grid plus pagination.
-// Data created: 2024-11-13
+// Date created: 2024-12-19
 // Author: thangtruong
 export function ArticlesTrending() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -91,21 +92,17 @@ export function ArticlesTrending() {
 
   return (
     <>
-      {/* Header section with title and description - Full width background */}
-      <div className="w-screen bg-gray-200 relative left-1/2 right-1/2 -mx-[50vw] mb-4">
-        <div className="max-w-[1536px] mx-auto">
+      {/* Header section with title and description */}
+      <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
           <div className="py-8">
-            <div className="flex items-center space-x-3 pl-4 lg:pl-0">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-red-100">
-                <FireIcon className="h-6 w-6 text-red-500" />
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-red-100 shadow-sm">
+                <FireIcon className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Trending Articles
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  What&apos;s hot and happening right now
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900">Trending Articles</h2>
+                <p className="text-sm text-gray-600 mt-1">What&apos;s hot and happening right now</p>
               </div>
             </div>
           </div>
@@ -158,10 +155,10 @@ export function ArticlesTrending() {
 
           {/* Load More Button */}
           {hasMore && articles.length > 0 && (
-            <div className="flex justify-center mt-8">
+            <div className="flex justify-center mt-10">
               <button
                 onClick={handleLoadMore}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isLoading}
               >
                 {isLoading ? "Loading..." : "Load More"}

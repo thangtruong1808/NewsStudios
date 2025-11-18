@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Card from "../shared/Card";
 import { ImageCarousel } from "../shared/ImageCarousel";
 import { StarIcon } from "@heroicons/react/24/outline";
@@ -91,8 +91,9 @@ const normalizeArticle = (article: FeaturedArticleRaw): Article => {
   };
 };
 
+// Component Info
 // Description: Display featured articles with carousel, grid, and load-more controls.
-// Data created: 2024-11-13
+// Date created: 2024-12-19
 // Author: thangtruong
 export default function FeaturedArticles() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -103,10 +104,10 @@ export default function FeaturedArticles() {
   const ITEMS_PER_PAGE = 8; // 4 columns × 2 rows
 
   // Interaction handlers (placeholder for analytics integration)
-  const handleViewClick = () => {};
-  const handleLikeClick = () => {};
-  const handleCommentClick = () => {};
-  const handleShareClick = () => {};
+  const handleViewClick = () => { };
+  const handleLikeClick = () => { };
+  const handleCommentClick = () => { };
+  const handleShareClick = () => { };
 
   // Fetch featured articles on component mount
   useEffect(() => {
@@ -132,7 +133,7 @@ export default function FeaturedArticles() {
           const totalLoaded = merged.length;
           setHasMore(
             (result.totalCount || 0) > totalLoaded &&
-              newArticles.length === ITEMS_PER_PAGE
+            newArticles.length === ITEMS_PER_PAGE
           );
           return merged;
         });
@@ -181,21 +182,17 @@ export default function FeaturedArticles() {
 
   return (
     <>
-      {/* Header section with title and description - Full width background */}
-      <div className="w-screen bg-gray-200 relative left-1/2 right-1/2 -mx-[50vw] mb-4 ">
-        <div className="max-w-[1536px] mx-auto">
+      {/* Header section with title and description */}
+      <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
           <div className="py-8">
             <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100">
-                <StarIcon className="h-6 w-6 text-blue-500" />
+              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100 shadow-sm">
+                <StarIcon className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Featured Articles
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  Our top picks for you
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900">Featured Articles</h2>
+                <p className="text-sm text-gray-600 mt-1">Our top picks for you</p>
               </div>
             </div>
           </div>
@@ -253,10 +250,10 @@ export default function FeaturedArticles() {
 
       {/* Load More Button */}
       {hasMore && articles.length > 0 && (
-        <div className="flex justify-center mt-8">
+        <div className="flex justify-center mt-10">
           <button
             onClick={handleLoadMore}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
             {isLoading ? "Loading..." : "Load More"}

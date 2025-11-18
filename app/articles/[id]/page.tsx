@@ -2,6 +2,11 @@ import { Metadata } from 'next';
 import ArticlePageClient from './ArticlePageClient';
 import { getArticleById } from '@/app/lib/actions/articles';
 
+// Component Info
+// Description: Server component generating metadata and rendering article detail page.
+// Date created: 2024-12-19
+// Author: thangtruong
+
 interface ArticlePageProps {
   params: {
     id: string;
@@ -25,8 +30,8 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
       description = `${contentPreview} Explore more articles in ${article.category_name || 'our content library'} and stay updated with the latest news and insights.`;
     }
-  } catch (error) {
-    console.error('Error fetching article metadata:', error);
+  } catch (_error) {
+    // Silent: fallback metadata already set
   }
 
   return {

@@ -10,7 +10,7 @@ import type { NavMenuCategory, NavMenuSubcategory } from "../navbar/types";
 
 // Component Info
 // Description: Client interface for browsing tags with category and subcategory filters.
-// Data created: Local filter state driving tag pagination and API requests.
+// Date created: 2024-12-19
 // Author: thangtruong
 
 interface TagsClientProps {
@@ -97,16 +97,17 @@ export default function TagsClient({ categories }: TagsClientProps) {
 
   return (
     <>
-      <div className="relative left-1/2 right-1/2 w-screen -mx-[50vw] bg-gray-200">
-        <div className="mx-auto max-w-[1536px]">
+      {/* Header section */}
+      <div className="relative left-1/2 right-1/2 w-screen -mx-[50vw] bg-slate-50 mb-8">
+        <div className="mx-auto max-w-[1536px] px-4 sm:px-6 lg:px-10 xl:px-16">
           <div className="py-8">
             <div className="flex items-center space-x-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-                <TagIcon className="h-6 w-6 text-blue-500" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 shadow-sm">
+                <TagIcon className="h-6 w-6 text-blue-600" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Popular Tags</h2>
-                <p className="mt-1 text-sm text-gray-500">Explore articles by tags</p>
+                <p className="mt-1 text-sm text-gray-600">Explore articles by tags</p>
               </div>
             </div>
           </div>
@@ -178,12 +179,13 @@ export default function TagsClient({ categories }: TagsClientProps) {
             ))}
           </div>
 
+          {/* Load More Button */}
           {hasMore && tags.length > 0 && (
-            <div className="mt-8 text-center">
+            <div className="mt-10 text-center">
               <button
                 onClick={handleLoadMore}
                 disabled={loading}
-                className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center px-8 py-3 bg-blue-600 text-white rounded-lg font-medium shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? (
                   <>

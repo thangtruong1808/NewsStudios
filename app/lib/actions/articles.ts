@@ -4,6 +4,12 @@ import { query } from "../db/db";
 import { RowDataPacket } from "mysql2";
 import { Article } from "../definition";
 import { transaction } from "../db/db";
+import { resolveTableName } from "../db/tableNameResolver";
+
+// Component Info
+// Description: Server actions for article CRUD operations and queries.
+// Date created: 2024-12-19
+// Author: thangtruong
 
 export interface ArticleWithJoins extends Article, RowDataPacket {
   category_name?: string;
@@ -29,6 +35,29 @@ export async function getArticles({
   sortDirection = "desc",
 }: GetArticlesParams = {}) {
   try {
+    // Resolve table names with proper casing
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+    ]);
+
+    // Validate table names are resolved
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+        error: "Failed to resolve table names.",
+      };
+    }
+
     const safePage = Number.isFinite(page) && page > 0 ? Number(page) : 1;
     const safeLimit = Number.isFinite(limit) && limit > 0 ? Number(limit) : 10;
     const offset = (safePage - 1) * safeLimit;
@@ -57,7 +86,7 @@ export async function getArticles({
     // First, get the total count
     const countQuery = `
       SELECT COUNT(*) as total
-      FROM Articles a
+      FROM \`${articlesTable}\` a
       ${whereClause}
     `;
     
@@ -82,12 +111,12 @@ export async function getArticles({
         au.name as author_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors
-      FROM Articles a
-      LEFT JOIN Categories c ON a.category_id = c.id
-      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-      LEFT JOIN Authors au ON a.author_id = au.id
-      LEFT JOIN Article_Tags at ON a.id = at.article_id
-      LEFT JOIN Tags t ON at.tag_id = t.id
+      FROM \`${articlesTable}\` a
+      LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id
+      LEFT JOIN \`${subcategoriesTable}\` sc ON a.sub_category_id = sc.id
+      LEFT JOIN \`${authorsTable}\` au ON a.author_id = au.id
+      LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
+      LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
       ${whereClause}
       GROUP BY a.id
       ORDER BY a.${safeSortField} ${safeDirection}
@@ -160,82 +189,103 @@ export async function getArticles({
 }
 
 export async function getArticleById(id: number) {
-  const { data, error } = await query(
-    `
-    SELECT 
-      a.*,
-      c.name as category_name,
-      sc.name as subcategory_name,
-      au.name as author_name,
-      GROUP_CONCAT(t.name) as tag_names,
-      GROUP_CONCAT(t.id) as tag_ids,
-      GROUP_CONCAT(t.color) as tag_colors,
-      (SELECT COUNT(*) FROM Likes WHERE article_id = a.id) as likes_count,
-      (SELECT COUNT(*) FROM Comments WHERE article_id = a.id) as comments_count
-    FROM Articles a
-    LEFT JOIN Categories c ON a.category_id = c.id
-    LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-    LEFT JOIN Authors au ON a.author_id = au.id
-    LEFT JOIN Article_Tags at ON a.id = at.article_id
-    LEFT JOIN Tags t ON at.tag_id = t.id
-    WHERE a.id = ?
-    GROUP BY a.id, c.name, sc.name, au.name
-  `,
-    [id]
-  );
+  try {
+    // Resolve table names with proper casing
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
+    ]);
 
-  if (error) return { data: null, error };
+    // Validate table names are resolved
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable) {
+      return { data: null, error: "Failed to resolve table names." };
+    }
 
-  // Transform the data to ensure all required fields are present and properly formatted
-  const rows = Array.isArray(data)
-    ? (data as Array<
-        ArticleWithJoins & {
-          tag_names?: string | null;
-          tag_ids?: string | null;
-          tag_colors?: string | null;
-          likes_count?: number | null;
-          comments_count?: number | null;
-          views_count?: number | null;
+    const { data, error } = await query(
+      `
+      SELECT 
+        a.*,
+        c.name as category_name,
+        sc.name as subcategory_name,
+        au.name as author_name,
+        GROUP_CONCAT(t.name) as tag_names,
+        GROUP_CONCAT(t.id) as tag_ids,
+        GROUP_CONCAT(t.color) as tag_colors,
+        (SELECT COUNT(*) FROM \`${likesTable}\` WHERE article_id = a.id) as likes_count,
+        (SELECT COUNT(*) FROM \`${commentsTable}\` WHERE article_id = a.id) as comments_count
+      FROM \`${articlesTable}\` a
+      LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id
+      LEFT JOIN \`${subcategoriesTable}\` sc ON a.sub_category_id = sc.id
+      LEFT JOIN \`${authorsTable}\` au ON a.author_id = au.id
+      LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
+      LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
+      WHERE a.id = ?
+      GROUP BY a.id, c.name, sc.name, au.name
+    `,
+      [id]
+    );
+
+    if (error) return { data: null, error };
+
+    // Transform the data to ensure all required fields are present and properly formatted
+    const rows = Array.isArray(data)
+      ? (data as Array<
+          ArticleWithJoins & {
+            tag_names?: string | null;
+            tag_ids?: string | null;
+            tag_colors?: string | null;
+            likes_count?: number | null;
+            comments_count?: number | null;
+            views_count?: number | null;
+          }
+        >)
+      : [];
+
+    const article = rows[0];
+    if (article) {
+      const normalizeDate = (value: unknown): string => {
+        if (value instanceof Date) {
+          return value.toISOString();
         }
-      >)
-    : [];
-
-  const article = rows[0];
-  if (article) {
-    const normalizeDate = (value: unknown): string => {
-      if (value instanceof Date) {
-        return value.toISOString();
-      }
-      if (typeof value === "string" || typeof value === "number") {
-        const parsed = new Date(value);
-        if (!Number.isNaN(parsed.getTime())) {
-          return parsed.toISOString();
+        if (typeof value === "string" || typeof value === "number") {
+          const parsed = new Date(value);
+          if (!Number.isNaN(parsed.getTime())) {
+            return parsed.toISOString();
+          }
+          return String(value);
         }
-        return String(value);
-      }
-      return "";
-    };
+        return "";
+      };
 
-    return {
-      data: {
-        ...article,
-        published_at: normalizeDate(article.published_at),
-        updated_at: normalizeDate(article.updated_at),
-        is_featured: Boolean(article.is_featured),
-        is_trending: Boolean(article.is_trending),
-        headline_priority: Number(article.headline_priority),
-        tag_names: article.tag_names ? article.tag_names.split(",") : [],
-        tag_ids: article.tag_ids ? article.tag_ids.split(",").map(Number) : [],
-        tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
-        likes_count: Number(article.likes_count ?? 0),
-        comments_count: Number(article.comments_count ?? 0),
-        views_count: Number(article.views_count ?? 0),
-      },
-      error: null,
-    };
+      return {
+        data: {
+          ...article,
+          published_at: normalizeDate(article.published_at),
+          updated_at: normalizeDate(article.updated_at),
+          is_featured: Boolean(article.is_featured),
+          is_trending: Boolean(article.is_trending),
+          headline_priority: Number(article.headline_priority),
+          tag_names: article.tag_names ? article.tag_names.split(",") : [],
+          tag_ids: article.tag_ids ? article.tag_ids.split(",").map(Number) : [],
+          tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
+          likes_count: Number(article.likes_count ?? 0),
+          comments_count: Number(article.comments_count ?? 0),
+          views_count: Number(article.views_count ?? 0),
+        },
+        error: null,
+      };
+    }
+
+    return { data: null, error: "Article not found" };
+  } catch (_error) {
+    return { data: null, error: "Failed to fetch article" };
   }
-
-  return { data: null, error: "Article not found" };
 }
 
 export async function createArticle(article: Article, tag_ids: number[]) {

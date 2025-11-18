@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 
 // Component Info
 // Description: Main site layout providing shared navigation, content frame, footer, and top button.
-// Data created: Layout wrappers for page content and global UI elements.
+// Date created: 2024-12-19
 // Author: thangtruong
 
 export default function MainLayout({
@@ -57,7 +57,7 @@ export default function MainLayout({
         <main className="w-full">{children}</main>
       </div>
       <Footer />
-      <TopButton />
+      {/* <TopButton /> */}
     </div>
   );
 }

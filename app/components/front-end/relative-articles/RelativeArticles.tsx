@@ -121,8 +121,9 @@ interface RelativeArticlesProps {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Display related articles grid with pagination and optional current-article filtering.
-// Data created: 2024-11-13
+// Date created: 2024-12-19
 // Author: thangtruong
 export default function RelativeArticles({
   currentArticleId,
@@ -203,12 +204,12 @@ export default function RelativeArticles({
   // Main component render with loading state and article grid
   return (
     <>
-      {/* Header section with title and description - Full width background */}
-      <div className="w-screen bg-gray-200 relative left-1/2 right-1/2 -mx-[50vw] mb-4">
-        <div className="max-w-[1536px] mx-auto">
+      {/* Header section with title and description */}
+      <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
           <div className="py-8">
             <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-100">
+              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-100 shadow-sm">
                 <svg
                   className="h-6 w-6 text-indigo-600"
                   fill="none"
@@ -224,12 +225,8 @@ export default function RelativeArticles({
                 </svg>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Related Articles
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  Discover more articles you might be interested in
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900">Related Articles</h2>
+                <p className="text-sm text-gray-600 mt-1">Discover more articles you might be interested in</p>
               </div>
             </div>
           </div>
@@ -266,10 +263,10 @@ export default function RelativeArticles({
 
                 {/* Load More Button */}
                 {hasMore && relatedArticles.length >= 5 && (
-                  <div className="flex justify-center mt-8">
+                  <div className="flex justify-center mt-10">
                     <button
                       onClick={handleLoadMore}
-                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={isLoading}
                     >
                       {isLoading ? "Loading..." : "Load More"}
