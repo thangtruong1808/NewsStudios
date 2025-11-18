@@ -9,6 +9,7 @@ import { AuthorFormData } from "../validations/authorSchema";
 import { Author } from "../../lib/definition";
 import { revalidatePath } from "next/cache";
 import { query } from "../db/query";
+import { resolveTableName } from "../db/tableNameResolver";
 import { RowDataPacket } from "mysql2";
 
 interface AuthorRow extends RowDataPacket {
@@ -34,8 +35,16 @@ export async function getAuthorById(
   id: number
 ): Promise<{ data?: Author; error?: string }> {
   try {
+    // Resolve table name with proper casing
+    const authorsTable = await resolveTableName("Authors");
+    
+    // Validate table name is resolved
+    if (!authorsTable) {
+      return { error: "Failed to resolve table name." };
+    }
+
     const result = await query(
-      "SELECT id, name, description, bio, created_at, updated_at FROM Authors WHERE id = ?",
+      `SELECT id, name, description, bio, created_at, updated_at FROM \`${authorsTable}\` WHERE id = ?`,
       [id]
     );
 
@@ -81,6 +90,22 @@ export async function getAuthors({
   sortDirection?: "asc" | "desc";
 } = {}) {
   try {
+    // Resolve table names with proper casing
+    const [authorsTable, articlesTable] = await Promise.all([
+      resolveTableName("Authors"),
+      resolveTableName("Articles"),
+    ]);
+
+    // Validate table names are resolved
+    if (!authorsTable || !articlesTable) {
+      return {
+        data: null,
+        error: "Failed to resolve table names.",
+        totalItems: 0,
+        totalPages: 0,
+      };
+    }
+
     const limitValue = Math.max(1, Number(limit) || 10);
     const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
     const searchable = search.trim();
@@ -94,7 +119,7 @@ export async function getAuthors({
     // Handle special sorting for computed fields
     let orderBy;
     if (sortField === "articles_count") {
-      orderBy = `ORDER BY (SELECT COUNT(*) FROM Articles ar WHERE ar.author_id = a.id) ${sortDirection}`;
+      orderBy = `ORDER BY (SELECT COUNT(*) FROM \`${articlesTable}\` ar WHERE ar.author_id = a.id) ${sortDirection}`;
     } else {
       orderBy = `ORDER BY a.${sortField} ${sortDirection}`;
     }
@@ -102,7 +127,7 @@ export async function getAuthors({
     // Get total count for pagination
     const countQuery = `
       SELECT COUNT(*) as count
-      FROM Authors a
+      FROM \`${authorsTable}\` a
       ${searchCondition}
     `;
     const countResult = await query<AuthorCountResultRow>(countQuery, searchParams);
@@ -126,8 +151,8 @@ export async function getAuthors({
     const dataQuery = `
       SELECT 
         a.*,
-        (SELECT COUNT(*) FROM Articles ar WHERE ar.author_id = a.id) as articles_count
-      FROM Authors a
+        (SELECT COUNT(*) FROM \`${articlesTable}\` ar WHERE ar.author_id = a.id) as articles_count
+      FROM \`${authorsTable}\` a
       ${searchCondition}
       ${orderBy}
       LIMIT ${limitValue} OFFSET ${offsetValue}
@@ -179,8 +204,16 @@ export async function getAuthors({
 
 export async function createAuthor(authorData: AuthorFormData) {
   try {
+    // Resolve table name with proper casing
+    const authorsTable = await resolveTableName("Authors");
+    
+    // Validate table name is resolved
+    if (!authorsTable) {
+      return { success: false, error: "Failed to resolve table name." };
+    }
+
     const result = await query(
-      "INSERT INTO Authors (name, description, bio, created_at) VALUES (?, ?, ?, NOW())",
+      `INSERT INTO \`${authorsTable}\` (name, description, bio, created_at) VALUES (?, ?, ?, NOW())`,
       [authorData.name, authorData.description || null, authorData.bio || null]
     );
 
@@ -200,8 +233,16 @@ export async function createAuthor(authorData: AuthorFormData) {
 
 export async function updateAuthor(id: number, authorData: AuthorFormData) {
   try {
+    // Resolve table name with proper casing
+    const authorsTable = await resolveTableName("Authors");
+    
+    // Validate table name is resolved
+    if (!authorsTable) {
+      return { success: false, error: "Failed to resolve table name." };
+    }
+
     const result = await query(
-      "UPDATE Authors SET name = ?, description = ?, bio = ? WHERE id = ?",
+      `UPDATE \`${authorsTable}\` SET name = ?, description = ?, bio = ? WHERE id = ?`,
       [
         authorData.name,
         authorData.description || null,
@@ -226,8 +267,19 @@ export async function updateAuthor(id: number, authorData: AuthorFormData) {
 
 export async function deleteAuthor(id: number) {
   try {
+    // Resolve table names with proper casing
+    const [authorsTable, articlesTable] = await Promise.all([
+      resolveTableName("Authors"),
+      resolveTableName("Articles"),
+    ]);
+
+    // Validate table names are resolved
+    if (!authorsTable || !articlesTable) {
+      return { success: false, error: "Failed to resolve table names." };
+    }
+
     // First check if the author exists
-    const authorCheck = await query("SELECT id FROM Authors WHERE id = ?", [
+    const authorCheck = await query(`SELECT id FROM \`${authorsTable}\` WHERE id = ?`, [
       id,
     ]);
     if (authorCheck.error) {
@@ -246,7 +298,7 @@ export async function deleteAuthor(id: number) {
 
     // Check for associated articles
     const articlesCheck = await query(
-      "SELECT COUNT(*) as count FROM Articles WHERE author_id = ?",
+      `SELECT COUNT(*) as count FROM \`${articlesTable}\` WHERE author_id = ?`,
       [id]
     );
 
@@ -267,7 +319,7 @@ export async function deleteAuthor(id: number) {
     }
 
     // Try to delete the author
-    const result = await query("DELETE FROM Authors WHERE id = ?", [id]);
+    const result = await query(`DELETE FROM \`${authorsTable}\` WHERE id = ?`, [id]);
 
     if (result.error) {
       return { success: false, error: `Database error: ${result.error}` };
@@ -297,6 +349,22 @@ export async function searchAuthors({
   sortDirection?: "asc" | "desc";
 }) {
   try {
+    // Resolve table names with proper casing
+    const [authorsTable, articlesTable] = await Promise.all([
+      resolveTableName("Authors"),
+      resolveTableName("Articles"),
+    ]);
+
+    // Validate table names are resolved
+    if (!authorsTable || !articlesTable) {
+      return {
+        data: null,
+        error: "Failed to resolve table names.",
+        totalItems: 0,
+        totalPages: 0,
+      };
+    }
+
     const limitValue = Math.max(1, Number(limit) || 10);
     const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
     const searchable = search.trim();
@@ -310,7 +378,7 @@ export async function searchAuthors({
     // Handle special sorting for computed fields
     let orderBy;
     if (sortField === "articles_count") {
-      orderBy = `ORDER BY (SELECT COUNT(*) FROM Articles ar WHERE ar.author_id = a.id) ${sortDirection}`;
+      orderBy = `ORDER BY (SELECT COUNT(*) FROM \`${articlesTable}\` ar WHERE ar.author_id = a.id) ${sortDirection}`;
     } else {
       orderBy = `ORDER BY a.${sortField} ${sortDirection}`;
     }
@@ -318,7 +386,7 @@ export async function searchAuthors({
     // Get total count for pagination
     const countQuery = `
       SELECT COUNT(*) as count
-      FROM Authors a
+      FROM \`${authorsTable}\` a
       ${searchCondition}
     `;
     const countResult = await query<AuthorCountResultRow>(countQuery, searchParams);
@@ -342,8 +410,8 @@ export async function searchAuthors({
     const dataQuery = `
       SELECT 
         a.*,
-        (SELECT COUNT(*) FROM Articles ar WHERE ar.author_id = a.id) as articles_count
-      FROM Authors a
+        (SELECT COUNT(*) FROM \`${articlesTable}\` ar WHERE ar.author_id = a.id) as articles_count
+      FROM \`${authorsTable}\` a
       ${searchCondition}
       ${orderBy}
       LIMIT ${limitValue} OFFSET ${offsetValue}

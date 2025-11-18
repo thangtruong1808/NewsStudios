@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { UseFormSetValue } from "react-hook-form";
+import type { UseFormSetValue } from "react-hook-form";
 import { User } from "@/app/lib/definition";
 import { UserFormValues } from "../userSchema";
 import { createUser, updateUser } from "@/app/lib/actions/users";
@@ -24,8 +24,7 @@ import {
 export function useUserForm(
   user?: User,
   isEditMode = false,
-  setValue?: UseFormSetValue<UserFormValues>,
-  onUserUpdated?: () => void
+  setValue?: UseFormSetValue<UserFormValues>
 ) {
   const router = useRouter();
   const { data: session } = useSession();

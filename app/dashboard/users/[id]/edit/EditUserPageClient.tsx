@@ -43,11 +43,6 @@ export default function EditUserPageClient() {
     fetchUser();
   }, [fetchUser]);
 
-  // Callback to refresh user data after successful update
-  const handleUserUpdated = () => {
-    fetchUser();
-  };
-
   if (isLoading) {
     return (
       <div className="w-full">
@@ -66,7 +61,7 @@ export default function EditUserPageClient() {
 
   return (
     <div className="bg-gray-50">
-      <UserForm user={user} isEditMode={true} onUserUpdated={handleUserUpdated} />
+      <UserForm user={user} isEditMode={true} />
     </div>
   );
 } 

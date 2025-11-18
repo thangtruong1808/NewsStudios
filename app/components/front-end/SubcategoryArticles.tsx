@@ -135,6 +135,7 @@ export default function SubcategoryArticles({ subcategory }: Props) {
     };
 
     fetchArticles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subcategory, currentPage]);
 
   // Effects: reset pagination when subcategory changes

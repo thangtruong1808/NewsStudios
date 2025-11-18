@@ -29,6 +29,23 @@ export async function getCategories({
   sortDirection = "desc",
 }: GetCategoriesParams = {}): Promise<GetCategoriesResult> {
   try {
+    // Resolve table names with proper casing
+    const [categoriesTable, subcategoriesTable, articlesTable] = await Promise.all([
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Articles"),
+    ]);
+
+    // Validate table names are resolved
+    if (!categoriesTable || !subcategoriesTable || !articlesTable) {
+      return {
+        data: null,
+        error: "Failed to resolve table names.",
+        totalItems: 0,
+        totalPages: 0,
+      };
+    }
+
     const limitValue = Math.max(1, Number(limit) || 10);
     const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
     const searchable = search.trim();
@@ -39,16 +56,16 @@ export async function getCategories({
 
     const orderBy = (() => {
       if (sortField === "subcategories_count") {
-        return `ORDER BY (SELECT COUNT(*) FROM SubCategories sc WHERE sc.category_id = c.id) ${sortDirection}`;
+        return `ORDER BY (SELECT COUNT(*) FROM \`${subcategoriesTable}\` sc WHERE sc.category_id = c.id) ${sortDirection}`;
       }
       if (sortField === "articles_count") {
-        return `ORDER BY (SELECT COUNT(*) FROM Articles a WHERE a.category_id = c.id) ${sortDirection}`;
+        return `ORDER BY (SELECT COUNT(*) FROM \`${articlesTable}\` a WHERE a.category_id = c.id) ${sortDirection}`;
       }
       return `ORDER BY c.${sortField} ${sortDirection}`;
     })();
 
     const countResult = await query<{ total: number }>(
-      `SELECT COUNT(*) as total FROM Categories c ${whereClause}`,
+      `SELECT COUNT(*) as total FROM \`${categoriesTable}\` c ${whereClause}`,
       searchParams
     );
 
@@ -67,9 +84,9 @@ export async function getCategories({
     const dataResult = await query<any>(
       `SELECT
          c.*,
-         (SELECT COUNT(*) FROM SubCategories sc WHERE sc.category_id = c.id) as subcategories_count,
-         (SELECT COUNT(*) FROM Articles a WHERE a.category_id = c.id) as articles_count
-       FROM Categories c
+         (SELECT COUNT(*) FROM \`${subcategoriesTable}\` sc WHERE sc.category_id = c.id) as subcategories_count,
+         (SELECT COUNT(*) FROM \`${articlesTable}\` a WHERE a.category_id = c.id) as articles_count
+       FROM \`${categoriesTable}\` c
        ${whereClause}
        ${orderBy}
        LIMIT ${limitValue} OFFSET ${offsetValue}`,
@@ -132,7 +149,15 @@ export async function getCategoryById(id: number) {
 
 export async function createCategory(data: CategoryFormData) {
   try {
-    await query("INSERT INTO Categories (name, description) VALUES (?, ?)", [
+    // Resolve table name with proper casing
+    const categoriesTable = await resolveTableName("Categories");
+    
+    // Validate table name is resolved
+    if (!categoriesTable) {
+      return { data: null, error: "Failed to resolve table name." };
+    }
+
+    await query(`INSERT INTO \`${categoriesTable}\` (name, description) VALUES (?, ?)`, [
       data.name,
       data.description || null,
     ]);
@@ -145,8 +170,16 @@ export async function createCategory(data: CategoryFormData) {
 
 export async function updateCategory(id: number, data: CategoryFormData) {
   try {
+    // Resolve table name with proper casing
+    const categoriesTable = await resolveTableName("Categories");
+    
+    // Validate table name is resolved
+    if (!categoriesTable) {
+      return { data: null, error: "Failed to resolve table name." };
+    }
+
     await query(
-      "UPDATE Categories SET name = ?, description = ? WHERE id = ?",
+      `UPDATE \`${categoriesTable}\` SET name = ?, description = ? WHERE id = ?`,
       [data.name, data.description || null, id]
     );
     revalidatePath("/dashboard/categories");
@@ -158,9 +191,21 @@ export async function updateCategory(id: number, data: CategoryFormData) {
 
 export async function deleteCategory(id: number) {
   try {
+    // Resolve table names with proper casing
+    const [categoriesTable, subcategoriesTable, articlesTable] = await Promise.all([
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Articles"),
+    ]);
+
+    // Validate table names are resolved
+    if (!categoriesTable || !subcategoriesTable || !articlesTable) {
+      return { data: null, error: "Failed to resolve table names." };
+    }
+
     // First check if there are any subcategories using this category
     const subCategoriesResult = await query(
-      "SELECT COUNT(*) as count FROM SubCategories WHERE category_id = ?",
+      `SELECT COUNT(*) as count FROM \`${subcategoriesTable}\` WHERE category_id = ?`,
       [id]
     );
 
@@ -179,7 +224,7 @@ export async function deleteCategory(id: number) {
 
     // Check for articles
     const articlesResult = await query(
-      "SELECT COUNT(*) as count FROM Articles WHERE category_id = ?",
+      `SELECT COUNT(*) as count FROM \`${articlesTable}\` WHERE category_id = ?`,
       [id]
     );
 
@@ -197,7 +242,7 @@ export async function deleteCategory(id: number) {
     }
 
     // If no related records, proceed with deletion
-    await query("DELETE FROM Categories WHERE id = ?", [id]);
+    await query(`DELETE FROM \`${categoriesTable}\` WHERE id = ?`, [id]);
     revalidatePath("/dashboard/categories");
     return { data: null, error: null };
   } catch (_error) {
@@ -207,8 +252,16 @@ export async function deleteCategory(id: number) {
 
 export async function searchCategories(searchQuery: string) {
   try {
+    // Resolve table name with proper casing
+    const categoriesTable = await resolveTableName("Categories");
+    
+    // Validate table name is resolved
+    if (!categoriesTable) {
+      return { data: null, error: "Failed to resolve table name." };
+    }
+
     const result = await query(
-      "SELECT * FROM Categories WHERE name LIKE ? ORDER BY name",
+      `SELECT * FROM \`${categoriesTable}\` WHERE name LIKE ? ORDER BY name`,
       [`%${searchQuery}%`]
     );
     if (result.error) {

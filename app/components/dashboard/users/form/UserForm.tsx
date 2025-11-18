@@ -16,14 +16,13 @@ import { useUserForm } from "./hooks/useUserForm";
 interface UserFormProps {
   user?: User; // Optional user data for edit mode
   isEditMode?: boolean; // Flag to determine if form is in edit mode
-  onUserUpdated?: () => void; // Callback to refresh user data after successful update
 }
 
 // Component Info
 // Description: A form component for creating and editing users with validation and error handling. Supports both create and edit modes with different validation schemas.
 // Date created: 2025-11-18
 // Author: thangtruong
-export default function UserForm({ user, isEditMode = false, onUserUpdated }: UserFormProps) {
+export default function UserForm({ user, isEditMode = false }: UserFormProps) {
   // Initialize form with react-hook-form and zod validation
   const {
     register,
@@ -71,7 +70,7 @@ export default function UserForm({ user, isEditMode = false, onUserUpdated }: Us
     handleImageUpload,
     handleSubmit: handleFormSubmit,
     handleCancel,
-  } = useUserForm(user, isEditMode, setValue, onUserUpdated);
+  } = useUserForm(user, isEditMode, setValue);
 
   // Determine if the submit button should be disabled
   const isSubmitDisabled =

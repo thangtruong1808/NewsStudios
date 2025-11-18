@@ -126,6 +126,7 @@ export default function CategoryArticles({ categoryId }: Props) {
     };
 
     fetchArticles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId, currentPage]);
 
   useEffect(() => {

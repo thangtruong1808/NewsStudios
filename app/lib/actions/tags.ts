@@ -28,12 +28,31 @@ export async function getTags({
   sortDirection = "desc",
 }: GetTagsParams = {}) {
   try {
+    // Resolve table names with proper casing
+    const [tagsTable, articleTagsTable] = await Promise.all([
+      resolveTableName("Tags"),
+      resolveTableName("Article_Tags"),
+    ]);
+
+    // Validate table names are resolved
+    if (!tagsTable || !articleTagsTable) {
+      return {
+        data: null,
+        error: "Failed to resolve table names.",
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+      };
+    }
+
     const limitValue = Math.max(1, Number(limit) || 10);
     const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
 
     // First, get the total count
     const countResult = await query<TagCountRow>(
-      `SELECT COUNT(*) as total_count FROM Tags`
+      `SELECT COUNT(*) as total_count FROM \`${tagsTable}\``
     );
 
     if (countResult.error || !countResult.data) {
@@ -63,8 +82,8 @@ export async function getTags({
       `
       SELECT 
         t.*,
-        (SELECT COUNT(*) FROM Article_Tags WHERE tag_id = t.id) as article_count
-      FROM Tags t
+        (SELECT COUNT(*) FROM \`${articleTagsTable}\` WHERE tag_id = t.id) as article_count
+      FROM \`${tagsTable}\` t
       ORDER BY t.${sortField} ${sortDirection}
       LIMIT ${limitValue} OFFSET ${offsetValue}
     `
@@ -127,6 +146,17 @@ export async function getFilteredTags(
   limit: number = 8
 ) {
   try {
+    // Resolve table names with proper casing
+    const [tagsTable, articleTagsTable] = await Promise.all([
+      resolveTableName("Tags"),
+      resolveTableName("Article_Tags"),
+    ]);
+
+    // Validate table names are resolved
+    if (!tagsTable || !articleTagsTable) {
+      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    }
+
     const conditions = [];
     const values = [];
 
@@ -151,7 +181,7 @@ export async function getFilteredTags(
     // First, get the total count of all tags
     const countQuery = `
       SELECT COUNT(*) as total_count
-      FROM Tags t
+      FROM \`${tagsTable}\` t
       ${whereClause}
     `;
 
@@ -171,8 +201,8 @@ export async function getFilteredTags(
       SELECT 
         t.*,
         COUNT(DISTINCT at.article_id) as article_count
-      FROM Tags t
-      LEFT JOIN Article_Tags at ON t.id = at.tag_id
+      FROM \`${tagsTable}\` t
+      LEFT JOIN \`${articleTagsTable}\` at ON t.id = at.tag_id
       ${whereClause}
       GROUP BY t.id
       ORDER BY article_count DESC, t.name ASC
@@ -272,9 +302,17 @@ export async function getTagById(id: number) {
 
 export async function createTag(tagData: TagFormData) {
   try {
+    // Resolve table name with proper casing
+    const tagsTable = await resolveTableName("Tags");
+    
+    // Validate table name is resolved
+    if (!tagsTable) {
+      return { data: null, error: "Failed to resolve table name." };
+    }
+
     const result = await query(
       `
-      INSERT INTO Tags (name, description, color, category_id, sub_category_id)
+      INSERT INTO \`${tagsTable}\` (name, description, color, category_id, sub_category_id)
       VALUES (?, ?, ?, ?, ?)
     `,
       [
@@ -312,9 +350,17 @@ export async function createTag(tagData: TagFormData) {
 
 export async function updateTag(id: number, tagData: TagFormData) {
   try {
+    // Resolve table name with proper casing
+    const tagsTable = await resolveTableName("Tags");
+    
+    // Validate table name is resolved
+    if (!tagsTable) {
+      return { data: null, error: "Failed to resolve table name." };
+    }
+
     await query(
       `
-      UPDATE Tags
+      UPDATE \`${tagsTable}\`
       SET name = ?, description = ?, color = ?, category_id = ?, sub_category_id = ?
       WHERE id = ?
     `,
@@ -340,8 +386,19 @@ export async function updateTag(id: number, tagData: TagFormData) {
 
 export async function deleteTag(id: number) {
   try {
+    // Resolve table names with proper casing
+    const [tagsTable, articleTagsTable] = await Promise.all([
+      resolveTableName("Tags"),
+      resolveTableName("Article_Tags"),
+    ]);
+
+    // Validate table names are resolved
+    if (!tagsTable || !articleTagsTable) {
+      return { data: null, error: "Failed to resolve table names." };
+    }
+
     // First verify the tag exists
-    const tagCheck = await query("SELECT id FROM Tags WHERE id = ?", [id]);
+    const tagCheck = await query(`SELECT id FROM \`${tagsTable}\` WHERE id = ?`, [id]);
 
     if (tagCheck.error || !tagCheck.data || tagCheck.data.length === 0) {
       return {
@@ -353,7 +410,7 @@ export async function deleteTag(id: number) {
     // Check for associated articles through Article_Tags
     const articlesResult = await query(
       `SELECT COUNT(*) as count 
-       FROM Article_Tags 
+       FROM \`${articleTagsTable}\` 
        WHERE tag_id = ?`,
       [id]
     );
@@ -377,7 +434,7 @@ export async function deleteTag(id: number) {
     }
 
     // If no related records, proceed with deletion
-    const deleteResult = await query("DELETE FROM Tags WHERE id = ?", [id]);
+    const deleteResult = await query(`DELETE FROM \`${tagsTable}\` WHERE id = ?`, [id]);
 
     if (deleteResult.error) {
       return {
@@ -387,7 +444,7 @@ export async function deleteTag(id: number) {
     }
 
     // Verify the tag was actually deleted
-    const verifyDelete = await query("SELECT id FROM Tags WHERE id = ?", [id]);
+    const verifyDelete = await query(`SELECT id FROM \`${tagsTable}\` WHERE id = ?`, [id]);
 
     if (
       verifyDelete.error ||
@@ -422,12 +479,33 @@ export async function searchTags(
       return getTags({ page, limit, sortField, sortDirection });
     }
 
+    // Resolve table names with proper casing
+    const [tagsTable, articleTagsTable, categoriesTable, subcategoriesTable] = await Promise.all([
+      resolveTableName("Tags"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+    ]);
+
+    // Validate table names are resolved
+    if (!tagsTable || !articleTagsTable || !categoriesTable || !subcategoriesTable) {
+      return {
+        error: "Failed to resolve table names.",
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+      };
+    }
+
     const offset = (page - 1) * limit;
 
     // First, get the total count of tags matching the search
     const countResult = await query<{ count: number }>(
       `SELECT COUNT(*) as count 
-      FROM Tags t
+      FROM \`${tagsTable}\` t
       WHERE t.name LIKE ? OR t.description LIKE ?`,
       [`%${searchQuery}%`, `%${searchQuery}%`]
     );
@@ -437,10 +515,10 @@ export async function searchTags(
     const result = await query<Tag>(
       `SELECT 
         t.*,
-        (SELECT COUNT(*) FROM Article_Tags WHERE tag_id = t.id) as articles_count,
-        (SELECT COUNT(*) FROM Categories WHERE id = t.category_id) as categories_count,
-        (SELECT COUNT(*) FROM SubCategories WHERE id = t.sub_category_id) as subcategories_count
-      FROM Tags t
+        (SELECT COUNT(*) FROM \`${articleTagsTable}\` WHERE tag_id = t.id) as articles_count,
+        (SELECT COUNT(*) FROM \`${categoriesTable}\` WHERE id = t.category_id) as categories_count,
+        (SELECT COUNT(*) FROM \`${subcategoriesTable}\` WHERE id = t.sub_category_id) as subcategories_count
+      FROM \`${tagsTable}\` t
       WHERE t.name LIKE ? OR t.description LIKE ?
       ORDER BY t.${sortField} ${sortDirection}
       LIMIT ? OFFSET ?`,
@@ -486,6 +564,14 @@ export async function searchTags(
 
 export async function getAllTags() {
   try {
+    // Resolve table name with proper casing
+    const tagsTable = await resolveTableName("Tags");
+    
+    // Validate table name is resolved
+    if (!tagsTable) {
+      return { data: null, error: "Failed to resolve table name." };
+    }
+
     const result = await query(
       `
       SELECT 
@@ -495,7 +581,7 @@ export async function getAllTags() {
         t.color,
         DATE_FORMAT(t.created_at, '%Y-%m-%d %H:%i:%s') as created_at,
         DATE_FORMAT(t.updated_at, '%Y-%m-%d %H:%i:%s') as updated_at
-      FROM Tags t
+      FROM \`${tagsTable}\` t
       ORDER BY t.name ASC
     `
     );
@@ -526,6 +612,17 @@ export async function getAllTags() {
 
 export async function getTagsBySubcategory(subcategoryId: number) {
   try {
+    // Resolve table names with proper casing
+    const [tagsTable, articleTagsTable] = await Promise.all([
+      resolveTableName("Tags"),
+      resolveTableName("Article_Tags"),
+    ]);
+
+    // Validate table names are resolved
+    if (!tagsTable || !articleTagsTable) {
+      return { data: null, error: "Failed to resolve table names." };
+    }
+
     const result = await query(
       `
       SELECT 
@@ -535,8 +632,8 @@ export async function getTagsBySubcategory(subcategoryId: number) {
         t.color,
         DATE_FORMAT(t.created_at, '%Y-%m-%d %H:%i:%s') as created_at,
         DATE_FORMAT(t.updated_at, '%Y-%m-%d %H:%i:%s') as updated_at,
-        (SELECT COUNT(*) FROM Article_Tags WHERE tag_id = t.id) as article_count
-      FROM Tags t
+        (SELECT COUNT(*) FROM \`${articleTagsTable}\` WHERE tag_id = t.id) as article_count
+      FROM \`${tagsTable}\` t
       WHERE t.sub_category_id = ?
       ORDER BY t.name ASC
     `,
