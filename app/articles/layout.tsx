@@ -4,16 +4,16 @@ import Footer from "../components/front-end/Footer";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://news-studios.vercel.app"),
-  title: "Explore | NewsStudios",
+  title: "Articles | NewsStudios",
   description:
-    "Discover and explore a comprehensive collection of articles, videos, and multimedia content across diverse categories and tags. Browse through curated content from various topics and find exactly what you're looking for.",
-  keywords: ["explore", "content", "categories", "tags", "articles", "videos"],
+    "Discover and explore a comprehensive collection of articles, news, and multimedia content. Browse through curated content from various categories and tags, and stay updated with the latest news and insights.",
+  keywords: ["articles", "news", "content", "blog", "tags"],
   authors: [{ name: "thang-truong" }],
   openGraph: {
-    title: "Explore | NewsStudios",
+    title: "Articles | NewsStudios",
     description:
-      "Discover and explore a comprehensive collection of articles, videos, and multimedia content across diverse categories and tags. Browse through curated content from various topics and find exactly what you're looking for.",
-    url: "https://news-studios.vercel.app/explore",
+      "Discover and explore a comprehensive collection of articles, news, and multimedia content. Browse through curated content from various categories and tags, and stay updated with the latest news and insights.",
+    url: "https://news-studios.vercel.app/articles",
     type: "website",
     siteName: "NewsStudios",
     images: [
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
         url: "https://news-studios.vercel.app/NewsStudios-Thumbnail-Image.png",
         width: 400,
         height: 209,
-        alt: "NewsStudios Explore Platform",
+        alt: "NewsStudios Articles Platform",
       },
     ],
   },
@@ -34,19 +34,19 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Explore | NewsStudios",
+    title: "Articles | NewsStudios",
     description:
-      "Discover and explore a comprehensive collection of articles, videos, and multimedia content across diverse categories and tags. Browse through curated content from various topics and find exactly what you're looking for.",
+      "Discover and explore a comprehensive collection of articles, news, and multimedia content. Browse through curated content from various categories and tags, and stay updated with the latest news and insights.",
     images: ["https://news-studios.vercel.app/NewsStudios-Thumbnail-Image.png"],
   },
 };
 
 // Component Info
-// Description: Server layout assembling global navigation, content, and footer for explore pages.
+// Description: Server layout assembling global navigation, content, and footer for articles pages.
 // Date created: 2025-11-18
 // Author: thangtruong
 
-export default function ExploreLayout({
+export default function ArticlesLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -64,3 +64,4 @@ export default function ExploreLayout({
     </div>
   );
 }
+

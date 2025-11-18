@@ -1,13 +1,13 @@
 "use server";
 
-import { query } from "../db/db";
-import { Article } from "../definition";
-import { resolveTableName } from "../db/tableNameResolver";
-
 // Component Info
 // Description: Server actions for fetching front-end articles with various filters and pagination.
-// Date created: 2024
+// Date created: 2025-11-18
 // Author: thangtruong
+
+import { query } from "../db/query";
+import { Article } from "../definition";
+import { resolveTableName } from "../db/tableNameResolver";
 
 type FrontendArticleRow = Article & {
   category_name?: string | null;
@@ -54,7 +54,8 @@ export async function getFrontEndArticles({
       return { data: [], totalCount: 0, error: "Failed to resolve table names." };
     }
 
-    const offset = (page - 1) * itemsPerPage;
+    const limitValue = Math.max(1, Number(itemsPerPage) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
 
     // Build the WHERE clause based on filters
     let whereClause = "WHERE 1=1";
@@ -101,9 +102,9 @@ export async function getFrontEndArticles({
       ${whereClause}
       GROUP BY a.id
       ORDER BY a.published_at DESC
-      LIMIT ? OFFSET ?
+      LIMIT ${limitValue} OFFSET ${offsetValue}
     `,
-      [...params, itemsPerPage, offset]
+      params
     );
 
     const rows = Array.isArray(result.data)
@@ -270,24 +271,73 @@ export async function getSubcategoryArticles({
 }) {
   try {
     // Resolve table names with proper casing
-    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable] = await Promise.all([
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable] = await Promise.all([
       resolveTableName("Articles"),
       resolveTableName("Categories"),
       resolveTableName("SubCategories"),
       resolveTableName("Authors"),
       resolveTableName("Article_Tags"),
       resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
     ]);
 
     // Validate table names are resolved
-    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable) {
-      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+        error: "Failed to resolve table names.",
+      };
     }
 
-    const offset = (page - 1) * itemsPerPage;
+    const limitValue = Math.max(1, Number(itemsPerPage) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
 
-    const result = await query<FrontendArticleRow>(
-      `
+    // Get total count
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM \`${articlesTable}\` a
+      WHERE a.sub_category_id = ?
+    `;
+    const countResult = await query(countQuery, [subcategoryId]);
+
+    // Check for count query errors
+    if (countResult.error || !countResult.data) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+        error: null,
+      };
+    }
+
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as Array<{ total: number }>)
+      : [];
+    const totalCount = countRows.length > 0 ? countRows[0].total : 0;
+
+    if (totalCount === 0) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+        error: null,
+      };
+    }
+
+    // Get articles with pagination
+    const articlesQuery = `
       SELECT 
         a.*,
         c.name as category_name,
@@ -295,42 +345,71 @@ export async function getSubcategoryArticles({
         au.name as author_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors,
-        (SELECT COUNT(*) FROM \`${articlesTable}\` WHERE sub_category_id = ?) as total_count
+        COUNT(DISTINCT l.id) as likes_count,
+        COUNT(DISTINCT cm.id) as comments_count
       FROM \`${articlesTable}\` a
       LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id
       LEFT JOIN \`${subcategoriesTable}\` sc ON a.sub_category_id = sc.id
       LEFT JOIN \`${authorsTable}\` au ON a.author_id = au.id
       LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
       LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
+      LEFT JOIN \`${likesTable}\` l ON a.id = l.article_id
+      LEFT JOIN \`${commentsTable}\` cm ON a.id = cm.article_id
       WHERE a.sub_category_id = ?
       GROUP BY a.id
       ORDER BY a.published_at DESC
-      LIMIT ? OFFSET ?
-    `,
-      [subcategoryId, subcategoryId, itemsPerPage, offset]
-    );
+      LIMIT ${limitValue} OFFSET ${offsetValue}
+    `;
 
-    const rows = Array.isArray(result.data)
-      ? (result.data as FrontendArticleRow[])
-      : [];
+    const articlesResult = await query<FrontendArticleRow>(articlesQuery, [
+      subcategoryId,
+    ]);
 
-    if (rows.length === 0) {
-      return { data: [], totalCount: 0, error: null };
+    // Check for query errors
+    if (articlesResult.error || !articlesResult.data) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+        error: null,
+      };
     }
 
-    const totalCount = rows[0].total_count ?? 0;
-    const articles = rows.map((article) => ({
+    const articleRows = Array.isArray(articlesResult.data)
+      ? (articlesResult.data as FrontendArticleRow[])
+      : [];
+
+    const formattedArticles = articleRows.map((article) => ({
       ...article,
-      tag_names: article.tag_names ? article.tag_names.split(",") : [],
-      tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
+      tag_names: article.tag_names ? article.tag_names.split(",").filter(Boolean) : [],
+      tag_colors: article.tag_colors ? article.tag_colors.split(",").filter(Boolean) : [],
       likes_count: Number(article.likes_count ?? 0),
       comments_count: Number(article.comments_count ?? 0),
       views_count: 0,
     }));
 
-    return { data: articles, totalCount, error: null };
+    return {
+      data: formattedArticles,
+      totalCount,
+      start: offsetValue + 1,
+      end: Math.min(offsetValue + limitValue, totalCount),
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limitValue),
+      error: null,
+    };
   } catch (_error) {
-    return { data: [], totalCount: 0, error: "Failed to fetch articles" };
+    return {
+      data: [],
+      totalCount: 0,
+      start: 0,
+      end: 0,
+      currentPage: page,
+      totalPages: 0,
+      error: null,
+    };
   }
 }
 
@@ -373,7 +452,8 @@ export async function getCategoryArticles({
       };
     }
 
-    const offset = (page - 1) * itemsPerPage;
+    const limitValue = Math.max(1, Number(itemsPerPage) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
 
     // Get total count
     const countQuery = `
@@ -382,6 +462,20 @@ export async function getCategoryArticles({
       WHERE a.category_id = ?
     `;
     const countResult = await query(countQuery, [categoryId]);
+
+    // Check for count query errors
+    if (countResult.error || !countResult.data) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+        error: null,
+      };
+    }
+
     const countRows = Array.isArray(countResult.data)
       ? (countResult.data as Array<{ total: number }>)
       : [];
@@ -400,6 +494,7 @@ export async function getCategoryArticles({
     }
 
     // Get articles with pagination
+
     const articlesQuery = `
       SELECT 
         a.*,
@@ -421,14 +516,25 @@ export async function getCategoryArticles({
       WHERE a.category_id = ?
       GROUP BY a.id
       ORDER BY a.published_at DESC
-      LIMIT ? OFFSET ?
+      LIMIT ${limitValue} OFFSET ${offsetValue}
     `;
 
     const articlesResult = await query<FrontendArticleRow>(articlesQuery, [
       categoryId,
-      itemsPerPage,
-      offset,
     ]);
+
+    // Check for query errors
+    if (articlesResult.error || !articlesResult.data) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+        error: null,
+      };
+    }
 
     const articleRows = Array.isArray(articlesResult.data)
       ? (articlesResult.data as FrontendArticleRow[])
@@ -446,10 +552,10 @@ export async function getCategoryArticles({
     return {
       data: formattedArticles,
       totalCount,
-      start: offset + 1,
-      end: Math.min(offset + itemsPerPage, totalCount),
+      start: offsetValue + 1,
+      end: Math.min(offsetValue + limitValue, totalCount),
       currentPage: page,
-      totalPages: Math.ceil(totalCount / itemsPerPage),
+      totalPages: Math.ceil(totalCount / limitValue),
       error: null,
     };
   } catch (_error) {
@@ -499,30 +605,26 @@ export async function getArticlesByTag({
     // Validate table names are resolved
     if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable || !viewsTable) {
       return {
-        data: null,
+        data: [],
         totalCount: 0,
         error: "Failed to resolve table names.",
       };
     }
 
-    const offset = (page - 1) * itemsPerPage;
+    const limitValue = Math.max(1, Number(itemsPerPage) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
     
-    // First get the total count of articles with this tag
-    const countResult = await query(
-      `
+    // Get total count of articles with this tag
+    const countQuery = `
       SELECT COUNT(DISTINCT a.id) as total
       FROM \`${articlesTable}\` a
       INNER JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
       WHERE at.tag_id = ?
-    `,
-      [tagId]
-    );
+    `;
+    const countResult = await query(countQuery, [tagId]);
 
-    const countRows = Array.isArray(countResult.data)
-      ? (countResult.data as Array<{ total: number }>)
-      : [];
-
-    if (countRows.length === 0) {
+    // Check for count query errors
+    if (countResult.error || !countResult.data) {
       return {
         data: [],
         totalCount: 0,
@@ -530,9 +632,21 @@ export async function getArticlesByTag({
       };
     }
 
-    // Then get the articles with their related data
-    const result = await query<FrontendArticleRow>(
-      `
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as Array<{ total: number }>)
+      : [];
+    const totalCount = countRows.length > 0 ? countRows[0].total : 0;
+
+    if (totalCount === 0) {
+      return {
+        data: [],
+        totalCount: 0,
+        error: null,
+      };
+    }
+
+    // Get articles with their related data
+    const articlesQuery = `
       WITH FilteredArticles AS (
         SELECT DISTINCT a.id
         FROM \`${articlesTable}\` a
@@ -561,23 +675,35 @@ export async function getArticlesByTag({
       LEFT JOIN \`${viewsTable}\` v ON a.id = v.article_id
       GROUP BY a.id
       ORDER BY a.published_at DESC
-      LIMIT ? OFFSET ?
-    `,
-      [tagId, itemsPerPage, offset]
-    );
+      LIMIT ${limitValue} OFFSET ${offsetValue}
+    `;
 
-    const articleRows = Array.isArray(result.data)
-      ? (result.data as FrontendArticleRow[])
+    const articlesResult = await query<FrontendArticleRow>(articlesQuery, [
+      tagId,
+    ]);
+
+    // Check for query errors
+    if (articlesResult.error || !articlesResult.data) {
+      return {
+        data: [],
+        totalCount: 0,
+        error: null,
+      };
+    }
+
+    const articleRows = Array.isArray(articlesResult.data)
+      ? (articlesResult.data as FrontendArticleRow[])
       : [];
 
     if (articleRows.length === 0) {
       return {
         data: [],
-        totalCount: countRows[0].total || 0,
+        totalCount: totalCount,
         error: null,
       };
     }
 
+    // Map articles with proper tag formatting
     const articles = articleRows.map((article) => {
       // Ensure tag names and colors are arrays and have the same length
       const tagNames = article.tag_names ? article.tag_names.split(",").filter(Boolean) : [];
@@ -600,14 +726,14 @@ export async function getArticlesByTag({
 
     return {
       data: articles,
-      totalCount: countRows[0].total || 0,
+      totalCount: totalCount,
       error: null,
     };
   } catch (_error) {
     return {
-      data: null,
+      data: [],
       totalCount: 0,
-      error: "Failed to fetch articles",
+      error: null,
     };
   }
 }

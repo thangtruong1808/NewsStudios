@@ -1,9 +1,14 @@
 "use server";
 
+// Component Info
+// Description: Server actions for author CRUD operations and queries.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 import { AuthorFormData } from "../validations/authorSchema";
 import { Author } from "../../lib/definition";
 import { revalidatePath } from "next/cache";
-import { query } from "../db/db";
+import { query } from "../db/query";
 import { RowDataPacket } from "mysql2";
 
 interface AuthorRow extends RowDataPacket {
@@ -76,12 +81,14 @@ export async function getAuthors({
   sortDirection?: "asc" | "desc";
 } = {}) {
   try {
-    const offset = (page - 1) * limit;
-    const searchCondition = search
+    const limitValue = Math.max(1, Number(limit) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
+    const searchable = search.trim();
+    const searchCondition = searchable
       ? `WHERE a.name LIKE ? OR a.description LIKE ? OR a.bio LIKE ?`
       : "";
-    const searchParams = search
-      ? [`%${search}%`, `%${search}%`, `%${search}%`]
+    const searchParams = searchable
+      ? [`%${searchable}%`, `%${searchable}%`, `%${searchable}%`]
       : [];
 
     // Handle special sorting for computed fields
@@ -99,14 +106,21 @@ export async function getAuthors({
       ${searchCondition}
     `;
     const countResult = await query<AuthorCountResultRow>(countQuery, searchParams);
+
     if (countResult.error || !countResult.data) {
-      throw new Error(countResult.error || "Failed to get count");
+      return {
+        data: null,
+        error: countResult.error ?? "Failed to fetch authors.",
+        totalItems: 0,
+        totalPages: 0,
+      };
     }
+
     const countRows = Array.isArray(countResult.data)
       ? (countResult.data as AuthorCountResultRow[])
       : [];
     const totalItems = countRows.length > 0 ? Number(countRows[0].count ?? 0) : 0;
-    const totalPages = Math.ceil(totalItems / limit);
+    const totalPages = Math.max(1, Math.ceil(totalItems / limitValue));
 
     // Get paginated data with articles count
     const dataQuery = `
@@ -116,21 +130,20 @@ export async function getAuthors({
       FROM Authors a
       ${searchCondition}
       ${orderBy}
-      LIMIT ? 
-      OFFSET ?
+      LIMIT ${limitValue} OFFSET ${offsetValue}
     `;
 
-    const result = await query<AuthorListRow>(dataQuery, [
-      ...searchParams,
-      limit,
-      offset,
-    ]);
+    const result = await query<AuthorListRow>(dataQuery, searchParams);
 
     if (result.error || !result.data) {
-      throw new Error(result.error || "Failed to fetch data");
+      return {
+        data: null,
+        error: result.error ?? "Failed to fetch authors.",
+        totalItems,
+        totalPages,
+      };
     }
 
-    // Convert the counts to numbers and ensure proper data types
     const rows = Array.isArray(result.data)
       ? (result.data as AuthorListRow[])
       : [];
@@ -146,18 +159,18 @@ export async function getAuthors({
         typeof author.updated_at === "string"
           ? author.updated_at
           : new Date(author.updated_at).toISOString(),
-    }));
+    })) as Author[];
 
     return {
-      data: authors as Author[],
+      data: authors,
       error: null,
       totalItems,
       totalPages,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : "Failed to fetch authors.",
+      error: "Failed to fetch authors.",
       totalItems: 0,
       totalPages: 0,
     };
@@ -284,9 +297,15 @@ export async function searchAuthors({
   sortDirection?: "asc" | "desc";
 }) {
   try {
-    const offset = (page - 1) * limit;
-    const searchCondition = `WHERE a.name LIKE ? OR a.description LIKE ? OR a.bio LIKE ?`;
-    const searchParams = [`%${search}%`, `%${search}%`, `%${search}%`];
+    const limitValue = Math.max(1, Number(limit) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
+    const searchable = search.trim();
+    const searchCondition = searchable
+      ? `WHERE a.name LIKE ? OR a.description LIKE ? OR a.bio LIKE ?`
+      : "";
+    const searchParams = searchable
+      ? [`%${searchable}%`, `%${searchable}%`, `%${searchable}%`]
+      : [];
 
     // Handle special sorting for computed fields
     let orderBy;
@@ -302,19 +321,22 @@ export async function searchAuthors({
       FROM Authors a
       ${searchCondition}
     `;
-    const countResult = await query<AuthorCountResultRow>(
-      countQuery,
-      searchParams
-    );
+    const countResult = await query<AuthorCountResultRow>(countQuery, searchParams);
+
     if (countResult.error || !countResult.data) {
-      throw new Error(countResult.error || "Failed to get count");
+      return {
+        data: null,
+        error: countResult.error ?? "Failed to fetch authors.",
+        totalItems: 0,
+        totalPages: 0,
+      };
     }
+
     const countRows = Array.isArray(countResult.data)
       ? (countResult.data as AuthorCountResultRow[])
       : [];
-    const totalItems =
-      countRows.length > 0 ? Number(countRows[0].count ?? 0) : 0;
-    const totalPages = Math.ceil(totalItems / limit);
+    const totalItems = countRows.length > 0 ? Number(countRows[0].count ?? 0) : 0;
+    const totalPages = Math.max(1, Math.ceil(totalItems / limitValue));
 
     // Get paginated data with articles count
     const dataQuery = `
@@ -324,18 +346,18 @@ export async function searchAuthors({
       FROM Authors a
       ${searchCondition}
       ${orderBy}
-      LIMIT ? 
-      OFFSET ?
+      LIMIT ${limitValue} OFFSET ${offsetValue}
     `;
 
-    const result = await query<AuthorListRow>(dataQuery, [
-      ...searchParams,
-      limit,
-      offset,
-    ]);
+    const result = await query<AuthorListRow>(dataQuery, searchParams);
 
     if (result.error || !result.data) {
-      throw new Error(result.error || "Failed to fetch data");
+      return {
+        data: null,
+        error: result.error ?? "Failed to fetch authors.",
+        totalItems,
+        totalPages,
+      };
     }
 
     // Convert the counts to numbers and ensure proper data types
@@ -354,18 +376,18 @@ export async function searchAuthors({
         typeof author.updated_at === "string"
           ? author.updated_at
           : new Date(author.updated_at).toISOString(),
-    }));
+    })) as Author[];
 
     return {
-      data: authors as Author[],
+      data: authors,
       error: null,
       totalItems,
       totalPages,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : "Failed to search authors.",
+      error: "Failed to fetch authors.",
       totalItems: 0,
       totalPages: 0,
     };

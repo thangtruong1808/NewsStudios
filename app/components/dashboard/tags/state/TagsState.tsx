@@ -33,8 +33,9 @@ export interface TagsStateProps {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Provide tags management state container for dashboard pages.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function TagsState({ children }: TagsStateProps) {
   const router = useRouter();
@@ -77,13 +78,31 @@ export default function TagsState({ children }: TagsStateProps) {
               sortDirection,
             });
 
-        setTags(result.data || []);
-        if (result.totalCount !== undefined) {
-          setTotalItems(result.totalCount);
-          setTotalPages(Math.ceil(result.totalCount / itemsPerPage));
+        if (result.error) {
+          showErrorToast({
+            message: result.error,
+          });
+          setTags([]);
+          setTotalPages(1);
+          setTotalItems(0);
+        } else {
+          const tagsData = Array.isArray(result.data) ? result.data : [];
+          setTags(tagsData);
+          
+          // Set pagination info if available
+          if (result.totalCount !== undefined) {
+            setTotalItems(result.totalCount);
+            setTotalPages(Math.ceil(result.totalCount / itemsPerPage));
+          } else if (result.totalPages !== undefined) {
+            setTotalPages(result.totalPages);
+            setTotalItems(result.totalCount || 0);
+          }
         }
       } catch (_error) {
         showErrorToast({ message: "Failed to load tags. Please try again." });
+        setTags([]);
+        setTotalPages(1);
+        setTotalItems(0);
       } finally {
         setIsLoading(false);
         setIsSearching(false);

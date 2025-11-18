@@ -127,8 +127,34 @@ const prevVideo = useCallback(() => {
 
   if (videos.length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">No videos available.</p>
+      <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+          {/* Header section */}
+          <div className="mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-purple-100">
+                <PlayIcon className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Latest Videos</h2>
+                <p className="text-sm text-gray-500 mt-1">Watch our featured video content</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Empty state message */}
+          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-purple-100">
+                <PlayIcon className="h-8 w-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">No Videos Available</h3>
+              <p className="text-gray-500 max-w-md">
+                We&apos;re currently working on adding new video content. Please check back soon for exciting new videos!
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

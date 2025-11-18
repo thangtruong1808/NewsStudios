@@ -1,12 +1,12 @@
 "use server";
 
-import { query } from "../db/db";
-import { resolveTableName } from "../db/tableNameResolver";
-
 // Component Info
 // Description: Server action fetching related articles based on category, subcategory, and tags.
-// Date created: 2024
+// Date created: 2025-11-18
 // Author: thangtruong
+
+import { query } from "../db/query";
+import { resolveTableName } from "../db/tableNameResolver";
 
 type RelativeArticleRow = {
   category_id?: number | null;
@@ -42,7 +42,8 @@ export async function getFrontEndRelativeArticles(
       return { data: [], totalCount: 0, error: "Failed to resolve table names." };
     }
 
-    const offset = (page - 1) * limit;
+    const limitValue = Math.max(1, Number(limit) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
 
     // First get the current article's category and tags
     const currentArticleQuery = currentArticleId
@@ -123,7 +124,7 @@ export async function getFrontEndRelativeArticles(
           ELSE 4
         END,
         a.published_at DESC
-      LIMIT ? OFFSET ?
+      LIMIT ${limitValue} OFFSET ${offsetValue}
     `,
       currentArticleId
         ? [
@@ -135,16 +136,12 @@ export async function getFrontEndRelativeArticles(
             subCategoryId || 0,
             categoryId || 0,
             subCategoryId || 0,
-            limit,
-            offset,
           ]
         : [
             categoryId || 0,
             subCategoryId || 0,
             categoryId || 0,
             subCategoryId || 0,
-            limit,
-            offset,
           ]
     );
 

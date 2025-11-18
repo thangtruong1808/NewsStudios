@@ -1,6 +1,11 @@
 "use server";
 
-import { query } from "../db/db";
+// Component Info
+// Description: Server actions for fetching videos for front-end display.
+// Date created: 2025-11-18
+// Author: thangtruong
+
+import { query } from "../db/query";
 
 export async function getVideosByArticleId(articleId: number) {
   try {

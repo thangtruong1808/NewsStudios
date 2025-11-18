@@ -42,8 +42,9 @@ interface ArticleFormProps {
   tags: Tag[];
 }
 
+// Component Info
 // Description: Article creation and edit form with tabbed sections for content, media, and settings.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function ArticleForm({
   article,

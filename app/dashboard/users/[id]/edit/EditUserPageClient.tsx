@@ -3,11 +3,12 @@
 import { useParams } from "next/navigation";
 import UserForm from "../../../../components/dashboard/users/form/UserForm";
 import { getUserById } from "../../../../lib/actions/users";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import FormSkeleton from "../../../../components/dashboard/shared/skeleton/FormSkeleton";
 
+// Component Info
 // Description: Load and render user edit form with data fetching and skeleton states.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function EditUserPageClient() {
   const params = useParams();
@@ -16,28 +17,36 @@ export default function EditUserPageClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data, error } = await getUserById(parseInt(userId));
-        if (error) {
-          setError(error);
-          return;
-        }
-        if (data) {
-          setUser(data);
-        } else {
-          setError("User not found");
-        }
-      } catch (err) {
-        setError("Failed to fetch user data");
-      } finally {
-        setIsLoading(false);
+  // Fetch user data function
+  const fetchUser = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await getUserById(parseInt(userId));
+      if (error) {
+        setError(error);
+        return;
       }
-    };
-
-    fetchUser();
+      if (data) {
+        setUser(data);
+        setError(null);
+      } else {
+        setError("User not found");
+      }
+    } catch (err) {
+      setError("Failed to fetch user data");
+    } finally {
+      setIsLoading(false);
+    }
   }, [userId]);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  // Callback to refresh user data after successful update
+  const handleUserUpdated = () => {
+    fetchUser();
+  };
 
   if (isLoading) {
     return (
@@ -57,7 +66,7 @@ export default function EditUserPageClient() {
 
   return (
     <div className="bg-gray-50">
-      <UserForm user={user} isEditMode={true} />
+      <UserForm user={user} isEditMode={true} onUserUpdated={handleUserUpdated} />
     </div>
   );
 } 

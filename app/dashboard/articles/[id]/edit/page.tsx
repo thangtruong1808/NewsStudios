@@ -12,6 +12,11 @@ import ArticleFormContainer from "@/app/components/dashboard/articles/form/Artic
 import FormSkeleton from "@/app/components/dashboard/shared/skeleton/FormSkeleton";
 import { useParams } from "next/navigation";
 
+// Component Info
+// Description: Load and render article edit form with data fetching and skeleton states.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 export default function EditArticlePage() {
   const params = useParams();
   const [isLoading, setIsLoading] = useState(true);
@@ -102,7 +107,6 @@ export default function EditArticlePage() {
         });
       } catch (err) {
         setError("Failed to fetch data");
-        console.error("Error fetching data:", err);
       } finally {
         setIsLoading(false);
       }

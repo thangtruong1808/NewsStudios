@@ -12,8 +12,9 @@ import type { Article } from "@/app/lib/definition";
 /**
  * Props interface for the Articles page component
  */
+// Component Info
 // Description: Dashboard page listing articles with search, sorting, and admin actions.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function ArticlesPageClient() {
   const { data: session } = useSession();
@@ -42,9 +43,6 @@ export default function ArticlesPageClient() {
 
   // Get table columns configuration
   const columns = getArticlesTableColumns({
-    isDeleting,
-    onEdit: ({ item }) => handleEdit(item),
-    onDelete: ({ item }) => handleDelete(item),
     isAdmin,
   });
   const augmentedArticles = articles.map((article, index) => ({

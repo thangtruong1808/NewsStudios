@@ -1,12 +1,12 @@
 "use server";
 
-import { query } from "../db/db";
-import { resolveTableName } from "../db/tableNameResolver";
-
 // Component Info
 // Description: Server action fetching highlight articles with pagination and metadata.
-// Date created: 2024
+// Date created: 2025-11-18
 // Author: thangtruong
+
+import { query } from "../db/query";
+import { resolveTableName } from "../db/tableNameResolver";
 
 type HighlightArticleRow = {
   total_count: number;
@@ -47,9 +47,10 @@ export async function getHighlightArticles({
       return { data: [], error: "Failed to resolve table names.", totalCount: 0 };
     }
 
-    const offset = (page - 1) * itemsPerPage;
+    const limitValue = Math.max(1, Number(itemsPerPage) || 6);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
 
-    const { data, error } = await query<HighlightArticleRow>(
+    const result = await query<HighlightArticleRow>(
       `
       SELECT 
         a.*,
@@ -71,19 +72,22 @@ export async function getHighlightArticles({
       WHERE a.headline_priority != 0
       GROUP BY a.id, c.name, sc.name, au.name
       ORDER BY a.headline_priority DESC, a.published_at DESC
-      LIMIT ? OFFSET ?
-    `,
-      [itemsPerPage, offset]
+      LIMIT ${limitValue} OFFSET ${offsetValue}
+    `
     );
+
+    const { data, error } = result;
 
     const rows = Array.isArray(data) ? (data as HighlightArticleRow[]) : [];
 
-    if (error) {
-      return { data: [], error, totalCount: 0 };
-    }
-
+    // Check for empty data first (like FeaturedArticles)
     if (rows.length === 0) {
       return { data: [], error: null, totalCount: 0 };
+    }
+
+    // Only return error if there's an actual query error and we have rows
+    if (error) {
+      return { data: [], error, totalCount: 0 };
     }
 
     const normalizeDate = (value: unknown): string => {

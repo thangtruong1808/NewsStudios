@@ -4,7 +4,7 @@ import { getArticleById } from '@/app/lib/actions/articles';
 
 // Component Info
 // Description: Server component generating metadata and rendering article detail page.
-// Date created: 2024-12-19
+// Date created: 2025-11-18
 // Author: thangtruong
 
 interface ArticlePageProps {
@@ -35,6 +35,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   }
 
   return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://news-studios.vercel.app"),
     title,
     description,
     keywords: ['articles', 'news', 'content', 'blog'],

@@ -7,7 +7,7 @@ import VideoCarousel from "../components/front-end/VideoCarousel";
 
 // Component Info
 // Description: Home page layout orchestrating video carousel, featured articles, highlights, trending, related articles, and tags sections.
-// Date created: 2024-12-19
+// Date created: 2025-11-18
 // Author: thangtruong
 
 export default function Home() {

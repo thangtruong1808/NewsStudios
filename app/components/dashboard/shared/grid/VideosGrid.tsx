@@ -25,8 +25,9 @@ interface VideosGridProps {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Render dashboard video cards with admin controls, skeletons, and load-more support.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function VideosGrid({
   videos,
@@ -81,33 +82,34 @@ export default function VideosGrid({
     );
   }
 
-  // Empty state when no videos are found
+  // Empty state: friendly message when no videos found
   if (videos.length === 0 && !isLoading) {
     return (
-      <div className="text-center py-12">
-        <div className="text-gray-500 mb-2">
-          <svg
-            className="mx-auto h-12 w-12 text-red-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-            />
-          </svg>
+      <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-12">
+        <div className="flex flex-col items-center justify-center space-y-4 text-center">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100">
+            <svg
+              className="h-8 w-8 text-blue-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900">
+            No Videos Available
+          </h3>
+          <p className="text-gray-500 max-w-md">
+            There are no videos in the database at the moment. Start by uploading your first video to get started!
+          </p>
         </div>
-        <h3 className="text-lg font-medium text-red-500 mb-1">
-          No Videos Found
-        </h3>
-        <p className="text-red-500">
-          It seems the videos are not available. They might have been
-          accidentally deleted from the storage.
-        </p>
       </div>
     );
   }

@@ -4,7 +4,7 @@ import { getTagById } from '@/app/lib/actions/tags';
 
 // Component Info
 // Description: Server component generating metadata and rendering tag articles page.
-// Date created: 2024-12-19
+// Date created: 2025-11-18
 // Author: thangtruong
 
 interface TagArticlesProps {
@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: TagArticlesProps): Promise<Me
   }
 
   return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://news-studios.vercel.app"),
     title,
     description,
     keywords: ['articles', 'tags', 'content', 'blog'],

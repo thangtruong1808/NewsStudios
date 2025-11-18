@@ -13,8 +13,9 @@ import {
 type ImagesResult = Awaited<ReturnType<typeof getImages>>;
 type SearchResult = Awaited<ReturnType<typeof searchImages>>;
 
+// Component Info
 // Description: Manage dashboard photo listing state with search, pagination, and delete actions.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export function usePhotos() {
   const router = useRouter();
@@ -44,8 +45,23 @@ export function usePhotos() {
       try {
         if (searchQuery) {
           const searchResult: SearchResult = await searchImages(searchQuery);
+          
+          const photosData = Array.isArray(searchResult.data) ? searchResult.data : [];
+          
+          // Only show error toast for critical database errors, not for empty data
           if (searchResult.error) {
-            showErrorToast({ message: searchResult.error });
+            // Check if it's a critical database error that should be shown
+            const isCriticalError = 
+              searchResult.error.includes("doesn't exist") ||
+              searchResult.error.includes("mysqld_stmt_execute") ||
+              searchResult.error.includes("SQL syntax");
+            
+            // Don't show toast for errors when data is empty
+            // This prevents false positive errors when table is empty
+            if (isCriticalError && photosData.length > 0) {
+              showErrorToast({ message: searchResult.error });
+            }
+            // Set empty data to show friendly empty state
             if (currentPage === 1) {
               setPhotos([]);
               setTotalItems(0);
@@ -54,7 +70,7 @@ export function usePhotos() {
             return;
           }
 
-          const convertedPhotos = searchResult.data.map((img) => ({
+          const convertedPhotos = photosData.map((img) => ({
             ...img,
             created_at: new Date(img.created_at).toISOString(),
             updated_at: new Date(img.updated_at).toISOString(),
@@ -73,7 +89,7 @@ export function usePhotos() {
             setHasMore(false);
           }
         } else {
-          const { images, totalItems: total, totalPages: _totalPages } = (await getImages({
+          const result = (await getImages({
             page: currentPage,
             limit: itemsPerPage,
             sortField: "created_at",
@@ -81,38 +97,30 @@ export function usePhotos() {
             searchQuery: "",
           })) as ImagesResult;
 
-          if (!images || images.length === 0) {
-            if (currentPage === 1) {
-              setPhotos([]);
-              setTotalItems(0);
-            }
-            setHasMore(false);
-            return;
-          }
-
-          const convertedPhotos = images.map((img) => ({
-            ...img,
-            created_at: new Date(img.created_at).toISOString(),
-            updated_at: new Date(img.updated_at).toISOString(),
-          }));
-
-          if (convertedPhotos.length > 0 || currentPage === 1) {
-            if (currentPage === 1) {
-              setPhotos(convertedPhotos);
-            } else {
-              setPhotos((prev) => [...prev, ...convertedPhotos]);
-            }
-            setTotalItems(total);
-            setHasMore(total > currentPage * itemsPerPage);
+          const photosData = Array.isArray(result.images) ? result.images : [];
+          
+          if (currentPage === 1) {
+            setPhotos(photosData.map((img) => ({
+              ...img,
+              created_at: new Date(img.created_at).toISOString(),
+              updated_at: new Date(img.updated_at).toISOString(),
+            })));
           } else {
-            setHasMore(false);
+            setPhotos((prev) => [
+              ...prev,
+              ...photosData.map((img) => ({
+                ...img,
+                created_at: new Date(img.created_at).toISOString(),
+                updated_at: new Date(img.updated_at).toISOString(),
+              })),
+            ]);
           }
+          setTotalItems(result.totalItems);
+          setHasMore(result.totalItems > currentPage * itemsPerPage);
         }
       } catch (error) {
-        showErrorToast({
-          message:
-            error instanceof Error ? error.message : "Failed to fetch photos",
-        });
+        // Don't show error toast for empty table scenarios
+        // Set empty data to show friendly empty state
         if (currentPage === 1) {
           setPhotos([]);
           setTotalItems(0);

@@ -3,7 +3,6 @@
 import { Table } from "../../dashboard/shared/table";
 import type { Column } from "../../dashboard/shared/table";
 import type { User } from "../../../lib/definition";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
@@ -29,8 +28,9 @@ interface UsersTableProps {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Render dashboard users table with sortable columns, profile previews, and admin actions.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function UsersTable({
   users,
@@ -151,11 +151,10 @@ export default function UsersTable({
         const isActive = status.toLowerCase() === "active";
         return (
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm ${
-              isActive
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
-            }`}
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm ${isActive
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+              }`}
           >
             {status}
           </span>
@@ -188,34 +187,15 @@ export default function UsersTable({
         </div>
       ),
     },
-    // Actions column with Edit and Delete buttons (only for admin)
+    // Actions column header (buttons are rendered automatically by TableRow)
     ...(isAdmin
       ? [
-          {
-            field: "id" as keyof (User & { sequence: number }),
-            label: "Actions",
-            sortable: false,
-            render: ({ row }: { row: User & { sequence: number } }) => (
-              <div className="flex justify-start items-start space-x-2">
-                <button
-                  onClick={() => onEdit({ item: row })}
-                  className="inline-flex items-center gap-1 rounded border border-blue-500 px-2 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-                >
-                  <PencilIcon className="h-5 w-5" />
-                  Edit
-                </button>
-                <button
-                  onClick={() => onDelete({ item: row })}
-                  disabled={isDeleting}
-                  className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 disabled:opacity-50"
-                >
-                  <TrashIcon className="h-5 w-5" />
-                  Delete
-                </button>
-              </div>
-            ),
-          },
-        ]
+        {
+          field: "actions" as keyof (User & { sequence: number }),
+          label: "Actions",
+          sortable: false,
+        },
+      ]
       : []),
   ];
 

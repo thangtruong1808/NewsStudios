@@ -1,10 +1,9 @@
+import { Metadata } from "next";
 import NavBar from "../components/front-end/navbar/NavBar";
 import Footer from "../components/front-end/Footer";
-import TopButton from "../components/front-end/shared/TopButton";
-import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://news-studios.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://news-studios.vercel.app"),
   title: "Home | NewsStudios",
   description:
     "Discover and explore a comprehensive collection of articles, videos, and multimedia content. Browse through curated content from various categories and tags, and stay updated with the latest news and insights from our extensive library.",
@@ -42,7 +41,7 @@ export const metadata: Metadata = {
 
 // Component Info
 // Description: Main site layout providing shared navigation, content frame, footer, and top button.
-// Date created: 2024-12-19
+// Date created: 2025-11-18
 // Author: thangtruong
 
 export default function MainLayout({
@@ -52,12 +51,14 @@ export default function MainLayout({
 }>) {
   return (
     <div className="min-h-screen bg-white text-slate-900">
+      {/* Navigation bar */}
       <NavBar />
+      {/* Main content wrapper */}
       <div className="mx-auto w-full max-w-[1536px] flex-1 px-4 py-8 sm:px-6 lg:px-10 xl:px-16">
         <main className="w-full">{children}</main>
       </div>
+      {/* Footer */}
       <Footer />
-      {/* <TopButton /> */}
     </div>
   );
 }

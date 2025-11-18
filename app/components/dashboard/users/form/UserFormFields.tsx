@@ -26,8 +26,9 @@ interface UserFormFieldsProps {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Assemble user form sections including image upload, identity, roles, and metadata fields.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function UserFormFields({
   register,
@@ -52,7 +53,6 @@ export default function UserFormFields({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Image upload field with preview */}
         <ImageField
-          register={register}
           errors={errors}
           userImage={imagePreview || ""}
           onImageChange={handleImageChange}

@@ -8,6 +8,11 @@ import { getUsers } from "@/app/lib/actions/users";
 import ArticleFormContainer from "@/app/components/dashboard/articles/form/ArticleFormContainer";
 import FormSkeleton from "@/app/components/dashboard/shared/skeleton/FormSkeleton";
 
+// Component Info
+// Description: Load and render article creation form with data fetching and skeleton states.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 export default function CreateArticlePageClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

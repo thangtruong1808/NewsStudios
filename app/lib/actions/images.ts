@@ -1,9 +1,16 @@
 "use server";
 
+// Component Info
+// Description: Server actions for image CRUD operations and queries.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 import { revalidatePath } from "next/cache";
-import { query, transaction } from "../db/db";
+import { query } from "../db/query";
+import { transaction } from "../db/db";
 import { RowDataPacket } from "mysql2";
 import { Image } from "../definition";
+import { resolveTableName } from "../db/tableNameResolver";
 
 interface ImageRow extends RowDataPacket {
   id: number;
@@ -126,66 +133,90 @@ export async function getImages({
   searchQuery?: string;
 }) {
   try {
-    const safePage = Number.isFinite(page) && page > 0 ? Number(page) : 1;
-    const safeLimit =
-      Number.isFinite(limit) && limit > 0 ? Number(limit) : 10;
-    const offset = (safePage - 1) * safeLimit;
+    // Resolve table names with proper casing
+    const [imagesTable, articlesTable] = await Promise.all([
+      resolveTableName("Images"),
+      resolveTableName("Articles"),
+    ]);
+
+    // Validate table names are resolved
+    if (!imagesTable || !articlesTable) {
+      return {
+        images: [],
+        totalPages: 1,
+        totalItems: 0,
+      };
+    }
+
+    const limitValue = Math.max(1, Number(limit) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
     const safeSortField = IMAGE_SORT_FIELDS.has(sortField ?? "")
       ? (sortField as string)
       : "created_at";
     const safeDirection = sortDirection === "asc" ? "ASC" : "DESC";
     const trimmedSearch = searchQuery.trim();
-    const baseSelect = `
-      SELECT i.*, a.title as article_title
-      FROM Images i
-      LEFT JOIN Articles a ON i.article_id = a.id
-    `;
-    const baseCount = `
-      SELECT COUNT(*) as total
-      FROM Images i
-      LEFT JOIN Articles a ON i.article_id = a.id
-    `;
+
+    // Build WHERE clause and search parameters
     const whereClause = trimmedSearch
-      ? `
-        WHERE i.description LIKE ?
-        OR a.title LIKE ?
-      `
+      ? `WHERE i.description LIKE ? OR a.title LIKE ?`
       : "";
     const searchParams = trimmedSearch
       ? [`%${trimmedSearch}%`, `%${trimmedSearch}%`]
       : [];
 
-    const queryStr = `
-      ${baseSelect}
-      ${whereClause}
-      ORDER BY i.${safeSortField} ${safeDirection}
-      LIMIT ${safeLimit} OFFSET ${offset}
-    `;
-
+    // Build count query
     const countQuery = `
-      ${baseCount}
+      SELECT COUNT(*) as total
+      FROM \`${imagesTable}\` i
+      LEFT JOIN \`${articlesTable}\` a ON i.article_id = a.id
       ${whereClause}
     `;
 
-    const result = await query<ImageRow>(queryStr, searchParams);
+    // Get total count
     const countResult = await query<ImageCountRow>(countQuery, searchParams);
 
-    if (result.error || countResult.error) {
-      throw new Error(
-        result.error || countResult.error || "An unknown error occurred"
-      );
+    // Check for count query errors
+    if (countResult.error || !countResult.data) {
+      return {
+        images: [],
+        totalPages: 1,
+        totalItems: 0,
+      };
     }
 
     const countRows = Array.isArray(countResult.data)
       ? (countResult.data as ImageCountRow[])
       : [];
     const total = countRows.length > 0 ? Number(countRows[0].total ?? 0) : 0;
-    const totalPages = total > 0 ? Math.ceil(total / safeLimit) : 1;
+    const totalPages = total > 0 ? Math.ceil(total / limitValue) : 1;
+
+    // Build data query with template literals for LIMIT/OFFSET
+    const queryStr = `
+      SELECT i.*, a.title as article_title
+      FROM \`${imagesTable}\` i
+      LEFT JOIN \`${articlesTable}\` a ON i.article_id = a.id
+      ${whereClause}
+      ORDER BY i.\`${safeSortField}\` ${safeDirection}
+      LIMIT ${limitValue} OFFSET ${offsetValue}
+    `;
+
+    // Get paginated data
+    const result = await query<ImageRow>(queryStr, searchParams);
+
+    // Check for query errors
+    if (result.error || !result.data) {
+      return {
+        images: [],
+        totalPages: 1,
+        totalItems: 0,
+      };
+    }
 
     const rows = Array.isArray(result.data)
       ? (result.data as ImageRow[])
       : [];
 
+    // Map rows to Image objects
     const images: Image[] = rows.map((row) => ({
       id: row.id,
       article_id: row.article_id,
@@ -214,7 +245,12 @@ export async function getImages({
       totalItems: total,
     };
   } catch (_error) {
-    throw _error;
+    // Return empty data for any errors
+    return {
+      images: [],
+      totalPages: 1,
+      totalItems: 0,
+    };
   }
 }
 
@@ -462,6 +498,26 @@ export async function getAllImages(type?: string) {
 
 export async function searchImages(searchQuery: string) {
   try {
+    // Resolve table names with proper casing
+    const [imagesTable, articlesTable] = await Promise.all([
+      resolveTableName("Images"),
+      resolveTableName("Articles"),
+    ]);
+
+    // Validate table names are resolved
+    if (!imagesTable || !articlesTable) {
+      return {
+        data: [],
+        error: null,
+        pagination: {
+          total: 0,
+          totalPages: 1,
+          currentPage: 1,
+          itemsPerPage: 0,
+        },
+      };
+    }
+
     const result = await query(
       `SELECT 
         i.id,
@@ -477,15 +533,24 @@ export async function searchImages(searchQuery: string) {
         i.updated_at,
         a.title as article_title,
         a.slug as article_slug
-       FROM Images i
-       LEFT JOIN Articles a ON i.article_id = a.id
-       WHERE a.id LIKE ? OR a.title LIKE ? OR i.description LIKE ?
+       FROM \`${imagesTable}\` i
+       LEFT JOIN \`${articlesTable}\` a ON i.article_id = a.id
+       WHERE CAST(a.id AS CHAR) LIKE ? OR a.title LIKE ? OR i.description LIKE ?
        ORDER BY i.created_at DESC`,
       [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
     );
 
     if (result.error) {
-      return { data: [], error: result.error };
+      return {
+        data: [],
+        error: result.error,
+        pagination: {
+          total: 0,
+          totalPages: 1,
+          currentPage: 1,
+          itemsPerPage: 0,
+        },
+      };
     }
 
     // Process images to ensure they have proper URLs
@@ -521,13 +586,13 @@ export async function searchImages(searchQuery: string) {
         itemsPerPage: processedImages?.length || 0,
       },
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       data: [],
-      error: "Failed to search images",
+      error: null,
       pagination: {
         total: 0,
-        totalPages: 0,
+        totalPages: 1,
         currentPage: 1,
         itemsPerPage: 0,
       },

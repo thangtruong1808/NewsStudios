@@ -1,28 +1,23 @@
 "use client";
 
+// Component Info
+// Description: Provide configured columns for the dashboard articles table including actions and formatters.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 import { Column } from "@/app/components/dashboard/shared/table";
 import { Article } from "@/app/lib/definition";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import ExpandableTagList from "./ExpandableTagList";
 import { formatDateToLocal } from "@/app/lib/utils/dateFormatter";
 
 /* eslint-disable no-unused-vars */
 interface ArticlesTableColumnsProps {
-  isDeleting: boolean;
-  onEdit: (params: { item: Article }) => void;
-  onDelete: (params: { item: Article }) => void;
   isAdmin: boolean;
 }
 /* eslint-enable no-unused-vars */
 
-// Description: Provide configured columns for the dashboard articles table including actions and formatters.
-// Data created: 2024-11-13
-// Author: thangtruong
 export function getArticlesTableColumns({
-  isDeleting,
-  onEdit,
-  onDelete,
   isAdmin,
 }: ArticlesTableColumnsProps): Column<Article & { sequence: number }>[] {
   // Base column definitions
@@ -129,31 +124,12 @@ export function getArticlesTableColumns({
       },
     ];
 
-  // Conditional actions column
+  // Actions column header (buttons are rendered automatically by TableRow)
   if (isAdmin) {
     baseColumns.push({
-      field: "id" as keyof (Article & { sequence: number }),
+      field: "actions" as keyof (Article & { sequence: number }),
       label: "Actions",
       sortable: false,
-      render: ({ row }: { row: Article & { sequence: number } }) => (
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => onEdit({ item: row })}
-            className="text-blue-600 hover:text-blue-900"
-            aria-label="Edit article"
-          >
-            <PencilIcon className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => onDelete({ item: row })}
-            disabled={isDeleting}
-            className="text-red-600 hover:text-red-900 disabled:opacity-50"
-            aria-label="Delete article"
-          >
-            <TrashIcon className="h-5 w-5" />
-          </button>
-        </div>
-      ),
     });
   }
 

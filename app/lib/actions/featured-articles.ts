@@ -1,12 +1,12 @@
 "use server";
 
-import { query } from "../db/db";
-import { resolveTableName } from "../db/tableNameResolver";
-
 // Component Info
 // Description: Server action fetching featured articles with pagination and metadata.
-// Date created: 2024
+// Date created: 2025-11-18
 // Author: thangtruong
+
+import { query } from "../db/query";
+import { resolveTableName } from "../db/tableNameResolver";
 
 type FeaturedArticleRow = {
   total_count: number;
@@ -35,7 +35,8 @@ export async function getFeaturedArticles(page: number = 1, limit: number = 8) {
     }
 
     // Calculate offset for MySQL pagination
-    const offset = (page - 1) * limit;
+    const limitValue = Math.max(1, Number(limit) || 8);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
 
     const result = await query(
       `
@@ -56,9 +57,8 @@ export async function getFeaturedArticles(page: number = 1, limit: number = 8) {
       WHERE a.is_featured = 1 AND a.headline_priority = 0
       GROUP BY a.id
       ORDER BY a.published_at DESC
-      LIMIT ? OFFSET ?
-    `,
-      [limit, offset]
+      LIMIT ${limitValue} OFFSET ${offsetValue}
+    `
     );
 
     const rows = Array.isArray(result.data)

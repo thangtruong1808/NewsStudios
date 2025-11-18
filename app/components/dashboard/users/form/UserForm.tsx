@@ -2,6 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 import { UserFormValues, createUserSchema, editUserSchema } from "./userSchema";
 import { User } from "../../../../lib/definition";
 import UserFormFields from "./UserFormFields";
@@ -15,18 +16,20 @@ import { useUserForm } from "./hooks/useUserForm";
 interface UserFormProps {
   user?: User; // Optional user data for edit mode
   isEditMode?: boolean; // Flag to determine if form is in edit mode
+  onUserUpdated?: () => void; // Callback to refresh user data after successful update
 }
 
-/**
- * UserForm Component
- * A form component for creating and editing users with validation and error handling.
- * Supports both create and edit modes with different validation schemas.
- */
-export default function UserForm({ user, isEditMode = false }: UserFormProps) {
+// Component Info
+// Description: A form component for creating and editing users with validation and error handling. Supports both create and edit modes with different validation schemas.
+// Date created: 2025-11-18
+// Author: thangtruong
+export default function UserForm({ user, isEditMode = false, onUserUpdated }: UserFormProps) {
   // Initialize form with react-hook-form and zod validation
   const {
     register,
     handleSubmit,
+    setValue,
+    reset,
     formState: { errors, isSubmitting, isValid, isDirty },
   } = useForm<UserFormValues>({
     resolver: zodResolver(isEditMode ? editUserSchema : createUserSchema),
@@ -43,6 +46,22 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
     mode: "onChange", // Enable real-time validation
   });
 
+  // Reset form values when user data changes (e.g., after successful update)
+  useEffect(() => {
+    if (user) {
+      reset({
+        firstname: user.firstname || "",
+        lastname: user.lastname || "",
+        email: user.email || "",
+        password: "",
+        role: user.role || "user",
+        status: user.status || "active",
+        description: user.description || "",
+        user_image: user.user_image || "",
+      });
+    }
+  }, [user, reset]);
+
   // Use custom hook for form operations
   const {
     isImageProcessing,
@@ -52,7 +71,7 @@ export default function UserForm({ user, isEditMode = false }: UserFormProps) {
     handleImageUpload,
     handleSubmit: handleFormSubmit,
     handleCancel,
-  } = useUserForm(user, isEditMode);
+  } = useUserForm(user, isEditMode, setValue, onUserUpdated);
 
   // Determine if the submit button should be disabled
   const isSubmitDisabled =

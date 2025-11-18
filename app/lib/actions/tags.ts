@@ -1,12 +1,12 @@
 "use server";
 
-import { query } from "../db/db";
+import { query } from "../db/query";
 import { Tag, TagFormData } from "../definition";
 import { resolveTableName } from "../db/tableNameResolver";
 
 // Component Info
 // Description: Server actions for tag CRUD operations and queries.
-// Date created: 2024-12-19
+// Date created: 2025-11-18
 // Author: thangtruong
 
 type TagCountRow = {
@@ -28,16 +28,31 @@ export async function getTags({
   sortDirection = "desc",
 }: GetTagsParams = {}) {
   try {
-    const offset = (page - 1) * limit;
+    const limitValue = Math.max(1, Number(limit) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
 
     // First, get the total count
     const countResult = await query<TagCountRow>(
       `SELECT COUNT(*) as total_count FROM Tags`
     );
+
+    if (countResult.error || !countResult.data) {
+      return {
+        data: null,
+        error: countResult.error ?? "Failed to fetch tags.",
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+      };
+    }
+
     const countRows = Array.isArray(countResult.data)
       ? (countResult.data as TagCountRow[])
       : [];
     const totalCount = countRows.length > 0 ? Number(countRows[0].total_count ?? 0) : 0;
+    const totalPages = Math.max(1, Math.ceil(totalCount / limitValue));
 
     // Then get the paginated data
     const result = await query<
@@ -51,19 +66,19 @@ export async function getTags({
         (SELECT COUNT(*) FROM Article_Tags WHERE tag_id = t.id) as article_count
       FROM Tags t
       ORDER BY t.${sortField} ${sortDirection}
-      LIMIT ? OFFSET ?
-    `,
-      [limit, offset]
+      LIMIT ${limitValue} OFFSET ${offsetValue}
+    `
     );
 
-    if (!result.data || result.data.length === 0) {
+    if (result.error || !result.data) {
       return {
-        data: [],
-        totalCount: 0,
+        data: null,
+        error: result.error ?? "Failed to fetch tags.",
+        totalCount,
         start: 0,
         end: 0,
         currentPage: page,
-        totalPages: 0,
+        totalPages,
       };
     }
 
@@ -80,9 +95,8 @@ export async function getTags({
       article_count: Number(tag.article_count ?? 0),
     }));
 
-    const start = offset + 1;
-    const end = Math.min(offset + limit, totalCount);
-    const totalPages = Math.ceil(totalCount / limit);
+    const start = offsetValue + 1;
+    const end = Math.min(offsetValue + limitValue, totalCount);
 
     return {
       data: tags,
@@ -95,13 +109,13 @@ export async function getTags({
     };
   } catch (_error) {
     return {
-      data: [],
+      data: null,
+      error: "Failed to fetch tags.",
       totalCount: 0,
       start: 0,
       end: 0,
       currentPage: page,
       totalPages: 0,
-      error: "Failed to fetch tags",
     };
   }
 }

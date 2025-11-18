@@ -10,15 +10,11 @@ import {
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 
-/**
- * Hook for managing articles data and operations
- * Handles:
- * - Data fetching and state management
- * - Pagination
- * - Sorting
- * - Search
- * - CRUD operations
- */
+// Component Info
+// Description: Hook for managing articles data and operations. Handles data fetching, pagination, sorting, search, and CRUD operations.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 export function useArticles() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -57,19 +53,35 @@ export function useArticles() {
         });
 
         if (result.error) {
-          throw new Error(result.error);
+          showErrorToast({
+            message: result.error,
+          });
+          setArticles([]);
+          setTotalPages(1);
+          setTotalItems(0);
+        } else {
+          setArticles(result.data || []);
+          setTotalPages(result.totalPages || 1);
+          setTotalItems(result.totalCount || 0);
         }
-
-        setArticles(result.data || []);
-        setTotalPages(result.totalPages || 1);
-        setTotalItems(result.totalCount || 0);
       } catch (error) {
-        showErrorToast({
-          message:
-            error instanceof Error
-              ? error.message
-              : "Failed to fetch articles. Please try again.",
-        });
+        // Only show error toast for unexpected errors
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch articles. Please try again.";
+        // Check if it's a critical error
+        const isCriticalError = 
+          errorMessage.includes("doesn't exist") ||
+          errorMessage.includes("mysqld_stmt_execute") ||
+          errorMessage.includes("SQL syntax");
+        
+        if (isCriticalError) {
+          showErrorToast({
+            message: errorMessage,
+          });
+        }
+        // Set empty data to show empty state
+        setArticles([]);
+        setTotalPages(1);
+        setTotalItems(0);
       } finally {
         setIsLoading(false);
         setIsSearching(false);

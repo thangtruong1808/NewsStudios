@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { UseFormSetValue } from "react-hook-form";
 import { User } from "@/app/lib/definition";
 import { UserFormValues } from "../userSchema";
 import { createUser, updateUser } from "@/app/lib/actions/users";
@@ -16,11 +17,16 @@ import {
   showErrorToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 
-/**
- * Custom hook for managing user form state and operations
- * Handles image uploads, form submission, and cleanup
- */
-export function useUserForm(user?: User, isEditMode = false) {
+// Component Info
+// Description: Custom hook for managing user form state and operations. Handles image uploads, form submission, and cleanup.
+// Date created: 2025-11-18
+// Author: thangtruong
+export function useUserForm(
+  user?: User,
+  isEditMode = false,
+  setValue?: UseFormSetValue<UserFormValues>,
+  onUserUpdated?: () => void
+) {
   const router = useRouter();
   const { data: session } = useSession();
   const [isImageProcessing, setIsImageProcessing] = useState(false);
@@ -74,6 +80,12 @@ export function useUserForm(user?: User, isEditMode = false) {
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
       setSelectedFile(file);
+      
+      // Update form value with preview URL to satisfy validation
+      // The actual URL will be set after Cloudinary upload on submit
+      if (setValue) {
+        setValue("user_image", previewUrl, { shouldValidate: false });
+      }
     } catch (error) {
       showErrorToast({
         message:
@@ -132,14 +144,15 @@ export function useUserForm(user?: User, isEditMode = false) {
             showSuccessToast({
               message: "Profile updated. Please log in again.",
             });
-            // Sign out and redirect to login with callback to users list
+            // Sign out and redirect to login page (user must login again)
             await signOut({
               redirect: true,
-              callbackUrl: "/dashboard/users",
+              callbackUrl: "/login",
             });
           } else {
-            // For all other cases (admin updating other users), just redirect
+            // For admin updating other users, redirect to users list after success toast
             showSuccessToast({ message: "User updated successfully" });
+            // Navigate to users list page
             router.push("/dashboard/users");
             router.refresh();
           }

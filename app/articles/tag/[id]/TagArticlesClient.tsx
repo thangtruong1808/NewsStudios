@@ -11,7 +11,7 @@ import TagArticlesSkeleton from "./TagArticlesSkeleton";
 
 // Component Info
 // Description: Client component displaying articles filtered by a specific tag with pagination.
-// Date created: 2024-12-19
+// Date created: 2025-11-18
 // Author: thangtruong
 
 interface TagArticlesClientProps {

@@ -183,18 +183,80 @@ export default function HighlightArticles() {
   // Error state display
   if (error) {
     return (
-      <div className="text-center text-red-500 py-8">
-        <p>{error}</p>
-      </div>
+      <>
+        {/* Header section with title and description */}
+        <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+            <div className="py-8">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-orange-100 shadow-sm">
+                  <StarIcon className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Highlight Articles</h2>
+                  <p className="text-sm text-gray-600 mt-1">Top stories that deserve your attention</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Error message */}
+        <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+          <div className="max-w-[1536px] mx-auto px-6">
+            <div className="bg-red-50 border border-red-200 rounded-xl shadow-sm p-12 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-100">
+                  <StarIcon className="h-8 w-8 text-red-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-red-900">Error Loading Articles</h3>
+                <p className="text-red-700 max-w-md">{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 
   // No articles found state
   if (articles.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-8">
-        <p>No highlight articles found</p>
-      </div>
+      <>
+        {/* Header section with title and description */}
+        <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+            <div className="py-8">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-orange-100 shadow-sm">
+                  <StarIcon className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Highlight Articles</h2>
+                  <p className="text-sm text-gray-600 mt-1">Top stories that deserve your attention</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Empty state message */}
+        <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+          <div className="max-w-[1536px] mx-auto px-6">
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-orange-100">
+                  <StarIcon className="h-8 w-8 text-orange-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">No Highlight Articles Available</h3>
+                <p className="text-gray-500 max-w-md">
+                  We&apos;re preparing some amazing stories for you. Stay tuned for our highlighted content!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -249,27 +311,24 @@ export default function HighlightArticles() {
       <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
         <div className="max-w-[1536px] mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-6">
-            {articles.slice(0, page * ITEMS_PER_PAGE).map((article) => {
-              // Split tag strings into arrays safely
-              return (
-                <Card
-                  key={article.id}
-                  title={article.title}
-                  description={article.content}
-                  imageUrl={article.image || undefined}
-                  link={`/articles/${article.id}`}
-                  category={article.category_name}
-                  subcategory={article.subcategory_name}
-                  author={article.author_name}
-                  date={article.published_at}
-                  viewsCount={article.views_count}
-                  likesCount={article.likes_count}
-                  commentsCount={article.comments_count}
-                  tags={article.tag_names}
-                  tagColors={article.tag_colors}
-                />
-              );
-            })}
+            {articles.slice(0, page * ITEMS_PER_PAGE).map((article) => (
+              <Card
+                key={article.id}
+                title={article.title}
+                description={article.content}
+                imageUrl={article.image || undefined}
+                link={`/articles/${article.id}`}
+                category={article.category_name}
+                subcategory={article.subcategory_name}
+                author={article.author_name}
+                date={article.published_at}
+                viewsCount={article.views_count}
+                likesCount={article.likes_count}
+                commentsCount={article.comments_count}
+                tags={article.tag_names}
+                tagColors={article.tag_colors}
+              />
+            ))}
           </div>
 
           {/* Load More Button */}

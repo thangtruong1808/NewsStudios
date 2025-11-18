@@ -1,9 +1,13 @@
 "use client";
 
+// Component Info
+// Description: Render authors table with pagination, sorting, and admin actions.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 import Table from "@/app/components/dashboard/shared/table/Table";
 import type { Column } from "@/app/components/dashboard/shared/table/TableTypes";
 import { Author } from "@/app/lib/definition";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
 import { useSession } from "next-auth/react";
@@ -157,39 +161,18 @@ export default function AuthorsTable({
     },
   ];
 
-  // Only add the actions column if the user is an admin
-  const actionColumn: Column<TableAuthor> = {
-    field: "id",
-    label: "Actions",
-    sortable: false,
-    render: ({ row: author }) => (
-      <div className="flex justify-start items-start space-x-2">
-        <button
-          onClick={() => onEdit({ item: author })}
-          className="inline-flex items-center gap-1 rounded border border-blue-500 px-3 py-1.5 text-sm font-medium text-blue-500 hover:bg-blue-50 transition-colors	duration-200"
-        >
-          <PencilIcon className="h-4 w-4" />
-          Edit
-        </button>
-        <button
-          onClick={() => onDelete({ item: author })}
-          disabled={isDeleting}
-          className="inline-flex items-center gap-1 rounded border border-red-500 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors	duration-200 disabled:opacity-50"
-        >
-          <TrashIcon className="h-4 w-4" />
-          Delete
-        </button>
-      </div>
-    ),
-  };
-
+  // Actions column header (buttons are rendered automatically by TableRow)
   const columns: Column<TableAuthor>[] = isAdmin
-    ? [...baseColumns, actionColumn]
+    ? [
+        ...baseColumns,
+        {
+          field: "actions" as keyof TableAuthor,
+          label: "Actions",
+          sortable: false,
+        },
+      ]
     : baseColumns;
 
-  // Description: Render authors table with pagination, sorting, and admin actions.
-  // Data created: 2024-11-13
-  // Author: thangtruong
   return (
     <div className="flow-root">
       <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

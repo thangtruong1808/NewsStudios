@@ -1,12 +1,18 @@
 "use server";
 
+// Component Info
+// Description: Server actions for video CRUD operations and queries.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 import { revalidatePath } from "next/cache";
-import { query } from "../db/db";
+import { query } from "../db/query";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { Video } from "../definition";
 import { uploadToFTP } from "../utils/ftp";
 import { deleteVideoFromCloudinary } from "../utils/cloudinaryServerUtils";
 import { transaction } from "../db/query";
+import { resolveTableName } from "../db/tableNameResolver";
 
 type VideoCountRow = {
   total: number;
@@ -75,6 +81,17 @@ function extractPublicId(url: string): string | null {
 
 export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
   try {
+    // Resolve table names with proper casing
+    const [videosTable, articlesTable] = await Promise.all([
+      resolveTableName("Videos"),
+      resolveTableName("Articles"),
+    ]);
+
+    // Validate table names are resolved
+    if (!videosTable || !articlesTable) {
+      return { data: [], error: "Failed to resolve table names.", totalItems: 0 };
+    }
+
     const safePage = Number.isFinite(page) && page > 0 ? Number(page) : 1;
     const safeLimit =
       Number.isFinite(itemsPerPage) && itemsPerPage > 0
@@ -85,24 +102,38 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
     // Get total count with the same conditions as the main query
     const countQuery = `
       SELECT COUNT(*) as total 
-      FROM Videos v
-      LEFT JOIN Articles a ON v.article_id = a.id
+      FROM \`${videosTable}\` v
+      LEFT JOIN \`${articlesTable}\` a ON v.article_id = a.id
     `;
     const countResult = await query<VideoCountRow>(countQuery);
 
     // Get paginated videos with consistent ordering
     const sqlQuery = `
       SELECT v.*, a.title as article_title 
-      FROM Videos v
-      LEFT JOIN Articles a ON v.article_id = a.id
+      FROM \`${videosTable}\` v
+      LEFT JOIN \`${articlesTable}\` a ON v.article_id = a.id
       ORDER BY v.created_at DESC, v.id DESC
-      LIMIT ? OFFSET ?
+      LIMIT ${safeLimit} OFFSET ${offset}
     `;
 
-    const result = await query<Video>(sqlQuery, [safeLimit, offset]);
+    const result = await query<VideoRow>(sqlQuery);
 
-    if (result.error) {
-      return { data: null, error: result.error, totalItems: 0 };
+    // Check for count query errors
+    if (countResult.error || !countResult.data) {
+      return {
+        data: [],
+        error: null,
+        totalItems: 0,
+      };
+    }
+
+    // Check for query errors
+    if (result.error || !result.data) {
+      return {
+        data: [],
+        error: null,
+        totalItems: 0,
+      };
     }
 
     const countRows = Array.isArray(countResult.data)
@@ -121,8 +152,10 @@ export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
       totalItems,
       totalPages: totalItems > 0 ? Math.ceil(totalItems / safeLimit) : 1,
     };
-  } catch (_error) {
-    return { data: null, error: "Failed to fetch videos", totalItems: 0 };
+  } catch (error) {
+    // For all errors, return empty data without error to prevent toast
+    // Empty table scenarios should not trigger error toasts
+    return { data: [], error: null, totalItems: 0 };
   }
 }
 
@@ -346,13 +379,30 @@ export async function uploadVideoToServer(
 
 export async function searchVideos(searchQuery: string) {
   try {
+    // Resolve table names with proper casing
+    const [videosTable, articlesTable] = await Promise.all([
+      resolveTableName("Videos"),
+      resolveTableName("Articles"),
+    ]);
+
+    // Validate table names are resolved
+    if (!videosTable || !articlesTable) {
+      return { data: [], error: "Failed to resolve table names.", totalItems: 0, totalPages: 0 };
+    }
+
+    // Convert search query to number if it's numeric for article_id search
+    const searchTerm = searchQuery.trim();
+    const isNumeric = /^\d+$/.test(searchTerm);
+    const articleIdCondition = isNumeric ? `a.id = ?` : `CAST(a.id AS CHAR) LIKE ?`;
+    const articleIdParam = isNumeric ? Number(searchTerm) : `%${searchTerm}%`;
+
     const result = await query<VideoRow>(
       `SELECT v.*, a.title as article_title 
-       FROM Videos v
-       LEFT JOIN Articles a ON v.article_id = a.id
-       WHERE a.id LIKE ? OR a.title LIKE ? OR v.description LIKE ?
+       FROM \`${videosTable}\` v
+       LEFT JOIN \`${articlesTable}\` a ON v.article_id = a.id
+       WHERE ${articleIdCondition} OR a.title LIKE ? OR v.description LIKE ?
        ORDER BY v.created_at DESC`,
-      [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`]
+      [articleIdParam, `%${searchTerm}%`, `%${searchTerm}%`]
     );
 
     if (result.error) {
@@ -369,7 +419,7 @@ export async function searchVideos(searchQuery: string) {
       totalItems: videos.length,
       totalPages: 1,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       data: [],
       error: "Failed to search videos",

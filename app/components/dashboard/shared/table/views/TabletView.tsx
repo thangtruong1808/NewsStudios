@@ -18,8 +18,9 @@ interface TabletViewProps<T extends { id: number }> extends ViewProps<T> {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Render tablet-friendly cards for table data with edit/delete actions.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function TabletView<T extends { id: number }>({
   data,
@@ -60,13 +61,18 @@ export default function TabletView<T extends { id: number }>({
           </div>
         ))
       ) : data.length === 0 ? (
-        <div className="rounded-md bg-gray-50 p-6 text-center">
-          <div className="flex flex-col items-center justify-center space-y-3">
-            <DocumentIcon className="h-12 w-12 text-red-400" />
-            <p className="text-sm text-red-500">
+        <div className="rounded-md bg-white p-12 text-center border border-gray-200 shadow-sm">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100">
+              <DocumentIcon className="h-8 w-8 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {searchQuery ? "No Items Found" : "No Items Available"}
+            </h3>
+            <p className="text-sm text-gray-500 max-w-md">
               {searchQuery
-                ? "No items found matching your search criteria."
-                : "No items found from the database."}
+                ? "We couldn't find any items matching your search criteria. Try adjusting your search terms or browse all items."
+                : "There are no items in the database at the moment. Start by creating your first item to get started!"}
             </p>
           </div>
         </div>

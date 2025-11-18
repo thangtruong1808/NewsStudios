@@ -3,6 +3,11 @@ import ExplorePageClient from './ExplorePageClient';
 import { getSubcategoryById } from '@/app/lib/actions/subcategories';
 import { getCategoryById } from '@/app/lib/actions/categories';
 
+// Component Info
+// Description: Server component generating metadata and rendering explore page.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 interface ExplorePageProps {
   searchParams: { [key: string]: string | string[] | undefined };
 }
@@ -31,6 +36,7 @@ export async function generateMetadata({ searchParams }: ExplorePageProps): Prom
   }
 
   return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://news-studios.vercel.app"),
     title,
     description,
     keywords: ['explore', 'content', 'categories', 'tags', 'articles', 'videos'],

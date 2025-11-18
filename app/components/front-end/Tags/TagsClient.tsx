@@ -163,21 +163,38 @@ export default function TagsClient({ categories }: TagsClientProps) {
             Showing {tags.length} of {totalTags} tags
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6">
-            {tags.map((tag) => (
-              <Link key={tag.id} href={`/articles/tag/${tag.id}`} className="group block">
-                <div
-                  className="rounded-lg border border-gray-200 p-4 transition-colors hover:border-blue-500"
-                  style={{ backgroundColor: tag.color }}
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                    <span className="text-xs font-medium text-white">{tag.name}</span>
-                    <span className="text-xs text-white">{tag.article_count} articles</span>
+          {tags.length > 0 ? (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6">
+              {tags.map((tag) => (
+                <Link key={tag.id} href={`/articles/tag/${tag.id}`} className="group block">
+                  <div
+                    className="rounded-lg border border-gray-200 p-4 transition-colors hover:border-blue-500"
+                    style={{ backgroundColor: tag.color }}
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                      <span className="text-xs font-medium text-white">{tag.name}</span>
+                      <span className="text-xs text-white">{tag.article_count} articles</span>
+                    </div>
                   </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            // Empty state message
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100">
+                  <TagIcon className="h-8 w-8 text-blue-600" />
                 </div>
-              </Link>
-            ))}
-          </div>
+                <h3 className="text-xl font-semibold text-gray-900">No Tags Available</h3>
+                <p className="text-gray-500 max-w-md">
+                  {selectedCategory || selectedSubcategory
+                    ? <p>"No tags found for the selected filters. Try selecting a different category or subcategory."</p>
+                    : <p>"We&apos;re working on adding tags to help you explore content. Check back soon!"</p>}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Load More Button */}
           {hasMore && tags.length > 0 && (

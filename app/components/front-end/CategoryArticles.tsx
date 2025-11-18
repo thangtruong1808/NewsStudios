@@ -17,11 +17,13 @@ type CategoryArticlesResponse = {
   error: string | null;
 };
 
+// Component Info
 // Description: Render category-filtered articles grid with pagination support.
-// Data created: 2024-11-13
+// Date created: 2024-12-19
 // Author: thangtruong
+
 export default function CategoryArticles({ categoryId }: Props) {
-  // State: track articles and loading/error flags.
+  // State: track articles and loading/error flags
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +42,32 @@ export default function CategoryArticles({ categoryId }: Props) {
     setCurrentPage((prev) => prev + 1);
   };
 
-  // Effects: fetch category articles via API route.
+  // Fetch category info when categoryId changes
+  useEffect(() => {
+    const fetchCategoryInfo = async () => {
+      if (!categoryId) return;
+
+      try {
+        const response = await fetch(`/api/categories/${categoryId}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.data) {
+            setCategoryInfo({ name: result.data.name || "Articles" });
+          }
+        }
+      } catch (_error) {
+        // Silent: category info is optional
+      }
+    };
+
+    fetchCategoryInfo();
+  }, [categoryId]);
+
+  // Effects: fetch category articles via API route
   useEffect(() => {
     const fetchArticles = async () => {
       if (!categoryId) return;
@@ -81,7 +108,8 @@ export default function CategoryArticles({ categoryId }: Props) {
         setTotalCount(result.totalCount ?? 0);
         setHasMore(result.totalCount > articlesRef.current.length);
 
-        if (newArticles.length > 0 && currentPage === 1) {
+        // Set category info from first article if available
+        if (newArticles.length > 0 && currentPage === 1 && !categoryInfo) {
           setCategoryInfo({
             name: newArticles[0].category_name || "Articles",
           });
@@ -112,25 +140,117 @@ export default function CategoryArticles({ categoryId }: Props) {
     return <CategoryArticlesSkeleton />;
   }
 
-  // Error state: display friendly message.
+  // Error state: display friendly message with header section
   if (error) {
     return (
-      <div className="bg-red-50 p-4 rounded-md">
-        <p className="text-red-700">{error}</p>
-      </div>
+      <>
+        {/* Header Section */}
+        <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] m-8">
+          <div className="max-w-[1536px] mx-auto px-6">
+            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4 sm:p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-100">
+                  <FolderIcon className="h-6 w-6 text-indigo-600" />
+                </div>
+                <div className="flex-1 w-full">
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                    {categoryInfo?.name || "Articles"}
+                  </h1>
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <FolderIcon className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-700">
+                        Category:
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {categoryInfo?.name || "Uncategorized"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Error message */}
+        <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+          <div className="max-w-[1536px] mx-auto px-6">
+            <div className="bg-red-50 border border-red-200 rounded-xl shadow-sm p-12 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-100">
+                  <FolderIcon className="h-8 w-8 text-red-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-red-900">Error Loading Articles</h3>
+                <p className="text-red-700 max-w-md">{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 
-  // Empty state: nothing to show fallback.
-  if (articles.length === 0) {
+  // Empty state: friendly message when no articles found
+  if (articles.length === 0 && !error) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">
-          {categoryId
-            ? "No articles found in this category."
-            : "No articles found."}
-        </p>
-      </div>
+      <>
+        {/* Header Section */}
+        <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] m-8">
+          <div className="max-w-[1536px] mx-auto px-6">
+            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4 sm:p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-100">
+                  <FolderIcon className="h-6 w-6 text-indigo-600" />
+                </div>
+                <div className="flex-1 w-full">
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                    {categoryInfo?.name || "Articles"}
+                  </h1>
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <FolderIcon className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-700">
+                        Category:
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {categoryInfo?.name || "Uncategorized"}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-gray-700">
+                        Total Articles:
+                      </span>
+                      <span className="text-sm text-gray-600">0</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Empty state message */}
+        <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+          <div className="max-w-[1536px] mx-auto px-6">
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100">
+                  <FolderIcon className="h-8 w-8 text-indigo-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  No Articles Found
+                </h3>
+                <p className="text-gray-500 max-w-md">
+                  {categoryInfo?.name
+                    ? `We couldn't find any articles in the "${categoryInfo.name}" category. Check back later or explore other categories!`
+                    : "We couldn't find any articles in this category. Check back later or explore other categories!"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 

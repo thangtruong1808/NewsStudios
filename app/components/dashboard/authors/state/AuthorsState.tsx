@@ -14,8 +14,9 @@ import {
   showSuccessToast,
 } from "@/app/components/dashboard/shared/toast/Toast";
 
+// Component Info
 // Description: Manage authors listing state, routing, and table interactions for the dashboard.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function AuthorsState() {
   const router = useRouter();
@@ -37,6 +38,21 @@ export default function AuthorsState() {
   const sortField = (searchParams.get("sortField") as keyof Author) || "created_at";
   const sortDirection = (searchParams.get("sortDirection") as "asc" | "desc") || "desc";
 
+  // Ensure URL has query params on initial load for consistency
+  useEffect(() => {
+    if (!searchParams.toString()) {
+      const params = new URLSearchParams();
+      params.set("page", currentPage.toString());
+      params.set("limit", itemsPerPage.toString());
+      params.set("sortField", sortField as string);
+      params.set("sortDirection", sortDirection);
+      if (searchQuery) {
+        params.set("query", searchQuery);
+      }
+      router.replace(`/dashboard/author?${params.toString()}`);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Fetch authors data when dependencies change
   useEffect(() => {
     const fetchData = async () => {
@@ -53,19 +69,24 @@ export default function AuthorsState() {
         });
 
         if (result.error) {
-          throw new Error(result.error);
+          showErrorToast({
+            message: result.error,
+          });
+          setAuthors([]);
+          setTotalPages(1);
+          setTotalItems(0);
+        } else {
+          const authorsData = Array.isArray(result.data) ? result.data : [];
+          setAuthors(authorsData);
+          setTotalPages(result.totalPages || 1);
+          setTotalItems(result.totalItems || 0);
         }
-
-        setAuthors(result.data || []);
-        setTotalPages(result.totalPages || 1);
-        setTotalItems(result.totalItems || 0);
       } catch (error) {
-        showErrorToast({
-          message:
-            error instanceof Error
-              ? error.message
-              : "Failed to fetch authors. Please try again.",
-        });
+        // Don't show error toast for empty table scenarios
+        // Set empty data to show friendly empty state
+        setAuthors([]);
+        setTotalPages(1);
+        setTotalItems(0);
       } finally {
         setIsLoading(false);
         setIsSearching(false);
@@ -82,6 +103,7 @@ export default function AuthorsState() {
     if (page === currentPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
+    // Ensure consistent URL format with query params
     const target = params.toString();
     if (target === searchParams.toString()) return;
     router.push(`/dashboard/author?${target}`);

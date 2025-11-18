@@ -1,8 +1,13 @@
 "use client";
 
+// Component Info
+// Description: Image carousel component for displaying article images with navigation and auto-slide functionality.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon, PhotoIcon } from "@heroicons/react/24/outline";
 
 export interface CarouselItem {
   id: string | number;
@@ -45,39 +50,42 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
+  // Filter out empty images
+  const validImages = images.filter((img) => img && img.trim() !== "");
+
   // Function to handle next slide
   const nextSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-  }, [images.length]);
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % validImages.length);
+  }, [validImages.length]);
 
   // Function to handle previous slide
   const prevSlide = useCallback(() => {
     setCurrentIndex(
-      (prevIndex) => (prevIndex - 1 + images.length) % images.length
+      (prevIndex) => (prevIndex - 1 + validImages.length) % validImages.length
     );
-  }, [images.length]);
+  }, [validImages.length]);
 
   // Auto-sliding effect
   useEffect(() => {
-    if (!autoSlide) return;
+    if (!autoSlide || validImages.length <= 1) return;
 
     const interval = setInterval(() => {
       nextSlide();
     }, slideInterval);
 
     return () => clearInterval(interval);
-  }, [autoSlide, slideInterval, nextSlide]);
+  }, [autoSlide, slideInterval, nextSlide, validImages.length]);
 
   // Pause auto-sliding when hovering over the carousel
   useEffect(() => {
-    if (!autoSlide || isHovered) return;
+    if (!autoSlide || isHovered || validImages.length <= 1) return;
 
     const interval = setInterval(() => {
       nextSlide();
     }, slideInterval);
 
     return () => clearInterval(interval);
-  }, [autoSlide, slideInterval, nextSlide, isHovered]);
+  }, [autoSlide, slideInterval, nextSlide, isHovered, validImages.length]);
 
   // Format date function
   const formatDate = (dateString: string) => {
@@ -102,9 +110,19 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
     }
   };
 
-  if (!images.length) return null;
+  if (!validImages.length) {
+    // Placeholder when no images available - friendly message
+    return (
+      <div className={`relative w-full h-full bg-gradient-to-br from-gray-100 via-gray-50 to-gray-200 ${className}`}>
+        <div className="w-full h-full flex flex-col items-center justify-center">
+          <PhotoIcon className="h-16 w-16 text-gray-400 mb-3" />
+          <span className="text-sm text-gray-500 font-medium">Images coming soon</span>
+        </div>
+      </div>
+    );
+  }
 
-  const currentImage = images[currentIndex];
+  const currentImage = validImages[currentIndex];
 
   return (
     <div
@@ -114,14 +132,22 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
     >
       {/* Main image */}
       <div className="relative w-full h-full">
-        <Image
-          src={currentImage}
-          alt={`${alt} ${currentIndex + 1}`}
-          fill
-          sizes="100vw"
-          className="object-contain w-full h-full"
-          priority={currentIndex === 0}
-        />
+        {currentImage ? (
+          <Image
+            src={currentImage}
+            alt={`${alt} ${currentIndex + 1}`}
+            fill
+            sizes="100vw"
+            className="object-contain w-full h-full"
+            priority={currentIndex === 0}
+          />
+        ) : (
+          // Placeholder for invalid image URL - friendly message
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 via-gray-50 to-gray-200">
+            <PhotoIcon className="h-16 w-16 text-gray-400 mb-3" />
+            <span className="text-sm text-gray-500 font-medium">Image coming soon</span>
+          </div>
+        )}
         {/* Title Overlay */}
         {titles[currentIndex] && (
           <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-4">
@@ -139,7 +165,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
       </div>
 
       {/* Navigation buttons */}
-      {images.length > 1 && (
+      {validImages.length > 1 && (
         <>
           <button
             onClick={prevSlide}
@@ -159,9 +185,9 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
       )}
 
       {/* Slide indicators */}
-      {images.length > 1 && (
+      {validImages.length > 1 && (
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-          {images.map((_, index) => (
+          {validImages.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}

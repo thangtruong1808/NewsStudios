@@ -1,3 +1,8 @@
+// Component Info
+// Description: Reusable card component for displaying article previews with image, metadata, and interactions.
+// Date created: 2025-11-18
+// Author: thangtruong
+
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,6 +14,7 @@ import {
   HeartIcon,
   ChatBubbleLeftIcon,
   ShareIcon,
+  PhotoIcon,
 } from "@heroicons/react/24/outline";
 
 // Props interface for the Card component
@@ -118,19 +124,25 @@ const Card: React.FC<CardProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:scale-105 flex flex-col">
       {/* Article image section */}
-      <div className="relative w-full h-40">
-        {children
-          ? children
-          : imageUrl && (
-              <Image
-                src={imageUrl}
-                alt={title}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                className="object-cover"
-                priority={false}
-              />
-            )}
+      <div className="relative w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200">
+        {children ? (
+          children
+        ) : imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            className="object-cover"
+            priority={false}
+          />
+        ) : (
+          // Placeholder when no image or video - friendly message
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 via-gray-50 to-gray-200">
+            <PhotoIcon className="h-10 w-10 text-gray-400 mb-2" />
+            <span className="text-xs text-gray-500 font-medium text-center px-2">Image coming soon</span>
+          </div>
+        )}
       </div>
       <div className="p-3 flex flex-col flex-grow">
         {/* Category and subcategory badges */}

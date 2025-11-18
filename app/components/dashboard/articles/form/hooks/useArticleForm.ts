@@ -4,7 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import {
+  showSuccessToast,
+  showErrorToast,
+} from "@/app/components/dashboard/shared/toast/Toast";
 import {
   createArticle,
   updateArticle,
@@ -21,8 +24,9 @@ interface UseArticleFormProps {
   userId?: number;
 }
 
+// Component Info
 // Description: Manage article form state, media uploads, and submission handling.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export function useArticleForm({
   article,
@@ -139,7 +143,7 @@ export function useArticleForm({
           Number(subcategoryId)
         );
         if (error) {
-          toast.error("Failed to fetch tags");
+          showErrorToast({ message: "Failed to fetch tags" });
           return;
         }
         if (subcategoryTags) {
@@ -174,34 +178,34 @@ export function useArticleForm({
   const handleFileUpload = useCallback(async ({ file, type }: { file: File; type: "image" | "video" }) => {
     try {
       if (type === "image" && !file.type.startsWith("image/")) {
-        toast.error("Please select an image file");
+        showErrorToast({ message: "Please select an image file" });
         return;
       }
       if (type === "video" && !file.type.startsWith("video/")) {
-        toast.error("Please select a video file");
+        showErrorToast({ message: "Please select a video file" });
         return;
       }
 
       if (type === "image" && file.size > 100 * 1024 * 1024) {
-        toast.error("Image file size must be less than 100MB");
+        showErrorToast({ message: "Image file size must be less than 100MB" });
         return;
       }
       if (type === "video" && file.size > 500 * 1024 * 1024) {
-        toast.error("Video file size must be less than 500MB");
+        showErrorToast({ message: "Video file size must be less than 500MB" });
         return;
       }
 
       if (type === "image") {
         setSelectedImageFile(file);
         setImageUrl(URL.createObjectURL(file));
-        toast.success("Image selected successfully");
+        showSuccessToast({ message: "Image selected successfully" });
       } else {
         setSelectedVideoFile(file);
         setVideoUrl(URL.createObjectURL(file));
-        toast.success("Video selected successfully");
+        showSuccessToast({ message: "Video selected successfully" });
       }
     } catch (error) {
-      toast.error(`Error selecting ${type}`);
+      showErrorToast({ message: `Error selecting ${type}` });
     }
   }, []);
 
@@ -215,7 +219,7 @@ export function useArticleForm({
       setSelectedVideoFile(null);
       setValue("video", "");
     }
-    toast.success(`${type} removed successfully`);
+    showSuccessToast({ message: `${type.charAt(0).toUpperCase() + type.slice(1)} removed successfully` });
   }, [setValue]);
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -277,9 +281,7 @@ export function useArticleForm({
             updateData as Partial<Article>,
             selectedTags
           );
-          toast.success("Article updated successfully", {
-            duration: 3000,
-          });
+          showSuccessToast({ message: "Article updated successfully" });
           router.push("/dashboard/articles");
           router.refresh();
         } catch (updateError) {
@@ -309,9 +311,7 @@ export function useArticleForm({
             fixedData as unknown as Article,
             selectedTags
           );
-          toast.success("Article created successfully", {
-            duration: 3000,
-          });
+          showSuccessToast({ message: "Article created successfully" });
           router.push("/dashboard/articles");
           router.refresh();
         } catch (createError) {
@@ -319,9 +319,9 @@ export function useArticleForm({
         }
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to submit article"
-      );
+      showErrorToast({
+        message: error instanceof Error ? error.message : "Failed to submit article",
+      });
     } finally {
       setIsSubmitting(false);
     }

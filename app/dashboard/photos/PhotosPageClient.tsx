@@ -8,8 +8,9 @@ import { SearchWrapper } from "@/app/components/dashboard/shared/search";
 import { useRouter } from "next/navigation";
 import { Image } from "@/app/lib/definition";
 
+// Component Info
 // Description: Assemble dashboard photos page with search, refresh, grid, and pagination controls.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function PhotosPageClient() {
   const router = useRouter();
@@ -66,6 +67,7 @@ export default function PhotosPageClient() {
           hasMore={hasMore}
           isLoadingMore={isLoadingMore}
           onLoadMore={handleLoadMore}
+          searchQuery={searchQuery}
         />
       </div>
     </div>

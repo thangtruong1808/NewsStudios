@@ -14,11 +14,13 @@ interface PhotosGridProps {
   hasMore?: boolean;
   isLoadingMore?: boolean;
   onLoadMore?: () => void;
+  searchQuery?: string;
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Render dashboard photo thumbnails with loading state, empty state, and load-more control.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function PhotosGrid({
   photos,
@@ -29,6 +31,7 @@ export default function PhotosGrid({
   hasMore = false,
   isLoadingMore = false,
   onLoadMore,
+  searchQuery = "",
 }: PhotosGridProps) {
   // Loading skeleton UI
   if (isLoading) {
@@ -54,33 +57,36 @@ export default function PhotosGrid({
     );
   }
 
-  // Empty state when no photos are found
+  // Empty state: friendly message when no photos found
   if (photos.length === 0 && !isLoading) {
     return (
-      <div className="text-center py-12">
-        <div className="text-red-500 mb-2">
-          <svg
-            className="mx-auto h-12 w-12 text-red-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
+      <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-12">
+        <div className="flex flex-col items-center justify-center space-y-4 text-center">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100">
+            <svg
+              className="h-8 w-8 text-blue-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900">
+            {searchQuery ? "No Photos Found" : "No Photos Available"}
+          </h3>
+          <p className="text-gray-500 max-w-md">
+            {searchQuery
+              ? "We couldn't find any photos matching your search criteria. Try adjusting your search terms or browse all photos."
+              : "There are no photos in the database at the moment. Start by uploading your first photo to get started!"}
+          </p>
         </div>
-        <h3 className="text-lg font-medium text-red-500 mb-1">
-          No Photos Found
-        </h3>
-        <p className="text-red-500">
-          It seems the photos are not available. They might have been
-          accidentally deleted from the storage.
-        </p>
       </div>
     );
   }

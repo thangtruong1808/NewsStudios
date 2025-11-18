@@ -2,7 +2,6 @@
 
 import { Table } from "@/app/components/dashboard/shared/table";
 import { Tag } from "@/app/lib/definition";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import type { Column } from "@/app/components/dashboard/shared/table/TableTypes";
 import ExpandableContent from "@/app/components/dashboard/shared/table/ExpandableContent";
 import { formatDateWithMonth } from "@/app/lib/utils/dateFormatter";
@@ -28,8 +27,9 @@ interface TagsTableProps {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Render dashboard tags table with admin actions, pagination, and formatted metadata columns.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 
 export default function TagsTable({
@@ -196,31 +196,14 @@ export default function TagsTable({
     },
   ];
 
-  // Add actions column only for admin users
+  // Actions column header (buttons are rendered automatically by TableRow)
   const columns = isAdmin
     ? [
         ...baseColumns,
         {
-          field: "id" as keyof (Tag & { sequence: number }),
+          field: "actions" as keyof (Tag & { sequence: number }),
           label: "Actions",
           sortable: false,
-          render: ({ row }: { row: Tag & { sequence: number } }) => (
-            <div className="flex space-x-2">
-              <button
-                onClick={() => onEdit({ item: row })}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                <PencilIcon className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => onDelete({ item: row })}
-                disabled={isDeleting}
-                className="text-red-600 hover:text-red-800 disabled:opacity-50"
-              >
-                <TrashIcon className="h-5 w-5" />
-              </button>
-            </div>
-          ),
         },
       ]
     : baseColumns;

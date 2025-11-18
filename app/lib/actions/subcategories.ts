@@ -3,6 +3,7 @@
 import { query } from "../db/query";
 import { SubCategory } from "../definition";
 import { revalidatePath } from "next/cache";
+import { resolveTableName } from "../db/tableNameResolver";
 
 interface SubcategoryFormData {
   name: string;
@@ -124,7 +125,15 @@ export async function getSubcategories({
 
 export async function getSubcategoryById(id: number) {
   try {
-    const result = await query("SELECT * FROM SubCategories WHERE id = ?", [
+    // Resolve table name with proper casing
+    const subcategoriesTable = await resolveTableName("SubCategories");
+    
+    // Validate table name is resolved
+    if (!subcategoriesTable) {
+      return { data: null, error: "Failed to resolve table name." };
+    }
+
+    const result = await query(`SELECT * FROM \`${subcategoriesTable}\` WHERE id = ?`, [
       id,
     ]);
     if (result.error) {
@@ -132,8 +141,7 @@ export async function getSubcategoryById(id: number) {
     }
     const subcategory = (result.data as any[])?.[0] || null;
     return { data: subcategory as SubCategory | null, error: null };
-  } catch (error) {
-    console.error("Error fetching subcategory:", error);
+  } catch (_error) {
     return { data: null, error: "Failed to fetch subcategory" };
   }
 }

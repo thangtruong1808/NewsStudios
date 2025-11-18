@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ChangeEvent } from "react";
-import type { FieldErrors, UseFormRegister } from "react-hook-form";
+import type { FieldErrors } from "react-hook-form";
 import Image from "next/image";
 import { PhotoIcon } from "@heroicons/react/24/outline";
 import ProcessingUpload from "@/app/components/dashboard/shared/processing-upload/ProcessingUpload";
@@ -11,7 +11,6 @@ import { showErrorToast } from "@/app/components/dashboard/shared/toast/Toast";
 
 /* eslint-disable no-unused-vars */
 interface ImageFieldProps {
-  register: UseFormRegister<UserFormValues>;
   errors: FieldErrors<UserFormValues>;
   userImage: string;
   onImageChange: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
@@ -21,11 +20,11 @@ interface ImageFieldProps {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Render user profile image uploader with preview, upload progress, and failure handling.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function ImageField({
-  register,
   errors,
   userImage,
   onImageChange,
@@ -36,10 +35,10 @@ export default function ImageField({
   const [hasImageError, setHasImageError] = useState(false);
   const displayImage = !userImage || hasImageError ? "/placeholder-image.jpg" : userImage;
 
-  const { onChange: registerOnChange, ...registerProps } = register("user_image");
+  // Don't register the file input to avoid validation errors
+  // The form value is updated manually via setValue in useUserForm
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    registerOnChange(event);
     try {
       await onImageChange(event);
       setHasImageError(false);
@@ -75,7 +74,6 @@ export default function ImageField({
           accept="image/*"
           onChange={handleFileChange}
           className="block w-full text-sm file:mr-4 file:py-2 file:px-2 file:rounded-lg file:border-0 file:text-sm file:font-medium file:text-blue-600 hover:file:from-blue-700 hover:file:to-blue-500"
-          {...registerProps}
         />
       </div>
 

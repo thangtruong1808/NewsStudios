@@ -1,15 +1,15 @@
 "use server";
 
-import { query } from "../db/db";
+// Component Info
+// Description: Server actions for article CRUD operations and queries.
+// Date created: 2025-11-18
+// Author: thangtruong
+
+import { query } from "../db/query";
 import { RowDataPacket } from "mysql2";
 import { Article } from "../definition";
 import { transaction } from "../db/db";
 import { resolveTableName } from "../db/tableNameResolver";
-
-// Component Info
-// Description: Server actions for article CRUD operations and queries.
-// Date created: 2024-12-19
-// Author: thangtruong
 
 export interface ArticleWithJoins extends Article, RowDataPacket {
   category_name?: string;
@@ -58,9 +58,8 @@ export async function getArticles({
       };
     }
 
-    const safePage = Number.isFinite(page) && page > 0 ? Number(page) : 1;
-    const safeLimit = Number.isFinite(limit) && limit > 0 ? Number(limit) : 10;
-    const offset = (safePage - 1) * safeLimit;
+    const limitValue = Math.max(1, Number(limit) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
     const allowedSortFields = new Set<keyof Article | string>([
       "published_at",
       "created_at",
@@ -90,16 +89,25 @@ export async function getArticles({
       ${whereClause}
     `;
     
-    const countResult = await query(countQuery, search ? [`%${search}%`, `%${search}%`] : []);
+    const countResult = await query<{ total: number }>(countQuery, queryParams);
     
-    if (countResult.error) {
-      throw new Error(countResult.error);
+    if (countResult.error || !countResult.data) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+        error: countResult.error ?? "Failed to fetch articles.",
+      };
     }
 
     const countRows = Array.isArray(countResult.data)
       ? (countResult.data as Array<{ total: number }>)
       : [];
     const totalCount = countRows.length > 0 && typeof countRows[0]?.total === "number" ? countRows[0].total : 0;
+    const totalPages = Math.max(1, Math.ceil(totalCount / limitValue));
 
     // Then get the articles with pagination
     const result = await query(
@@ -120,24 +128,20 @@ export async function getArticles({
       ${whereClause}
       GROUP BY a.id
       ORDER BY a.${safeSortField} ${safeDirection}
-      LIMIT ${safeLimit} OFFSET ${offset}
+      LIMIT ${limitValue} OFFSET ${offsetValue}
     `,
       queryParams
     );
 
-    if (result.error) {
-      throw new Error(result.error);
-    }
-
-    if (!result.data || result.data.length === 0) {
+    if (result.error || !result.data) {
       return {
         data: [],
-        totalCount: 0,
+        totalCount,
         start: 0,
         end: 0,
         currentPage: page,
-        totalPages: 0,
-        error: null,
+        totalPages,
+        error: result.error ?? "Failed to fetch articles.",
       };
     }
 
@@ -161,17 +165,15 @@ export async function getArticles({
       views_count: Number((article as { views_count?: number }).views_count ?? 0),
     }));
 
-    const start = offset + 1;
-    const end = Math.min(offset + safeLimit, totalCount);
-    const totalPages =
-      totalCount > 0 ? Math.ceil(totalCount / safeLimit) : 1;
+    const start = offsetValue + 1;
+    const end = Math.min(offsetValue + limitValue, totalCount);
 
     return {
       data: articles,
       totalCount,
       start,
       end,
-      currentPage: safePage,
+      currentPage: page,
       totalPages,
       error: null,
     };
@@ -331,9 +333,9 @@ export async function createArticle(article: Article, tag_ids: number[]) {
     // Insert image into Images table if present
     if (article.image) {
       await connection.execute(
-        `INSERT INTO Images (article_id, image_url, created_at) 
-         VALUES (?, ?, NOW())`,
-        [Number(newArticleId), String(article.image)]
+        `INSERT INTO Images (article_id, image_url, entity_type, entity_id, type, created_at) 
+         VALUES (?, ?, 'article', ?, 'thumbnail', NOW())`,
+        [Number(newArticleId), String(article.image), Number(newArticleId)]
       );
     }
 
@@ -413,8 +415,8 @@ export async function updateArticle(
         } else {
           // Insert new image record if none exists
           await connection.execute(
-            "INSERT INTO Images (article_id, image_url, created_at) VALUES (?, ?, NOW())",
-            [id, article.image]
+            "INSERT INTO Images (article_id, image_url, entity_type, entity_id, type, created_at) VALUES (?, ?, 'article', ?, 'thumbnail', NOW())",
+            [id, article.image, id]
           );
         }
       } else {

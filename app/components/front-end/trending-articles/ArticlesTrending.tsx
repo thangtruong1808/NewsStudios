@@ -76,9 +76,41 @@ export function ArticlesTrending() {
 
   if (articles.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-8">
-        <p>No trending articles found</p>
-      </div>
+      <>
+        {/* Header section with title and description */}
+        <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+            <div className="py-8">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-red-100 shadow-sm">
+                  <FireIcon className="h-6 w-6 text-red-600" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Trending Articles</h2>
+                  <p className="text-sm text-gray-600 mt-1">What&apos;s hot and happening right now</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Empty state message */}
+        <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+          <div className="max-w-[1536px] mx-auto px-6">
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-100">
+                  <FireIcon className="h-8 w-8 text-red-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">No Trending Articles Right Now</h3>
+                <p className="text-gray-500 max-w-md">
+                  There are no trending articles at the moment. Check back later to see what&apos;s hot!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 

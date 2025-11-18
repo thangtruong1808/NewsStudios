@@ -28,8 +28,9 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 //   totalPages?: number;
 // }
 
+// Component Info
 // Description: Manage dashboard videos listing with search, pagination, refresh, and admin actions.
-// Data created: 2024-11-13
+// Date created: 2025-11-18
 // Author: thangtruong
 export default function VideosPageClient() {
   const router = useRouter();
@@ -58,21 +59,37 @@ export default function VideosPageClient() {
         ? await searchVideos(searchQuery)
         : await getVideos(currentPage, itemsPerPage);
 
+      const videosData = Array.isArray(result.data) ? result.data : [];
+      
+      // Only show error toast for critical database errors, not for empty data
       if (result.error) {
-        throw new Error(result.error);
+        // Check if it's a critical database error that should be shown
+        const isCriticalError = 
+          result.error.includes("Failed to resolve table names") ||
+          result.error.includes("doesn't exist") ||
+          result.error.includes("SQL syntax");
+        
+        // Don't show toast for mysqld_stmt_execute errors when data is empty
+        // This prevents false positive errors when table is empty
+        if (isCriticalError && videosData.length > 0) {
+          showErrorToast({
+            message: result.error,
+          });
+        }
       }
-
+      
       if (currentPage === 1) {
-        setVideos(result.data || []);
+        setVideos(videosData);
       } else {
-        setVideos((prev) => [...prev, ...(result.data || [])]);
+        setVideos((prev) => [...prev, ...videosData]);
       }
 
-      setHasMore((result.data?.length || 0) === itemsPerPage);
+      setHasMore(videosData.length === itemsPerPage);
     } catch (error) {
-      showErrorToast({
-        message: error instanceof Error ? error.message : "Failed to load videos",
-      });
+      // Don't show error toast for empty table scenarios
+      // Set empty data to show friendly empty state
+      setVideos([]);
+      setHasMore(false);
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);

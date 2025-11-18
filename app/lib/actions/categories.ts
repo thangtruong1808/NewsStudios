@@ -111,7 +111,15 @@ export async function getCategories({
 
 export async function getCategoryById(id: number) {
   try {
-    const result = await query("SELECT * FROM Categories WHERE id = ?", [id]);
+    // Resolve table name with proper casing
+    const categoriesTable = await resolveTableName("Categories");
+    
+    // Validate table name is resolved
+    if (!categoriesTable) {
+      return { data: null, error: "Failed to resolve table name." };
+    }
+
+    const result = await query(`SELECT * FROM \`${categoriesTable}\` WHERE id = ?`, [id]);
     if (result.error) {
       return { data: null, error: result.error };
     }

@@ -1,12 +1,12 @@
 "use server";
 
-import { query } from "../db/db";
-import { resolveTableName } from "../db/tableNameResolver";
-
 // Component Info
 // Description: Server action fetching tags with category and subcategory filters.
-// Date created: 2024
+// Date created: 2025-11-18
 // Author: thangtruong
+
+import { query } from "../db/query";
+import { resolveTableName } from "../db/tableNameResolver";
 
 type FrontendTagRow = {
   total_count?: number;
@@ -50,7 +50,8 @@ export async function getFilteredTags(
       conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     // Calculate offset for pagination
-    const offset = (page - 1) * limit;
+    const limitValue = Math.max(1, Number(limit) || 8);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
 
     // First, get the total count of all tags
     const countQuery = `
@@ -76,9 +77,9 @@ export async function getFilteredTags(
       ${whereClause}
       GROUP BY t.id
       ORDER BY article_count DESC, t.name ASC
-      LIMIT ? OFFSET ?
+      LIMIT ${limitValue} OFFSET ${offsetValue}
     `,
-      [...values, limit, offset]
+      values
     );
 
     const rows = Array.isArray(result.data)
