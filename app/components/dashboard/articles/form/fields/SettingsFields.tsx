@@ -7,8 +7,9 @@ interface SettingsFieldsProps {
   register: UseFormRegister<ArticleFormData>;
 }
 
+// Component Info
 // Description: Configure article settings toggles such as featured, trending, and priority.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function SettingsFields({
   register,

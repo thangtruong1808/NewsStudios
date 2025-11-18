@@ -10,7 +10,7 @@ import FormSkeleton from "@/app/components/dashboard/shared/skeleton/FormSkeleto
 
 // Component Info
 // Description: Load and render article creation form with data fetching and skeleton states.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 
 export default function CreateArticlePageClient() {
@@ -23,9 +23,11 @@ export default function CreateArticlePageClient() {
     users: any[];
   } | null>(null);
 
+  // Fetch required data for article creation form
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch categories, authors, and users in parallel
         const [categories, authors, users] = await Promise.all([
           getCategories(),
           getAuthors(),
@@ -35,7 +37,7 @@ export default function CreateArticlePageClient() {
         // Get all subcategories without filtering by category
         const subcategories = await getSubcategories({
           page: 1,
-          limit: 1000, // Get all subcategories
+          limit: 1000,
         });
 
         setData({
@@ -54,10 +56,12 @@ export default function CreateArticlePageClient() {
     fetchData();
   }, []);
 
+  // Loading state
   if (isLoading) {
     return <FormSkeleton />;
   }
 
+  // Error state
   if (error) {
     return (
       <div className="w-full">
@@ -75,17 +79,19 @@ export default function CreateArticlePageClient() {
     );
   }
 
+  // No data state
   if (!data) {
     return null;
   }
 
+  // Main form render
   return (
     <div className="bg-gray-50">
       <ArticleFormContainer
         categories={data.categories}
         authors={data.authors}
         subcategories={data.subcategories}
-        tags={[]} // Pass empty array since tags will be fetched when subcategory is selected
+        tags={[]}
       />
     </div>
   );

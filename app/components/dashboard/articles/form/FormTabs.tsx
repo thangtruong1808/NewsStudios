@@ -15,8 +15,9 @@ const FORM_TABS: Array<{ key: TabType; label: string }> = [
   { key: "settings" as const, label: "Settings" },
 ];
 
+// Component Info
 // Description: Render navigation tabs allowing switch between article form sections.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function FormTabs({ activeTab, onTabChange }: FormTabsProps) {
   return (

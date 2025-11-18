@@ -14,8 +14,9 @@ interface BasicFieldsProps {
   filteredSubcategories: { id: number; name: string; category_id: number }[];
 }
 
+// Component Info
 // Description: Render core article fields for title, category, subcategory, and author inputs.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function BasicFields({
   register,

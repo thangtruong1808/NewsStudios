@@ -14,8 +14,9 @@ interface MediaFieldsProps {
   onRemoveMedia: UseArticleFormResult["handleRemoveMedia"];
 }
 
+// Component Info
 // Description: Manage media selection, preview, and removal controls for article assets.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function MediaFields({
   register,

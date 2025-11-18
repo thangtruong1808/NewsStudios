@@ -13,8 +13,9 @@ interface TagFieldsProps {
   onTagChange: ChangeEventHandler<HTMLSelectElement>;
 }
 
+// Component Info
 // Description: Render selectable tag list allowing multi-select with validation feedback.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function TagFields({
   register,

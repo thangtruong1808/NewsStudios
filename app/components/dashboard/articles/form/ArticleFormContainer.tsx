@@ -3,6 +3,11 @@
 import { Article } from "@/app/lib/definition";
 import ArticleForm from "./ArticleForm";
 
+// Component Info
+// Description: Container component that wraps the article form with layout styling.
+// Date created: 2025-01-27
+// Author: thangtruong
+
 interface ArticleFormContainerProps {
   article?: Partial<Article>;
   categories: any[];
@@ -20,6 +25,7 @@ export default function ArticleFormContainer({
 }: ArticleFormContainerProps) {
   return (
     <div className="w-full">
+      {/* Form wrapper with styling */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <ArticleForm
           article={article}

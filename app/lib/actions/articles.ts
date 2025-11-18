@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Server actions for article CRUD operations and queries.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 
 import { query } from "../db/query";
@@ -291,65 +291,73 @@ export async function getArticleById(id: number) {
 }
 
 export async function createArticle(article: Article, tag_ids: number[]) {
-  return transaction(async (connection) => {
-    // Insert article
-    const [articleResult] = await connection.execute(
-      `INSERT INTO Articles (
-        title, content, category_id, user_id, author_id, 
-        sub_category_id, image, video, published_at, updated_at,
-        is_featured, headline_priority, is_trending
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?, ?, ?)`,
-      [
-        String(article.title),
-        String(article.content),
-        Number(article.category_id),
-        Number(article.user_id),
-        Number(article.author_id),
-        article.sub_category_id ? Number(article.sub_category_id) : null,
-        article.image ? String(article.image) : null,
-        article.video ? String(article.video) : null,
-        Boolean(article.is_featured),
-        Number(article.headline_priority),
-        Boolean(article.is_trending),
-      ]
-    );
-
-    const newArticleId = (articleResult as any).insertId;
-
-    // Insert article tags
-    if (tag_ids && tag_ids.length > 0) {
-      const placeholders = tag_ids.map(() => "(?, ?)").join(",");
-      const values = tag_ids.flatMap((tagId) => [
-        Number(newArticleId),
-        Number(tagId),
-      ]);
-
-      await connection.execute(
-        `INSERT INTO Article_Tags (article_id, tag_id) VALUES ${placeholders}`,
-        values
+  try {
+    const result = await transaction(async (connection) => {
+      // Insert article
+      const [articleResult] = await connection.execute(
+        `INSERT INTO Articles (
+          title, content, category_id, user_id, author_id, 
+          sub_category_id, image, video, published_at, updated_at,
+          is_featured, headline_priority, is_trending
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?, ?, ?)`,
+        [
+          String(article.title),
+          String(article.content),
+          Number(article.category_id),
+          Number(article.user_id),
+          Number(article.author_id),
+          article.sub_category_id ? Number(article.sub_category_id) : null,
+          article.image ? String(article.image) : null,
+          article.video ? String(article.video) : null,
+          Boolean(article.is_featured),
+          Number(article.headline_priority),
+          Boolean(article.is_trending),
+        ]
       );
-    }
 
-    // Insert image into Images table if present
-    if (article.image) {
-      await connection.execute(
-        `INSERT INTO Images (article_id, image_url, entity_type, entity_id, type, created_at) 
-         VALUES (?, ?, 'article', ?, 'thumbnail', NOW())`,
-        [Number(newArticleId), String(article.image), Number(newArticleId)]
-      );
-    }
+      const newArticleId = (articleResult as any).insertId;
 
-    // Insert video into Videos table if present
-    if (article.video) {
-      await connection.execute(
-        `INSERT INTO Videos (article_id, video_url, created_at) 
-         VALUES (?, ?, NOW())`,
-        [Number(newArticleId), String(article.video)]
-      );
-    }
+      // Insert article tags
+      if (tag_ids && tag_ids.length > 0) {
+        const placeholders = tag_ids.map(() => "(?, ?)").join(",");
+        const values = tag_ids.flatMap((tagId) => [
+          Number(newArticleId),
+          Number(tagId),
+        ]);
 
-    return newArticleId;
-  });
+        await connection.execute(
+          `INSERT INTO Article_Tags (article_id, tag_id) VALUES ${placeholders}`,
+          values
+        );
+      }
+
+      // Insert image into Images table if present
+      if (article.image) {
+        await connection.execute(
+          `INSERT INTO Images (article_id, image_url, entity_type, entity_id, type, created_at) 
+           VALUES (?, ?, 'article', ?, 'thumbnail', NOW())`,
+          [Number(newArticleId), String(article.image), Number(newArticleId)]
+        );
+      }
+
+      // Insert video into Videos table if present
+      if (article.video) {
+        await connection.execute(
+          `INSERT INTO Videos (article_id, video_url, created_at) 
+           VALUES (?, ?, NOW())`,
+          [Number(newArticleId), String(article.video)]
+        );
+      }
+
+      return newArticleId;
+    });
+
+    return { data: result, error: null };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to create article";
+    return { data: null, error: errorMessage };
+  }
 }
 
 export async function updateArticle(

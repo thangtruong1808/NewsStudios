@@ -26,7 +26,7 @@ interface UseArticleFormProps {
 
 // Component Info
 // Description: Manage article form state, media uploads, and submission handling.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 export function useArticleForm({
   article,
@@ -50,6 +50,7 @@ export function useArticleForm({
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
 
+  // Initialize react-hook-form with validation schema
   const form = useForm<ArticleFormData>({
     resolver: zodResolver(articleSchema),
     defaultValues: {
@@ -71,7 +72,6 @@ export function useArticleForm({
   const {
     register,
     handleSubmit,
-    control,
     watch,
     setValue,
     reset,
@@ -167,6 +167,7 @@ export function useArticleForm({
     fetchTags();
   }, [subcategoryId, article?.id, setValue]);
 
+  // Handle tag selection changes
   const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = Array.from(e.target.selectedOptions).map((option) =>
       Number(option.value)
@@ -175,6 +176,7 @@ export function useArticleForm({
     setValue("tag_ids", selectedOptions);
   };
 
+  // Handle file upload with validation
   const handleFileUpload = useCallback(async ({ file, type }: { file: File; type: "image" | "video" }) => {
     try {
       if (type === "image" && !file.type.startsWith("image/")) {
@@ -209,6 +211,7 @@ export function useArticleForm({
     }
   }, []);
 
+  // Handle media removal
   const handleRemoveMedia = useCallback(({ type }: { type: "image" | "video" }) => {
     if (type === "image") {
       setImageUrl("");
@@ -222,6 +225,7 @@ export function useArticleForm({
     showSuccessToast({ message: `${type.charAt(0).toUpperCase() + type.slice(1)} removed successfully` });
   }, [setValue]);
 
+  // Handle category selection and reset dependent fields
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     const categoryId = e.target.value;
     setSelectedCategory(categoryId);
@@ -235,6 +239,7 @@ export function useArticleForm({
     setValue("tag_ids", []);
   };
 
+  // Handle form submission for create and update
   const onSubmit = async (data: ArticleFormData) => {
     try {
       setIsSubmitting(true);
@@ -307,10 +312,15 @@ export function useArticleForm({
             fixedData.video = videoResult.url;
           }
 
-          await createArticle(
+          const createResult = await createArticle(
             fixedData as unknown as Article,
             selectedTags
           );
+          
+          if (createResult.error) {
+            throw new Error(createResult.error);
+          }
+          
           showSuccessToast({ message: "Article created successfully" });
           router.push("/dashboard/articles");
           router.refresh();
@@ -330,10 +340,10 @@ export function useArticleForm({
   const isFormEmpty =
     !titleValue.trim() || !contentValue.trim();
 
+  // Return form state and handlers
   return {
     register,
     handleSubmit,
-    control,
     formState,
     isSubmitting,
     activeTab,

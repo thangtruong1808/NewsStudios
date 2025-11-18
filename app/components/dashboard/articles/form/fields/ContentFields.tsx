@@ -8,8 +8,9 @@ interface ContentFieldsProps {
   errors: FieldErrors<ArticleFormData>;
 }
 
+// Component Info
 // Description: Provide article content textarea with validation messaging.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function ContentFields({
   register,

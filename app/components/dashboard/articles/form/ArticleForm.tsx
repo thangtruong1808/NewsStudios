@@ -1,15 +1,3 @@
-/**
- * ArticleForm Component
- * A comprehensive form for creating and editing articles with the following features:
- * - Tabbed interface for organizing form fields (Basic, Content, Media, Settings)
- * - Form validation using react-hook-form and zod schema
- * - Real-time validation and error handling
- * - File upload handling for images and videos
- * - Dynamic subcategory filtering based on selected category
- * - Tag management with multi-select functionality
- * - Responsive layout with consistent styling
- */
-
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -44,7 +32,7 @@ interface ArticleFormProps {
 
 // Component Info
 // Description: Article creation and edit form with tabbed sections for content, media, and settings.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function ArticleForm({
   article,
