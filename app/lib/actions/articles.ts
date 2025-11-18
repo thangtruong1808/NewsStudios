@@ -292,10 +292,23 @@ export async function getArticleById(id: number) {
 
 export async function createArticle(article: Article, tag_ids: number[]) {
   try {
+    // Resolve table names with proper casing
+    const [articlesTable, articleTagsTable, imagesTable, videosTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Images"),
+      resolveTableName("Videos"),
+    ]);
+
+    // Validate table names are resolved
+    if (!articlesTable || !articleTagsTable || !imagesTable || !videosTable) {
+      return { data: null, error: "Failed to resolve table names." };
+    }
+
     const result = await transaction(async (connection) => {
       // Insert article
       const [articleResult] = await connection.execute(
-        `INSERT INTO Articles (
+        `INSERT INTO \`${articlesTable}\` (
           title, content, category_id, user_id, author_id, 
           sub_category_id, image, video, published_at, updated_at,
           is_featured, headline_priority, is_trending
@@ -326,7 +339,7 @@ export async function createArticle(article: Article, tag_ids: number[]) {
         ]);
 
         await connection.execute(
-          `INSERT INTO Article_Tags (article_id, tag_id) VALUES ${placeholders}`,
+          `INSERT INTO \`${articleTagsTable}\` (article_id, tag_id) VALUES ${placeholders}`,
           values
         );
       }
@@ -334,7 +347,7 @@ export async function createArticle(article: Article, tag_ids: number[]) {
       // Insert image into Images table if present
       if (article.image) {
         await connection.execute(
-          `INSERT INTO Images (article_id, image_url, entity_type, entity_id, type, created_at) 
+          `INSERT INTO \`${imagesTable}\` (article_id, image_url, entity_type, entity_id, type, created_at) 
            VALUES (?, ?, 'article', ?, 'thumbnail', NOW())`,
           [Number(newArticleId), String(article.image), Number(newArticleId)]
         );
@@ -343,7 +356,7 @@ export async function createArticle(article: Article, tag_ids: number[]) {
       // Insert video into Videos table if present
       if (article.video) {
         await connection.execute(
-          `INSERT INTO Videos (article_id, video_url, created_at) 
+          `INSERT INTO \`${videosTable}\` (article_id, video_url, created_at) 
            VALUES (?, ?, NOW())`,
           [Number(newArticleId), String(article.video)]
         );
@@ -365,184 +378,218 @@ export async function updateArticle(
   article: Partial<Article>,
   tag_ids?: number[]
 ) {
-  return transaction(async (connection) => {
-    // Filter out non-database fields and undefined values
-    const validFields = [
-      "title",
-      "content",
-      "category_id",
-      "author_id",
-      "user_id",
-      "sub_category_id",
-      "image",
-      "video",
-      "is_featured",
-      "headline_priority",
-      "headline_image_url",
-      "headline_video_url",
-      "is_trending",
-    ];
+  try {
+    // Resolve table names with proper casing
+    const [articlesTable, articleTagsTable, imagesTable, videosTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Images"),
+      resolveTableName("Videos"),
+    ]);
 
-    const articleData = Object.fromEntries(
-      Object.entries(article).filter(
-        ([key, value]) => validFields.includes(key) && value !== undefined
-      )
-    );
-
-    // Update article
-    const setClauses = Object.keys(articleData)
-      .map((key) => `${key} = ?`)
-      .join(", ");
-
-    await connection.execute(
-      `UPDATE Articles SET ${setClauses}, updated_at = NOW() WHERE id = ?`,
-      [...Object.values(articleData), id]
-    );
-
-    // Handle image update
-    if (article.image !== undefined) {
-      if (article.image) {
-        // Update the main article image in the Articles table
-        await connection.execute("UPDATE Articles SET image = ? WHERE id = ?", [
-          article.image,
-          id,
-        ]);
-
-        // Check if there's an existing image record
-        const [existingImage] = await connection.execute(
-          "SELECT id FROM Images WHERE article_id = ?",
-          [id]
-        );
-
-        if ((existingImage as any[]).length > 0) {
-          // Update existing image record
-          await connection.execute(
-            "UPDATE Images SET image_url = ?, updated_at = NOW() WHERE article_id = ?",
-            [article.image, id]
-          );
-        } else {
-          // Insert new image record if none exists
-          await connection.execute(
-            "INSERT INTO Images (article_id, image_url, entity_type, entity_id, type, created_at) VALUES (?, ?, 'article', ?, 'thumbnail', NOW())",
-            [id, article.image, id]
-          );
-        }
-      } else {
-        // If image is undefined, null, or empty string, delete the image from both tables
-        // First get the current image URL
-        const [currentImage] = await connection.execute(
-          "SELECT image FROM Articles WHERE id = ?",
-          [id]
-        );
-        const currentImageUrl = (currentImage as any[])[0]?.image;
-
-        // Set the image field to NULL in Articles table
-        await connection.execute(
-          "UPDATE Articles SET image = NULL WHERE id = ?",
-          [id]
-        );
-
-        // Only delete the specific image record that matches the current image URL
-        if (currentImageUrl) {
-          await connection.execute(
-            "DELETE FROM Images WHERE article_id = ? AND image_url = ?",
-            [id, currentImageUrl]
-          );
-        }
-      }
+    // Validate table names are resolved
+    if (!articlesTable || !articleTagsTable || !imagesTable || !videosTable) {
+      throw new Error("Failed to resolve table names.");
     }
 
-    // Handle video update
-    if (article.video !== undefined) {
-      if (article.video) {
-        const [existingVideo] = await connection.execute(
-          "SELECT id FROM Videos WHERE article_id = ?",
-          [id]
-        );
+    return transaction(async (connection) => {
+      // Filter out non-database fields and undefined values
+      const validFields = [
+        "title",
+        "content",
+        "category_id",
+        "author_id",
+        "user_id",
+        "sub_category_id",
+        "image",
+        "video",
+        "is_featured",
+        "headline_priority",
+        "headline_image_url",
+        "headline_video_url",
+        "is_trending",
+      ];
 
-        if ((existingVideo as any[]).length > 0) {
-          await connection.execute(
-            "UPDATE Videos SET video_url = ?, updated_at = NOW() WHERE article_id = ?",
-            [article.video, id]
-          );
-        } else {
-          await connection.execute(
-            "INSERT INTO Videos (article_id, video_url, created_at) VALUES (?, ?, NOW())",
-            [id, article.video]
-          );
-        }
-      } else {
-        // If video is undefined, null, or empty string, delete the video from both tables
-        // First get the current video URL
-        const [currentVideo] = await connection.execute(
-          "SELECT video FROM Articles WHERE id = ?",
-          [id]
-        );
-        const currentVideoUrl = (currentVideo as any[])[0]?.video;
+      const articleData = Object.fromEntries(
+        Object.entries(article).filter(
+          ([key, value]) => validFields.includes(key) && value !== undefined
+        )
+      );
 
-        // Set the video field to NULL in Articles table
-        await connection.execute(
-          "UPDATE Articles SET video = NULL WHERE id = ?",
-          [id]
-        );
+      // Update article
+      const setClauses = Object.keys(articleData)
+        .map((key) => `${key} = ?`)
+        .join(", ");
 
-        // Only delete the specific video record that matches the current video URL
-        if (currentVideoUrl) {
-          await connection.execute(
-            "DELETE FROM Videos WHERE article_id = ? AND video_url = ?",
-            [id, currentVideoUrl]
-          );
-        }
-      }
-    }
-
-    // Update tags if provided
-    if (tag_ids !== undefined) {
       await connection.execute(
-        "DELETE FROM Article_Tags WHERE article_id = ?",
+        `UPDATE \`${articlesTable}\` SET ${setClauses}, updated_at = NOW() WHERE id = ?`,
+        [...Object.values(articleData), id]
+      );
+
+      // Handle image update
+      if (article.image !== undefined) {
+        if (article.image) {
+          // Update the main article image in the Articles table
+          await connection.execute(`UPDATE \`${articlesTable}\` SET image = ? WHERE id = ?`, [
+            article.image,
+            id,
+          ]);
+
+          // Check if there's an existing image record
+          const [existingImage] = await connection.execute(
+            `SELECT id FROM \`${imagesTable}\` WHERE article_id = ?`,
+            [id]
+          );
+
+          if ((existingImage as any[]).length > 0) {
+            // Update existing image record
+            await connection.execute(
+              `UPDATE \`${imagesTable}\` SET image_url = ?, updated_at = NOW() WHERE article_id = ?`,
+              [article.image, id]
+            );
+          } else {
+            // Insert new image record if none exists
+            await connection.execute(
+              `INSERT INTO \`${imagesTable}\` (article_id, image_url, entity_type, entity_id, type, created_at) VALUES (?, ?, 'article', ?, 'thumbnail', NOW())`,
+              [id, article.image, id]
+            );
+          }
+        } else {
+          // If image is undefined, null, or empty string, delete the image from both tables
+          // First get the current image URL
+          const [currentImage] = await connection.execute(
+            `SELECT image FROM \`${articlesTable}\` WHERE id = ?`,
+            [id]
+          );
+          const currentImageUrl = (currentImage as any[])[0]?.image;
+
+          // Set the image field to NULL in Articles table
+          await connection.execute(
+            `UPDATE \`${articlesTable}\` SET image = NULL WHERE id = ?`,
+            [id]
+          );
+
+          // Only delete the specific image record that matches the current image URL
+          if (currentImageUrl) {
+            await connection.execute(
+              `DELETE FROM \`${imagesTable}\` WHERE article_id = ? AND image_url = ?`,
+              [id, currentImageUrl]
+            );
+          }
+        }
+      }
+
+      // Handle video update
+      if (article.video !== undefined) {
+        if (article.video) {
+          const [existingVideo] = await connection.execute(
+            `SELECT id FROM \`${videosTable}\` WHERE article_id = ?`,
+            [id]
+          );
+
+          if ((existingVideo as any[]).length > 0) {
+            await connection.execute(
+              `UPDATE \`${videosTable}\` SET video_url = ?, updated_at = NOW() WHERE article_id = ?`,
+              [article.video, id]
+            );
+          } else {
+            await connection.execute(
+              `INSERT INTO \`${videosTable}\` (article_id, video_url, created_at) VALUES (?, ?, NOW())`,
+              [id, article.video]
+            );
+          }
+        } else {
+          // If video is undefined, null, or empty string, delete the video from both tables
+          // First get the current video URL
+          const [currentVideo] = await connection.execute(
+            `SELECT video FROM \`${articlesTable}\` WHERE id = ?`,
+            [id]
+          );
+          const currentVideoUrl = (currentVideo as any[])[0]?.video;
+
+          // Set the video field to NULL in Articles table
+          await connection.execute(
+            `UPDATE \`${articlesTable}\` SET video = NULL WHERE id = ?`,
+            [id]
+          );
+
+          // Only delete the specific video record that matches the current video URL
+          if (currentVideoUrl) {
+            await connection.execute(
+              `DELETE FROM \`${videosTable}\` WHERE article_id = ? AND video_url = ?`,
+              [id, currentVideoUrl]
+            );
+          }
+        }
+      }
+
+      // Update tags if provided
+      if (tag_ids !== undefined) {
+        await connection.execute(
+          `DELETE FROM \`${articleTagsTable}\` WHERE article_id = ?`,
+          [id]
+        );
+
+        if (tag_ids.length > 0) {
+          const placeholders = tag_ids.map(() => "(?, ?)").join(",");
+          const values = tag_ids.flatMap((tagId) => [id, tagId]);
+
+          await connection.execute(
+            `INSERT INTO \`${articleTagsTable}\` (article_id, tag_id) VALUES ${placeholders}`,
+            values
+          );
+        }
+      }
+
+      // Get the updated article
+      const [updatedArticle] = await connection.execute(
+        `SELECT * FROM \`${articlesTable}\` WHERE id = ?`,
         [id]
       );
 
-      if (tag_ids.length > 0) {
-        const placeholders = tag_ids.map(() => "(?, ?)").join(",");
-        const values = tag_ids.flatMap((tagId) => [id, tagId]);
-
-        await connection.execute(
-          `INSERT INTO Article_Tags (article_id, tag_id) VALUES ${placeholders}`,
-          values
-        );
-      }
-    }
-
-    // Get the updated article
-    const [updatedArticle] = await connection.execute(
-      "SELECT * FROM Articles WHERE id = ?",
-      [id]
-    );
-
-    return (updatedArticle as any[])[0];
-  });
+      return (updatedArticle as any[])[0];
+    });
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function deleteArticle(id: number) {
-  return transaction(async (connection) => {
-    // Delete article tags first
-    await connection.execute("DELETE FROM Article_Tags WHERE article_id = ?", [
-      id,
+  try {
+    // Resolve table names with proper casing
+    const [articlesTable, articleTagsTable, imagesTable, videosTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Images"),
+      resolveTableName("Videos"),
     ]);
 
-    // Delete associated images
-    await connection.execute("DELETE FROM Images WHERE article_id = ?", [id]);
+    // Validate table names are resolved
+    if (!articlesTable || !articleTagsTable || !imagesTable || !videosTable) {
+      throw new Error("Failed to resolve table names.");
+    }
 
-    // Delete associated videos
-    await connection.execute("DELETE FROM Videos WHERE article_id = ?", [id]);
+    return transaction(async (connection) => {
+      // Delete article tags first
+      await connection.execute(`DELETE FROM \`${articleTagsTable}\` WHERE article_id = ?`, [
+        id,
+      ]);
 
-    // Delete article
-    const [result] = await connection.execute(
-      "DELETE FROM Articles WHERE id = ?",
-      [id]
-    );
+      // Delete associated images
+      await connection.execute(`DELETE FROM \`${imagesTable}\` WHERE article_id = ?`, [id]);
 
-    return (result as any).affectedRows > 0;
-  });
+      // Delete associated videos
+      await connection.execute(`DELETE FROM \`${videosTable}\` WHERE article_id = ?`, [id]);
+
+      // Delete article
+      const [result] = await connection.execute(
+        `DELETE FROM \`${articlesTable}\` WHERE id = ?`,
+        [id]
+      );
+
+      return (result as any).affectedRows > 0;
+    });
+  } catch (error) {
+    throw error;
+  }
 }
