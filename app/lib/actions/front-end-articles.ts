@@ -2,6 +2,12 @@
 
 import { query } from "../db/db";
 import { Article } from "../definition";
+import { resolveTableName } from "../db/tableNameResolver";
+
+// Component Info
+// Description: Server actions for fetching front-end articles with various filters and pagination.
+// Date created: 2024
+// Author: thangtruong
 
 type FrontendArticleRow = Article & {
   category_name?: string | null;
@@ -31,6 +37,23 @@ export async function getFrontEndArticles({
   subcategoryId?: string;
 } = {}) {
   try {
+    // Resolve table names with proper casing
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
+    ]);
+
+    // Validate table names are resolved
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable) {
+      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    }
+
     const offset = (page - 1) * itemsPerPage;
 
     // Build the WHERE clause based on filters
@@ -66,15 +89,15 @@ export async function getFrontEndArticles({
         au.name as author_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors,
-        (SELECT COUNT(*) FROM Likes WHERE article_id = a.id) as likes_count,
-        (SELECT COUNT(*) FROM Comments WHERE article_id = a.id) as comments_count,
-        (SELECT COUNT(*) FROM Articles ${whereClause}) as total_count
-      FROM Articles a
-      LEFT JOIN Categories c ON a.category_id = c.id
-      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-      LEFT JOIN Authors au ON a.author_id = au.id
-      LEFT JOIN Article_Tags at ON a.id = at.article_id
-      LEFT JOIN Tags t ON at.tag_id = t.id
+        (SELECT COUNT(*) FROM \`${likesTable}\` WHERE article_id = a.id) as likes_count,
+        (SELECT COUNT(*) FROM \`${commentsTable}\` WHERE article_id = a.id) as comments_count,
+        (SELECT COUNT(*) FROM \`${articlesTable}\` ${whereClause}) as total_count
+      FROM \`${articlesTable}\` a
+      LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id
+      LEFT JOIN \`${subcategoriesTable}\` sc ON a.sub_category_id = sc.id
+      LEFT JOIN \`${authorsTable}\` au ON a.author_id = au.id
+      LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
+      LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
       ${whereClause}
       GROUP BY a.id
       ORDER BY a.published_at DESC
@@ -136,6 +159,21 @@ export async function getExploreArticles({
   tag?: string;
 } = {}) {
   try {
+    // Resolve table names with proper casing
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+    ]);
+
+    // Validate table names are resolved
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable) {
+      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    }
+
     const offset = (page - 1) * itemsPerPage;
 
     // Build the WHERE clause based on filters
@@ -177,16 +215,16 @@ export async function getExploreArticles({
         au.name as author_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors,
-        (SELECT COUNT(*) FROM Articles a2
-         LEFT JOIN Article_Tags at2 ON a2.id = at2.article_id
-         LEFT JOIN Tags t2 ON at2.tag_id = t2.id
+        (SELECT COUNT(*) FROM \`${articlesTable}\` a2
+         LEFT JOIN \`${articleTagsTable}\` at2 ON a2.id = at2.article_id
+         LEFT JOIN \`${tagsTable}\` t2 ON at2.tag_id = t2.id
          ${whereClause}) as total_count
-      FROM Articles a
-      LEFT JOIN Categories c ON a.category_id = c.id
-      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-      LEFT JOIN Authors au ON a.author_id = au.id
-      LEFT JOIN Article_Tags at ON a.id = at.article_id
-      LEFT JOIN Tags t ON at.tag_id = t.id
+      FROM \`${articlesTable}\` a
+      LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id
+      LEFT JOIN \`${subcategoriesTable}\` sc ON a.sub_category_id = sc.id
+      LEFT JOIN \`${authorsTable}\` au ON a.author_id = au.id
+      LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
+      LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
       ${whereClause}
       GROUP BY a.id
       ORDER BY a.published_at DESC
@@ -231,6 +269,21 @@ export async function getSubcategoryArticles({
   itemsPerPage?: number;
 }) {
   try {
+    // Resolve table names with proper casing
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+    ]);
+
+    // Validate table names are resolved
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable) {
+      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    }
+
     const offset = (page - 1) * itemsPerPage;
 
     const result = await query<FrontendArticleRow>(
@@ -242,13 +295,13 @@ export async function getSubcategoryArticles({
         au.name as author_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors,
-        (SELECT COUNT(*) FROM Articles WHERE sub_category_id = ?) as total_count
-      FROM Articles a
-      LEFT JOIN Categories c ON a.category_id = c.id
-      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-      LEFT JOIN Authors au ON a.author_id = au.id
-      LEFT JOIN Article_Tags at ON a.id = at.article_id
-      LEFT JOIN Tags t ON at.tag_id = t.id
+        (SELECT COUNT(*) FROM \`${articlesTable}\` WHERE sub_category_id = ?) as total_count
+      FROM \`${articlesTable}\` a
+      LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id
+      LEFT JOIN \`${subcategoriesTable}\` sc ON a.sub_category_id = sc.id
+      LEFT JOIN \`${authorsTable}\` au ON a.author_id = au.id
+      LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
+      LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
       WHERE a.sub_category_id = ?
       GROUP BY a.id
       ORDER BY a.published_at DESC
@@ -295,12 +348,37 @@ export async function getCategoryArticles({
   itemsPerPage?: number;
 }) {
   try {
+    // Resolve table names with proper casing
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
+    ]);
+
+    // Validate table names are resolved
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable) {
+      return {
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+        error: "Failed to resolve table names.",
+      };
+    }
+
     const offset = (page - 1) * itemsPerPage;
 
     // Get total count
     const countQuery = `
       SELECT COUNT(*) as total
-      FROM Articles a
+      FROM \`${articlesTable}\` a
       WHERE a.category_id = ?
     `;
     const countResult = await query(countQuery, [categoryId]);
@@ -332,14 +410,14 @@ export async function getCategoryArticles({
         GROUP_CONCAT(t.color) as tag_colors,
         COUNT(DISTINCT l.id) as likes_count,
         COUNT(DISTINCT cm.id) as comments_count
-      FROM Articles a
-      LEFT JOIN Categories c ON a.category_id = c.id
-      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-      LEFT JOIN Authors au ON a.author_id = au.id
-      LEFT JOIN Article_Tags at ON a.id = at.article_id
-      LEFT JOIN Tags t ON at.tag_id = t.id
-      LEFT JOIN Likes l ON a.id = l.article_id
-      LEFT JOIN Comments cm ON a.id = cm.article_id
+      FROM \`${articlesTable}\` a
+      LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id
+      LEFT JOIN \`${subcategoriesTable}\` sc ON a.sub_category_id = sc.id
+      LEFT JOIN \`${authorsTable}\` au ON a.author_id = au.id
+      LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
+      LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
+      LEFT JOIN \`${likesTable}\` l ON a.id = l.article_id
+      LEFT JOIN \`${commentsTable}\` cm ON a.id = cm.article_id
       WHERE a.category_id = ?
       GROUP BY a.id
       ORDER BY a.published_at DESC

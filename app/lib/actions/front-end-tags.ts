@@ -1,6 +1,12 @@
 "use server";
 
 import { query } from "../db/db";
+import { resolveTableName } from "../db/tableNameResolver";
+
+// Component Info
+// Description: Server action fetching tags with category and subcategory filters.
+// Date created: 2024
+// Author: thangtruong
 
 type FrontendTagRow = {
   total_count?: number;
@@ -14,6 +20,17 @@ export async function getFilteredTags(
   limit: number = 8
 ) {
   try {
+    // Resolve table names with proper casing
+    const [tagsTable, articleTagsTable] = await Promise.all([
+      resolveTableName("Tags"),
+      resolveTableName("Article_Tags"),
+    ]);
+
+    // Validate table names are resolved
+    if (!tagsTable || !articleTagsTable) {
+      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    }
+
     const conditions = [];
     const values: Array<number> = [];
 
@@ -38,7 +55,7 @@ export async function getFilteredTags(
     // First, get the total count of all tags
     const countQuery = `
       SELECT COUNT(*) as total_count
-      FROM Tags t
+      FROM \`${tagsTable}\` t
       ${whereClause}
     `;
 
@@ -54,8 +71,8 @@ export async function getFilteredTags(
       SELECT 
         t.*,
         COUNT(DISTINCT at.article_id) as article_count
-      FROM Tags t
-      LEFT JOIN Article_Tags at ON t.id = at.tag_id
+      FROM \`${tagsTable}\` t
+      LEFT JOIN \`${articleTagsTable}\` at ON t.id = at.tag_id
       ${whereClause}
       GROUP BY t.id
       ORDER BY article_count DESC, t.name ASC

@@ -1,6 +1,12 @@
 "use server";
 
 import { query } from "../db/db";
+import { resolveTableName } from "../db/tableNameResolver";
+
+// Component Info
+// Description: Server action fetching highlight articles with pagination and metadata.
+// Date created: 2024
+// Author: thangtruong
 
 type HighlightArticleRow = {
   total_count: number;
@@ -24,6 +30,23 @@ export async function getHighlightArticles({
   itemsPerPage?: number;
 } = {}) {
   try {
+    // Resolve table names with proper casing
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
+    ]);
+
+    // Validate table names are resolved
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable) {
+      return { data: [], error: "Failed to resolve table names.", totalCount: 0 };
+    }
+
     const offset = (page - 1) * itemsPerPage;
 
     const { data, error } = await query<HighlightArticleRow>(
@@ -36,15 +59,15 @@ export async function getHighlightArticles({
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.id) as tag_ids,
         GROUP_CONCAT(t.color) as tag_colors,
-        (SELECT COUNT(*) FROM Likes WHERE article_id = a.id) as likes_count,
-        (SELECT COUNT(*) FROM Comments WHERE article_id = a.id) as comments_count,
-        (SELECT COUNT(*) FROM Articles WHERE headline_priority != 0) as total_count
-      FROM Articles a
-      LEFT JOIN Categories c ON a.category_id = c.id
-      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-      LEFT JOIN Authors au ON a.author_id = au.id
-      LEFT JOIN Article_Tags at ON a.id = at.article_id
-      LEFT JOIN Tags t ON at.tag_id = t.id
+        (SELECT COUNT(*) FROM \`${likesTable}\` WHERE article_id = a.id) as likes_count,
+        (SELECT COUNT(*) FROM \`${commentsTable}\` WHERE article_id = a.id) as comments_count,
+        (SELECT COUNT(*) FROM \`${articlesTable}\` WHERE headline_priority != 0) as total_count
+      FROM \`${articlesTable}\` a
+      LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id
+      LEFT JOIN \`${subcategoriesTable}\` sc ON a.sub_category_id = sc.id
+      LEFT JOIN \`${authorsTable}\` au ON a.author_id = au.id
+      LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
+      LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
       WHERE a.headline_priority != 0
       GROUP BY a.id, c.name, sc.name, au.name
       ORDER BY a.headline_priority DESC, a.published_at DESC

@@ -1,6 +1,12 @@
 "use server";
 
 import { query } from "../db/db";
+import { resolveTableName } from "../db/tableNameResolver";
+
+// Component Info
+// Description: Server action fetching featured articles with pagination and metadata.
+// Date created: 2024
+// Author: thangtruong
 
 type FeaturedArticleRow = {
   total_count: number;
@@ -13,6 +19,21 @@ type FeaturedArticleRow = {
 
 export async function getFeaturedArticles(page: number = 1, limit: number = 8) {
   try {
+    // Resolve table names with proper casing
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+    ]);
+
+    // Validate table names are resolved
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable) {
+      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    }
+
     // Calculate offset for MySQL pagination
     const offset = (page - 1) * limit;
 
@@ -25,13 +46,13 @@ export async function getFeaturedArticles(page: number = 1, limit: number = 8) {
         au.name as author_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors,
-        (SELECT COUNT(*) FROM Articles WHERE is_featured = 1 AND headline_priority = 0) as total_count
-      FROM Articles a
-      LEFT JOIN Categories c ON a.category_id = c.id
-      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-      LEFT JOIN Authors au ON a.author_id = au.id
-      LEFT JOIN Article_Tags at ON a.id = at.article_id
-      LEFT JOIN Tags t ON at.tag_id = t.id
+        (SELECT COUNT(*) FROM \`${articlesTable}\` WHERE is_featured = 1 AND headline_priority = 0) as total_count
+      FROM \`${articlesTable}\` a
+      LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id
+      LEFT JOIN \`${subcategoriesTable}\` sc ON a.sub_category_id = sc.id
+      LEFT JOIN \`${authorsTable}\` au ON a.author_id = au.id
+      LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
+      LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
       WHERE a.is_featured = 1 AND a.headline_priority = 0
       GROUP BY a.id
       ORDER BY a.published_at DESC

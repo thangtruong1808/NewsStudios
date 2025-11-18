@@ -1,6 +1,12 @@
 "use server";
 
 import { query } from "../db/db";
+import { resolveTableName } from "../db/tableNameResolver";
+
+// Component Info
+// Description: Server action fetching related articles based on category, subcategory, and tags.
+// Date created: 2024
+// Author: thangtruong
 
 type RelativeArticleRow = {
   category_id?: number | null;
@@ -19,6 +25,23 @@ export async function getFrontEndRelativeArticles(
   limit: number = 10
 ) {
   try {
+    // Resolve table names with proper casing
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable] = await Promise.all([
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
+    ]);
+
+    // Validate table names are resolved
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable) {
+      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    }
+
     const offset = (page - 1) * limit;
 
     // First get the current article's category and tags
@@ -29,9 +52,9 @@ export async function getFrontEndRelativeArticles(
             a.category_id,
             a.sub_category_id,
             GROUP_CONCAT(t.id ORDER BY t.id) as tag_ids
-          FROM Articles a
-          LEFT JOIN Article_Tags at ON a.id = at.article_id
-          LEFT JOIN Tags t ON at.tag_id = t.id
+          FROM \`${articlesTable}\` a
+          LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
+          LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
           WHERE a.id = ?
           GROUP BY a.id
         `,
@@ -73,23 +96,23 @@ export async function getFrontEndRelativeArticles(
         au.name as author_name,
         GROUP_CONCAT(t.name ORDER BY t.id SEPARATOR ',') as tag_names,
         GROUP_CONCAT(t.color ORDER BY t.id SEPARATOR ',') as tag_colors,
-        (SELECT COUNT(*) FROM Likes WHERE article_id = a.id) as likes_count,
-        (SELECT COUNT(*) FROM Comments WHERE article_id = a.id) as comments_count,
+        (SELECT COUNT(*) FROM \`${likesTable}\` WHERE article_id = a.id) as likes_count,
+        (SELECT COUNT(*) FROM \`${commentsTable}\` WHERE article_id = a.id) as comments_count,
         (
           SELECT COUNT(DISTINCT a2.id) 
-          FROM Articles a2
-          LEFT JOIN Article_Tags at2 ON a2.id = at2.article_id
+          FROM \`${articlesTable}\` a2
+          LEFT JOIN \`${articleTagsTable}\` at2 ON a2.id = at2.article_id
           ${currentArticleId ? `WHERE a2.id != ?` : ""}
           AND a2.is_featured = FALSE 
           AND a2.headline_priority = 0 
           AND a2.is_trending = FALSE
         ) as total_count
-      FROM Articles a
-      LEFT JOIN Categories c ON a.category_id = c.id
-      LEFT JOIN SubCategories sc ON a.sub_category_id = sc.id
-      LEFT JOIN Authors au ON a.author_id = au.id
-      LEFT JOIN Article_Tags at ON a.id = at.article_id
-      LEFT JOIN Tags t ON at.tag_id = t.id
+      FROM \`${articlesTable}\` a
+      LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id
+      LEFT JOIN \`${subcategoriesTable}\` sc ON a.sub_category_id = sc.id
+      LEFT JOIN \`${authorsTable}\` au ON a.author_id = au.id
+      LEFT JOIN \`${articleTagsTable}\` at ON a.id = at.article_id
+      LEFT JOIN \`${tagsTable}\` t ON at.tag_id = t.id
       ${whereClause}
       GROUP BY a.id
       ORDER BY 
@@ -162,16 +185,6 @@ export async function getFrontEndRelativeArticles(
         (_: string, index: number) =>
           tagColors[index] || tagColors[tagColors.length - 1] || "#6B7280"
       );
-
-      // Log the tag data for debugging
-      // console.log("Article tag data in getFrontEndRelativeArticles:", {
-      //   id: article.id,
-      //   title: article.title,
-      //   tag_names: tagNames,
-      //   tag_colors: adjustedTagColors,
-      //   tag_names_length: tagNames.length,
-      //   tag_colors_length: adjustedTagColors.length,
-      // });
 
       return {
         ...article,
