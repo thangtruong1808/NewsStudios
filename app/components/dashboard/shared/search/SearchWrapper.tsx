@@ -10,8 +10,9 @@ interface SearchWrapperProps {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Lightweight wrapper delivering shared search defaults for dashboard listings.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function SearchWrapper({
   placeholder = "Search...",

@@ -37,8 +37,9 @@ interface SubcategoriesStateProps {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Manage subcategory list state including filters, pagination, and deletion flow.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function SubcategoriesState({
   children,

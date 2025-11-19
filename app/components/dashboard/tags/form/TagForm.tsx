@@ -92,7 +92,6 @@ export default function TagForm({
       router.push("/dashboard/tags");
       router.refresh();
     } catch (error) {
-      console.error("Error saving tag:", error);
       showErrorToast({ message: "Failed to save tag" });
     }
   };

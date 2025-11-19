@@ -7,8 +7,9 @@ import MobileView from "./views/MobileView";
 import Pagination from "./Pagination";
 import EntriesSelector from "./EntriesSelector";
 
+// Component Info
 // Description: Render a responsive dashboard table with pagination and adaptive layouts.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function Table<T extends { id: number }>({
   data,

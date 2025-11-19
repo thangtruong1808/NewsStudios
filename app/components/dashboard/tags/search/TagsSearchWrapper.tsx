@@ -8,8 +8,9 @@ interface TagsSearchWrapperProps {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Bridge dashboard tag search term handling into shared search component.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 
 export default function TagsSearchWrapper({

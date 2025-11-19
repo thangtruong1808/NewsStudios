@@ -35,7 +35,7 @@ export interface TagsStateProps {
 
 // Component Info
 // Description: Provide tags management state container for dashboard pages.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function TagsState({ children }: TagsStateProps) {
   const router = useRouter();
@@ -57,6 +57,7 @@ export default function TagsState({ children }: TagsStateProps) {
   const sortDirection =
     (searchParams.get("sortDirection") as "asc" | "desc") || "desc";
 
+  // Fetch tags data when URL parameters change
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -64,8 +65,10 @@ export default function TagsState({ children }: TagsStateProps) {
           setIsLoading(true);
         }
 
-        const result = searchQuery
-          ? await searchTags(searchQuery, {
+        // Use searchTags if search query exists and is not empty
+        const trimmedQuery = searchQuery.trim();
+        const result = trimmedQuery
+          ? await searchTags(trimmedQuery, {
               page: currentPage,
               limit: itemsPerPage,
               sortField,
@@ -92,9 +95,12 @@ export default function TagsState({ children }: TagsStateProps) {
           // Set pagination info if available
           if (result.totalCount !== undefined) {
             setTotalItems(result.totalCount);
-            setTotalPages(Math.ceil(result.totalCount / itemsPerPage));
+            const calculatedPages = itemsPerPage > 0 
+              ? Math.max(1, Math.ceil(result.totalCount / itemsPerPage))
+              : 1;
+            setTotalPages(calculatedPages);
           } else if (result.totalPages !== undefined) {
-            setTotalPages(result.totalPages);
+            setTotalPages(Math.max(1, result.totalPages));
             setTotalItems(result.totalCount || 0);
           }
         }
@@ -114,13 +120,17 @@ export default function TagsState({ children }: TagsStateProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, itemsPerPage, sortField, sortDirection, searchQuery]);
 
+  // Handle page navigation
   const handlePageChange = ({ page }: { page: number }) => {
     if (page === currentPage) return;
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
-    router.push(`/dashboard/tags?${params.toString()}`);
+    const target = params.toString();
+    if (target === searchParams.toString()) return;
+    router.push(`/dashboard/tags?${target}`);
   };
 
+  // Handle column sorting
   const handleSort = ({ field }: { field: keyof Tag | "sequence" }) => {
     if (field === "sequence") return;
     const newDirection =
@@ -128,10 +138,10 @@ export default function TagsState({ children }: TagsStateProps) {
     const params = new URLSearchParams(searchParams);
     params.set("sortField", field as string);
     params.set("sortDirection", newDirection);
-    const nextSearch = params.toString();
-    if (nextSearch === searchParams.toString()) return;
+    const target = params.toString();
+    if (target === searchParams.toString()) return;
     setIsSorting(true);
-    router.push(`/dashboard/tags?${nextSearch}`);
+    router.push(`/dashboard/tags?${target}`);
   };
 
   const handleEdit = ({ item }: { item: Tag }) => {
@@ -165,8 +175,9 @@ export default function TagsState({ children }: TagsStateProps) {
       router.refresh();
 
       // Fetch fresh data after successful deletion
-      const result = searchQuery
-        ? await searchTags(searchQuery, {
+      const trimmedQuery = searchQuery.trim();
+      const result = trimmedQuery
+        ? await searchTags(trimmedQuery, {
             page: currentPage,
             limit: itemsPerPage,
             sortField,
@@ -187,7 +198,10 @@ export default function TagsState({ children }: TagsStateProps) {
       setTags(result.data || []);
       if (result.totalCount !== undefined) {
         setTotalItems(result.totalCount);
-        setTotalPages(Math.ceil(result.totalCount / itemsPerPage));
+        const calculatedPages = itemsPerPage > 0 
+          ? Math.max(1, Math.ceil(result.totalCount / itemsPerPage))
+          : 1;
+        setTotalPages(calculatedPages);
       }
 
       // If we're on the last page and it's now empty, go to the previous page
@@ -211,7 +225,9 @@ export default function TagsState({ children }: TagsStateProps) {
     }
   };
 
+  // Handle search functionality
   const handleSearch = ({ term }: { term: string }) => {
+    if (term === searchQuery) return;
     setIsSearching(true);
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
@@ -223,6 +239,7 @@ export default function TagsState({ children }: TagsStateProps) {
     router.push(`/dashboard/tags?${params.toString()}`);
   };
 
+  // Handle items per page change
   const handleItemsPerPageChange = ({ limit }: { limit: number }) => {
     if (limit === itemsPerPage) return;
     const params = new URLSearchParams(searchParams);

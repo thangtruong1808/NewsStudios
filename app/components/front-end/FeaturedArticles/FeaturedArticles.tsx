@@ -45,24 +45,36 @@ type FeaturedArticleRaw = {
   images?: string[] | string | null;
 };
 
+// Header component for featured articles section
+const FeaturedHeader = () => (
+  <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+    <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+      <div className="py-8">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100 shadow-sm">
+            <StarIcon className="h-6 w-6 text-blue-600" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Featured Articles</h2>
+            <p className="text-sm text-gray-600 mt-1">Our top picks for you</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Normalize article data from API response
 const normalizeArticle = (article: FeaturedArticleRaw): Article => {
   const parseStringArray = (value?: string[] | string | null): string[] => {
-    if (Array.isArray(value)) {
-      return value.filter(Boolean);
-    }
-    if (typeof value === "string") {
-      return value.split(",").map((item) => item.trim()).filter(Boolean);
-    }
+    if (Array.isArray(value)) return value.filter(Boolean);
+    if (typeof value === "string") return value.split(",").map((item) => item.trim()).filter(Boolean);
     return [];
   };
 
   const parseDate = (value?: string | Date | null): string => {
-    if (typeof value === "string") {
-      return value;
-    }
-    if (value instanceof Date) {
-      return value.toISOString();
-    }
+    if (typeof value === "string") return value;
+    if (value instanceof Date) return value.toISOString();
     return "";
   };
 
@@ -71,14 +83,9 @@ const normalizeArticle = (article: FeaturedArticleRaw): Article => {
     title: String(article.title ?? ""),
     content: String(article.content ?? ""),
     image: typeof article.image === "string" ? article.image : "",
-    category_name:
-      typeof article.category_name === "string" ? article.category_name : "",
-    subcategory_name:
-      typeof article.subcategory_name === "string"
-        ? article.subcategory_name
-        : "",
-    author_name:
-      typeof article.author_name === "string" ? article.author_name : "",
+    category_name: typeof article.category_name === "string" ? article.category_name : "",
+    subcategory_name: typeof article.subcategory_name === "string" ? article.subcategory_name : "",
+    author_name: typeof article.author_name === "string" ? article.author_name : "",
     created_at: parseDate(article.created_at),
     updated_at: parseDate(article.updated_at),
     tag_names: parseStringArray(article.tag_names),
@@ -93,7 +100,7 @@ const normalizeArticle = (article: FeaturedArticleRaw): Article => {
 
 // Component Info
 // Description: Display featured articles with carousel, grid, and load-more controls.
-// Date created: 2024-12-19
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function FeaturedArticles() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -101,40 +108,29 @@ export default function FeaturedArticles() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const ITEMS_PER_PAGE = 8; // 4 columns × 2 rows
+  const ITEMS_PER_PAGE = 10; // 5 columns × 2 rows
 
-  // Interaction handlers (placeholder for analytics integration)
+  // Interaction handlers for analytics
   const handleViewClick = () => { };
   const handleLikeClick = () => { };
   const handleCommentClick = () => { };
   const handleShareClick = () => { };
 
-  // Fetch featured articles on component mount
+  // Fetch featured articles when page changes
   useEffect(() => {
     const fetchFeaturedArticles = async () => {
       try {
         setIsLoading(true);
         setError(null);
-
         const result = await getFeaturedArticles(page, ITEMS_PER_PAGE);
+        if (result.error) throw new Error(result.error);
 
-        if (result.error) {
-          throw new Error(result.error);
-        }
-
-        const rawArticles = Array.isArray(result.data)
-          ? (result.data as FeaturedArticleRaw[])
-          : [];
+        const rawArticles = Array.isArray(result.data) ? (result.data as FeaturedArticleRaw[]) : [];
         const newArticles = rawArticles.map(normalizeArticle);
 
         setArticles((prev) => {
-          const merged =
-            page === 1 ? newArticles : [...prev, ...newArticles];
-          const totalLoaded = merged.length;
-          setHasMore(
-            (result.totalCount || 0) > totalLoaded &&
-            newArticles.length === ITEMS_PER_PAGE
-          );
+          const merged = page === 1 ? newArticles : [...prev, ...newArticles];
+          setHasMore((result.totalCount || 0) > merged.length && newArticles.length === ITEMS_PER_PAGE);
           return merged;
         });
       } catch (_error) {
@@ -143,14 +139,11 @@ export default function FeaturedArticles() {
         setIsLoading(false);
       }
     };
-
     fetchFeaturedArticles();
   }, [page]);
 
-  // Handle load more click
-  const handleLoadMore = () => {
-    setPage((prev) => prev + 1);
-  };
+  // Load more articles handler
+  const handleLoadMore = () => setPage((prev) => prev + 1);
 
   if (isLoading) {
     return <FeaturedArticlesSkeleton />;
@@ -167,23 +160,7 @@ export default function FeaturedArticles() {
   if (articles.length === 0) {
     return (
       <>
-        {/* Header section with title and description */}
-        <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
-          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
-            <div className="py-8">
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100 shadow-sm">
-                  <StarIcon className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Featured Articles</h2>
-                  <p className="text-sm text-gray-600 mt-1">Our top picks for you</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        <FeaturedHeader />
         {/* Empty state message */}
         <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
           <div className="max-w-[1536px] mx-auto px-6">
@@ -193,9 +170,7 @@ export default function FeaturedArticles() {
                   <StarIcon className="h-8 w-8 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900">No Featured Articles Yet</h3>
-                <p className="text-gray-500 max-w-md">
-                  We&apos;re curating the best articles for you. Check back soon to discover our featured content!
-                </p>
+                <p className="text-gray-500 max-w-md">We&apos;re curating the best articles for you. Check back soon to discover our featured content!</p>
               </div>
             </div>
           </div>
@@ -204,46 +179,26 @@ export default function FeaturedArticles() {
     );
   }
 
+  // Sort articles by updated date for carousel
   const sortedCarouselArticles = [...articles]
-    .sort(
-      (a, b) =>
-        new Date(b.updated_at).getTime() -
-        new Date(a.updated_at).getTime()
-    )
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
     .slice(0, 7);
 
   return (
     <>
-      {/* Header section with title and description */}
-      <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
-        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
-          <div className="py-8">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100 shadow-sm">
-                <StarIcon className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Featured Articles</h2>
-                <p className="text-sm text-gray-600 mt-1">Our top picks for you</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main content section */}
+      <FeaturedHeader />
       {/* Image Carousel Section */}
       <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
         <div className="max-w-[1536px] mx-auto px-6">
           <div className="mb-4 h-[400px] w-full">
             <ImageCarousel
-              images={sortedCarouselArticles.map((article) => article.image || "").filter((img) => img)}
+              images={sortedCarouselArticles.map((a) => a.image || "").filter(Boolean)}
               alt="Featured Articles"
               autoSlide
               slideInterval={5000}
               className="rounded-lg overflow-hidden"
-              titles={sortedCarouselArticles.map((article) => article.title)}
-              dates={sortedCarouselArticles.map((article) => article.updated_at)}
+              titles={sortedCarouselArticles.map((a) => a.title)}
+              dates={sortedCarouselArticles.map((a) => a.updated_at)}
             />
           </div>
         </div>
@@ -252,7 +207,7 @@ export default function FeaturedArticles() {
       {/* Articles Grid */}
       <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
         <div className="max-w-[1536px] mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 md:gap-4">
             {articles.slice(0, page * ITEMS_PER_PAGE).map((article) => (
               <Card
                 key={article.id}

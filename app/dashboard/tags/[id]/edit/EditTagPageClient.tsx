@@ -23,13 +23,11 @@ export default function EditTagPageClient() {
           return;
         }
         if (data) {
-          console.log("Fetched tag data:", data); // Debug log
           setTag(data);
         } else {
           setError("Tag not found");
         }
       } catch (err) {
-        console.error("Error fetching tag:", err); // Debug log
         setError("Failed to fetch tag data");
       } finally {
         setIsLoading(false);

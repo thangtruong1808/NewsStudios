@@ -6,7 +6,7 @@ import { resolveTableName } from "../db/tableNameResolver";
 
 // Component Info
 // Description: Server actions for tag CRUD operations and queries.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 
 type TagCountRow = {
@@ -475,7 +475,8 @@ export async function searchTags(
   }: GetTagsParams = {}
 ) {
   try {
-    if (!searchQuery) {
+    // Return all tags if search query is empty
+    if (!searchQuery || !searchQuery.trim()) {
       return getTags({ page, limit, sortField, sortDirection });
     }
 
@@ -500,19 +501,44 @@ export async function searchTags(
       };
     }
 
-    const offset = (page - 1) * limit;
+    const limitValue = Math.max(1, Number(limit) || 10);
+    const offsetValue = Math.max(0, (Number(page) || 1) - 1) * limitValue;
+    const searchTerm = searchQuery.trim();
 
     // First, get the total count of tags matching the search
     const countResult = await query<{ count: number }>(
       `SELECT COUNT(*) as count 
       FROM \`${tagsTable}\` t
       WHERE t.name LIKE ? OR t.description LIKE ?`,
-      [`%${searchQuery}%`, `%${searchQuery}%`]
+      [`%${searchTerm}%`, `%${searchTerm}%`]
     );
-    const totalCount = countResult.data?.[0]?.count || 0;
+
+    if (countResult.error || !countResult.data) {
+      return {
+        error: countResult.error ?? "Failed to fetch tags count.",
+        data: [],
+        totalCount: 0,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages: 0,
+      };
+    }
+
+    const countRows = Array.isArray(countResult.data)
+      ? (countResult.data as Array<{ count: number }>)
+      : [];
+    const totalCount = countRows.length > 0 ? Number(countRows[0]?.count ?? 0) : 0;
+    const totalPages = Math.max(1, Math.ceil(totalCount / limitValue));
 
     // Then get the paginated data with counts
-    const result = await query<Tag>(
+    const result = await query<
+      Tag & {
+        articles_count?: number | null;
+        categories_count?: number | null;
+        subcategories_count?: number | null;
+      }
+    >(
       `SELECT 
         t.*,
         (SELECT COUNT(*) FROM \`${articleTagsTable}\` WHERE tag_id = t.id) as articles_count,
@@ -521,32 +547,52 @@ export async function searchTags(
       FROM \`${tagsTable}\` t
       WHERE t.name LIKE ? OR t.description LIKE ?
       ORDER BY t.${sortField} ${sortDirection}
-      LIMIT ? OFFSET ?`,
-      [`%${searchQuery}%`, `%${searchQuery}%`, limit, offset]
+      LIMIT ${limitValue} OFFSET ${offsetValue}`,
+      [`%${searchTerm}%`, `%${searchTerm}%`]
     );
 
-    if (!result.data) {
-      throw new Error("Failed to fetch tags data");
+    if (result.error || !result.data) {
+      return {
+        error: result.error ?? "Failed to fetch tags data.",
+        data: [],
+        totalCount,
+        start: 0,
+        end: 0,
+        currentPage: page,
+        totalPages,
+      };
     }
 
-    const start = offset + 1;
-    const end = Math.min(offset + limit, totalCount);
-    const totalPages = Math.ceil(totalCount / limit);
+    const rows = Array.isArray(result.data)
+      ? (result.data as Array<
+          Tag & {
+            articles_count?: number | null;
+            categories_count?: number | null;
+            subcategories_count?: number | null;
+          }
+        >)
+      : [];
+
+    const tags = rows.map((tag) => ({
+      ...tag,
+      created_at: new Date(tag.created_at),
+      updated_at: new Date(tag.updated_at),
+      articles_count: Number(tag.articles_count ?? 0),
+      categories_count: Number(tag.categories_count ?? 0),
+      subcategories_count: Number(tag.subcategories_count ?? 0),
+    }));
+
+    const start = offsetValue + 1;
+    const end = Math.min(offsetValue + limitValue, totalCount);
 
     return {
-      data: result.data.map((tag) => ({
-        ...tag,
-        created_at: new Date(tag.created_at),
-        updated_at: new Date(tag.updated_at),
-        articles_count: Number(tag.articles_count) || 0,
-        categories_count: Number(tag.categories_count) || 0,
-        subcategories_count: Number(tag.subcategories_count) || 0,
-      })),
+      data: tags,
       totalCount,
       start,
       end,
       currentPage: page,
       totalPages,
+      error: null,
     };
   } catch (error) {
     return {

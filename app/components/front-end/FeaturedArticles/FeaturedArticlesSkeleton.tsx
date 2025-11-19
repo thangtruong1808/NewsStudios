@@ -2,11 +2,12 @@
 
 import { StarIcon } from "@heroicons/react/24/outline";
 
+// Component Info
 // Description: Skeleton layout for featured articles section with carousel and grid placeholders.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function FeaturedArticlesSkeleton() {
-  const gridItems = Array.from({ length: 8 }, (_, index) => index);
+  const gridItems = Array.from({ length: 10 }, (_, index) => index);
 
   return (
     <>
@@ -44,7 +45,7 @@ export default function FeaturedArticlesSkeleton() {
       {/* Articles Grid Skeleton */}
       <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
         <div className="max-w-[1536px] mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 md:gap-4">
             {gridItems.map((index) => (
               <div
                 key={index}

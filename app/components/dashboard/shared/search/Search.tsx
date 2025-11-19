@@ -12,8 +12,9 @@ interface SearchProps {
 }
 /* eslint-enable no-unused-vars */
 
+// Component Info
 // Description: Debounced dashboard search input syncing with URL parameters when no callback provided.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 const Search = ({ placeholder, onSearch, defaultValue = "" }: SearchProps) => {
   const pathname = usePathname();

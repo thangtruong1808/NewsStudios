@@ -13,8 +13,9 @@ import type { Tag } from "@/app/lib/definition";
  * Props interface for TagsPageClient component
  * Defines the expected search parameters for filtering and sorting
  */
+// Component Info
 // Description: Dashboard page listing tags with search, pagination, and admin controls.
-// Data created: 2024-11-13
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function TagsPageClient() {
   // Skeleton column configuration mirroring table structure
