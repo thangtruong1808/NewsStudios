@@ -5,11 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDownIcon, UserIcon, KeyIcon, ArrowRightOnRectangleIcon, Squares2X2Icon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, KeyIcon, ArrowRightOnRectangleIcon, Squares2X2Icon } from "@heroicons/react/24/outline";
 
 // Component Info
-// Description: User profile dropdown menu displaying avatar, name, role, and account actions.
-// Date created: 2024
+// Description: User profile dropdown menu displaying avatar with initials fallback, name, role, and account actions.
+// Date created: 2025-01-27
 // Author: thangtruong
 
 export default function UserProfileDropdown() {
@@ -53,6 +53,23 @@ export default function UserProfileDropdown() {
 
   // Format role display name
   const roleDisplayName = session.user.role.charAt(0).toUpperCase() + session.user.role.slice(1);
+  
+  // Check if user has valid image URL
+  const hasValidImage = session.user.user_image && 
+    typeof session.user.user_image === "string" && 
+    session.user.user_image.trim() !== "";
+  
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    const firstname = session.user.firstname || "";
+    const lastname = session.user.lastname || "";
+    if (firstname && lastname) {
+      return `${firstname.charAt(0).toUpperCase()}${lastname.charAt(0).toUpperCase()}`;
+    }
+    if (firstname) return firstname.charAt(0).toUpperCase();
+    if (lastname) return lastname.charAt(0).toUpperCase();
+    return "U";
+  };
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -63,14 +80,20 @@ export default function UserProfileDropdown() {
         aria-label="User profile menu"
         aria-expanded={isOpen}
       >
-        {/* Avatar */}
-        {session.user.user_image ? (
+        {/* Avatar with initials fallback */}
+        {hasValidImage ? (
           <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-slate-200">
-            <Image src={session.user.user_image} alt={`${session.user.firstname} ${session.user.lastname}`} fill className="object-cover" />
+            <Image 
+              src={session.user.user_image} 
+              alt={`${session.user.firstname} ${session.user.lastname}`} 
+              fill 
+              className="object-cover"
+              unoptimized={process.env.NODE_ENV === "development"}
+            />
           </span>
         ) : (
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 ring-2 ring-slate-200">
-            <UserIcon className="h-4 w-4 text-slate-500" />
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-blue-400 to-blue-300 ring-2 ring-slate-200">
+            <span className="text-xs font-medium text-white">{getUserInitials()}</span>
           </span>
         )}
         {/* Name and role */}
@@ -87,13 +110,20 @@ export default function UserProfileDropdown() {
           {/* User info header */}
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
             <div className="flex items-center gap-3">
-              {session.user.user_image ? (
+              {/* Avatar with initials fallback */}
+              {hasValidImage ? (
                 <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-slate-200">
-                  <Image src={session.user.user_image} alt={`${session.user.firstname} ${session.user.lastname}`} fill className="object-cover" />
+                  <Image 
+                    src={session.user.user_image} 
+                    alt={`${session.user.firstname} ${session.user.lastname}`} 
+                    fill 
+                    className="object-cover"
+                    unoptimized={process.env.NODE_ENV === "development"}
+                  />
                 </span>
               ) : (
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 ring-2 ring-slate-200">
-                  <UserIcon className="h-6 w-6 text-slate-500" />
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-blue-400 to-blue-300 ring-2 ring-slate-200">
+                  <span className="text-sm font-medium text-white">{getUserInitials()}</span>
                 </span>
               )}
               <div className="min-w-0 flex-1">

@@ -1,20 +1,23 @@
+"use client";
+
 import type { Article } from "@/app/lib/definition";
 import {
   CalendarIcon,
   UserIcon,
   FolderIcon,
-  EyeIcon,
-  HeartIcon,
   ChatBubbleLeftIcon,
 } from "@heroicons/react/24/outline";
+import LikeButton from "./LikeButton";
+
+// Component Info
+// Description: Present article metadata badges including author, categories, and engagement stats.
+// Date created: 2025-01-27
+// Author: thangtruong
 
 interface ArticleMetadataProps {
   article: Article;
 }
 
-// Description: Present article metadata badges including author, categories, and engagement stats.
-// Data created: 2024-11-13
-// Author: thangtruong
 export default function ArticleMetadata({ article }: ArticleMetadataProps) {
   return (
     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6">
@@ -44,15 +47,8 @@ export default function ArticleMetadata({ article }: ArticleMetadataProps) {
           <span className="text-indigo-600">{article.subcategory_name}</span>
         </div>
       )}
-      {/* Engagement stats */}
-      <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-full">
-        <EyeIcon className="h-4 w-4 text-gray-400" />
-        <span>{article.views_count} views</span>
-      </div>
-      <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-full">
-        <HeartIcon className="h-4 w-4 text-gray-400" />
-        <span>{article.likes_count} likes</span>
-      </div>
+      {/* Like button with interactive functionality */}
+      <LikeButton articleId={article.id} initialLikesCount={article.likes_count} />
       <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-full">
         <ChatBubbleLeftIcon className="h-4 w-4 text-gray-400" />
         <span>{article.comments_count} comments</span>

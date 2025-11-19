@@ -2,11 +2,11 @@
 
 // Component Info
 // Description: Client component rendering article detail page with comments section.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 
 import SingleArticle from "@/app/components/front-end/articles/SingleArticle";
-import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
+import Comments from "@/app/components/front-end/articles/components/Comments";
 
 interface ArticlePageClientProps {
   params: {
@@ -37,19 +37,7 @@ export default function ArticlePageClient({ params }: ArticlePageClientProps) {
 
       {/* Comments Section */}
       <section className="mb-16">
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <ChatBubbleLeftIcon className="h-6 w-6 text-gray-600" />
-            <h2 className="text-2xl font-bold text-gray-900">Comments</h2>
-          </div>
-          <div className="text-center py-8 text-gray-500">
-            <p>Comments are coming soon!</p>
-            <p className="text-sm mt-2">
-              We&apos;re working on adding a comment system to enhance the
-              discussion.
-            </p>
-          </div>
-        </div>
+        <Comments articleId={articleId} />
       </section>
     </>
   );

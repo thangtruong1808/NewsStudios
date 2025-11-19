@@ -3,7 +3,6 @@
 import NavLinks from "./NavLinks";
 import SignOutButton from "./SignOutButton";
 import {
-  UserCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
@@ -27,8 +26,9 @@ interface SideNavProps {
  * Responsive sidebar navigation with collapsible functionality
  * Features user profile, navigation links, and sign out button
  */
-// Description: Responsive dashboard side navigation with collapse toggles and user summary.
-// Data created: 2024-11-13
+// Component Info
+// Description: Responsive dashboard side navigation with collapse toggles and user summary with avatar initials fallback.
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function SideNav({ onCollapse }: SideNavProps) {
   const { data: session } = useSession({ required: true });
@@ -84,9 +84,9 @@ export default function SideNav({ onCollapse }: SideNavProps) {
           )}
         >
           <div className="flex flex-col items-center gap-2">
-            {/* User avatar with gradient background and fallback icon */}
+            {/* User avatar with gradient background and initials fallback */}
             <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 flex items-center justify-center shadow-md ring-2 ring-white/50 overflow-hidden">
-              {session?.user?.user_image ? (
+              {session?.user?.user_image && typeof session.user.user_image === "string" && session.user.user_image.trim() !== "" ? (
                 <Image
                   src={session.user.user_image}
                   alt={session.user.firstname || ""}
@@ -96,7 +96,15 @@ export default function SideNav({ onCollapse }: SideNavProps) {
                   priority
                 />
               ) : (
-                <UserCircleIcon className="h-10 w-10 text-white" />
+                <span className="text-lg font-semibold text-white">
+                  {session?.user?.firstname && session?.user?.lastname
+                    ? `${session.user.firstname.charAt(0).toUpperCase()}${session.user.lastname.charAt(0).toUpperCase()}`
+                    : session?.user?.firstname
+                    ? session.user.firstname.charAt(0).toUpperCase()
+                    : session?.user?.lastname
+                    ? session.user.lastname.charAt(0).toUpperCase()
+                    : "U"}
+                </span>
               )}
             </div>
             {/* User name and role display (always visible) */}

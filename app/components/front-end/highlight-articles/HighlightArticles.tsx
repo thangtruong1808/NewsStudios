@@ -322,7 +322,6 @@ export default function HighlightArticles() {
                 subcategory={article.subcategory_name}
                 author={article.author_name}
                 date={article.published_at}
-                viewsCount={article.views_count}
                 likesCount={article.likes_count}
                 commentsCount={article.comments_count}
                 tags={article.tag_names}

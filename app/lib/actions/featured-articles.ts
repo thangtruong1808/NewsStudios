@@ -1,8 +1,8 @@
 "use server";
 
 // Component Info
-// Description: Server action fetching featured articles with pagination and metadata.
-// Date created: 2025-11-18
+// Description: Server action fetching featured articles with pagination and metadata including likes and comments counts.
+// Date created: 2025-01-27
 // Author: thangtruong
 
 import { query } from "../db/query";
@@ -20,17 +20,19 @@ type FeaturedArticleRow = {
 export async function getFeaturedArticles(page: number = 1, limit: number = 8) {
   try {
     // Resolve table names with proper casing
-    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable] = await Promise.all([
+    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable] = await Promise.all([
       resolveTableName("Articles"),
       resolveTableName("Categories"),
       resolveTableName("SubCategories"),
       resolveTableName("Authors"),
       resolveTableName("Article_Tags"),
       resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
     ]);
 
     // Validate table names are resolved
-    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable) {
+    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable) {
       return { data: [], totalCount: 0, error: "Failed to resolve table names." };
     }
 
@@ -47,6 +49,8 @@ export async function getFeaturedArticles(page: number = 1, limit: number = 8) {
         au.name as author_name,
         GROUP_CONCAT(t.name) as tag_names,
         GROUP_CONCAT(t.color) as tag_colors,
+        (SELECT COUNT(*) FROM \`${likesTable}\` WHERE article_id = a.id) as likes_count,
+        (SELECT COUNT(*) FROM \`${commentsTable}\` WHERE article_id = a.id) as comments_count,
         (SELECT COUNT(*) FROM \`${articlesTable}\` WHERE is_featured = 1 AND headline_priority = 0) as total_count
       FROM \`${articlesTable}\` a
       LEFT JOIN \`${categoriesTable}\` c ON a.category_id = c.id

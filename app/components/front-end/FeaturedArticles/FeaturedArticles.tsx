@@ -111,10 +111,8 @@ export default function FeaturedArticles() {
   const ITEMS_PER_PAGE = 10; // 5 columns × 2 rows
 
   // Interaction handlers for analytics
-  const handleViewClick = () => { };
   const handleLikeClick = () => { };
   const handleCommentClick = () => { };
-  const handleShareClick = () => { };
 
   // Fetch featured articles when page changes
   useEffect(() => {
@@ -221,14 +219,10 @@ export default function FeaturedArticles() {
                 subcategory={article.subcategory_name}
                 tags={article.tag_names}
                 tagColors={article.tag_colors}
-                viewsCount={article.views_count}
                 likesCount={article.likes_count}
                 commentsCount={article.comments_count}
-                sharesCount={article.shares_count}
-                onViewClick={handleViewClick}
                 onLikeClick={handleLikeClick}
                 onCommentClick={handleCommentClick}
-                onShareClick={handleShareClick}
               />
             ))}
           </div>

@@ -1,6 +1,6 @@
 // Component Info
 // Description: Reusable card component for displaying article previews with image, metadata, and interactions.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 
 import React from "react";
@@ -10,10 +10,8 @@ import {
   UserIcon,
   CalendarIcon,
   TagIcon,
-  EyeIcon,
-  HeartIcon,
+  HandThumbUpIcon,
   ChatBubbleLeftIcon,
-  ShareIcon,
   PhotoIcon,
 } from "@heroicons/react/24/outline";
 
@@ -29,15 +27,11 @@ interface CardProps {
   subcategory?: string; // Article subcategory
   tags?: string[]; // Article tags
   tagColors?: string[]; // Colors for tags
-  viewsCount?: number; // Number of views
   likesCount?: number; // Number of likes
   commentsCount?: number; // Number of comments
-  sharesCount?: number; // Number of shares
   children?: React.ReactNode; // Optional children components
-  onViewClick?: () => void; // View click handler
   onLikeClick?: () => void; // Like click handler
   onCommentClick?: () => void; // Comment click handler
-  onShareClick?: () => void; // Share click handler
 }
 
 const Card: React.FC<CardProps> = ({
@@ -51,15 +45,11 @@ const Card: React.FC<CardProps> = ({
   subcategory,
   tags,
   tagColors,
-  viewsCount,
   likesCount,
   commentsCount,
-  sharesCount,
   children,
-  onViewClick,
   onLikeClick,
   onCommentClick,
-  onShareClick,
 }) => {
   // Format date function
   const formatDate = (dateString: string) => {
@@ -84,31 +74,6 @@ const Card: React.FC<CardProps> = ({
     } catch (_error) {
       return ""; // Return empty string if parsing fails
     }
-  };
-
-  // Handle share functionality
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: title,
-          url: link,
-        });
-      } else {
-        // Fallback for browsers that don't support Web Share API
-        await navigator.clipboard.writeText(link);
-        alert("Link copied to clipboard!");
-      }
-      // Call the onShareClick handler if provided
-      onShareClick?.();
-    } catch (_error) {
-      alert("Unable to share this article right now.");
-    }
-  };
-
-  // Handle view click
-  const handleViewClick = () => {
-    onViewClick?.();
   };
 
   // Handle like click
@@ -183,25 +148,12 @@ const Card: React.FC<CardProps> = ({
           </p>
         )}
 
-        {/* Article metrics (views, likes, comments, shares) and date */}
-        {(viewsCount !== undefined ||
-          likesCount !== undefined ||
+        {/* Article metrics (likes, comments) and date */}
+        {(likesCount !== undefined ||
           commentsCount !== undefined ||
-          sharesCount !== undefined ||
           date) && (
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3 text-gray-500">
-              {viewsCount !== undefined && (
-                <button
-                  onClick={handleViewClick}
-                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
-                  aria-label="View article"
-                  disabled
-                >
-                  <EyeIcon className="w-3.5 h-3.5" />
-                  <span className="text-[10px]">{viewsCount}</span>
-                </button>
-              )}
               {likesCount !== undefined && (
                 <button
                   onClick={handleLikeClick}
@@ -209,7 +161,7 @@ const Card: React.FC<CardProps> = ({
                   aria-label="Like article"
                   disabled
                 >
-                  <HeartIcon className="w-3.5 h-3.5" />
+                  <HandThumbUpIcon className="w-3.5 h-3.5" />
                   <span className="text-[10px]">{likesCount}</span>
                 </button>
               )}
@@ -224,15 +176,6 @@ const Card: React.FC<CardProps> = ({
                   <span className="text-[10px]">{commentsCount}</span>
                 </button>
               )}
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition-colors"
-                aria-label="Share article"
-                disabled
-              >
-                <ShareIcon className="w-3.5 h-3.5" />
-                <span className="text-[10px]">{sharesCount || 0}</span>
-              </button>
             </div>
             {date && (
               <div className="flex items-center gap-1 text-gray-500">

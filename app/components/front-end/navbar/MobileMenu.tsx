@@ -3,15 +3,15 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bars3Icon, XMarkIcon, ChevronDownIcon, UserIcon, KeyIcon, Squares2X2Icon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, XMarkIcon, ChevronDownIcon, KeyIcon, Squares2X2Icon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import { MenuProps } from "./types";
 import Logo from "../shared/Logo";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 
 // Component Info
-// Description: Mobile navigation drawer with category accordion and account controls following industry-standard UX patterns.
-// Date created: 2024
+// Description: Mobile navigation drawer with category accordion and account controls with avatar initials fallback.
+// Date created: 2025-01-27
 // Author: thangtruong
 
 export default function MobileMenu({ categories = [], isActive }: MenuProps) {
@@ -161,13 +161,22 @@ export default function MobileMenu({ categories = [], isActive }: MenuProps) {
                   <div className="space-y-3" ref={accountRef}>
                     <button onClick={() => setIsAccountOpen((prev) => !prev)} className={`flex w-full items-center justify-between gap-3 rounded-lg border-2 px-4 py-3 text-left transition-all ${isAccountOpen ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-700 hover:border-blue-400 hover:bg-slate-50"}`} aria-expanded={isAccountOpen}>
                       <span className="flex min-w-0 flex-1 items-center gap-3">
-                        {session.user.user_image ? (
+                        {/* Avatar with initials fallback */}
+                        {session.user.user_image && typeof session.user.user_image === "string" && session.user.user_image.trim() !== "" ? (
                           <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-slate-200">
                             <Image src={session.user.user_image} alt={`${session.user.firstname} ${session.user.lastname}`} fill className="object-cover" />
                           </span>
                         ) : (
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 ring-2 ring-slate-200">
-                            <UserIcon className="h-5 w-5 text-slate-500" />
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-blue-400 to-blue-300 ring-2 ring-slate-200">
+                            <span className="text-sm font-medium text-white">
+                              {session.user.firstname && session.user.lastname
+                                ? `${session.user.firstname.charAt(0).toUpperCase()}${session.user.lastname.charAt(0).toUpperCase()}`
+                                : session.user.firstname
+                                ? session.user.firstname.charAt(0).toUpperCase()
+                                : session.user.lastname
+                                ? session.user.lastname.charAt(0).toUpperCase()
+                                : "U"}
+                            </span>
                           </span>
                         )}
                         <span className="min-w-0 flex-1">

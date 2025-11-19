@@ -3,11 +3,16 @@
 import {
   DocumentTextIcon,
   EyeIcon,
-  HeartIcon,
+  HandThumbUpIcon,
   ChatBubbleLeftIcon,
 } from "@heroicons/react/24/outline";
 import GetExploreStats from "./GetExploreStats";
 import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinner";
+
+// Component Info
+// Description: Display explore page statistics including articles, views, likes, and comments counts.
+// Date created: 2025-01-27
+// Author: thangtruong
 
 interface ExploreStatsProps {
   type?: "trending";
@@ -60,7 +65,7 @@ export default function ExploreStats({
     {
       name: "Total Likes",
       value: stats.totalLikes,
-      icon: HeartIcon,
+      icon: HandThumbUpIcon,
       color: "text-red-600",
       bgColor: "bg-red-50",
     },

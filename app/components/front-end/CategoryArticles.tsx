@@ -307,7 +307,6 @@ export default function CategoryArticles({ categoryId }: Props) {
                 subcategory={article.subcategory_name || undefined}
                 author={article.author_name || undefined}
                 date={article.published_at}
-                viewsCount={article.views_count}
                 likesCount={article.likes_count}
                 commentsCount={article.comments_count}
                 tags={article.tag_names}

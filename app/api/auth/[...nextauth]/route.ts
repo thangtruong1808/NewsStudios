@@ -36,11 +36,14 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid email or password. Please try again.");
         }
 
+        // Use undefined instead of null for optional fields (NextAuth handles undefined better)
+        const userImageValue = user.user_image && typeof user.user_image === "string" && user.user_image.trim() !== "" ? user.user_image : undefined;
+
         return {
           id: user.id.toString(),
           email: user.email,
           name: `${user.firstname} ${user.lastname}`,
-          user_image: user.user_image || "",
+          user_image: userImageValue,
           role: user.role,
           firstname: user.firstname,
           lastname: user.lastname,
@@ -78,12 +81,14 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       try {
         if (token) {
+          // Ensure user_image is properly passed through (handle null, undefined, and empty string)
+          const userImage = token.user_image && typeof token.user_image === "string" && token.user_image.trim() !== "" ? token.user_image : undefined;
           session.user = {
             ...session.user,
             id: token.id,
             email: token.email,
             name: token.name,
-            user_image: token.user_image,
+            user_image: userImage,
             role: token.role,
             firstname: token.firstname,
             lastname: token.lastname,
@@ -93,8 +98,7 @@ export const authOptions: NextAuthOptions = {
           };
         }
         return session;
-      } catch (error) {
-        console.error('Session callback error:', error);
+      } catch (_error) {
         return session;
       }
     },
