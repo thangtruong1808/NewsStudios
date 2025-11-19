@@ -8,12 +8,13 @@ import CommentItem from "./CommentItem";
 import { showErrorToast } from "@/app/components/dashboard/shared/toast/Toast";
 
 // Component Info
-// Description: Comments section displaying comment list and form for authenticated users.
+// Description: Comments section displaying comment list and form for authenticated users with real-time count updates.
 // Date created: 2025-01-27
 // Author: thangtruong
 
 interface CommentsProps {
   articleId: number;
+  onCommentCountUpdate?: (count: number) => void; // Callback to update comment count in parent
 }
 
 interface Comment {
@@ -28,7 +29,7 @@ interface Comment {
   user_lastname?: string;
 }
 
-export default function Comments({ articleId }: CommentsProps) {
+export default function Comments({ articleId, onCommentCountUpdate }: CommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +44,12 @@ export default function Comments({ articleId }: CommentsProps) {
         setError(result.error);
         return;
       }
-      setComments(result.data || []);
+      const fetchedComments = result.data || [];
+      setComments(fetchedComments);
+      // Notify parent component of comment count update
+      if (onCommentCountUpdate) {
+        onCommentCountUpdate(fetchedComments.length);
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to load comments";
       setError(errorMessage);

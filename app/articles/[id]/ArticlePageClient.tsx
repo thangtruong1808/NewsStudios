@@ -1,10 +1,11 @@
 "use client";
 
 // Component Info
-// Description: Client component rendering article detail page with comments section.
+// Description: Client component rendering article detail page with comments section and real-time comment count updates.
 // Date created: 2025-01-27
 // Author: thangtruong
 
+import { useState, useCallback } from "react";
 import SingleArticle from "@/app/components/front-end/articles/SingleArticle";
 import Comments from "@/app/components/front-end/articles/components/Comments";
 
@@ -15,8 +16,14 @@ interface ArticlePageClientProps {
 }
 
 export default function ArticlePageClient({ params }: ArticlePageClientProps) {
-  // Ensure id is a valid number
   const articleId = parseInt(params.id);
+  const [commentsCount, setCommentsCount] = useState<number | null>(null);
+
+  // Handle comment count update
+  const handleCommentCountUpdate = useCallback((count: number) => {
+    setCommentsCount(count);
+  }, []);
+
   if (isNaN(articleId)) {
     return (
       <div className="bg-red-50 p-6 rounded-xl">
@@ -32,12 +39,12 @@ export default function ArticlePageClient({ params }: ArticlePageClientProps) {
     <>
       {/* Main Article */}
       <div className="mb-16">
-        <SingleArticle articleId={articleId} />
+        <SingleArticle articleId={articleId} commentsCount={commentsCount} />
       </div>
 
       {/* Comments Section */}
       <section className="mb-16">
-        <Comments articleId={articleId} />
+        <Comments articleId={articleId} onCommentCountUpdate={handleCommentCountUpdate} />
       </section>
     </>
   );

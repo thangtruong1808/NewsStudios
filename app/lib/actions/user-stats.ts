@@ -1,4 +1,10 @@
+// Component Info
+// Description: Server action for fetching user statistics from database.
+// Date created: 2025-01-27
+// Author: thangtruong
+
 import { query } from "../db/db";
+import { resolveTableName } from "../db/tableNameResolver";
 
 interface UserStats {
   activeUsers: number;
@@ -14,10 +20,20 @@ export async function getActiveUsersStats(): Promise<{
   error: string | null;
 }> {
   try {
+    // Resolve table name
+    const usersTable = await resolveTableName("Users");
+
+    if (!usersTable) {
+      return {
+        data: null,
+        error: "Failed to resolve table name.",
+      };
+    }
+
     // Get active users count
     const activeUsersQuery = `
       SELECT COUNT(*) as status
-      FROM Users
+      FROM \`${usersTable}\`
       WHERE status = 'active'
     `;
 
@@ -31,15 +47,13 @@ export async function getActiveUsersStats(): Promise<{
     }
 
     // Map the data to match the expected structure
-    const rows = Array.isArray(result.data)
-      ? (result.data as ActiveUsersRow[])
-      : [];
+    const rows = Array.isArray(result.data) ? (result.data as ActiveUsersRow[]) : [];
     const activeUsers = rows.length > 0 ? Number(rows[0].status ?? 0) : 0;
 
     // Return the data in the format expected by the dashboard
     const stats: UserStats = {
       activeUsers: activeUsers,
-      activeUsersTrend: 0, // No trend calculation needed
+      activeUsersTrend: 0,
     };
 
     return {

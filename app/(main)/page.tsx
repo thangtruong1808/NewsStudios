@@ -7,12 +7,12 @@ import VideoCarousel from "../components/front-end/VideoCarousel";
 
 // Component Info
 // Description: Home page layout orchestrating video carousel, featured articles, highlights, trending, related articles, and tags sections.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       {/* Video Carousel Section - Hero section */}
       <section className="mb-16 md:mb-20">
         <VideoCarousel />

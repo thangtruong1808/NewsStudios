@@ -42,8 +42,8 @@ export const metadata: Metadata = {
 };
 
 // Component Info
-// Description: Server layout assembling global navigation, content, and footer for explore pages.
-// Date created: 2025-11-18
+// Description: Server layout assembling global navigation, content, and footer for explore pages with modern background styling.
+// Date created: 2025-01-27
 // Author: thangtruong
 
 export default function ExploreLayout({
@@ -52,7 +52,7 @@ export default function ExploreLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900">
       {/* Navigation bar */}
       <NavBar />
       {/* Main content wrapper */}

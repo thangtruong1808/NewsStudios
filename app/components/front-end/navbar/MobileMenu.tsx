@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bars3Icon, XMarkIcon, ChevronDownIcon, KeyIcon, Squares2X2Icon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, XMarkIcon, ChevronDownIcon, KeyIcon, Squares2X2Icon, ArrowRightOnRectangleIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { MenuProps } from "./types";
 import Logo from "../shared/Logo";
+import { getCategoryIcon, getSubcategoryIcon } from "./categoryIcons";
+import type { LucideIcon } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -14,10 +16,14 @@ import { usePathname, useRouter } from "next/navigation";
 // Date created: 2025-01-27
 // Author: thangtruong
 
-export default function MobileMenu({ categories = [], isActive }: MenuProps) {
+interface MobileMenuProps extends MenuProps {
+  onOpenSearch?: () => void;
+}
+
+export default function MobileMenu({ categories = [], isActive, activeCategoryId: urlCategoryId, activeSubcategoryId: urlSubcategoryId, onOpenSearch }: MobileMenuProps) {
   const { data: session } = useSession();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
+  const [expandedCategoryId, setExpandedCategoryId] = useState<number | null>(null);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -25,10 +31,31 @@ export default function MobileMenu({ categories = [], isActive }: MenuProps) {
   const pathname = usePathname();
   const router = useRouter();
 
+  // Track used icons to prevent duplicates
+  const iconMapping = useMemo(() => {
+    const usedIcons = new Set<LucideIcon>();
+    const categoryIcons = new Map<number, LucideIcon>();
+    const subcategoryIcons = new Map<number, LucideIcon>();
+
+    categories.forEach((category) => {
+      const categoryIcon = getCategoryIcon(category.name, usedIcons);
+      categoryIcons.set(category.id, categoryIcon);
+      usedIcons.add(categoryIcon);
+
+      category.subcategories.forEach((subcategory) => {
+        const subcategoryIcon = getSubcategoryIcon(subcategory.name, usedIcons);
+        subcategoryIcons.set(subcategory.id, subcategoryIcon);
+        usedIcons.add(subcategoryIcon);
+      });
+    });
+
+    return { categoryIcons, subcategoryIcons };
+  }, [categories]);
+
   // Close drawer handler
   const closeDrawer = () => {
     setIsDrawerOpen(false);
-    setActiveCategoryId(null);
+    setExpandedCategoryId(null);
     setIsAccountOpen(false);
   };
 
@@ -39,7 +66,7 @@ export default function MobileMenu({ categories = [], isActive }: MenuProps) {
   };
   // Toggle category accordion handler
   const toggleCategoryAccordion = (categoryId: number) => {
-    setActiveCategoryId((prev) => (prev === categoryId ? null : categoryId));
+    setExpandedCategoryId((prev) => (prev === categoryId ? null : categoryId));
   };
 
   // Sign out handler
@@ -50,9 +77,19 @@ export default function MobileMenu({ categories = [], isActive }: MenuProps) {
       if (pathname === "/") router.push("/");
       else if (pathname.startsWith("/dashboard")) router.replace("/login");
       else router.push("/");
-    } catch (_error) {
+    } catch {
       // Silent: session state managed by NextAuth
     }
+  };
+
+  // Get user initials helper
+  const getUserInitials = () => {
+    if (session?.user?.firstname && session?.user?.lastname) {
+      return `${session.user.firstname.charAt(0).toUpperCase()}${session.user.lastname.charAt(0).toUpperCase()}`;
+    }
+    if (session?.user?.firstname) return session.user.firstname.charAt(0).toUpperCase();
+    if (session?.user?.lastname) return session.user.lastname.charAt(0).toUpperCase();
+    return "U";
   };
 
   useEffect(() => {
@@ -74,16 +111,28 @@ export default function MobileMenu({ categories = [], isActive }: MenuProps) {
   }, [isDrawerOpen]);
 
   return (
-    <div className="lg:hidden" ref={drawerRef}>
-      {/* Menu trigger button */}
-      <button
-        onClick={toggleDrawer}
-        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        aria-label="Open navigation menu"
-      >
-        <Bars3Icon className="h-5 w-5" aria-hidden="true" />
-        <span>Menu</span>
-      </button>
+    <>
+      <div className="lg:hidden flex items-center gap-2" ref={drawerRef}>
+        {/* Search button */}
+        <button
+          onClick={() => {
+            closeDrawer();
+            onOpenSearch?.();
+          }}
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-label="Open search"
+        >
+          <MagnifyingGlassIcon className="h-5 w-5" aria-hidden="true" />
+        </button>
+        {/* Menu trigger button */}
+        <button
+          onClick={toggleDrawer}
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-label="Open navigation menu"
+        >
+          <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+          <span>Menu</span>
+        </button>
 
       {/* Drawer overlay and panel */}
       {isDrawerOpen && (
@@ -120,29 +169,45 @@ export default function MobileMenu({ categories = [], isActive }: MenuProps) {
                     <div className="mb-4">
                       <div className="space-y-2">
                         {categories.map((category) => {
+                          const CategoryIcon = iconMapping.categoryIcons.get(category.id);
+                          if (!CategoryIcon) return null;
                           const hasSubcategories = category.subcategories && Array.isArray(category.subcategories) && category.subcategories.length > 0;
-                          const isExpanded = activeCategoryId === category.id;
-                          const activeClass = isActive(`/category/${category.id}`) ? "bg-blue-50 text-blue-600" : "text-slate-700 hover:bg-slate-50";
+                          const isCategoryActive = urlCategoryId === category.id;
+                          const isExpanded = expandedCategoryId === category.id || urlCategoryId === category.id || (urlSubcategoryId && category.subcategories.some((sub) => sub.id === urlSubcategoryId));
+                          const categoryActiveClass = isCategoryActive ? "bg-blue-50 text-blue-600 font-semibold" : "text-slate-700 hover:bg-slate-50";
                           return (
                             <div key={category.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white transition-shadow hover:shadow-md">
                               {hasSubcategories ? (
-                                <button onClick={() => toggleCategoryAccordion(category.id)} className={`flex w-full items-center justify-between px-4 py-3 text-left text-base font-medium transition-colors ${activeClass}`} aria-expanded={isExpanded}>
-                                  <span className="truncate">{category.name}</span>
+                                <button onClick={() => toggleCategoryAccordion(category.id)} className={`flex w-full items-center justify-between px-4 py-3 text-left text-base font-medium transition-colors ${categoryActiveClass}`} aria-expanded={isExpanded}>
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <CategoryIcon className="h-5 w-5 shrink-0" />
+                                    <span className="truncate">{category.name}</span>
+                                  </div>
                                   <ChevronDownIcon className={`ml-2 h-5 w-5 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                                 </button>
                               ) : (
-                                <Link href={`/explore?categoryId=${category.id}`} onClick={closeDrawer} className={`flex w-full items-center px-4 py-3 text-base font-medium transition-colors ${activeClass}`}>
-                                  {category.name}
+                                <Link href={`/explore?categoryId=${category.id}`} onClick={closeDrawer} className={`flex w-full items-center gap-2 px-4 py-3 text-base font-medium transition-colors ${categoryActiveClass}`}>
+                                  <CategoryIcon className="h-5 w-5 shrink-0" />
+                                  <span className="truncate">{category.name}</span>
                                 </Link>
                               )}
                               {isExpanded && hasSubcategories && category.subcategories && (
                                 <div className="border-t border-slate-100 bg-slate-50">
                                   <div className="px-2 py-2">
-                                    {category.subcategories.map((subcategory) => (
-                                      <Link key={subcategory.id} href={`/explore?subcategoryId=${subcategory.id}`} onClick={closeDrawer} className="block rounded-md px-3 py-2.5 text-sm text-slate-600 transition-colors hover:bg-blue-100 hover:text-blue-700">
-                                        {subcategory.name}
-                                      </Link>
-                                    ))}
+                                    {category.subcategories.map((subcategory) => {
+                                      const SubcategoryIcon = iconMapping.subcategoryIcons.get(subcategory.id);
+                                      if (!SubcategoryIcon) return null;
+                                      const isSubcategoryActive = urlSubcategoryId === subcategory.id;
+                                      const subcategoryActiveClass = isSubcategoryActive
+                                        ? "bg-blue-100 text-blue-700 font-semibold"
+                                        : "text-slate-600 hover:bg-blue-100 hover:text-blue-700";
+                                      return (
+                                        <Link key={subcategory.id} href={`/explore?subcategoryId=${subcategory.id}`} onClick={closeDrawer} className={`flex items-center gap-2 rounded-md px-3 py-2.5 text-sm transition-colors ${subcategoryActiveClass}`}>
+                                          <SubcategoryIcon className="h-4 w-4 shrink-0" />
+                                          <span className="truncate">{subcategory.name}</span>
+                                        </Link>
+                                      );
+                                    })}
                                   </div>
                                 </div>
                               )}
@@ -168,15 +233,7 @@ export default function MobileMenu({ categories = [], isActive }: MenuProps) {
                           </span>
                         ) : (
                           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-blue-400 to-blue-300 ring-2 ring-slate-200">
-                            <span className="text-sm font-medium text-white">
-                              {session.user.firstname && session.user.lastname
-                                ? `${session.user.firstname.charAt(0).toUpperCase()}${session.user.lastname.charAt(0).toUpperCase()}`
-                                : session.user.firstname
-                                ? session.user.firstname.charAt(0).toUpperCase()
-                                : session.user.lastname
-                                ? session.user.lastname.charAt(0).toUpperCase()
-                                : "U"}
-                            </span>
+                            <span className="text-sm font-medium text-white">{getUserInitials()}</span>
                           </span>
                         )}
                         <span className="min-w-0 flex-1">
@@ -217,6 +274,7 @@ export default function MobileMenu({ categories = [], isActive }: MenuProps) {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

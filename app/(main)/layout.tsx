@@ -40,8 +40,8 @@ export const metadata: Metadata = {
 };
 
 // Component Info
-// Description: Main site layout providing shared navigation, content frame, footer, and top button.
-// Date created: 2025-11-18
+// Description: Main site layout providing shared navigation, content frame, footer with modern background styling.
+// Date created: 2025-01-27
 // Author: thangtruong
 
 export default function MainLayout({
@@ -50,7 +50,7 @@ export default function MainLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900">
       {/* Navigation bar */}
       <NavBar />
       {/* Main content wrapper */}

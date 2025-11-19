@@ -47,8 +47,8 @@ type FeaturedArticleRaw = {
 
 // Header component for featured articles section
 const FeaturedHeader = () => (
-  <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
-    <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+  <div className="w-screen bg-blue-100 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+    <div className="max-w-[1536px] mx-auto px-6">
       <div className="py-8">
         <div className="flex items-center space-x-3">
           <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100 shadow-sm">
@@ -194,9 +194,10 @@ export default function FeaturedArticles() {
               alt="Featured Articles"
               autoSlide
               slideInterval={5000}
-              className="rounded-lg overflow-hidden"
+              className="rounded-lg overflow-hidden shadow-xl"
               titles={sortedCarouselArticles.map((a) => a.title)}
               dates={sortedCarouselArticles.map((a) => a.updated_at)}
+              articleIds={sortedCarouselArticles.map((a) => a.id)}
             />
           </div>
         </div>

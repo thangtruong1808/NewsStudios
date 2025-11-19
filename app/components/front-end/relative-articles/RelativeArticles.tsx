@@ -123,7 +123,7 @@ interface RelativeArticlesProps {
 
 // Component Info
 // Description: Display related articles grid with pagination and optional current-article filtering.
-// Date created: 2024-12-19
+// Date created: 2025-01-27
 // Author: thangtruong
 export default function RelativeArticles({
   currentArticleId,
@@ -164,7 +164,7 @@ export default function RelativeArticles({
           const totalLoaded = merged.length;
           setHasMore(
             (result.totalCount || 0) > totalLoaded &&
-              newArticles.length === ITEMS_PER_PAGE
+            newArticles.length === ITEMS_PER_PAGE
           );
           return merged;
         });
@@ -205,8 +205,8 @@ export default function RelativeArticles({
   return (
     <>
       {/* Header section with title and description */}
-      <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
-        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+      <div className="w-screen bg-violet-100 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+        <div className="max-w-[1536px] mx-auto px-6">
           <div className="py-8">
             <div className="flex items-center space-x-3">
               <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-indigo-100 shadow-sm">

@@ -19,18 +19,20 @@ import ArticleActions from "./components/ArticleActions";
 
 // Component Info
 // Description: Render article detail view with media galleries and share actions.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 
 // Define the props interface for the SingleArticle component
 interface SingleArticleProps {
   articleId: number; // Required prop for the article ID
   showBackButton?: boolean; // Optional prop to control back button visibility
+  commentsCount?: number | null; // Optional dynamic comment count for real-time updates
 }
 
 export default function SingleArticle({
   articleId,
   showBackButton = false,
+  commentsCount,
 }: SingleArticleProps) {
   const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -154,7 +156,7 @@ export default function SingleArticle({
         {/* Article header */}
         <ArticleHeader article={article} />
         {/* Metadata section */}
-        <ArticleMetadata article={article} />
+        <ArticleMetadata article={article} commentsCount={commentsCount} />
         {/* Media galleries */}
         <ArticleMedia
           selectedImage={selectedImage}

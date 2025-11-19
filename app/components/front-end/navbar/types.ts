@@ -13,5 +13,7 @@ export interface NavMenuCategory {
 export interface MenuProps {
   categories: NavMenuCategory[];
   isActive: (routePath: string) => boolean;
+  activeCategoryId?: number | null;
+  activeSubcategoryId?: number | null;
 }
 /* eslint-enable no-unused-vars */

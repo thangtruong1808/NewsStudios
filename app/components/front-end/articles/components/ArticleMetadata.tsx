@@ -10,15 +10,19 @@ import {
 import LikeButton from "./LikeButton";
 
 // Component Info
-// Description: Present article metadata badges including author, categories, and engagement stats.
+// Description: Present article metadata badges including author, categories, and engagement stats with real-time comment count.
 // Date created: 2025-01-27
 // Author: thangtruong
 
 interface ArticleMetadataProps {
   article: Article;
+  commentsCount?: number | null; // Optional dynamic comment count for real-time updates
 }
 
-export default function ArticleMetadata({ article }: ArticleMetadataProps) {
+export default function ArticleMetadata({ article, commentsCount }: ArticleMetadataProps) {
+  // Use dynamic comment count if provided, otherwise fall back to article's initial count
+  const displayCommentsCount = commentsCount !== null && commentsCount !== undefined ? commentsCount : article.comments_count;
+
   return (
     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6">
       {/* Publication date */}
@@ -49,9 +53,10 @@ export default function ArticleMetadata({ article }: ArticleMetadataProps) {
       )}
       {/* Like button with interactive functionality */}
       <LikeButton articleId={article.id} initialLikesCount={article.likes_count} />
+      {/* Comments count badge */}
       <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-full">
         <ChatBubbleLeftIcon className="h-4 w-4 text-gray-400" />
-        <span>{article.comments_count} comments</span>
+        <span>{displayCommentsCount} comments</span>
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ import type { NavMenuCategory, NavMenuSubcategory } from "../navbar/types";
 
 // Component Info
 // Description: Client interface for browsing tags with category and subcategory filters.
-// Date created: 2024-12-19
+// Date created: 2025-01-27
 // Author: thangtruong
 
 interface TagsClientProps {
@@ -98,16 +98,16 @@ export default function TagsClient({ categories }: TagsClientProps) {
   return (
     <>
       {/* Header section */}
-      <div className="relative left-1/2 right-1/2 w-screen -mx-[50vw] bg-slate-50 mb-8">
-        <div className="mx-auto max-w-[1536px] px-4 sm:px-6 lg:px-10 xl:px-16">
+      <div className="w-screen bg-blue-100 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+        <div className="max-w-[1536px] mx-auto px-6">
           <div className="py-8">
             <div className="flex items-center space-x-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 shadow-sm">
+              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-100 shadow-sm">
                 <TagIcon className="h-6 w-6 text-blue-600" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Popular Tags</h2>
-                <p className="mt-1 text-sm text-gray-600">Explore articles by tags</p>
+                <p className="text-sm text-gray-600 mt-1">Explore articles by tags</p>
               </div>
             </div>
           </div>

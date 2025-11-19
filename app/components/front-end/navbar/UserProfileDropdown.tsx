@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ChevronDownIcon, KeyIcon, ArrowRightOnRectangleIcon, Squares2X2Icon } from "@heroicons/react/24/outline";
 
 // Component Info
-// Description: User profile dropdown menu displaying avatar with initials fallback, name, role, and account actions.
+// Description: User profile dropdown menu displaying avatar only in navbar button, with full user info in dropdown menu.
 // Date created: 2025-01-27
 // Author: thangtruong
 
@@ -73,10 +73,10 @@ export default function UserProfileDropdown() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Profile trigger button */}
+      {/* Profile trigger button - avatar only */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-all hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 text-slate-700 transition-all hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         aria-label="User profile menu"
         aria-expanded={isOpen}
       >
@@ -96,11 +96,6 @@ export default function UserProfileDropdown() {
             <span className="text-xs font-medium text-white">{getUserInitials()}</span>
           </span>
         )}
-        {/* Name and role */}
-        <span className="hidden text-left sm:block">
-          <span className="block truncate text-xs font-semibold leading-tight">{session.user.firstname} {session.user.lastname}</span>
-          <span className="block truncate text-xs text-slate-500">{roleDisplayName}</span>
-        </span>
         <ChevronDownIcon className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
       </button>
 

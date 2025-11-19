@@ -10,7 +10,7 @@ import ArticlesTrendingSkeleton from "./ArticlesTrendingSkeleton";
 
 // Component Info
 // Description: Present trending articles with hero carousel and grid plus pagination.
-// Date created: 2024-12-19
+// Date created: 2025-01-27
 // Author: thangtruong
 export function ArticlesTrending() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -43,7 +43,7 @@ export function ArticlesTrending() {
           const totalLoaded = merged.length;
           setHasMore(
             (result.totalCount || 0) > totalLoaded &&
-              newArticles.length === ITEMS_PER_PAGE
+            newArticles.length === ITEMS_PER_PAGE
           );
           return merged;
         });
@@ -78,8 +78,8 @@ export function ArticlesTrending() {
     return (
       <>
         {/* Header section with title and description */}
-        <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
-          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+        <div className="w-screen bg-slate-100 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+          <div className="max-w-[1536px] mx-auto px-6">
             <div className="py-8">
               <div className="flex items-center space-x-3">
                 <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-red-100 shadow-sm">
@@ -125,8 +125,8 @@ export function ArticlesTrending() {
   return (
     <>
       {/* Header section with title and description */}
-      <div className="w-screen bg-slate-50 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
-        <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+      <div className="w-screen bg-rose-100 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+        <div className="max-w-[1536px] mx-auto px-6">
           <div className="py-8">
             <div className="flex items-center space-x-3">
               <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-red-100 shadow-sm">
@@ -147,15 +147,14 @@ export function ArticlesTrending() {
         <div className="max-w-[1536px] mx-auto px-6">
           <div className="mb-4 h-[400px] w-full">
             <ImageCarousel
-              images={sortedCarouselArticles.map((article) => article.image || "")}
+              images={sortedCarouselArticles.map((article) => article.image || "").filter(Boolean)}
               alt="Trending Articles"
               autoSlide
               slideInterval={5000}
-              className="rounded-lg overflow-hidden"
+              className="rounded-lg overflow-hidden shadow-xl"
               titles={sortedCarouselArticles.map((article) => article.title)}
-              dates={sortedCarouselArticles.map(
-                (article) => article.published_at || ""
-              )}
+              dates={sortedCarouselArticles.map((article) => article.published_at || "")}
+              articleIds={sortedCarouselArticles.map((article) => article.id)}
             />
           </div>
         </div>

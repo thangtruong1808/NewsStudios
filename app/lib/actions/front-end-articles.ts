@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Server actions for fetching front-end articles with various filters and pagination.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 
 import { query } from "../db/query";
@@ -214,8 +214,8 @@ export async function getExploreArticles({
         c.name as category_name,
         sc.name as subcategory_name,
         au.name as author_name,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors,
+        GROUP_CONCAT(DISTINCT t.name ORDER BY t.id) as tag_names,
+        GROUP_CONCAT(DISTINCT t.color ORDER BY t.id) as tag_colors,
         (SELECT COUNT(*) FROM \`${articlesTable}\` a2
          LEFT JOIN \`${articleTagsTable}\` at2 ON a2.id = at2.article_id
          LEFT JOIN \`${tagsTable}\` t2 ON at2.tag_id = t2.id
@@ -241,14 +241,24 @@ export async function getExploreArticles({
     }
 
     const totalCount = rows[0].total_count;
-    const articles = rows.map((article) => ({
-      ...article,
-      tag_names: article.tag_names ? article.tag_names.split(",") : [],
-      tag_colors: article.tag_colors ? article.tag_colors.split(",") : [],
-      likes_count: Number(article.likes_count ?? 0),
-      comments_count: Number(article.comments_count ?? 0),
-      views_count: 0,
-    }));
+    // Deduplicate tags and colors arrays
+    const articles = rows.map((article) => {
+      const tagNames = article.tag_names
+        ? Array.from(new Set(article.tag_names.split(",").filter(Boolean)))
+        : [];
+      const tagColors = article.tag_colors
+        ? Array.from(new Set(article.tag_colors.split(",").filter(Boolean)))
+        : [];
+      
+      return {
+        ...article,
+        tag_names: tagNames,
+        tag_colors: tagColors.slice(0, tagNames.length),
+        likes_count: Number(article.likes_count ?? 0),
+        comments_count: Number(article.comments_count ?? 0),
+        views_count: 0,
+      };
+    });
 
     return { data: articles, totalCount, error: null };
   } catch (_error) {
@@ -343,8 +353,8 @@ export async function getSubcategoryArticles({
         c.name as category_name,
         sc.name as subcategory_name,
         au.name as author_name,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors,
+        GROUP_CONCAT(DISTINCT t.name ORDER BY t.id) as tag_names,
+        GROUP_CONCAT(DISTINCT t.color ORDER BY t.id) as tag_colors,
         COUNT(DISTINCT l.id) as likes_count,
         COUNT(DISTINCT cm.id) as comments_count
       FROM \`${articlesTable}\` a
@@ -382,14 +392,24 @@ export async function getSubcategoryArticles({
       ? (articlesResult.data as FrontendArticleRow[])
       : [];
 
-    const formattedArticles = articleRows.map((article) => ({
-      ...article,
-      tag_names: article.tag_names ? article.tag_names.split(",").filter(Boolean) : [],
-      tag_colors: article.tag_colors ? article.tag_colors.split(",").filter(Boolean) : [],
-      likes_count: Number(article.likes_count ?? 0),
-      comments_count: Number(article.comments_count ?? 0),
-      views_count: 0,
-    }));
+    // Deduplicate tags and colors arrays
+    const formattedArticles = articleRows.map((article) => {
+      const tagNames = article.tag_names
+        ? Array.from(new Set(article.tag_names.split(",").filter(Boolean)))
+        : [];
+      const tagColors = article.tag_colors
+        ? Array.from(new Set(article.tag_colors.split(",").filter(Boolean)))
+        : [];
+      
+      return {
+        ...article,
+        tag_names: tagNames,
+        tag_colors: tagColors.slice(0, tagNames.length),
+        likes_count: Number(article.likes_count ?? 0),
+        comments_count: Number(article.comments_count ?? 0),
+        views_count: 0,
+      };
+    });
 
     return {
       data: formattedArticles,
@@ -494,15 +514,14 @@ export async function getCategoryArticles({
     }
 
     // Get articles with pagination
-
     const articlesQuery = `
       SELECT 
         a.*,
         c.name as category_name,
         sc.name as subcategory_name,
         au.name as author_name,
-        GROUP_CONCAT(t.name) as tag_names,
-        GROUP_CONCAT(t.color) as tag_colors,
+        GROUP_CONCAT(DISTINCT t.name ORDER BY t.id) as tag_names,
+        GROUP_CONCAT(DISTINCT t.color ORDER BY t.id) as tag_colors,
         COUNT(DISTINCT l.id) as likes_count,
         COUNT(DISTINCT cm.id) as comments_count
       FROM \`${articlesTable}\` a
@@ -540,14 +559,24 @@ export async function getCategoryArticles({
       ? (articlesResult.data as FrontendArticleRow[])
       : [];
 
-    const formattedArticles = articleRows.map((article) => ({
-      ...article,
-      tag_names: article.tag_names ? article.tag_names.split(",").filter(Boolean) : [],
-      tag_colors: article.tag_colors ? article.tag_colors.split(",").filter(Boolean) : [],
-      likes_count: Number(article.likes_count ?? 0),
-      comments_count: Number(article.comments_count ?? 0),
-      views_count: 0,
-    }));
+    // Deduplicate tags and colors arrays
+    const formattedArticles = articleRows.map((article) => {
+      const tagNames = article.tag_names
+        ? Array.from(new Set(article.tag_names.split(",").filter(Boolean)))
+        : [];
+      const tagColors = article.tag_colors
+        ? Array.from(new Set(article.tag_colors.split(",").filter(Boolean)))
+        : [];
+      
+      return {
+        ...article,
+        tag_names: tagNames,
+        tag_colors: tagColors.slice(0, tagNames.length),
+        likes_count: Number(article.likes_count ?? 0),
+        comments_count: Number(article.comments_count ?? 0),
+        views_count: 0,
+      };
+    });
 
     return {
       data: formattedArticles,
