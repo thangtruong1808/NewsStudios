@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import NavBar from "../components/front-end/navbar/NavBar";
 import Footer from "../components/front-end/Footer";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://news-studios.vercel.app"),
@@ -59,6 +60,8 @@ export default function MainLayout({
       </div>
       {/* Footer */}
       <Footer />
+      {/* Vercel Analytics - tracks page views and user interactions */}
+      <Analytics />
     </div>
   );
 }

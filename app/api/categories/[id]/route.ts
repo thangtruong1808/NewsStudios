@@ -1,16 +1,17 @@
+// Component Info
+// Description: API route handler for fetching category by ID.
+// Date created: 2025-01-27
+// Author: thangtruong
+
 import { NextResponse } from "next/server";
 import { getCategoryById } from "@/app/lib/actions/categories";
 
-// Component Info
-// Description: API route handler for fetching category by ID.
-// Date created: 2024-12-19
-// Author: thangtruong
-
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const categoryId = params.id;
+  const { id } = await params;
+  const categoryId = id;
 
   if (!categoryId) {
     return NextResponse.json(

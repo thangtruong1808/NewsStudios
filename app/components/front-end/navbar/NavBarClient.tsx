@@ -47,11 +47,11 @@ export default function NavBarClient({ categories }: NavBarClientProps) {
   return (
     <>
       {/* Maintenance banner */}
-      <div className="w-full bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2.5 text-center text-xs font-medium text-blue-700 shadow-sm sm:text-sm">
+      {/* <div className="w-full bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2.5 text-center text-xs font-medium text-blue-700 shadow-sm sm:text-sm">
         We&apos;re currently upgrading the layout, you may notice minor issues. Please contact thangtruong if you need assistance.
-      </div>
+      </div> */}
       {/* Navigation header with modern styling */}
-      <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-sm supports-[backdrop-filter]:bg-white/90">
+      <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-sm supports-[backdrop-filter]:bg-white/90 p-2">
         <div className="mx-auto flex w-full max-w-[1536px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-10 xl:px-16">
           {/* Logo section */}
           <Link href="/" aria-label="Go to homepage" className="inline-flex items-center gap-2 text-base font-semibold text-slate-800 transition-opacity hover:opacity-80">
