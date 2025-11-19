@@ -1,58 +1,58 @@
-// Component meta
+// Component Info
 // Description: Provide pooled MySQL helpers for NewsStudios backend.
-// Data created: Connection pool instances and transaction helpers.
+// Date created: 2025-01-27
 // Author: thangtruong
 
 import mysql from "mysql2/promise";
 
-// Env guard section
-const requiredEnvVars = [
-  "DB_HOST",
-  "DB_USER",
-  "DB_PASSWORD",
-  "DB_NAME",
-  "DB_PORT",
-];
+// Env guard section - validate only at runtime, not during build
+function getDbConfig(): mysql.PoolOptions {
+  const requiredEnvVars = [
+    "DB_HOST",
+    "DB_USER",
+    "DB_PASSWORD",
+    "DB_NAME",
+    "DB_PORT",
+  ];
 
-const missingVars = requiredEnvVars.filter((key) => !process.env[key]);
+  const missingVars = requiredEnvVars.filter((key) => !process.env[key]);
 
-if (missingVars.length > 0) {
-  throw new Error(
-    `Missing database environment variables: ${missingVars.join(", ")}`
-  );
+  if (missingVars.length > 0) {
+    throw new Error(
+      `Missing database environment variables: ${missingVars.join(", ")}`
+    );
+  }
+
+  return {
+    host: process.env.DB_HOST as string,
+    user: process.env.DB_USER as string,
+    password: process.env.DB_PASSWORD as string,
+    database: process.env.DB_NAME as string,
+    port: Number(process.env.DB_PORT),
+    waitForConnections: true,
+    connectionLimit: 20,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 10000,
+    connectTimeout: 30000,
+    idleTimeout: 60000,
+    maxIdle: 5,
+  };
 }
 
-// Config section
-const dbConfig: mysql.PoolOptions = {
-  host: process.env.DB_HOST as string,
-  user: process.env.DB_USER as string,
-  password: process.env.DB_PASSWORD as string,
-  database: process.env.DB_NAME as string,
-  port: Number(process.env.DB_PORT),
-  waitForConnections: true,
-  connectionLimit: 20,
-  queueLimit: 0,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 10000,
-  connectTimeout: 30000,
-  idleTimeout: 60000,
-  maxIdle: 5,
-};
+// Pool section - lazy initialization to avoid build-time connection errors
+let pool: mysql.Pool | null = null;
 
-// Pool section
-const pool = mysql.createPool(dbConfig);
-
-// Health check section
-async function verifyPoolConnection() {
-  const connection = await pool.getConnection();
-  connection.release();
+function getPool(): mysql.Pool {
+  if (!pool) {
+    const dbConfig = getDbConfig();
+    pool = mysql.createPool(dbConfig);
+  }
+  return pool;
 }
 
-void verifyPoolConnection().catch((err) => {
-  throw new Error(`Failed to connect to database: ${err.message}`);
-});
-
-export default pool;
+// Export pool getter for backward compatibility (lazy initialization)
+export default getPool;
 
 // Query helper section
 /**
@@ -67,7 +67,8 @@ export async function query<T = unknown>(
 }> {
   let connection: mysql.PoolConnection | undefined;
   try {
-    connection = await pool.getConnection();
+    const dbPool = getPool();
+    connection = await dbPool.getConnection();
     const [rows] = await connection.execute(text, params);
     return { data: rows as T[], error: null };
   } catch (error) {
@@ -127,7 +128,8 @@ export async function transaction<T>(
   // eslint-disable-next-line no-unused-vars
   callback: (connection: mysql.PoolConnection) => Promise<T>
 ): Promise<T> {
-  const dbConnection = await pool.getConnection();
+  const dbPool = getPool();
+  const dbConnection = await dbPool.getConnection();
   try {
     await dbConnection.beginTransaction();
     const result = await callback(dbConnection);
@@ -147,7 +149,8 @@ export async function transaction<T>(
  */
 export async function getConnection() {
   try {
-    const dbConnection = await pool.getConnection();
+    const dbPool = getPool();
+    const dbConnection = await dbPool.getConnection();
     return { connection: dbConnection, error: null };
   } catch (error) {
     return {
