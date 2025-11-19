@@ -1,19 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Bars3Icon, XMarkIcon, ChevronDownIcon, KeyIcon, Squares2X2Icon, ArrowRightOnRectangleIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { MenuProps } from "./types";
 import Logo from "../shared/Logo";
-import { getCategoryIcon, getSubcategoryIcon } from "./categoryIcons";
-import type { LucideIcon } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 
 // Component Info
 // Description: Mobile navigation drawer with category accordion and account controls with avatar initials fallback.
-// Date created: 2025-01-27
+// Date: 2025-11-19
 // Author: thangtruong
 
 interface MobileMenuProps extends MenuProps {
@@ -21,7 +19,6 @@ interface MobileMenuProps extends MenuProps {
 }
 
 export default function MobileMenu({ categories = [], activeCategoryId: urlCategoryId, activeSubcategoryId: urlSubcategoryId, onOpenSearch }: MobileMenuProps) {
-  // Note: isActive prop is available but not currently used
   const { data: session } = useSession();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [expandedCategoryId, setExpandedCategoryId] = useState<number | null>(null);
@@ -31,34 +28,6 @@ export default function MobileMenu({ categories = [], activeCategoryId: urlCateg
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
-
-  // Track used icons per category to ensure subcategories from different categories get different icons
-  const iconMapping = useMemo(() => {
-    // Global set for category icons to prevent duplicates across categories
-    const globalUsedIcons = new Set<LucideIcon>();
-    const categoryIcons = new Map<number, LucideIcon>();
-    const subcategoryIcons = new Map<number, LucideIcon>();
-
-    categories.forEach((category) => {
-      // Assign category icon (global tracking to prevent duplicates)
-      const categoryIcon = getCategoryIcon(category.name, globalUsedIcons);
-      categoryIcons.set(category.id, categoryIcon);
-      globalUsedIcons.add(categoryIcon);
-
-      // Track icons used within this specific category's subcategories
-      const categorySubcategoryIcons = new Set<LucideIcon>();
-      
-      category.subcategories.forEach((subcategory) => {
-        // Assign subcategory icon using per-category tracking
-        // This ensures subcategories from different categories can have different icons
-        const subcategoryIcon = getSubcategoryIcon(subcategory.name, categorySubcategoryIcons);
-        subcategoryIcons.set(subcategory.id, subcategoryIcon);
-        categorySubcategoryIcons.add(subcategoryIcon);
-      });
-    });
-
-    return { categoryIcons, subcategoryIcons };
-  }, [categories]);
 
   // Close drawer handler
   const closeDrawer = () => {
@@ -177,8 +146,6 @@ export default function MobileMenu({ categories = [], activeCategoryId: urlCateg
                     <div className="mb-4">
                       <div className="space-y-2">
                         {categories.map((category) => {
-                          const CategoryIcon = iconMapping.categoryIcons.get(category.id);
-                          if (!CategoryIcon) return null;
                           const hasSubcategories = category.subcategories && Array.isArray(category.subcategories) && category.subcategories.length > 0;
                           const isCategoryActive = urlCategoryId === category.id;
                           const isExpanded = Boolean(expandedCategoryId === category.id || urlCategoryId === category.id || (urlSubcategoryId && category.subcategories.some((sub) => sub.id === urlSubcategoryId)));
@@ -188,14 +155,12 @@ export default function MobileMenu({ categories = [], activeCategoryId: urlCateg
                               {hasSubcategories ? (
                                 <button onClick={() => toggleCategoryAccordion(category.id)} className={`flex w-full items-center justify-between px-4 py-3 text-left text-base font-medium transition-colors ${categoryActiveClass}`} aria-expanded={isExpanded}>
                                   <div className="flex items-center gap-2 min-w-0">
-                                    <CategoryIcon className="h-5 w-5 shrink-0" />
                                     <span className="truncate">{category.name}</span>
                                   </div>
                                   <ChevronDownIcon className={`ml-2 h-5 w-5 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                                 </button>
                               ) : (
                                 <Link href={`/explore?categoryId=${category.id}`} onClick={closeDrawer} className={`flex w-full items-center gap-2 px-4 py-3 text-base font-medium transition-colors ${categoryActiveClass}`}>
-                                  <CategoryIcon className="h-5 w-5 shrink-0" />
                                   <span className="truncate">{category.name}</span>
                                 </Link>
                               )}
@@ -203,15 +168,12 @@ export default function MobileMenu({ categories = [], activeCategoryId: urlCateg
                                 <div className="border-t border-slate-100 bg-slate-50">
                                   <div className="px-2 py-2">
                                     {category.subcategories.map((subcategory) => {
-                                      const SubcategoryIcon = iconMapping.subcategoryIcons.get(subcategory.id);
-                                      if (!SubcategoryIcon) return null;
                                       const isSubcategoryActive = urlSubcategoryId === subcategory.id;
                                       const subcategoryActiveClass = isSubcategoryActive
                                         ? "bg-blue-100 text-blue-700 font-semibold"
                                         : "text-slate-600 hover:bg-blue-100 hover:text-blue-700";
                                       return (
                                         <Link key={subcategory.id} href={`/explore?subcategoryId=${subcategory.id}`} onClick={closeDrawer} className={`flex items-center gap-2 rounded-md px-3 py-2.5 text-sm transition-colors ${subcategoryActiveClass}`}>
-                                          <SubcategoryIcon className="h-4 w-4 shrink-0" />
                                           <span className="truncate">{subcategory.name}</span>
                                         </Link>
                                       );

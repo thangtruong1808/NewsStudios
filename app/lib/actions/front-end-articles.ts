@@ -49,15 +49,15 @@ export async function getFrontEndArticles({
 
     try {
       const resolvedTables = await Promise.all([
-        resolveTableName("Articles"),
-        resolveTableName("Categories"),
-        resolveTableName("SubCategories"),
-        resolveTableName("Authors"),
-        resolveTableName("Article_Tags"),
-        resolveTableName("Tags"),
-        resolveTableName("Likes"),
-        resolveTableName("Comments"),
-      ]);
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
+    ]);
       articlesTable = resolvedTables[0] || "Articles";
       categoriesTable = resolvedTables[1] || "Categories";
       subcategoriesTable = resolvedTables[2] || "SubCategories";
@@ -194,13 +194,13 @@ export async function getExploreArticles({
 
     try {
       const resolvedTables = await Promise.all([
-        resolveTableName("Articles"),
-        resolveTableName("Categories"),
-        resolveTableName("SubCategories"),
-        resolveTableName("Authors"),
-        resolveTableName("Article_Tags"),
-        resolveTableName("Tags"),
-      ]);
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+    ]);
       articlesTable = resolvedTables[0] || "Articles";
       categoriesTable = resolvedTables[1] || "Categories";
       subcategoriesTable = resolvedTables[2] || "SubCategories";
@@ -334,15 +334,15 @@ export async function getSubcategoryArticles({
 
     try {
       const resolvedTables = await Promise.all([
-        resolveTableName("Articles"),
-        resolveTableName("Categories"),
-        resolveTableName("SubCategories"),
-        resolveTableName("Authors"),
-        resolveTableName("Article_Tags"),
-        resolveTableName("Tags"),
-        resolveTableName("Likes"),
-        resolveTableName("Comments"),
-      ]);
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
+    ]);
       articlesTable = resolvedTables[0] || "Articles";
       categoriesTable = resolvedTables[1] || "Categories";
       subcategoriesTable = resolvedTables[2] || "SubCategories";
@@ -517,15 +517,15 @@ export async function getCategoryArticles({
 
     try {
       const resolvedTables = await Promise.all([
-        resolveTableName("Articles"),
-        resolveTableName("Categories"),
-        resolveTableName("SubCategories"),
-        resolveTableName("Authors"),
-        resolveTableName("Article_Tags"),
-        resolveTableName("Tags"),
-        resolveTableName("Likes"),
-        resolveTableName("Comments"),
-      ]);
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
+    ]);
       articlesTable = resolvedTables[0] || "Articles";
       categoriesTable = resolvedTables[1] || "Categories";
       subcategoriesTable = resolvedTables[2] || "SubCategories";
@@ -705,16 +705,16 @@ export async function getArticlesByTag({
 
     try {
       const resolvedTables = await Promise.all([
-        resolveTableName("Articles"),
-        resolveTableName("Categories"),
-        resolveTableName("SubCategories"),
-        resolveTableName("Authors"),
-        resolveTableName("Article_Tags"),
-        resolveTableName("Tags"),
-        resolveTableName("Likes"),
-        resolveTableName("Comments"),
-        resolveTableName("Views"),
-      ]);
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+      resolveTableName("Authors"),
+      resolveTableName("Article_Tags"),
+      resolveTableName("Tags"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
+      resolveTableName("Views"),
+    ]);
       articlesTable = resolvedTables[0] || "Articles";
       categoriesTable = resolvedTables[1] || "Categories";
       subcategoriesTable = resolvedTables[2] || "SubCategories";

@@ -36,12 +36,12 @@ export async function getDashboardStats() {
 
     try {
       const resolvedTables = await Promise.all([
-        resolveTableName("Articles"),
-        resolveTableName("Views"),
-        resolveTableName("Comments"),
-        resolveTableName("Users"),
-        resolveTableName("Likes"),
-      ]);
+      resolveTableName("Articles"),
+      resolveTableName("Views"),
+      resolveTableName("Comments"),
+      resolveTableName("Users"),
+      resolveTableName("Likes"),
+    ]);
       articlesTable = resolvedTables[0] || "Articles";
       viewsTable = resolvedTables[1] || "Views";
       commentsTable = resolvedTables[2] || "Comments";
@@ -181,10 +181,10 @@ export async function getTrendingArticles(): Promise<{
 
     try {
       const resolvedTables = await Promise.all([
-        resolveTableName("Articles"),
-        resolveTableName("Likes"),
-        resolveTableName("Comments"),
-      ]);
+      resolveTableName("Articles"),
+      resolveTableName("Likes"),
+      resolveTableName("Comments"),
+    ]);
       articlesTable = resolvedTables[0] || "Articles";
       likesTable = resolvedTables[1] || "Likes";
       commentsTable = resolvedTables[2] || "Comments";
@@ -206,7 +206,7 @@ export async function getTrendingArticles(): Promise<{
         COALESCE((SELECT COUNT(*) FROM \`${likesTable}\` WHERE article_id = a.id), 0) as likes_count,
         COALESCE((SELECT COUNT(*) FROM \`${commentsTable}\` WHERE article_id = a.id), 0) as comments_count
        FROM \`${articlesTable}\` a
-       WHERE a.is_trending = 1
+       WHERE a.is_trending = 1 
        ORDER BY (
          COALESCE((SELECT COUNT(*) FROM \`${likesTable}\` WHERE article_id = a.id), 0) + 
          COALESCE((SELECT COUNT(*) FROM \`${commentsTable}\` WHERE article_id = a.id), 0)
@@ -271,11 +271,11 @@ export async function getRecentActivity(): Promise<{
 
     try {
       const resolvedTables = await Promise.all([
-        resolveTableName("Comments"),
-        resolveTableName("Articles"),
-        resolveTableName("Users"),
-        resolveTableName("Likes"),
-      ]);
+      resolveTableName("Comments"),
+      resolveTableName("Articles"),
+      resolveTableName("Users"),
+      resolveTableName("Likes"),
+    ]);
       commentsTable = resolvedTables[0] || "Comments";
       articlesTable = resolvedTables[1] || "Articles";
       usersTable = resolvedTables[2] || "Users";
@@ -373,10 +373,10 @@ export async function getCategorySubcategoryStats(): Promise<{
 
     try {
       const resolvedTables = await Promise.all([
-        resolveTableName("Articles"),
-        resolveTableName("Categories"),
-        resolveTableName("SubCategories"),
-      ]);
+      resolveTableName("Articles"),
+      resolveTableName("Categories"),
+      resolveTableName("SubCategories"),
+    ]);
       articlesTable = resolvedTables[0] || "Articles";
       categoriesTable = resolvedTables[1] || "Categories";
       subcategoriesTable = resolvedTables[2] || "SubCategories";
