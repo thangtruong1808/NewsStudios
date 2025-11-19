@@ -28,23 +28,21 @@ export async function getTags({
   sortDirection = "desc",
 }: GetTagsParams = {}) {
   try {
-    // Resolve table names with proper casing
-    const [tagsTable, articleTagsTable] = await Promise.all([
-      resolveTableName("Tags"),
-      resolveTableName("Article_Tags"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let tagsTable: string;
+    let articleTagsTable: string;
 
-    // Validate table names are resolved
-    if (!tagsTable || !articleTagsTable) {
-      return {
-        data: null,
-        error: "Failed to resolve table names.",
-        totalCount: 0,
-        start: 0,
-        end: 0,
-        currentPage: page,
-        totalPages: 0,
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Tags"),
+        resolveTableName("Article_Tags"),
+      ]);
+      tagsTable = resolvedTables[0] || "Tags";
+      articleTagsTable = resolvedTables[1] || "Article_Tags";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      tagsTable = "Tags";
+      articleTagsTable = "Article_Tags";
     }
 
     const limitValue = Math.max(1, Number(limit) || 10);
@@ -240,16 +238,25 @@ export async function getFilteredTags(
 
 export async function getTagById(id: number) {
   try {
-    // Resolve table names with proper casing
-    const [tagsTable, categoriesTable, subcategoriesTable] = await Promise.all([
-      resolveTableName("Tags"),
-      resolveTableName("Categories"),
-      resolveTableName("SubCategories"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let tagsTable: string;
+    let categoriesTable: string;
+    let subcategoriesTable: string;
 
-    // Validate table names are resolved
-    if (!tagsTable || !categoriesTable || !subcategoriesTable) {
-      return { data: null, error: "Failed to resolve table names." };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Tags"),
+        resolveTableName("Categories"),
+        resolveTableName("SubCategories"),
+      ]);
+      tagsTable = resolvedTables[0] || "Tags";
+      categoriesTable = resolvedTables[1] || "Categories";
+      subcategoriesTable = resolvedTables[2] || "SubCategories";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      tagsTable = "Tags";
+      categoriesTable = "Categories";
+      subcategoriesTable = "SubCategories";
     }
 
     const result = await query(
@@ -610,12 +617,15 @@ export async function searchTags(
 
 export async function getAllTags() {
   try {
-    // Resolve table name with proper casing
-    const tagsTable = await resolveTableName("Tags");
-    
-    // Validate table name is resolved
-    if (!tagsTable) {
-      return { data: null, error: "Failed to resolve table name." };
+    // Resolve table name with proper casing - with fallback to preferred name
+    let tagsTable: string;
+
+    try {
+      tagsTable = await resolveTableName("Tags");
+      tagsTable = tagsTable || "Tags";
+    } catch (_resolveError) {
+      // Fallback to preferred name if resolution fails
+      tagsTable = "Tags";
     }
 
     const result = await query(
@@ -658,15 +668,21 @@ export async function getAllTags() {
 
 export async function getTagsBySubcategory(subcategoryId: number) {
   try {
-    // Resolve table names with proper casing
-    const [tagsTable, articleTagsTable] = await Promise.all([
-      resolveTableName("Tags"),
-      resolveTableName("Article_Tags"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let tagsTable: string;
+    let articleTagsTable: string;
 
-    // Validate table names are resolved
-    if (!tagsTable || !articleTagsTable) {
-      return { data: null, error: "Failed to resolve table names." };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Tags"),
+        resolveTableName("Article_Tags"),
+      ]);
+      tagsTable = resolvedTables[0] || "Tags";
+      articleTagsTable = resolvedTables[1] || "Article_Tags";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      tagsTable = "Tags";
+      articleTagsTable = "Article_Tags";
     }
 
     const result = await query(

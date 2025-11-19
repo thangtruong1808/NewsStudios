@@ -19,8 +19,7 @@ export default function TestUpload() {
       } else {
         toast.error(`Upload failed: ${data.message}`);
       }
-    } catch (error) {
-      console.error("Error testing upload:", error);
+    } catch {
       toast.error("Failed to test upload");
     } finally {
       setLoading(false);

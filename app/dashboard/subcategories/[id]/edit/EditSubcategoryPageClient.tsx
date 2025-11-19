@@ -22,8 +22,7 @@ export default function EditSubcategoryPageClient() {
           return;
         }
         setSubcategory(result.data);
-      } catch (error) {
-        console.error("Error fetching subcategory:", error);
+      } catch {
         setError("Failed to fetch subcategory data");
       } finally {
         setIsLoading(false);

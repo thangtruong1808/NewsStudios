@@ -32,8 +32,7 @@ export async function getImagesByArticleId(articleId: number) {
       data: result.data || [],
       error: null,
     };
-  } catch (error) {
-    console.error("Error fetching images by article ID:", error);
+  } catch {
     return {
       data: null,
       error: "Failed to fetch images",

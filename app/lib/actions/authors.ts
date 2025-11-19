@@ -35,12 +35,15 @@ export async function getAuthorById(
   id: number
 ): Promise<{ data?: Author; error?: string }> {
   try {
-    // Resolve table name with proper casing
-    const authorsTable = await resolveTableName("Authors");
-    
-    // Validate table name is resolved
-    if (!authorsTable) {
-      return { error: "Failed to resolve table name." };
+    // Resolve table name with proper casing - with fallback to preferred name
+    let authorsTable: string;
+
+    try {
+      authorsTable = await resolveTableName("Authors");
+      authorsTable = authorsTable || "Authors";
+    } catch (_resolveError) {
+      // Fallback to preferred name if resolution fails
+      authorsTable = "Authors";
     }
 
     const result = await query(
@@ -90,20 +93,21 @@ export async function getAuthors({
   sortDirection?: "asc" | "desc";
 } = {}) {
   try {
-    // Resolve table names with proper casing
-    const [authorsTable, articlesTable] = await Promise.all([
-      resolveTableName("Authors"),
-      resolveTableName("Articles"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let authorsTable: string;
+    let articlesTable: string;
 
-    // Validate table names are resolved
-    if (!authorsTable || !articlesTable) {
-      return {
-        data: null,
-        error: "Failed to resolve table names.",
-        totalItems: 0,
-        totalPages: 0,
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Authors"),
+        resolveTableName("Articles"),
+      ]);
+      authorsTable = resolvedTables[0] || "Authors";
+      articlesTable = resolvedTables[1] || "Articles";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      authorsTable = "Authors";
+      articlesTable = "Articles";
     }
 
     const limitValue = Math.max(1, Number(limit) || 10);
@@ -204,12 +208,15 @@ export async function getAuthors({
 
 export async function createAuthor(authorData: AuthorFormData) {
   try {
-    // Resolve table name with proper casing
-    const authorsTable = await resolveTableName("Authors");
-    
-    // Validate table name is resolved
-    if (!authorsTable) {
-      return { success: false, error: "Failed to resolve table name." };
+    // Resolve table name with proper casing - with fallback to preferred name
+    let authorsTable: string;
+
+    try {
+      authorsTable = await resolveTableName("Authors");
+      authorsTable = authorsTable || "Authors";
+    } catch (_resolveError) {
+      // Fallback to preferred name if resolution fails
+      authorsTable = "Authors";
     }
 
     const result = await query(
@@ -233,12 +240,15 @@ export async function createAuthor(authorData: AuthorFormData) {
 
 export async function updateAuthor(id: number, authorData: AuthorFormData) {
   try {
-    // Resolve table name with proper casing
-    const authorsTable = await resolveTableName("Authors");
-    
-    // Validate table name is resolved
-    if (!authorsTable) {
-      return { success: false, error: "Failed to resolve table name." };
+    // Resolve table name with proper casing - with fallback to preferred name
+    let authorsTable: string;
+
+    try {
+      authorsTable = await resolveTableName("Authors");
+      authorsTable = authorsTable || "Authors";
+    } catch (_resolveError) {
+      // Fallback to preferred name if resolution fails
+      authorsTable = "Authors";
     }
 
     const result = await query(
@@ -267,15 +277,21 @@ export async function updateAuthor(id: number, authorData: AuthorFormData) {
 
 export async function deleteAuthor(id: number) {
   try {
-    // Resolve table names with proper casing
-    const [authorsTable, articlesTable] = await Promise.all([
-      resolveTableName("Authors"),
-      resolveTableName("Articles"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let authorsTable: string;
+    let articlesTable: string;
 
-    // Validate table names are resolved
-    if (!authorsTable || !articlesTable) {
-      return { success: false, error: "Failed to resolve table names." };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Authors"),
+        resolveTableName("Articles"),
+      ]);
+      authorsTable = resolvedTables[0] || "Authors";
+      articlesTable = resolvedTables[1] || "Articles";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      authorsTable = "Authors";
+      articlesTable = "Articles";
     }
 
     // First check if the author exists
@@ -349,20 +365,21 @@ export async function searchAuthors({
   sortDirection?: "asc" | "desc";
 }) {
   try {
-    // Resolve table names with proper casing
-    const [authorsTable, articlesTable] = await Promise.all([
-      resolveTableName("Authors"),
-      resolveTableName("Articles"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let authorsTable: string;
+    let articlesTable: string;
 
-    // Validate table names are resolved
-    if (!authorsTable || !articlesTable) {
-      return {
-        data: null,
-        error: "Failed to resolve table names.",
-        totalItems: 0,
-        totalPages: 0,
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Authors"),
+        resolveTableName("Articles"),
+      ]);
+      authorsTable = resolvedTables[0] || "Authors";
+      articlesTable = resolvedTables[1] || "Articles";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      authorsTable = "Authors";
+      articlesTable = "Articles";
     }
 
     const limitValue = Math.max(1, Number(limit) || 10);

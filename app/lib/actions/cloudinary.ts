@@ -29,8 +29,7 @@ export async function uploadImageToCloudinary(base64String: string) {
     );
 
     return { url: result.secure_url, error: null };
-  } catch (error) {
-    console.error("Error uploading image to Cloudinary:", error);
+  } catch {
     return { url: null, error: "Failed to upload image" };
   }
 }
@@ -55,8 +54,7 @@ export async function uploadVideoToCloudinary(base64String: string) {
     );
 
     return { url: result.secure_url, error: null };
-  } catch (error) {
-    console.error("Error uploading video to Cloudinary:", error);
+  } catch {
     return { url: null, error: "Failed to upload video" };
   }
 }
@@ -71,7 +69,6 @@ export async function deleteImageFromCloudinary(publicId: string) {
     const result = await cloudinary.uploader.destroy(publicId);
     return { success: true, result };
   } catch (error) {
-    console.error("Error deleting from Cloudinary:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to delete image",

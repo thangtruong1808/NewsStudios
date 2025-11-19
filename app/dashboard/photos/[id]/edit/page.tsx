@@ -51,7 +51,6 @@ export default async function EditPhotoPage({ params }: EditPhotoPageProps) {
 
     // Handle articles data
     if (!articlesResult || articlesResult.error) {
-      console.error("Error fetching articles:", articlesResult?.error);
       throw new Error(articlesResult?.error || "Failed to fetch articles");
     }
 
@@ -63,7 +62,6 @@ export default async function EditPhotoPage({ params }: EditPhotoPageProps) {
       </div>
     );
   } catch (error) {
-    console.error("Error in EditPhotoPage:", error);
     return (
       <div className="w-full">
         <div className="rounded-md bg-red-50 p-4">

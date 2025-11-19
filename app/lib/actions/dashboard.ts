@@ -27,31 +27,33 @@ export interface DashboardStats {
 
 export async function getDashboardStats() {
   try {
-    // Resolve table names
-    const [articlesTable, viewsTable, commentsTable, usersTable, likesTable] = await Promise.all([
-      resolveTableName("Articles"),
-      resolveTableName("Views"),
-      resolveTableName("Comments"),
-      resolveTableName("Users"),
-      resolveTableName("Likes"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let articlesTable: string;
+    let viewsTable: string;
+    let commentsTable: string;
+    let usersTable: string;
+    let likesTable: string;
 
-    if (!articlesTable || !viewsTable || !commentsTable || !usersTable || !likesTable) {
-      return {
-        data: {
-          activeUsers: 0,
-          inactiveUsers: 0,
-          activeUsersTrend: 0,
-          totalArticles: 0,
-          totalLikes: 0,
-          totalComments: 0,
-          pageViewsLast30Days: 0,
-          newUsersLast30Days: 0,
-          trendingTopics: 0,
-          mostLikedArticle: undefined,
-        },
-        error: "Failed to resolve table names.",
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Articles"),
+        resolveTableName("Views"),
+        resolveTableName("Comments"),
+        resolveTableName("Users"),
+        resolveTableName("Likes"),
+      ]);
+      articlesTable = resolvedTables[0] || "Articles";
+      viewsTable = resolvedTables[1] || "Views";
+      commentsTable = resolvedTables[2] || "Comments";
+      usersTable = resolvedTables[3] || "Users";
+      likesTable = resolvedTables[4] || "Likes";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      articlesTable = "Articles";
+      viewsTable = "Views";
+      commentsTable = "Comments";
+      usersTable = "Users";
+      likesTable = "Likes";
     }
 
     // Get active users stats
@@ -172,38 +174,47 @@ export async function getTrendingArticles(): Promise<{
   error: string | null;
 }> {
   try {
-    // Resolve table names
-    const [articlesTable, likesTable, commentsTable] = await Promise.all([
-      resolveTableName("Articles"),
-      resolveTableName("Likes"),
-      resolveTableName("Comments"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let articlesTable: string;
+    let likesTable: string;
+    let commentsTable: string;
 
-    if (!articlesTable || !likesTable || !commentsTable) {
-      return {
-        data: [],
-        error: "Failed to resolve table names.",
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Articles"),
+        resolveTableName("Likes"),
+        resolveTableName("Comments"),
+      ]);
+      articlesTable = resolvedTables[0] || "Articles";
+      likesTable = resolvedTables[1] || "Likes";
+      commentsTable = resolvedTables[2] || "Comments";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      articlesTable = "Articles";
+      likesTable = "Likes";
+      commentsTable = "Comments";
     }
 
     // Get trending articles with likes and comments counts
-    // Handle both boolean (TRUE/FALSE) and integer (1/0) representations
+    // MySQL BOOLEAN is TINYINT(1), where 1 = TRUE and 0 = FALSE
+    // Use subqueries for counting to avoid GROUP BY issues with JOINs
     const result = await query<TrendingArticle & { likes_count: number; comments_count: number }>(
       `SELECT 
         a.id, 
         a.title, 
         a.published_at,
-        COALESCE(COUNT(DISTINCT l.id), 0) as likes_count,
-        COALESCE(COUNT(DISTINCT c.id), 0) as comments_count
+        COALESCE((SELECT COUNT(*) FROM \`${likesTable}\` WHERE article_id = a.id), 0) as likes_count,
+        COALESCE((SELECT COUNT(*) FROM \`${commentsTable}\` WHERE article_id = a.id), 0) as comments_count
        FROM \`${articlesTable}\` a
-       LEFT JOIN \`${likesTable}\` l ON a.id = l.article_id
-       LEFT JOIN \`${commentsTable}\` c ON a.id = c.article_id
-       WHERE (a.is_trending = 1 OR a.is_trending = TRUE)
-       GROUP BY a.id, a.title, a.published_at
-       ORDER BY (likes_count + comments_count) DESC, a.published_at DESC
+       WHERE a.is_trending = 1
+       ORDER BY (
+         COALESCE((SELECT COUNT(*) FROM \`${likesTable}\` WHERE article_id = a.id), 0) + 
+         COALESCE((SELECT COUNT(*) FROM \`${commentsTable}\` WHERE article_id = a.id), 0)
+       ) DESC, a.published_at DESC
        LIMIT 3`
     );
 
+    // Check for query errors
     if (result.error) {
       return {
         data: [],
@@ -211,7 +222,7 @@ export async function getTrendingArticles(): Promise<{
       };
     }
 
-    // Handle null data case
+    // Handle null or empty data case
     if (!result.data || result.data.length === 0) {
       return {
         data: [],
@@ -219,6 +230,7 @@ export async function getTrendingArticles(): Promise<{
       };
     }
 
+    // Map and format the articles data
     const articles = result.data.map((article) => ({
       id: article.id,
       title: article.title,
@@ -251,19 +263,29 @@ export async function getRecentActivity(): Promise<{
   error: string | null;
 }> {
   try {
-    // Resolve table names
-    const [commentsTable, articlesTable, usersTable, likesTable] = await Promise.all([
-      resolveTableName("Comments"),
-      resolveTableName("Articles"),
-      resolveTableName("Users"),
-      resolveTableName("Likes"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let commentsTable: string;
+    let articlesTable: string;
+    let usersTable: string;
+    let likesTable: string;
 
-    if (!commentsTable || !articlesTable || !usersTable || !likesTable) {
-      return {
-        data: null,
-        error: "Failed to resolve table names.",
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Comments"),
+        resolveTableName("Articles"),
+        resolveTableName("Users"),
+        resolveTableName("Likes"),
+      ]);
+      commentsTable = resolvedTables[0] || "Comments";
+      articlesTable = resolvedTables[1] || "Articles";
+      usersTable = resolvedTables[2] || "Users";
+      likesTable = resolvedTables[3] || "Likes";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      commentsTable = "Comments";
+      articlesTable = "Articles";
+      usersTable = "Users";
+      likesTable = "Likes";
     }
 
     // Get recent activities from comments, articles, users, and likes with article titles
@@ -344,18 +366,25 @@ export async function getCategorySubcategoryStats(): Promise<{
   error: string | null;
 }> {
   try {
-    // Resolve table names
-    const [articlesTable, categoriesTable, subcategoriesTable] = await Promise.all([
-      resolveTableName("Articles"),
-      resolveTableName("Categories"),
-      resolveTableName("SubCategories"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let articlesTable: string;
+    let categoriesTable: string;
+    let subcategoriesTable: string;
 
-    if (!articlesTable || !categoriesTable || !subcategoriesTable) {
-      return {
-        data: null,
-        error: "Failed to resolve table names.",
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Articles"),
+        resolveTableName("Categories"),
+        resolveTableName("SubCategories"),
+      ]);
+      articlesTable = resolvedTables[0] || "Articles";
+      categoriesTable = resolvedTables[1] || "Categories";
+      subcategoriesTable = resolvedTables[2] || "SubCategories";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      articlesTable = "Articles";
+      categoriesTable = "Categories";
+      subcategoriesTable = "SubCategories";
     }
 
     // Get articles count by categories and subcategories

@@ -23,8 +23,7 @@ export default function EditCategoryPageClient() {
           return;
         }
         setCategory(result.data);
-      } catch (error) {
-        console.error("Error fetching category:", error);
+      } catch {
         setError("Failed to fetch category data");
       } finally {
         setIsLoading(false);

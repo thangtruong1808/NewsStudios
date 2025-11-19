@@ -29,21 +29,25 @@ export async function getCategories({
   sortDirection = "desc",
 }: GetCategoriesParams = {}): Promise<GetCategoriesResult> {
   try {
-    // Resolve table names with proper casing
-    const [categoriesTable, subcategoriesTable, articlesTable] = await Promise.all([
-      resolveTableName("Categories"),
-      resolveTableName("SubCategories"),
-      resolveTableName("Articles"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let categoriesTable: string;
+    let subcategoriesTable: string;
+    let articlesTable: string;
 
-    // Validate table names are resolved
-    if (!categoriesTable || !subcategoriesTable || !articlesTable) {
-      return {
-        data: null,
-        error: "Failed to resolve table names.",
-        totalItems: 0,
-        totalPages: 0,
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Categories"),
+        resolveTableName("SubCategories"),
+        resolveTableName("Articles"),
+      ]);
+      categoriesTable = resolvedTables[0] || "Categories";
+      subcategoriesTable = resolvedTables[1] || "SubCategories";
+      articlesTable = resolvedTables[2] || "Articles";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      categoriesTable = "Categories";
+      subcategoriesTable = "SubCategories";
+      articlesTable = "Articles";
     }
 
     const limitValue = Math.max(1, Number(limit) || 10);
@@ -128,12 +132,15 @@ export async function getCategories({
 
 export async function getCategoryById(id: number) {
   try {
-    // Resolve table name with proper casing
-    const categoriesTable = await resolveTableName("Categories");
-    
-    // Validate table name is resolved
-    if (!categoriesTable) {
-      return { data: null, error: "Failed to resolve table name." };
+    // Resolve table name with proper casing - with fallback to preferred name
+    let categoriesTable: string;
+
+    try {
+      categoriesTable = await resolveTableName("Categories");
+      categoriesTable = categoriesTable || "Categories";
+    } catch (_resolveError) {
+      // Fallback to preferred name if resolution fails
+      categoriesTable = "Categories";
     }
 
     const result = await query(`SELECT * FROM \`${categoriesTable}\` WHERE id = ?`, [id]);

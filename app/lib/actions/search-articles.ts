@@ -24,20 +24,45 @@ export async function searchArticles({
   limit = 20,
 }: SearchArticlesParams = {}) {
   try {
-    // Resolve table names
-    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable] = await Promise.all([
-      resolveTableName("Articles"),
-      resolveTableName("Categories"),
-      resolveTableName("SubCategories"),
-      resolveTableName("Authors"),
-      resolveTableName("Article_Tags"),
-      resolveTableName("Tags"),
-      resolveTableName("Likes"),
-      resolveTableName("Comments"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let articlesTable: string;
+    let categoriesTable: string;
+    let subcategoriesTable: string;
+    let authorsTable: string;
+    let articleTagsTable: string;
+    let tagsTable: string;
+    let likesTable: string;
+    let commentsTable: string;
 
-    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable) {
-      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Articles"),
+        resolveTableName("Categories"),
+        resolveTableName("SubCategories"),
+        resolveTableName("Authors"),
+        resolveTableName("Article_Tags"),
+        resolveTableName("Tags"),
+        resolveTableName("Likes"),
+        resolveTableName("Comments"),
+      ]);
+      articlesTable = resolvedTables[0] || "Articles";
+      categoriesTable = resolvedTables[1] || "Categories";
+      subcategoriesTable = resolvedTables[2] || "SubCategories";
+      authorsTable = resolvedTables[3] || "Authors";
+      articleTagsTable = resolvedTables[4] || "Article_Tags";
+      tagsTable = resolvedTables[5] || "Tags";
+      likesTable = resolvedTables[6] || "Likes";
+      commentsTable = resolvedTables[7] || "Comments";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      articlesTable = "Articles";
+      categoriesTable = "Categories";
+      subcategoriesTable = "SubCategories";
+      authorsTable = "Authors";
+      articleTagsTable = "Article_Tags";
+      tagsTable = "Tags";
+      likesTable = "Likes";
+      commentsTable = "Comments";
     }
 
     const limitValue = Math.max(1, Number(limit) || 20);

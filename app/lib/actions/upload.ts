@@ -16,7 +16,6 @@ export async function uploadFile(
     const result = await uploadToFTP(file, type);
     return result;
   } catch (error) {
-    console.error("Error in uploadFile server action:", error);
     return {
       filePath: null,
       url: null,

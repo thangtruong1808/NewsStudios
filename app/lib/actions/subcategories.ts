@@ -35,20 +35,25 @@ export async function getSubcategories({
   categoryId,
 }: GetSubcategoriesParams = {}): Promise<GetSubcategoriesResult> {
   try {
-    // Resolve table names with proper casing
-    const [subcategoriesTable, categoriesTable, articlesTable] = await Promise.all([
-      resolveTableName("SubCategories"),
-      resolveTableName("Categories"),
-      resolveTableName("Articles"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let subcategoriesTable: string;
+    let categoriesTable: string;
+    let articlesTable: string;
 
-    // Validate table names are resolved
-    if (!subcategoriesTable || !categoriesTable || !articlesTable) {
-      return {
-        data: null,
-        error: "Failed to resolve table names.",
-        total: 0,
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("SubCategories"),
+        resolveTableName("Categories"),
+        resolveTableName("Articles"),
+      ]);
+      subcategoriesTable = resolvedTables[0] || "SubCategories";
+      categoriesTable = resolvedTables[1] || "Categories";
+      articlesTable = resolvedTables[2] || "Articles";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      subcategoriesTable = "SubCategories";
+      categoriesTable = "Categories";
+      articlesTable = "Articles";
     }
 
     const limitValue = Math.max(1, Number(limit) || 10);
@@ -141,12 +146,15 @@ export async function getSubcategories({
 
 export async function getSubcategoryById(id: number) {
   try {
-    // Resolve table name with proper casing
-    const subcategoriesTable = await resolveTableName("SubCategories");
-    
-    // Validate table name is resolved
-    if (!subcategoriesTable) {
-      return { data: null, error: "Failed to resolve table name." };
+    // Resolve table name with proper casing - with fallback to preferred name
+    let subcategoriesTable: string;
+
+    try {
+      subcategoriesTable = await resolveTableName("SubCategories");
+      subcategoriesTable = subcategoriesTable || "SubCategories";
+    } catch (_resolveError) {
+      // Fallback to preferred name if resolution fails
+      subcategoriesTable = "SubCategories";
     }
 
     const result = await query(`SELECT * FROM \`${subcategoriesTable}\` WHERE id = ?`, [

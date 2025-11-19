@@ -30,7 +30,6 @@ export default function EditAuthorPageClient({ params }: EditAuthorPageClientPro
         }
         setAuthor(result.data);
       } catch (error) {
-        console.error("Error fetching author:", error);
         showErrorToast({
           message:
             error instanceof Error ? error.message : "Failed to fetch author",

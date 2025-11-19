@@ -37,21 +37,45 @@ export async function getFrontEndArticles({
   subcategoryId?: string;
 } = {}) {
   try {
-    // Resolve table names with proper casing
-    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable] = await Promise.all([
-      resolveTableName("Articles"),
-      resolveTableName("Categories"),
-      resolveTableName("SubCategories"),
-      resolveTableName("Authors"),
-      resolveTableName("Article_Tags"),
-      resolveTableName("Tags"),
-      resolveTableName("Likes"),
-      resolveTableName("Comments"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let articlesTable: string;
+    let categoriesTable: string;
+    let subcategoriesTable: string;
+    let authorsTable: string;
+    let articleTagsTable: string;
+    let tagsTable: string;
+    let likesTable: string;
+    let commentsTable: string;
 
-    // Validate table names are resolved
-    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable) {
-      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Articles"),
+        resolveTableName("Categories"),
+        resolveTableName("SubCategories"),
+        resolveTableName("Authors"),
+        resolveTableName("Article_Tags"),
+        resolveTableName("Tags"),
+        resolveTableName("Likes"),
+        resolveTableName("Comments"),
+      ]);
+      articlesTable = resolvedTables[0] || "Articles";
+      categoriesTable = resolvedTables[1] || "Categories";
+      subcategoriesTable = resolvedTables[2] || "SubCategories";
+      authorsTable = resolvedTables[3] || "Authors";
+      articleTagsTable = resolvedTables[4] || "Article_Tags";
+      tagsTable = resolvedTables[5] || "Tags";
+      likesTable = resolvedTables[6] || "Likes";
+      commentsTable = resolvedTables[7] || "Comments";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      articlesTable = "Articles";
+      categoriesTable = "Categories";
+      subcategoriesTable = "SubCategories";
+      authorsTable = "Authors";
+      articleTagsTable = "Article_Tags";
+      tagsTable = "Tags";
+      likesTable = "Likes";
+      commentsTable = "Comments";
     }
 
     const limitValue = Math.max(1, Number(itemsPerPage) || 10);
@@ -160,19 +184,37 @@ export async function getExploreArticles({
   tag?: string;
 } = {}) {
   try {
-    // Resolve table names with proper casing
-    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable] = await Promise.all([
-      resolveTableName("Articles"),
-      resolveTableName("Categories"),
-      resolveTableName("SubCategories"),
-      resolveTableName("Authors"),
-      resolveTableName("Article_Tags"),
-      resolveTableName("Tags"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let articlesTable: string;
+    let categoriesTable: string;
+    let subcategoriesTable: string;
+    let authorsTable: string;
+    let articleTagsTable: string;
+    let tagsTable: string;
 
-    // Validate table names are resolved
-    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable) {
-      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Articles"),
+        resolveTableName("Categories"),
+        resolveTableName("SubCategories"),
+        resolveTableName("Authors"),
+        resolveTableName("Article_Tags"),
+        resolveTableName("Tags"),
+      ]);
+      articlesTable = resolvedTables[0] || "Articles";
+      categoriesTable = resolvedTables[1] || "Categories";
+      subcategoriesTable = resolvedTables[2] || "SubCategories";
+      authorsTable = resolvedTables[3] || "Authors";
+      articleTagsTable = resolvedTables[4] || "Article_Tags";
+      tagsTable = resolvedTables[5] || "Tags";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      articlesTable = "Articles";
+      categoriesTable = "Categories";
+      subcategoriesTable = "SubCategories";
+      authorsTable = "Authors";
+      articleTagsTable = "Article_Tags";
+      tagsTable = "Tags";
     }
 
     const offset = (page - 1) * itemsPerPage;
@@ -280,29 +322,45 @@ export async function getSubcategoryArticles({
   itemsPerPage?: number;
 }) {
   try {
-    // Resolve table names with proper casing
-    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable] = await Promise.all([
-      resolveTableName("Articles"),
-      resolveTableName("Categories"),
-      resolveTableName("SubCategories"),
-      resolveTableName("Authors"),
-      resolveTableName("Article_Tags"),
-      resolveTableName("Tags"),
-      resolveTableName("Likes"),
-      resolveTableName("Comments"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let articlesTable: string;
+    let categoriesTable: string;
+    let subcategoriesTable: string;
+    let authorsTable: string;
+    let articleTagsTable: string;
+    let tagsTable: string;
+    let likesTable: string;
+    let commentsTable: string;
 
-    // Validate table names are resolved
-    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable) {
-      return {
-        data: [],
-        totalCount: 0,
-        start: 0,
-        end: 0,
-        currentPage: page,
-        totalPages: 0,
-        error: "Failed to resolve table names.",
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Articles"),
+        resolveTableName("Categories"),
+        resolveTableName("SubCategories"),
+        resolveTableName("Authors"),
+        resolveTableName("Article_Tags"),
+        resolveTableName("Tags"),
+        resolveTableName("Likes"),
+        resolveTableName("Comments"),
+      ]);
+      articlesTable = resolvedTables[0] || "Articles";
+      categoriesTable = resolvedTables[1] || "Categories";
+      subcategoriesTable = resolvedTables[2] || "SubCategories";
+      authorsTable = resolvedTables[3] || "Authors";
+      articleTagsTable = resolvedTables[4] || "Article_Tags";
+      tagsTable = resolvedTables[5] || "Tags";
+      likesTable = resolvedTables[6] || "Likes";
+      commentsTable = resolvedTables[7] || "Comments";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      articlesTable = "Articles";
+      categoriesTable = "Categories";
+      subcategoriesTable = "SubCategories";
+      authorsTable = "Authors";
+      articleTagsTable = "Article_Tags";
+      tagsTable = "Tags";
+      likesTable = "Likes";
+      commentsTable = "Comments";
     }
 
     const limitValue = Math.max(1, Number(itemsPerPage) || 10);
@@ -447,29 +505,45 @@ export async function getCategoryArticles({
   itemsPerPage?: number;
 }) {
   try {
-    // Resolve table names with proper casing
-    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable] = await Promise.all([
-      resolveTableName("Articles"),
-      resolveTableName("Categories"),
-      resolveTableName("SubCategories"),
-      resolveTableName("Authors"),
-      resolveTableName("Article_Tags"),
-      resolveTableName("Tags"),
-      resolveTableName("Likes"),
-      resolveTableName("Comments"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let articlesTable: string;
+    let categoriesTable: string;
+    let subcategoriesTable: string;
+    let authorsTable: string;
+    let articleTagsTable: string;
+    let tagsTable: string;
+    let likesTable: string;
+    let commentsTable: string;
 
-    // Validate table names are resolved
-    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable) {
-      return {
-        data: [],
-        totalCount: 0,
-        start: 0,
-        end: 0,
-        currentPage: page,
-        totalPages: 0,
-        error: "Failed to resolve table names.",
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Articles"),
+        resolveTableName("Categories"),
+        resolveTableName("SubCategories"),
+        resolveTableName("Authors"),
+        resolveTableName("Article_Tags"),
+        resolveTableName("Tags"),
+        resolveTableName("Likes"),
+        resolveTableName("Comments"),
+      ]);
+      articlesTable = resolvedTables[0] || "Articles";
+      categoriesTable = resolvedTables[1] || "Categories";
+      subcategoriesTable = resolvedTables[2] || "SubCategories";
+      authorsTable = resolvedTables[3] || "Authors";
+      articleTagsTable = resolvedTables[4] || "Article_Tags";
+      tagsTable = resolvedTables[5] || "Tags";
+      likesTable = resolvedTables[6] || "Likes";
+      commentsTable = resolvedTables[7] || "Comments";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      articlesTable = "Articles";
+      categoriesTable = "Categories";
+      subcategoriesTable = "SubCategories";
+      authorsTable = "Authors";
+      articleTagsTable = "Article_Tags";
+      tagsTable = "Tags";
+      likesTable = "Likes";
+      commentsTable = "Comments";
     }
 
     const limitValue = Math.max(1, Number(itemsPerPage) || 10);
@@ -618,26 +692,49 @@ export async function getArticlesByTag({
   error: string | null;
 }> {
   try {
-    // Resolve table names with proper casing
-    const [articlesTable, categoriesTable, subcategoriesTable, authorsTable, articleTagsTable, tagsTable, likesTable, commentsTable, viewsTable] = await Promise.all([
-      resolveTableName("Articles"),
-      resolveTableName("Categories"),
-      resolveTableName("SubCategories"),
-      resolveTableName("Authors"),
-      resolveTableName("Article_Tags"),
-      resolveTableName("Tags"),
-      resolveTableName("Likes"),
-      resolveTableName("Comments"),
-      resolveTableName("Views"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let articlesTable: string;
+    let categoriesTable: string;
+    let subcategoriesTable: string;
+    let authorsTable: string;
+    let articleTagsTable: string;
+    let tagsTable: string;
+    let likesTable: string;
+    let commentsTable: string;
+    let viewsTable: string;
 
-    // Validate table names are resolved
-    if (!articlesTable || !categoriesTable || !subcategoriesTable || !authorsTable || !articleTagsTable || !tagsTable || !likesTable || !commentsTable || !viewsTable) {
-      return {
-        data: [],
-        totalCount: 0,
-        error: "Failed to resolve table names.",
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Articles"),
+        resolveTableName("Categories"),
+        resolveTableName("SubCategories"),
+        resolveTableName("Authors"),
+        resolveTableName("Article_Tags"),
+        resolveTableName("Tags"),
+        resolveTableName("Likes"),
+        resolveTableName("Comments"),
+        resolveTableName("Views"),
+      ]);
+      articlesTable = resolvedTables[0] || "Articles";
+      categoriesTable = resolvedTables[1] || "Categories";
+      subcategoriesTable = resolvedTables[2] || "SubCategories";
+      authorsTable = resolvedTables[3] || "Authors";
+      articleTagsTable = resolvedTables[4] || "Article_Tags";
+      tagsTable = resolvedTables[5] || "Tags";
+      likesTable = resolvedTables[6] || "Likes";
+      commentsTable = resolvedTables[7] || "Comments";
+      viewsTable = resolvedTables[8] || "Views";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      articlesTable = "Articles";
+      categoriesTable = "Categories";
+      subcategoriesTable = "SubCategories";
+      authorsTable = "Authors";
+      articleTagsTable = "Article_Tags";
+      tagsTable = "Tags";
+      likesTable = "Likes";
+      commentsTable = "Comments";
+      viewsTable = "Views";
     }
 
     const limitValue = Math.max(1, Number(itemsPerPage) || 10);

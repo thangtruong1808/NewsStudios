@@ -8,14 +8,15 @@ import { resolveTableName } from "../db/tableNameResolver";
 
 export async function getArticleStats() {
   try {
-    // Resolve table name
-    const articlesTable = await resolveTableName("Articles");
+    // Resolve table name with proper casing - with fallback to preferred name
+    let articlesTable: string;
 
-    if (!articlesTable) {
-      return {
-        data: { totalArticles: 0 },
-        error: "Failed to resolve table name.",
-      };
+    try {
+      articlesTable = await resolveTableName("Articles");
+      articlesTable = articlesTable || "Articles";
+    } catch (_resolveError) {
+      // Fallback to preferred name if resolution fails
+      articlesTable = "Articles";
     }
 
     const result = await query<{ total_articles: number }>(

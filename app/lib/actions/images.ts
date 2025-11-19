@@ -133,19 +133,21 @@ export async function getImages({
   searchQuery?: string;
 }) {
   try {
-    // Resolve table names with proper casing
-    const [imagesTable, articlesTable] = await Promise.all([
-      resolveTableName("Images"),
-      resolveTableName("Articles"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let imagesTable: string;
+    let articlesTable: string;
 
-    // Validate table names are resolved
-    if (!imagesTable || !articlesTable) {
-      return {
-        images: [],
-        totalPages: 1,
-        totalItems: 0,
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Images"),
+        resolveTableName("Articles"),
+      ]);
+      imagesTable = resolvedTables[0] || "Images";
+      articlesTable = resolvedTables[1] || "Articles";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      imagesTable = "Images";
+      articlesTable = "Articles";
     }
 
     const limitValue = Math.max(1, Number(limit) || 10);
@@ -471,7 +473,18 @@ export async function getImagesByEntity(
 
 export async function getAllImages(type?: string) {
   try {
-    let sql = `SELECT * FROM Images`;
+    // Resolve table name with proper casing - with fallback to preferred name
+    let imagesTable: string;
+
+    try {
+      imagesTable = await resolveTableName("Images");
+      imagesTable = imagesTable || "Images";
+    } catch (_resolveError) {
+      // Fallback to preferred name if resolution fails
+      imagesTable = "Images";
+    }
+
+    let sql = `SELECT * FROM \`${imagesTable}\``;
     const params: any[] = [];
 
     if (type) {
@@ -498,24 +511,21 @@ export async function getAllImages(type?: string) {
 
 export async function searchImages(searchQuery: string) {
   try {
-    // Resolve table names with proper casing
-    const [imagesTable, articlesTable] = await Promise.all([
-      resolveTableName("Images"),
-      resolveTableName("Articles"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let imagesTable: string;
+    let articlesTable: string;
 
-    // Validate table names are resolved
-    if (!imagesTable || !articlesTable) {
-      return {
-        data: [],
-        error: null,
-        pagination: {
-          total: 0,
-          totalPages: 1,
-          currentPage: 1,
-          itemsPerPage: 0,
-        },
-      };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Images"),
+        resolveTableName("Articles"),
+      ]);
+      imagesTable = resolvedTables[0] || "Images";
+      articlesTable = resolvedTables[1] || "Articles";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      imagesTable = "Images";
+      articlesTable = "Articles";
     }
 
     const result = await query(

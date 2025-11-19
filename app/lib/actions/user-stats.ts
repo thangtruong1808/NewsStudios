@@ -20,14 +20,15 @@ export async function getActiveUsersStats(): Promise<{
   error: string | null;
 }> {
   try {
-    // Resolve table name
-    const usersTable = await resolveTableName("Users");
+    // Resolve table name with proper casing - with fallback to preferred name
+    let usersTable: string;
 
-    if (!usersTable) {
-      return {
-        data: null,
-        error: "Failed to resolve table name.",
-      };
+    try {
+      usersTable = await resolveTableName("Users");
+      usersTable = usersTable || "Users";
+    } catch (_resolveError) {
+      // Fallback to preferred name if resolution fails
+      usersTable = "Users";
     }
 
     // Get active users count

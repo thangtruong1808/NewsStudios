@@ -67,9 +67,8 @@ export default function VideoForm({ video, mode, articles }: VideoFormProps) {
         if (publicId) {
           await deleteVideo(publicId);
         }
-      } catch (error) {
-        console.error("Error cleaning up old video:", error);
-        // Don't throw the error, just log it
+      } catch {
+        // Ignore cleanup errors
       }
     }
   };
@@ -140,7 +139,6 @@ export default function VideoForm({ video, mode, articles }: VideoFormProps) {
       router.push("/dashboard/videos");
       router.refresh();
     } catch (error) {
-      console.error("Error submitting form:", error);
       showErrorToast({
         message: error instanceof Error ? error.message : "An error occurred",
       });

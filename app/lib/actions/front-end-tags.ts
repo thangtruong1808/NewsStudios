@@ -20,15 +20,21 @@ export async function getFilteredTags(
   limit: number = 8
 ) {
   try {
-    // Resolve table names with proper casing
-    const [tagsTable, articleTagsTable] = await Promise.all([
-      resolveTableName("Tags"),
-      resolveTableName("Article_Tags"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let tagsTable: string;
+    let articleTagsTable: string;
 
-    // Validate table names are resolved
-    if (!tagsTable || !articleTagsTable) {
-      return { data: [], totalCount: 0, error: "Failed to resolve table names." };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Tags"),
+        resolveTableName("Article_Tags"),
+      ]);
+      tagsTable = resolvedTables[0] || "Tags";
+      articleTagsTable = resolvedTables[1] || "Article_Tags";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      tagsTable = "Tags";
+      articleTagsTable = "Article_Tags";
     }
 
     const conditions = [];

@@ -60,8 +60,7 @@ export default function VideoUploadForm({
       );
       router.push("/dashboard/videos");
       router.refresh();
-    } catch (error) {
-      console.error("Error saving video:", error);
+    } catch {
       toast.error("Failed to save video");
     } finally {
       setIsSubmitting(false);

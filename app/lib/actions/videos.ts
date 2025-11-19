@@ -81,15 +81,21 @@ function extractPublicId(url: string): string | null {
 
 export async function getVideos(page: number = 1, itemsPerPage: number = 12) {
   try {
-    // Resolve table names with proper casing
-    const [videosTable, articlesTable] = await Promise.all([
-      resolveTableName("Videos"),
-      resolveTableName("Articles"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let videosTable: string;
+    let articlesTable: string;
 
-    // Validate table names are resolved
-    if (!videosTable || !articlesTable) {
-      return { data: [], error: "Failed to resolve table names.", totalItems: 0 };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Videos"),
+        resolveTableName("Articles"),
+      ]);
+      videosTable = resolvedTables[0] || "Videos";
+      articlesTable = resolvedTables[1] || "Articles";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      videosTable = "Videos";
+      articlesTable = "Articles";
     }
 
     const safePage = Number.isFinite(page) && page > 0 ? Number(page) : 1;
@@ -379,15 +385,21 @@ export async function uploadVideoToServer(
 
 export async function searchVideos(searchQuery: string) {
   try {
-    // Resolve table names with proper casing
-    const [videosTable, articlesTable] = await Promise.all([
-      resolveTableName("Videos"),
-      resolveTableName("Articles"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let videosTable: string;
+    let articlesTable: string;
 
-    // Validate table names are resolved
-    if (!videosTable || !articlesTable) {
-      return { data: [], error: "Failed to resolve table names.", totalItems: 0, totalPages: 0 };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Videos"),
+        resolveTableName("Articles"),
+      ]);
+      videosTable = resolvedTables[0] || "Videos";
+      articlesTable = resolvedTables[1] || "Articles";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      videosTable = "Videos";
+      articlesTable = "Articles";
     }
 
     // Convert search query to number if it's numeric for article_id search
