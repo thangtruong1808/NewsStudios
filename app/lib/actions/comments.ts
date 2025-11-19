@@ -134,7 +134,8 @@ export async function createComment(article_id: number, content: string) {
     }
 
     const commentsTable = await resolveTableName("Comments");
-    if (!commentsTable) {
+    const usersTable = await resolveTableName("Users");
+    if (!commentsTable || !usersTable) {
       return {
         data: null,
         error: "Failed to resolve table name.",
@@ -149,7 +150,38 @@ export async function createComment(article_id: number, content: string) {
       };
     }
 
+    // Validate and convert user ID
     const userId = Number(session.user.id);
+    if (isNaN(userId) || userId <= 0) {
+      return {
+        data: null,
+        error: "Invalid user ID. Please login again.",
+      };
+    }
+
+    // Verify user exists in database before inserting
+    const userCheckResult = await query<{ count: number }>(
+      `SELECT COUNT(*) as count FROM \`${usersTable}\` WHERE id = ?`,
+      [userId]
+    );
+
+    if (userCheckResult.error || !userCheckResult.data) {
+      return {
+        data: null,
+        error: "Failed to verify user. Please try again.",
+      };
+    }
+
+    const userExists = Array.isArray(userCheckResult.data) &&
+      userCheckResult.data.length > 0 &&
+      Number(userCheckResult.data[0]?.count ?? 0) > 0;
+
+    if (!userExists) {
+      return {
+        data: null,
+        error: "User not found. Please login again.",
+      };
+    }
     const result = await query(
       `INSERT INTO \`${commentsTable}\` (article_id, user_id, content, created_at, updated_at)
        VALUES (?, ?, ?, NOW(), NOW())`,

@@ -111,14 +111,46 @@ export async function toggleLike(article_id: number) {
     }
 
     const likesTable = await resolveTableName("Likes");
-    if (!likesTable) {
+    const usersTable = await resolveTableName("Users");
+    if (!likesTable || !usersTable) {
       return {
         data: null,
         error: "Failed to resolve table name.",
       };
     }
 
+    // Validate and convert user ID
     const userId = Number(session.user.id);
+    if (isNaN(userId) || userId <= 0) {
+      return {
+        data: null,
+        error: "Invalid user ID. Please login again.",
+      };
+    }
+
+    // Verify user exists in database before inserting
+    const userCheckResult = await query<{ count: number }>(
+      `SELECT COUNT(*) as count FROM \`${usersTable}\` WHERE id = ?`,
+      [userId]
+    );
+
+    if (userCheckResult.error || !userCheckResult.data) {
+      return {
+        data: null,
+        error: "Failed to verify user. Please try again.",
+      };
+    }
+
+    const userExists = Array.isArray(userCheckResult.data) &&
+      userCheckResult.data.length > 0 &&
+      Number(userCheckResult.data[0]?.count ?? 0) > 0;
+
+    if (!userExists) {
+      return {
+        data: null,
+        error: "User not found. Please login again.",
+      };
+    }
 
     // Check if user already liked the article
     const checkResult = await query<{ count: number }>(
