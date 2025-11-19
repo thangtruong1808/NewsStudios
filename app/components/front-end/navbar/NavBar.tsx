@@ -11,6 +11,8 @@ const navCategoriesPromise = getNavCategories();
 
 function NavBarContent() {
   const result = use(navCategoriesPromise);
+  // Use data if available, otherwise fallback to empty array
+  // Error is silently handled to prevent UI breakage
   const categories = result.data ?? [];
   return <NavBarClient categories={categories} />;
 }

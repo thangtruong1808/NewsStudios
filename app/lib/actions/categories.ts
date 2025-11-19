@@ -289,15 +289,21 @@ export async function getNavCategories(): Promise<{
   error: string | null;
 }> {
   try {
-    // Resolve table names with proper casing
-    const [categoriesTable, subcategoriesTable] = await Promise.all([
-      resolveTableName("Categories"),
-      resolveTableName("SubCategories"),
-    ]);
+    // Resolve table names with proper casing - with fallback to preferred names
+    let categoriesTable: string;
+    let subcategoriesTable: string;
 
-    // Validate table names are resolved
-    if (!categoriesTable || !subcategoriesTable) {
-      return { data: null, error: "Failed to resolve table names." };
+    try {
+      const resolvedTables = await Promise.all([
+        resolveTableName("Categories"),
+        resolveTableName("SubCategories"),
+      ]);
+      categoriesTable = resolvedTables[0] || "Categories";
+      subcategoriesTable = resolvedTables[1] || "SubCategories";
+    } catch (_resolveError) {
+      // Fallback to preferred names if resolution fails
+      categoriesTable = "Categories";
+      subcategoriesTable = "SubCategories";
     }
 
     // Query categories and subcategories
