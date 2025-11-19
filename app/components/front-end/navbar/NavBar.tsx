@@ -1,4 +1,4 @@
-import { use, Suspense } from "react";
+import { use, Suspense, cache } from "react";
 import NavBarClient from "./NavBarClient";
 import { getNavCategories } from "@/app/lib/actions/categories";
 
@@ -7,9 +7,12 @@ import { getNavCategories } from "@/app/lib/actions/categories";
 // Date created: 2025-01-27
 // Author: thangtruong
 
-const navCategoriesPromise = getNavCategories();
+// Cache the promise per request to avoid duplicate calls
+const getCachedNavCategories = cache(() => getNavCategories());
 
 function NavBarContent() {
+  // Create promise per request using cache
+  const navCategoriesPromise = getCachedNavCategories();
   const result = use(navCategoriesPromise);
   // Use data if available, otherwise fallback to empty array
   // Error is silently handled to prevent UI breakage

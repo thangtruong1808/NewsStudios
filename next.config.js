@@ -1,3 +1,8 @@
+// Component Info
+// Description: Next.js configuration for image optimization, environment variables, and webpack settings.
+// Date created: 2025-01-27
+// Author: thangtruong
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
