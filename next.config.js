@@ -44,8 +44,24 @@ const nextConfig = {
       };
     }
 
-    // Ignore punycode warning
-    config.ignoreWarnings = [{ module: /node_modules\/punycode/ }];
+    // Suppress infrastructure logging warnings for SWC binaries
+    config.infrastructureLogging = {
+      ...config.infrastructureLogging,
+      level: "error",
+    };
+
+    // Ignore warnings for punycode and SWC binaries
+    const originalWarnings = config.ignoreWarnings || [];
+    config.ignoreWarnings = [
+      ...originalWarnings,
+      { module: /node_modules\/punycode/ },
+      {
+        message: /Managed item .* isn't a directory or doesn't contain a package.json/,
+      },
+      {
+        message: /swc-/,
+      },
+    ];
 
     return config;
   },
