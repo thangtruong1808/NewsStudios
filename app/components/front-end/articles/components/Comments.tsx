@@ -14,7 +14,7 @@ import { showErrorToast } from "@/app/components/dashboard/shared/toast/Toast";
 
 interface CommentsProps {
   articleId: number;
-  onCommentCountUpdate?: (count: number) => void; // Callback to update comment count in parent
+  onCommentCountUpdate?: (_count: number) => void; // Callback to update comment count in parent
 }
 
 interface Comment {

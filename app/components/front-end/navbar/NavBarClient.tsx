@@ -48,7 +48,7 @@ export default function NavBarClient({ categories }: NavBarClientProps) {
     <>
       {/* Maintenance banner */}
       <div className="w-full bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2.5 text-center text-xs font-medium text-blue-700 shadow-sm sm:text-sm">
-        We&apos;re currently upgrading the layout; you may notice minor issues. Please contact thangtruong if you need assistance.
+        We&apos;re currently upgrading the layout, you may notice minor issues. Please contact thangtruong if you need assistance.
       </div>
       {/* Navigation header with modern styling */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-sm supports-[backdrop-filter]:bg-white/90">

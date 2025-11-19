@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getAllVideos } from "@/app/lib/actions/front-end-videos";
-import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon, ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/outline";
+import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from "@heroicons/react/24/outline";
 import VideoCarouselSkeleton from "./VideoCarouselSkeleton";
 import VideoModal from "./VideoModal";
 
@@ -142,8 +142,6 @@ export default function VideoCarousel() {
       return '';
     }
   };
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
-  const scrollToBottom = () => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
 
   if (isLoading) return <VideoCarouselSkeleton />;
   if (error) return <div className="bg-red-50 p-4 rounded-md"><p className="text-red-700">{error}</p></div>;
@@ -249,14 +247,6 @@ export default function VideoCarousel() {
             )}
           </div>
         </div>
-
-        {/* Scroll buttons */}
-        <button onClick={scrollToTop} className="fixed bottom-24 right-6 z-50 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" aria-label="Scroll to top">
-          <ArrowUpIcon className="h-6 w-6" />
-        </button>
-        <button onClick={scrollToBottom} className="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" aria-label="Scroll to bottom">
-          <ArrowDownIcon className="h-6 w-6" />
-        </button>
 
         {/* Video modal */}
         <VideoModal isOpen={isModalOpen} onClose={handleModalClose} videoUrl={selectedVideoIndex !== null ? videos[selectedVideoIndex].video_url : currentVideo.video_url} title={selectedVideoIndex !== null ? videos[selectedVideoIndex].article_title : currentVideo.article_title} />

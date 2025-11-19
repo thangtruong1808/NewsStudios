@@ -1,4 +1,8 @@
-/* eslint-disable no-unused-vars */
+// Component Info
+// Description: TypeScript interfaces for navigation menu components.
+// Date created: 2025-01-27
+// Author: thangtruong
+
 export interface NavMenuSubcategory {
   id: number;
   name: string;
@@ -12,8 +16,7 @@ export interface NavMenuCategory {
 
 export interface MenuProps {
   categories: NavMenuCategory[];
-  isActive: (routePath: string) => boolean;
+  isActive?: (_routePath: string) => boolean; // Optional: currently not used but kept for future use
   activeCategoryId?: number | null;
   activeSubcategoryId?: number | null;
 }
-/* eslint-enable no-unused-vars */

@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation";
 import { searchArticles } from "@/app/lib/actions/search-articles";
 import Card from "@/app/components/front-end/shared/Card";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import ScrollButtons from "@/app/components/front-end/shared/ScrollButtons";
 
 function SearchResultsContent() {
   const searchParams = useSearchParams();
@@ -187,6 +188,9 @@ function SearchResultsContent() {
           </>
         )}
       </div>
+
+      {/* Scroll buttons */}
+      <ScrollButtons />
     </div>
   );
 }

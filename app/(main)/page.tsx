@@ -4,6 +4,7 @@ import FeaturedArticles from "@/app/components/front-end/FeaturedArticles/Featur
 import RelativeArticles from "@/app/components/front-end/relative-articles/RelativeArticles";
 import Tags from "../components/front-end/Tags/Tags";
 import VideoCarousel from "../components/front-end/VideoCarousel";
+import ScrollButtons from "../components/front-end/shared/ScrollButtons";
 
 // Component Info
 // Description: Home page layout orchestrating video carousel, featured articles, highlights, trending, related articles, and tags sections.
@@ -42,6 +43,9 @@ export default function Home() {
       <section className="mb-16 md:mb-20">
         <Tags />
       </section>
+
+      {/* Scroll buttons */}
+      <ScrollButtons />
     </main>
   );
 }

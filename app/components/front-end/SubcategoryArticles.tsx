@@ -6,6 +6,7 @@ import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinne
 import Card from "@/app/components/front-end/shared/Card";
 import { FolderIcon } from "@heroicons/react/24/outline";
 import SubcategoryArticlesSkeleton from "./SubcategoryArticlesSkeleton";
+import ScrollButtons from "./shared/ScrollButtons";
 
 type Props = {
   subcategory?: string;
@@ -372,6 +373,9 @@ export default function SubcategoryArticles({ subcategory }: Props) {
           )}
         </div>
       </div>
+
+      {/* Scroll buttons */}
+      <ScrollButtons />
     </>
   );
 }

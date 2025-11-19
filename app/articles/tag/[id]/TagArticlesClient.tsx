@@ -8,17 +8,22 @@ import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinne
 import { Card } from "@/app/components/front-end/shared";
 import { TagIcon } from "@heroicons/react/24/outline";
 import TagArticlesSkeleton from "./TagArticlesSkeleton";
+import ScrollButtons from "@/app/components/front-end/shared/ScrollButtons";
 
 // Component Info
 // Description: Client component displaying articles filtered by a specific tag with pagination.
-// Date created: 2025-11-18
+// Date created: 2025-01-27
 // Author: thangtruong
 
 interface TagArticlesClientProps {
-  params: {
-    id: string;
-  };
+  params: { id: string };
 }
+
+// Helper function to parse tag names and colors
+const parseTags = (tagData: string | string[] | undefined): string[] => {
+  if (typeof tagData === "string") return tagData.split(",");
+  return Array.isArray(tagData) ? tagData : [];
+};
 
 export default function TagArticlesClient({ params }: TagArticlesClientProps) {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -26,11 +31,7 @@ export default function TagArticlesClient({ params }: TagArticlesClientProps) {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [tagInfo, setTagInfo] = useState<{
-    name: string;
-    color: string;
-    description: string | null;
-  } | null>(null);
+  const [tagInfo, setTagInfo] = useState<{ name: string; color: string; description: string | null } | null>(null);
   const itemsPerPage = 10;
   const [hasMore, setHasMore] = useState(false);
   const articlesRef = useRef<Article[]>([]);
@@ -38,33 +39,21 @@ export default function TagArticlesClient({ params }: TagArticlesClientProps) {
   // Fetch tag information
   useEffect(() => {
     let isMounted = true;
-
     const fetchTagInfo = async () => {
       try {
         const result = await getTagById(Number(params.id));
         if (!isMounted) return;
-
-        if (result.error) {
-          throw new Error(result.error);
-        }
+        if (result.error) throw new Error(result.error);
         if (result.data) {
-          setTagInfo({
-            name: result.data.name,
-            color: result.data.color || '#000000',
-            description: result.data.description
-          });
+          setTagInfo({ name: result.data.name, color: result.data.color || '#000000', description: result.data.description });
         }
       } catch (error) {
         if (!isMounted) return;
         setError(error instanceof Error ? error.message : "Failed to fetch tag information");
       }
     };
-
     fetchTagInfo();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [params.id]);
 
   // Handle load more click
@@ -76,30 +65,15 @@ export default function TagArticlesClient({ params }: TagArticlesClientProps) {
   // Fetch articles when tag ID or page changes
   useEffect(() => {
     let isMounted = true;
-
     const fetchArticles = async () => {
       if (!params.id) return;
-
       try {
         setIsLoading(true);
-        const result = await getArticlesByTag({
-          tagId: params.id,
-          page: currentPage,
-          itemsPerPage,
-        });
-
+        const result = await getArticlesByTag({ tagId: params.id, page: currentPage, itemsPerPage });
         if (!isMounted) return;
-
-        if (result.error) {
-          throw new Error(result.error);
-        }
-
-        if (!result.data) {
-          throw new Error("No data received");
-        }
-
+        if (result.error) throw new Error(result.error);
+        if (!result.data) throw new Error("No data received");
         const newArticles = result.data;
-
         if (currentPage === 1) {
           setArticles(newArticles);
           articlesRef.current = newArticles;
@@ -108,29 +82,17 @@ export default function TagArticlesClient({ params }: TagArticlesClientProps) {
           articlesRef.current = updatedArticles;
           setArticles(updatedArticles);
         }
-
         setTotalCount(result.totalCount || 0);
-
-        // Calculate total loaded articles
-        const totalLoaded = articlesRef.current.length;
-        setHasMore(result.totalCount > totalLoaded);
+        setHasMore(result.totalCount > articlesRef.current.length);
       } catch (error) {
         if (!isMounted) return;
-        setError(
-          error instanceof Error ? error.message : "Failed to fetch articles"
-        );
+        setError(error instanceof Error ? error.message : "Failed to fetch articles");
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted) setIsLoading(false);
       }
     };
-
     fetchArticles();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [params.id, currentPage, itemsPerPage]);
 
   // Loading state display
@@ -153,12 +115,8 @@ export default function TagArticlesClient({ params }: TagArticlesClientProps) {
       <div className="w-full max-w-[1536px] mx-auto px-4 mt-10">
         <div className="bg-white rounded-xl shadow-sm p-8 text-center">
           <div className="flex flex-col items-center justify-center space-y-4">
-            <h3 className="text-xl font-semibold text-gray-900">
-              No Articles Found
-            </h3>
-            <p className="text-gray-500 max-w-md">
-              We couldn&apos;t find any articles with this tag. Please check back later or explore other tags.
-            </p>
+            <h3 className="text-xl font-semibold text-gray-900">No Articles Found</h3>
+            <p className="text-gray-500 max-w-md">We couldn&apos;t find any articles with this tag. Please check back later or explore other tags.</p>
           </div>
         </div>
       </div>
@@ -212,61 +170,38 @@ export default function TagArticlesClient({ params }: TagArticlesClientProps) {
       <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-10">
         <div className="max-w-[1536px] mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-6">
-            {Array.isArray(articles) && articles.map((article) => {
-              // Split tag strings into arrays safely
-              const tagNames = typeof article.tag_names === "string"
-                ? (article.tag_names as string).split(",")
-                : Array.isArray(article.tag_names)
-                  ? article.tag_names
-                  : [];
-              const tagColors = typeof article.tag_colors === "string"
-                ? (article.tag_colors as string).split(",")
-                : Array.isArray(article.tag_colors)
-                  ? article.tag_colors
-                  : [];
-
-              return (
-                <Card
-                  key={article.id}
-                  title={article.title}
-                  description={article.content}
-                  imageUrl={article.image || undefined}
-                  link={`/articles/${article.id}`}
-                  category={article.category_name}
-                  subcategory={article.subcategory_name}
-                  author={article.author_name}
-                  date={article.published_at}
-                  viewsCount={article.views_count}
-                  likesCount={article.likes_count}
-                  commentsCount={article.comments_count}
-                  tags={tagNames}
-                  tagColors={tagColors}
-                />
-              );
-            })}
+            {Array.isArray(articles) && articles.map((article) => (
+              <Card
+                key={article.id}
+                title={article.title}
+                description={article.content}
+                imageUrl={article.image || undefined}
+                link={`/articles/${article.id}`}
+                category={article.category_name}
+                subcategory={article.subcategory_name}
+                author={article.author_name}
+                date={article.published_at}
+                likesCount={article.likes_count}
+                commentsCount={article.comments_count}
+                tags={parseTags(article.tag_names)}
+                tagColors={parseTags(article.tag_colors)}
+              />
+            ))}
           </div>
 
           {/* Load More Button */}
           {hasMore && (
             <div className="m-8 text-center">
-              <button
-                onClick={handleLoadMore}
-                disabled={isLoading}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <>
-                    <LoadingSpinner />
-                    <span className="ml-2">Loading...</span>
-                  </>
-                ) : (
-                  "Load More"
-                )}
+              <button onClick={handleLoadMore} disabled={isLoading} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                {isLoading ? (<><LoadingSpinner /><span className="ml-2">Loading...</span></>) : "Load More"}
               </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Scroll buttons */}
+      <ScrollButtons />
     </div>
   );
 } 

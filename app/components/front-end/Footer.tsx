@@ -11,6 +11,7 @@ import {
   ChatBubbleLeftRightIcon,
   HeartIcon,
 } from "@heroicons/react/24/solid";
+import { FaLinkedin, FaGithub, FaFacebook } from "react-icons/fa";
 
 // Component Info
 // Description: Server-rendered footer showcasing brand info, helpful links, and navigation categories with modern styling.
@@ -37,6 +38,39 @@ export default function Footer() {
             <Link href="/" className="inline-block transition-opacity hover:opacity-80">
               <BrandName />
             </Link>
+            {/* Social media icons */}
+            <div className="mt-6 flex items-center gap-4">
+              <a
+                href="https://www.linkedin.com/in/thang-truong-00b245200/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-transform hover:scale-110"
+                aria-label="LinkedIn"
+              >
+                {/* @ts-expect-error - react-icons TypeScript compatibility issue */}
+                <FaLinkedin className="h-6 w-6 text-[#0077B5]" />
+              </a>
+              <a
+                href="https://github.com/thangtruong1808"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-transform hover:scale-110"
+                aria-label="GitHub"
+              >
+                {/* @ts-expect-error - react-icons TypeScript compatibility issue */}
+                <FaGithub className="h-6 w-6 text-[#181717]" />
+              </a>
+              <a
+                href="https://www.facebook.com/profile.php?id=100051753410222"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-transform hover:scale-110"
+                aria-label="Facebook"
+              >
+                {/* @ts-expect-error - react-icons TypeScript compatibility issue */}
+                <FaFacebook className="h-6 w-6 text-[#1877F2]" />
+              </a>
+            </div>
           </div>
 
           {/* Quick Links section */}

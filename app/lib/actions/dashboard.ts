@@ -40,6 +40,7 @@ export async function getDashboardStats() {
       return {
         data: {
           activeUsers: 0,
+          inactiveUsers: 0,
           activeUsersTrend: 0,
           totalArticles: 0,
           totalLikes: 0,
@@ -47,6 +48,7 @@ export async function getDashboardStats() {
           pageViewsLast30Days: 0,
           newUsersLast30Days: 0,
           trendingTopics: 0,
+          mostLikedArticle: undefined,
         },
         error: "Failed to resolve table names.",
       };

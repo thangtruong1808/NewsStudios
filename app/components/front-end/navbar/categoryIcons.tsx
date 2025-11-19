@@ -3,7 +3,7 @@
 // Date created: 2025-01-27
 // Author: thangtruong
 
-import { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
   Newspaper,
   Laptop,

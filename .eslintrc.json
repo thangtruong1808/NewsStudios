@@ -7,7 +7,7 @@
   ],
   "plugins": ["import"],
   "rules": {
-    "no-unused-vars": ["warn", { "varsIgnorePattern": "^_" }],
+    "no-unused-vars": ["warn", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_" }],
     // "import/no-unused-modules": [1, { "unusedExports": true }],
    "import/no-unused-modules": "off",
     "import/no-unresolved": "error",

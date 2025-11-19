@@ -7,7 +7,6 @@
 
 import { query } from "../db/query";
 import { resolveTableName } from "../db/tableNameResolver";
-import { Article } from "../definition";
 
 interface SearchArticlesParams {
   search?: string;

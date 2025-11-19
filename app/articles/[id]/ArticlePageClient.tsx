@@ -8,6 +8,7 @@
 import { useState, useCallback } from "react";
 import SingleArticle from "@/app/components/front-end/articles/SingleArticle";
 import Comments from "@/app/components/front-end/articles/components/Comments";
+import ScrollButtons from "@/app/components/front-end/shared/ScrollButtons";
 
 interface ArticlePageClientProps {
   params: {
@@ -46,6 +47,9 @@ export default function ArticlePageClient({ params }: ArticlePageClientProps) {
       <section className="mb-16">
         <Comments articleId={articleId} onCommentCountUpdate={handleCommentCountUpdate} />
       </section>
+
+      {/* Scroll buttons */}
+      <ScrollButtons />
     </>
   );
 } 

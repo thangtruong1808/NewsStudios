@@ -20,7 +20,8 @@ interface MobileMenuProps extends MenuProps {
   onOpenSearch?: () => void;
 }
 
-export default function MobileMenu({ categories = [], isActive, activeCategoryId: urlCategoryId, activeSubcategoryId: urlSubcategoryId, onOpenSearch }: MobileMenuProps) {
+export default function MobileMenu({ categories = [], activeCategoryId: urlCategoryId, activeSubcategoryId: urlSubcategoryId, onOpenSearch }: MobileMenuProps) {
+  // Note: isActive prop is available but not currently used
   const { data: session } = useSession();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [expandedCategoryId, setExpandedCategoryId] = useState<number | null>(null);
@@ -173,7 +174,7 @@ export default function MobileMenu({ categories = [], isActive, activeCategoryId
                           if (!CategoryIcon) return null;
                           const hasSubcategories = category.subcategories && Array.isArray(category.subcategories) && category.subcategories.length > 0;
                           const isCategoryActive = urlCategoryId === category.id;
-                          const isExpanded = expandedCategoryId === category.id || urlCategoryId === category.id || (urlSubcategoryId && category.subcategories.some((sub) => sub.id === urlSubcategoryId));
+                          const isExpanded = Boolean(expandedCategoryId === category.id || urlCategoryId === category.id || (urlSubcategoryId && category.subcategories.some((sub) => sub.id === urlSubcategoryId)));
                           const categoryActiveClass = isCategoryActive ? "bg-blue-50 text-blue-600 font-semibold" : "text-slate-700 hover:bg-slate-50";
                           return (
                             <div key={category.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white transition-shadow hover:shadow-md">

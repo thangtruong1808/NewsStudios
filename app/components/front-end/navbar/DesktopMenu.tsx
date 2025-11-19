@@ -11,9 +11,8 @@ import { MenuProps } from "./types";
 import { getCategoryIcon, getSubcategoryIcon } from "./categoryIcons";
 import type { LucideIcon } from "lucide-react";
 
-export default function DesktopMenu({ categories, isActive, activeCategoryId, activeSubcategoryId }: MenuProps) {
-  if (categories.length === 0) return null;
-
+export default function DesktopMenu({ categories, activeCategoryId, activeSubcategoryId }: MenuProps) {
+  // Note: isActive prop is available but not currently used
   // Track used icons to prevent duplicates
   const iconMapping = useMemo(() => {
     const usedIcons = new Set<LucideIcon>();
@@ -35,6 +34,8 @@ export default function DesktopMenu({ categories, isActive, activeCategoryId, ac
     return { categoryIcons, subcategoryIcons };
   }, [categories]);
 
+  if (categories.length === 0) return null;
+
   return (
     <div className="flex w-full flex-wrap items-center justify-center gap-4 text-sm xl:text-base">
       {/* Category links with dropdown submenus */}
@@ -43,11 +44,10 @@ export default function DesktopMenu({ categories, isActive, activeCategoryId, ac
         if (!CategoryIcon) return null;
 
         const isCategoryActive = activeCategoryId === category.id;
-        const categoryLinkClass = `flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
-          isCategoryActive
-            ? "text-blue-600 font-semibold bg-blue-50"
-            : "text-slate-700 hover:text-blue-600 hover:bg-slate-50"
-        }`;
+        const categoryLinkClass = `flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-200 ${isCategoryActive
+          ? "text-blue-600 font-semibold bg-blue-50"
+          : "text-slate-700 hover:text-blue-600 hover:bg-slate-50"
+          }`;
 
         return (
           <div key={category.id} className="group relative">
@@ -66,11 +66,10 @@ export default function DesktopMenu({ categories, isActive, activeCategoryId, ac
                     if (!SubcategoryIcon) return null;
 
                     const isSubcategoryActive = activeSubcategoryId === subcategory.id;
-                    const subcategoryLinkClass = `flex items-center gap-2.5 w-52 px-4 py-2.5 text-xs transition-all duration-200 sm:text-sm sm:w-60 ${
-                      isSubcategoryActive
-                        ? "bg-blue-50 text-blue-600 font-semibold"
-                        : "text-slate-700 hover:bg-blue-50 hover:text-blue-600"
-                    }`;
+                    const subcategoryLinkClass = `flex items-center gap-2.5 w-52 px-4 py-2.5 text-xs transition-all duration-200 sm:text-sm sm:w-60 ${isSubcategoryActive
+                      ? "bg-blue-50 text-blue-600 font-semibold"
+                      : "text-slate-700 hover:bg-blue-50 hover:text-blue-600"
+                      }`;
 
                     return (
                       <Link key={subcategory.id} href={`/explore?subcategoryId=${subcategory.id}`} className={subcategoryLinkClass}>

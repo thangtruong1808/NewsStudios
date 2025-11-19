@@ -54,10 +54,13 @@ export default function UserProfileDropdown() {
   // Format role display name
   const roleDisplayName = session.user.role.charAt(0).toUpperCase() + session.user.role.slice(1);
   
-  // Check if user has valid image URL
-  const hasValidImage = session.user.user_image && 
+  // Check if user has valid image URL and store it
+  const userImage = session.user.user_image && 
     typeof session.user.user_image === "string" && 
-    session.user.user_image.trim() !== "";
+    session.user.user_image.trim() !== ""
+    ? session.user.user_image
+    : null;
+  const hasValidImage = userImage !== null;
   
   // Get user initials for avatar fallback
   const getUserInitials = () => {
@@ -81,10 +84,10 @@ export default function UserProfileDropdown() {
         aria-expanded={isOpen}
       >
         {/* Avatar with initials fallback */}
-        {hasValidImage ? (
+        {hasValidImage && userImage ? (
           <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-slate-200">
             <Image 
-              src={session.user.user_image} 
+              src={userImage} 
               alt={`${session.user.firstname} ${session.user.lastname}`} 
               fill 
               className="object-cover"
@@ -106,10 +109,10 @@ export default function UserProfileDropdown() {
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
             <div className="flex items-center gap-3">
               {/* Avatar with initials fallback */}
-              {hasValidImage ? (
+              {hasValidImage && userImage ? (
                 <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-slate-200">
                   <Image 
-                    src={session.user.user_image} 
+                    src={userImage} 
                     alt={`${session.user.firstname} ${session.user.lastname}`} 
                     fill 
                     className="object-cover"
