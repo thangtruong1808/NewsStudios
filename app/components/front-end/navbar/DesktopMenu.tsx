@@ -12,22 +12,28 @@ import { getCategoryIcon, getSubcategoryIcon } from "./categoryIcons";
 import type { LucideIcon } from "lucide-react";
 
 export default function DesktopMenu({ categories, activeCategoryId, activeSubcategoryId }: MenuProps) {
-  // Note: isActive prop is available but not currently used
-  // Track used icons to prevent duplicates
+  // Track used icons per category to ensure subcategories from different categories get different icons
   const iconMapping = useMemo(() => {
-    const usedIcons = new Set<LucideIcon>();
+    // Global set for category icons to prevent duplicates across categories
+    const globalUsedIcons = new Set<LucideIcon>();
     const categoryIcons = new Map<number, LucideIcon>();
     const subcategoryIcons = new Map<number, LucideIcon>();
 
     categories.forEach((category) => {
-      const categoryIcon = getCategoryIcon(category.name, usedIcons);
+      // Assign category icon (global tracking to prevent duplicates)
+      const categoryIcon = getCategoryIcon(category.name, globalUsedIcons);
       categoryIcons.set(category.id, categoryIcon);
-      usedIcons.add(categoryIcon);
+      globalUsedIcons.add(categoryIcon);
 
+      // Track icons used within this specific category's subcategories
+      const categorySubcategoryIcons = new Set<LucideIcon>();
+      
       category.subcategories.forEach((subcategory) => {
-        const subcategoryIcon = getSubcategoryIcon(subcategory.name, usedIcons);
+        // Assign subcategory icon using per-category tracking
+        // This ensures subcategories from different categories can have different icons
+        const subcategoryIcon = getSubcategoryIcon(subcategory.name, categorySubcategoryIcons);
         subcategoryIcons.set(subcategory.id, subcategoryIcon);
-        usedIcons.add(subcategoryIcon);
+        categorySubcategoryIcons.add(subcategoryIcon);
       });
     });
 
@@ -41,8 +47,6 @@ export default function DesktopMenu({ categories, activeCategoryId, activeSubcat
       {/* Category links with dropdown submenus */}
       {categories.map((category) => {
         const CategoryIcon = iconMapping.categoryIcons.get(category.id);
-        if (!CategoryIcon) return null;
-
         const isCategoryActive = activeCategoryId === category.id;
         const categoryLinkClass = `flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-200 ${isCategoryActive
           ? "text-blue-600 font-semibold bg-blue-50"
@@ -53,7 +57,7 @@ export default function DesktopMenu({ categories, activeCategoryId, activeSubcat
           <div key={category.id} className="group relative">
             {/* Main category link */}
             <Link href={`/explore?categoryId=${category.id}`} className={categoryLinkClass}>
-              <CategoryIcon className="h-4 w-4 shrink-0" />
+              {CategoryIcon && <CategoryIcon className="h-4 w-4 shrink-0" />}
               <span>{category.name}</span>
             </Link>
 
@@ -63,8 +67,6 @@ export default function DesktopMenu({ categories, activeCategoryId, activeSubcat
                 <div className="relative overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-slate-200/80 border border-slate-100">
                   {category.subcategories.map((subcategory) => {
                     const SubcategoryIcon = iconMapping.subcategoryIcons.get(subcategory.id);
-                    if (!SubcategoryIcon) return null;
-
                     const isSubcategoryActive = activeSubcategoryId === subcategory.id;
                     const subcategoryLinkClass = `flex items-center gap-2.5 w-52 px-4 py-2.5 text-xs transition-all duration-200 sm:text-sm sm:w-60 ${isSubcategoryActive
                       ? "bg-blue-50 text-blue-600 font-semibold"
@@ -73,7 +75,7 @@ export default function DesktopMenu({ categories, activeCategoryId, activeSubcat
 
                     return (
                       <Link key={subcategory.id} href={`/explore?subcategoryId=${subcategory.id}`} className={subcategoryLinkClass}>
-                        <SubcategoryIcon className="h-3.5 w-3.5 shrink-0" />
+                        {SubcategoryIcon && <SubcategoryIcon className="h-3.5 w-3.5 shrink-0" />}
                         <span className="truncate">{subcategory.name}</span>
                       </Link>
                     );

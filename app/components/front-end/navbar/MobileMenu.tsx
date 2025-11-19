@@ -32,21 +32,28 @@ export default function MobileMenu({ categories = [], activeCategoryId: urlCateg
   const pathname = usePathname();
   const router = useRouter();
 
-  // Track used icons to prevent duplicates
+  // Track used icons per category to ensure subcategories from different categories get different icons
   const iconMapping = useMemo(() => {
-    const usedIcons = new Set<LucideIcon>();
+    // Global set for category icons to prevent duplicates across categories
+    const globalUsedIcons = new Set<LucideIcon>();
     const categoryIcons = new Map<number, LucideIcon>();
     const subcategoryIcons = new Map<number, LucideIcon>();
 
     categories.forEach((category) => {
-      const categoryIcon = getCategoryIcon(category.name, usedIcons);
+      // Assign category icon (global tracking to prevent duplicates)
+      const categoryIcon = getCategoryIcon(category.name, globalUsedIcons);
       categoryIcons.set(category.id, categoryIcon);
-      usedIcons.add(categoryIcon);
+      globalUsedIcons.add(categoryIcon);
 
+      // Track icons used within this specific category's subcategories
+      const categorySubcategoryIcons = new Set<LucideIcon>();
+      
       category.subcategories.forEach((subcategory) => {
-        const subcategoryIcon = getSubcategoryIcon(subcategory.name, usedIcons);
+        // Assign subcategory icon using per-category tracking
+        // This ensures subcategories from different categories can have different icons
+        const subcategoryIcon = getSubcategoryIcon(subcategory.name, categorySubcategoryIcons);
         subcategoryIcons.set(subcategory.id, subcategoryIcon);
-        usedIcons.add(subcategoryIcon);
+        categorySubcategoryIcons.add(subcategoryIcon);
       });
     });
 

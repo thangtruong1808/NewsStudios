@@ -187,6 +187,7 @@ export async function getTrendingArticles(): Promise<{
     }
 
     // Get trending articles with likes and comments counts
+    // Handle both boolean (TRUE/FALSE) and integer (1/0) representations
     const result = await query<TrendingArticle & { likes_count: number; comments_count: number }>(
       `SELECT 
         a.id, 
@@ -197,9 +198,9 @@ export async function getTrendingArticles(): Promise<{
        FROM \`${articlesTable}\` a
        LEFT JOIN \`${likesTable}\` l ON a.id = l.article_id
        LEFT JOIN \`${commentsTable}\` c ON a.id = c.article_id
-       WHERE a.is_trending = 1 
+       WHERE (a.is_trending = 1 OR a.is_trending = TRUE)
        GROUP BY a.id, a.title, a.published_at
-       ORDER BY (likes_count + comments_count) DESC 
+       ORDER BY (likes_count + comments_count) DESC, a.published_at DESC
        LIMIT 3`
     );
 
@@ -210,7 +211,15 @@ export async function getTrendingArticles(): Promise<{
       };
     }
 
-    const articles = (result.data || []).map((article) => ({
+    // Handle null data case
+    if (!result.data || result.data.length === 0) {
+      return {
+        data: [],
+        error: null,
+      };
+    }
+
+    const articles = result.data.map((article) => ({
       id: article.id,
       title: article.title,
       likes_count: Number(article.likes_count || 0),
