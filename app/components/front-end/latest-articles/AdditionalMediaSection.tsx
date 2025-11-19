@@ -1,5 +1,10 @@
 "use client";
 
+// Component Info
+// Description: Display additional media gallery (images and videos) for articles with thumbnail grid layout.
+// Date created: 2025-01-27
+// Author: thangtruong
+
 import { useEffect, useState } from "react";
 import { getImagesByArticleId } from "@/app/lib/actions/front-end-images";
 import { MediaThumbnail } from "./MediaThumbnail";
@@ -34,19 +39,16 @@ export const AdditionalMediaSection = ({
         }
 
         if (result.data) {
-          console.log("Received images from server:", result.data); // Debug log
           const formattedImages = result.data.map((img) => ({
             id: img.id,
             url: img.image_url,
             description: img.description || undefined,
             type: img.type,
           }));
-          console.log("Formatted images:", formattedImages); // Debug log
           setImages(formattedImages);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch images");
-        console.error("Error fetching images:", err);
       } finally {
         setLoading(false);
       }
@@ -54,11 +56,6 @@ export const AdditionalMediaSection = ({
 
     fetchImages();
   }, [articleId]);
-
-  // Debug log for current images state
-  useEffect(() => {
-    console.log("Current images state:", images);
-  }, [images]);
 
   if (loading) {
     return (

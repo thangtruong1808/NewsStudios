@@ -1,5 +1,10 @@
 "use client";
 
+// Component Info
+// Description: Display trending tags extracted from articles with clickable links to explore filtered content.
+// Date created: 2025-01-27
+// Author: thangtruong
+
 import { useState, useEffect } from "react";
 import { getArticles } from "@/app/lib/actions/articles";
 import Link from "next/link";
@@ -43,10 +48,8 @@ export default function ExploreTrendingTags() {
           .sort((a, b) => b.count - a.count)
           .slice(0, 6); // Get top 6 tags
 
-        console.log("Sorted tags:", sortedTags); // Debug log
         setTags(sortedTags);
       } catch (error) {
-        console.error("Error fetching tags:", error);
         setError(
           error instanceof Error ? error.message : "Failed to fetch tags"
         );

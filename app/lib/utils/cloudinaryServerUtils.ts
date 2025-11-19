@@ -1,5 +1,10 @@
 "use server";
 
+// Component Info
+// Description: Server-side Cloudinary utility functions for secure image and video uploads and deletions.
+// Date created: 2025-01-27
+// Author: thangtruong
+
 import { v2 as cloudinary } from "cloudinary";
 
 // Configure Cloudinary with your credentials
@@ -65,8 +70,6 @@ export async function uploadImageToCloudinary(
       resourceType = "video";
     }
 
-    console.log(`Resource type determined: ${resourceType}`);
-
     // Upload to Cloudinary
     const result = await new Promise((resolve, reject) => {
       try {
@@ -79,11 +82,6 @@ export async function uploadImageToCloudinary(
             if (error) {
               reject(error);
             } else {
-              console.log("Cloudinary upload successful:", {
-                public_id: (result as any).public_id,
-                format: (result as any).format,
-                resource_type: (result as any).resource_type,
-              });
               resolve(result);
             }
           }

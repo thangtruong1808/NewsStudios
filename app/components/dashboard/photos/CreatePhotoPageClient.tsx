@@ -1,28 +1,21 @@
 "use client";
 
+// Component Info
+// Description: Client wrapper for photo creation and editing page with article association.
+// Date created: 2025-01-27
+// Author: thangtruong
+
 import { Article, Image } from "@/app/lib/definition";
 import PhotoFormContainer from "./form/PhotoFormContainer";
 
-/**
- * Props interface for CreatePhotoPageClient component
- * @property articles - List of available articles for photo association
- * @property image - Optional existing image for editing
- */
 interface CreatePhotoPageClientProps {
   articles: Article[];
   image?: Image;
 }
-
-/**
- * CreatePhotoPageClient Component
- * Client component for the photo creation page
- */
 export default function CreatePhotoPageClient({
   articles,
   image,
 }: CreatePhotoPageClientProps) {
-  console.log("CreatePhotoPageClient received articles:", articles);
-
   return (
     <div className="w-full">
       <PhotoFormContainer

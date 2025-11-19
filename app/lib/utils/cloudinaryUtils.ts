@@ -1,15 +1,9 @@
 "use client";
 
-// Remove the cloudinary import and configuration
-// import { v2 as cloudinary } from "cloudinary";
-
-// Configure Cloudinary with your credentials
-// cloudinary.config({
-//   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-//   api_key: process.env.CLOUDINARY_API_KEY,
-//   api_secret: process.env.CLOUDINARY_API_SECRET,
-//   secure: true,
-// });
+// Component Info
+// Description: Client-side Cloudinary utility functions for image and video uploads, deletions, and URL transformations.
+// Date created: 2025-01-27
+// Author: thangtruong
 
 // Import the server actions
 import {
@@ -34,18 +28,11 @@ export async function uploadImage(
   error?: string;
 }> {
   try {
-    console.log("Starting uploadImage function with:", {
-      fileType: typeof file,
-      isFile: file instanceof File,
-      folder,
-    });
-
     let fileToUpload: File;
 
     if (typeof file === "string") {
       // If it's a base64 string, convert it to a File object
       try {
-        console.log("Converting string to File object");
         const response = await fetch(file);
         if (!response.ok) {
           throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -53,9 +40,7 @@ export async function uploadImage(
         const blob = await response.blob();
         const fileName = "image.jpg";
         fileToUpload = new File([blob], fileName, { type: blob.type });
-        console.log("Successfully converted string to File object");
       } catch (error) {
-        console.error("Error converting string to File:", error);
         throw new Error("Failed to process image data");
       }
     } else {
@@ -227,14 +212,12 @@ export function isCloudinaryUrl(url: string): boolean {
  */
 export function getPublicIdFromUrl(url: string): string | null {
   if (!url) {
-    console.log("No URL provided to getPublicIdFromUrl");
     return null;
   }
 
   try {
     // Check if the URL contains cloudinary.com
     if (!url.includes("cloudinary.com")) {
-      console.log("Not a Cloudinary URL:", url);
       return null;
     }
 
@@ -245,7 +228,6 @@ export function getPublicIdFromUrl(url: string): string | null {
     // Find the upload index
     const uploadIndex = pathParts.findIndex((part) => part === "upload");
     if (uploadIndex === -1) {
-      console.log("No 'upload' segment found in URL:", url);
       return null;
     }
 
@@ -263,19 +245,8 @@ export function getPublicIdFromUrl(url: string): string | null {
     // Remove the file extension if present
     const cleanPublicId = publicId.replace(/\.[^/.]+$/, "");
 
-    console.log("Extracted public ID:", {
-      originalUrl: url,
-      pathParts,
-      uploadIndex,
-      partsAfterUpload,
-      relevantParts,
-      publicIdParts,
-      cleanPublicId,
-    });
-
     return cleanPublicId;
-  } catch (error) {
-    console.error("Error extracting public ID:", error, "URL:", url);
+  } catch {
     return null;
   }
 }
@@ -288,16 +259,6 @@ export async function uploadToCloudinary(
     // Get environment variables from .env
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-
-    console.log("Cloudinary configuration:", {
-      cloudName,
-      uploadPreset,
-      hasCloudName: !!cloudName,
-      hasUploadPreset: !!uploadPreset,
-      fileType: file.type,
-      fileName: file.name,
-      fileSize: file.size,
-    });
 
     // Validate environment variables with detailed error messages
     if (!cloudName) {
@@ -320,7 +281,6 @@ export async function uploadToCloudinary(
 
     // Upload to Cloudinary
     const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${type}/upload`;
-    console.log("Uploading to:", uploadUrl);
 
     const response = await fetch(uploadUrl, {
       method: "POST",
@@ -329,16 +289,10 @@ export async function uploadToCloudinary(
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Cloudinary upload error:", {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorData,
-      });
       throw new Error(errorData.error?.message || "Upload failed");
     }
 
     const data = await response.json();
-    console.log("Cloudinary upload response:", data);
 
     if (!data.secure_url) {
       throw new Error("No secure URL returned from Cloudinary");
@@ -349,7 +303,6 @@ export async function uploadToCloudinary(
       url: data.secure_url,
     };
   } catch (error) {
-    console.error("Error uploading file:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to upload file",

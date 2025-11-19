@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+// Component Info
+// Description: Image component with fallback mechanism to handle proxy URL failures by switching to direct URL.
+// Date created: 2025-01-27
+// Author: thangtruong
+
+import { useState } from "react";
 import Image from "next/image";
 
 interface ImageWithFallbackProps {
@@ -25,7 +30,6 @@ export default function ImageWithFallback({
 
   const handleError = () => {
     if (!error) {
-      console.log("Proxy image failed, trying direct URL");
       setSrc(directUrl);
       setError(true);
     }

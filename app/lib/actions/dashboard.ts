@@ -181,7 +181,7 @@ export async function getTrendingArticles(): Promise<{
 
     if (!articlesTable || !likesTable || !commentsTable) {
       return {
-        data: null,
+        data: [],
         error: "Failed to resolve table names.",
       };
     }
@@ -204,7 +204,10 @@ export async function getTrendingArticles(): Promise<{
     );
 
     if (result.error) {
-      throw new Error("Failed to fetch trending articles");
+      return {
+        data: [],
+        error: result.error,
+      };
     }
 
     const articles = (result.data || []).map((article) => ({
@@ -221,7 +224,7 @@ export async function getTrendingArticles(): Promise<{
     };
   } catch (error) {
     return {
-      data: null,
+      data: [],
       error: error instanceof Error ? error.message : "Failed to fetch trending articles",
     };
   }
