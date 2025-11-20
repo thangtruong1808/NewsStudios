@@ -24,13 +24,16 @@ export async function getComments({
   limit = 10,
 }: GetCommentsParams) {
   try {
-    const commentsTable = await resolveTableName("Comments");
-    if (!commentsTable) {
-      return {
-        data: [],
-        error: "Failed to resolve table name.",
-        totalCount: 0,
-      };
+    // Resolve table names with fallback to lowercase names
+    let commentsTable: string;
+    let usersTable: string;
+
+    try {
+      const resolvedCommentsTable = await resolveTableName("Comments");
+      commentsTable = resolvedCommentsTable || "comments";
+    } catch (_resolveError) {
+      // Fallback to lowercase name if resolution fails
+      commentsTable = "comments";
     }
 
     const limitValue = Math.max(1, Number(limit) || 10);
@@ -47,14 +50,13 @@ export async function getComments({
         ? Number((countResult.data[0] as { count: number }).count ?? 0)
         : 0;
 
-    // Resolve Users table name
-    const usersTable = await resolveTableName("Users");
-    if (!usersTable) {
-      return {
-        data: [],
-        error: "Failed to resolve Users table name.",
-        totalCount: 0,
-      };
+    // Resolve Users table name with fallback
+    try {
+      const resolvedUsersTable = await resolveTableName("Users");
+      usersTable = resolvedUsersTable || "users";
+    } catch (_resolveError) {
+      // Fallback to lowercase name if resolution fails
+      usersTable = "users";
     }
 
     // Get paginated comments with user info

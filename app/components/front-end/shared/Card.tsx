@@ -8,8 +8,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   UserIcon,
-  CalendarIcon,
-  TagIcon,
   HandThumbUpIcon,
   ChatBubbleLeftIcon,
   PhotoIcon,
@@ -39,43 +37,18 @@ const Card: React.FC<CardProps> = ({
   description,
   imageUrl,
   link,
-  date,
+  date: _date,
   author,
-  category,
-  subcategory,
-  tags,
-  tagColors,
+  category: _category,
+  subcategory: _subcategory,
+  tags: _tags,
+  tagColors: _tagColors,
   likesCount,
   commentsCount,
   children,
   onLikeClick,
   onCommentClick,
 }) => {
-  // Format date function
-  const formatDate = (dateString: string) => {
-    if (!dateString) return ""; // Return empty string if date is not provided
-
-    try {
-      // Handle ISO date string
-      const date = new Date(dateString);
-      if (Number.isNaN(date.getTime())) {
-        return ""; // Return empty string if date is invalid
-      }
-
-      // Format the date
-      const options: Intl.DateTimeFormatOptions = {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        timeZone: "UTC", // Ensure consistent date display
-      };
-
-      return date.toLocaleDateString("en-US", options);
-    } catch (_error) {
-      return ""; // Return empty string if parsing fails
-    }
-  };
-
   // Handle like click
   const handleLikeClick = () => {
     onLikeClick?.();
@@ -110,32 +83,6 @@ const Card: React.FC<CardProps> = ({
         )}
       </div>
       <div className="p-3 flex flex-col flex-grow">
-        {/* Category and subcategory badges */}
-        {(category || subcategory) && (
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {category && (
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] font-medium text-gray-500">
-                  Category:
-                </span>
-                <span className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-800 rounded">
-                  {category}
-                </span>
-              </div>
-            )}
-            {subcategory && (
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] font-medium text-gray-500">
-                  Sub:
-                </span>
-                <span className="px-1.5 py-0.5 text-[10px] font-medium bg-green-100 text-green-800 rounded">
-                  {subcategory}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Article title and description */}
         <h3 className="text-base font-semibold mb-1.5 line-clamp-2">
           <Link href={link} className="hover:text-blue-600 transition-colors">
@@ -148,12 +95,11 @@ const Card: React.FC<CardProps> = ({
           </p>
         )}
 
-        {/* Article metrics (likes, comments) and date */}
-        {(likesCount !== undefined ||
-          commentsCount !== undefined ||
-          date) && (
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3 text-gray-500">
+        {/* Article metrics (likes, comments on left, author on right) */}
+        {(likesCount !== undefined || commentsCount !== undefined || author) && (
+          <div className="flex items-center justify-between text-gray-500 mb-2">
+            {/* Likes and comments section - left side */}
+            <div className="flex items-center gap-3">
               {likesCount !== undefined && (
                 <button
                   onClick={handleLikeClick}
@@ -177,48 +123,11 @@ const Card: React.FC<CardProps> = ({
                 </button>
               )}
             </div>
-            {date && (
+            {/* Author section - right side */}
+            {author && (
               <div className="flex items-center gap-1 text-gray-500">
-                <CalendarIcon className="w-3.5 h-3.5" />
-                <span className="text-[10px]">{formatDate(date)}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Tags and author section */}
-        {((tags && tags.length > 0) || author) && (
-          <div className="mt-auto">
-            <div className="flex items-center justify-between mb-1">
-              {tags && tags.length > 0 && (
-                <div className="flex items-center gap-1">
-                  <TagIcon className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="text-[10px] font-medium text-gray-500">
-                    Tags:
-                  </span>
-                </div>
-              )}
-              {author && (
-                <div className="flex items-center gap-1 text-gray-500">
-                  <UserIcon className="w-3.5 h-3.5" />
-                  <span className="text-[10px] line-clamp-1">{author}</span>
-                </div>
-              )}
-            </div>
-            {/* Tag badges */}
-            {tags && tags.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-1.5 py-0.5 text-[10px] font-medium text-white rounded"
-                    style={{
-                      backgroundColor: tagColors?.[index],
-                    }}
-                  >
-                    {tag}
-                  </span>
-                ))}
+                <UserIcon className="w-3.5 h-3.5" />
+                <span className="text-[10px] line-clamp-1">{author}</span>
               </div>
             )}
           </div>
