@@ -3,7 +3,7 @@ import { TagIcon } from "@heroicons/react/24/outline";
 
 // Component Info
 // Description: Display article tags with enhanced styling, hover effects, and visual hierarchy.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface Tag {

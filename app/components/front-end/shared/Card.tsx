@@ -1,6 +1,6 @@
 // Component Info
 // Description: Reusable card component for displaying article previews with image, metadata, and interactions.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import React from "react";

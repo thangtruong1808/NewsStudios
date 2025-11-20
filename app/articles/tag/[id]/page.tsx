@@ -4,7 +4,7 @@ import { getTagById } from '@/app/lib/actions/tags';
 
 // Component Info
 // Description: Server component generating metadata and rendering tag articles page.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface TagArticlesProps {

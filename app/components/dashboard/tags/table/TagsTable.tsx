@@ -29,7 +29,7 @@ interface TagsTableProps {
 
 // Component Info
 // Description: Render dashboard tags table with admin actions, pagination, and formatted metadata columns.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export default function TagsTable({

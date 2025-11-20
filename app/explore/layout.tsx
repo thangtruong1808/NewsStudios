@@ -43,7 +43,7 @@ export const metadata: Metadata = {
 
 // Component Info
 // Description: Server layout assembling global navigation, content, and footer for explore pages with modern background styling.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export default function ExploreLayout({

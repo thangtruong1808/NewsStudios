@@ -8,7 +8,7 @@ import { showSuccessToast, showErrorToast } from "@/app/components/dashboard/sha
 
 // Component Info
 // Description: Display individual comment with edit and delete actions for authenticated users.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface CommentItemProps {

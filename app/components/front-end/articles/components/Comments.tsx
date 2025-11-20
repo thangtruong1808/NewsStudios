@@ -9,7 +9,7 @@ import { showErrorToast } from "@/app/components/dashboard/shared/toast/Toast";
 
 // Component Info
 // Description: Comments section displaying comment list and form for authenticated users with real-time count updates.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface CommentsProps {

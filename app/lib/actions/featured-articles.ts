@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Server action fetching featured articles with pagination and metadata including likes and comments counts.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { query } from "../db/query";

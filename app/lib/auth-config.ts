@@ -1,6 +1,6 @@
 // Component Info
 // Description: NextAuth configuration options exported for use in route handlers and server actions.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { type NextAuthOptions } from "next-auth";

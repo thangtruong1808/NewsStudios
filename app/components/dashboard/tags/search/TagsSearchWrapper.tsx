@@ -10,7 +10,7 @@ interface TagsSearchWrapperProps {
 
 // Component Info
 // Description: Bridge dashboard tag search term handling into shared search component.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export default function TagsSearchWrapper({

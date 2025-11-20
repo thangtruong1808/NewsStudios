@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Server action fetching highlight articles with pagination and metadata.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { query } from "../db/query";

@@ -9,7 +9,7 @@ import EntriesSelector from "./EntriesSelector";
 
 // Component Info
 // Description: Render a responsive dashboard table with pagination and adaptive layouts.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function Table<T extends { id: number }>({
   data,

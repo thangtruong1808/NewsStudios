@@ -4,7 +4,7 @@ const tableNameCache = new Map<string, string>();
 
 // Component Info
 // Description: Utility to resolve actual table casing per database engine.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export async function resolveTableName(preferredName: string): Promise<string> {

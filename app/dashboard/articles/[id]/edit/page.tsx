@@ -14,7 +14,7 @@ import { useParams } from "next/navigation";
 
 // Component Info
 // Description: Load and render article edit form with data fetching and skeleton states.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export default function EditArticlePage() {

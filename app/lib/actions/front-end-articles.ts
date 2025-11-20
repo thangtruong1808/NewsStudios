@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Server actions for fetching front-end articles with various filters and pagination.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { query } from "../db/query";

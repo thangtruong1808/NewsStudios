@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Client component rendering article detail page with comments section and real-time comment count updates.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { useState, useCallback } from "react";

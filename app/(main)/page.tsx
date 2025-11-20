@@ -4,16 +4,22 @@ import FeaturedArticles from "@/app/components/front-end/FeaturedArticles/Featur
 import RelativeArticles from "@/app/components/front-end/relative-articles/RelativeArticles";
 import Tags from "../components/front-end/Tags/Tags";
 import VideoCarousel from "../components/front-end/VideoCarousel";
+import ProjectHeader from "../components/front-end/ProjectHeader";
 import ScrollButtons from "../components/front-end/shared/ScrollButtons";
 
 // Component Info
-// Description: Home page layout orchestrating video carousel, featured articles, highlights, trending, related articles, and tags sections.
-// Date created: 2025-01-27
+// Description: Home page layout orchestrating project header, video carousel, featured articles, highlights, trending, related articles, and tags sections.
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
+      {/* Project Header Section - Welcome banner */}
+      <section className="">
+        <ProjectHeader />
+      </section>
+
       {/* Video Carousel Section - Hero section */}
       <section className="mb-16 md:mb-20">
         <VideoCarousel />

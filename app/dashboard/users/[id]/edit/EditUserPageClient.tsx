@@ -8,7 +8,7 @@ import FormSkeleton from "../../../../components/dashboard/shared/skeleton/FormS
 
 // Component Info
 // Description: Load and render user edit form with data fetching and skeleton states.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function EditUserPageClient() {
   const params = useParams();

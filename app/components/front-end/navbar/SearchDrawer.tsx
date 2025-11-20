@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Left drawer search component with title search, expandable category and subcategory filters, and search button.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { useState, useEffect, useRef } from "react";

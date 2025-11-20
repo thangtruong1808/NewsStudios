@@ -11,7 +11,7 @@ import LikeButton from "./LikeButton";
 
 // Component Info
 // Description: Present article metadata badges including author, categories, and engagement stats with real-time comment count.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface ArticleMetadataProps {

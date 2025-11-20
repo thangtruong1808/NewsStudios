@@ -28,7 +28,7 @@ interface SideNavProps {
  */
 // Component Info
 // Description: Responsive dashboard side navigation with collapse toggles and user summary with avatar initials fallback.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function SideNav({ onCollapse }: SideNavProps) {
   const { data: session } = useSession({ required: true });

@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Image component with fallback mechanism to handle proxy URL failures by switching to direct URL.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { useState } from "react";

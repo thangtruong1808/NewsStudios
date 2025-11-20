@@ -10,7 +10,7 @@ import { showSuccessToast, showErrorToast } from "@/app/components/dashboard/sha
 
 // Component Info
 // Description: Like button component for articles with authentication check and like/unlike functionality.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface LikeButtonProps {

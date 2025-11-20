@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Server actions for image CRUD operations and queries.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { revalidatePath } from "next/cache";

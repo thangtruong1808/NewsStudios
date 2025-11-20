@@ -16,7 +16,7 @@ interface BasicFieldsProps {
 
 // Component Info
 // Description: Render core article fields for title, category, subcategory, and author inputs.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function BasicFields({
   register,

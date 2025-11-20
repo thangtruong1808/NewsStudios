@@ -15,7 +15,7 @@ interface TagFieldsProps {
 
 // Component Info
 // Description: Render selectable tag list allowing multi-select with validation feedback.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function TagFields({
   register,

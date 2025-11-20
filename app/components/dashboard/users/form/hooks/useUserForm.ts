@@ -19,7 +19,7 @@ import {
 
 // Component Info
 // Description: Custom hook for managing user form state and operations. Handles image uploads, form submission, and cleanup.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export function useUserForm(
   user?: User,

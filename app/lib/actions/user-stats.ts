@@ -1,6 +1,6 @@
 // Component Info
 // Description: Server action for fetching user statistics from database.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { query } from "../db/db";

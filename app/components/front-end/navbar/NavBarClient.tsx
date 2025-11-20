@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Client nav shell wiring logo, category menus, search drawer, and user session controls.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { useMemo, useState } from "react";

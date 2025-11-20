@@ -47,7 +47,7 @@ type FeaturedArticleRaw = {
 
 // Header component for featured articles section
 const FeaturedHeader = () => (
-  <div className="w-screen bg-blue-100 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+  <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-8 bg-blue-100 ">
     <div className="max-w-[1536px] mx-auto px-6">
       <div className="py-8">
         <div className="flex items-center space-x-3">
@@ -100,7 +100,7 @@ const normalizeArticle = (article: FeaturedArticleRaw): Article => {
 
 // Component Info
 // Description: Display featured articles with carousel, grid, and load-more controls.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function FeaturedArticles() {
   const [articles, setArticles] = useState<Article[]>([]);

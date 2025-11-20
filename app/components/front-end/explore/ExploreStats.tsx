@@ -11,7 +11,7 @@ import { LoadingSpinner } from "@/app/components/dashboard/shared/loading-spinne
 
 // Component Info
 // Description: Display explore page statistics including articles, views, likes, and comments counts.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface ExploreStatsProps {

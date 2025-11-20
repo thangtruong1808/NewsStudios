@@ -11,7 +11,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 // Component Info
 // Description: Mobile navigation drawer with category accordion and account controls with avatar initials fallback.
-// Date: 2025-11-19
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface MobileMenuProps extends MenuProps {

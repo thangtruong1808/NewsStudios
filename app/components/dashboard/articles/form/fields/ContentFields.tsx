@@ -10,7 +10,7 @@ interface ContentFieldsProps {
 
 // Component Info
 // Description: Provide article content textarea with validation messaging.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function ContentFields({
   register,

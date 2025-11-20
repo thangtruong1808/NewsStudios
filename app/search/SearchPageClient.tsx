@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Client component displaying search results with filters and pagination.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { useState, useEffect, useMemo, Suspense } from "react";

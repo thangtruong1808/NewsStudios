@@ -26,7 +26,7 @@ interface UseArticleFormProps {
 
 // Component Info
 // Description: Manage article form state, media uploads, and submission handling.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export function useArticleForm({
   article,

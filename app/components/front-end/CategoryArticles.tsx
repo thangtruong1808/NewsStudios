@@ -20,7 +20,7 @@ type CategoryArticlesResponse = {
 
 // Component Info
 // Description: Render category-filtered articles grid with pagination support.
-// Date created: 2024-12-19
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export default function CategoryArticles({ categoryId }: Props) {

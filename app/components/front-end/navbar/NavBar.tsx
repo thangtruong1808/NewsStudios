@@ -4,7 +4,7 @@ import { getNavCategories } from "@/app/lib/actions/categories";
 
 // Component Info
 // Description: Server wrapper preparing navigation data for the client navbar.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 // Cache the promise per request to avoid duplicate calls

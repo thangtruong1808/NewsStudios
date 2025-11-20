@@ -12,7 +12,7 @@ interface SearchWrapperProps {
 
 // Component Info
 // Description: Lightweight wrapper delivering shared search defaults for dashboard listings.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function SearchWrapper({
   placeholder = "Search...",

@@ -15,7 +15,7 @@ import type { Tag } from "@/app/lib/definition";
  */
 // Component Info
 // Description: Dashboard page listing tags with search, pagination, and admin controls.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function TagsPageClient() {
   // Skeleton column configuration mirroring table structure

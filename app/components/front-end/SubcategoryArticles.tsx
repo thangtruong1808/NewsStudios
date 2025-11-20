@@ -25,7 +25,7 @@ type SubcategoryInfo = {
 
 // Component Info
 // Description: Render subcategory-filtered articles grid with pagination support.
-// Date created: 2024-12-19
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export default function SubcategoryArticles({ subcategory }: Props) {

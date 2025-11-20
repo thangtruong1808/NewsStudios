@@ -39,7 +39,7 @@ interface SubcategoriesStateProps {
 
 // Component Info
 // Description: Manage subcategory list state including filters, pagination, and deletion flow.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function SubcategoriesState({
   children,

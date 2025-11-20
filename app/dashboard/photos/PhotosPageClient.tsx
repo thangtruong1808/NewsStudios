@@ -10,7 +10,7 @@ import { Image } from "@/app/lib/definition";
 
 // Component Info
 // Description: Assemble dashboard photos page with search, refresh, grid, and pagination controls.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function PhotosPageClient() {
   const router = useRouter();

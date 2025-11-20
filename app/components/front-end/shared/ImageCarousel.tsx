@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Enhanced image carousel component with smooth transitions, keyboard navigation, improved styling, and better UX.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import React, { useState, useEffect, useCallback, useRef } from "react";

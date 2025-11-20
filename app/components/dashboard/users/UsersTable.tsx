@@ -30,7 +30,7 @@ interface UsersTableProps {
 
 // Component Info
 // Description: Render dashboard users table with sortable columns, profile previews, and admin actions.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function UsersTable({
   users,

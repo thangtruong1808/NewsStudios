@@ -1,6 +1,6 @@
 // Component Info
 // Description: Article action buttons including back navigation.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";

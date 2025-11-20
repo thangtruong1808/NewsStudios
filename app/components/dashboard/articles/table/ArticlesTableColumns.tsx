@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Provide configured columns for the dashboard articles table including actions and formatters.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { Column } from "@/app/components/dashboard/shared/table";

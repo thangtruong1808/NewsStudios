@@ -9,7 +9,7 @@ import { ChevronDownIcon, KeyIcon, ArrowRightOnRectangleIcon, Squares2X2Icon } f
 
 // Component Info
 // Description: User profile dropdown menu displaying avatar only in navbar button, with full user info in dropdown menu.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export default function UserProfileDropdown() {

@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Display additional media gallery (images and videos) for articles with thumbnail grid layout.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { useEffect, useState } from "react";

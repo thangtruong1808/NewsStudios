@@ -15,7 +15,7 @@ type SearchResult = Awaited<ReturnType<typeof searchImages>>;
 
 // Component Info
 // Description: Manage dashboard photo listing state with search, pagination, and delete actions.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export function usePhotos() {
   const router = useRouter();

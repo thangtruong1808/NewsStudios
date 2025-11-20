@@ -10,7 +10,7 @@ import FormSkeleton from "@/app/components/dashboard/shared/skeleton/FormSkeleto
 
 // Component Info
 // Description: Load and render article creation form with data fetching and skeleton states.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export default function CreateArticlePageClient() {

@@ -32,7 +32,7 @@ interface ArticleFormProps {
 
 // Component Info
 // Description: Article creation and edit form with tabbed sections for content, media, and settings.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function ArticleForm({
   article,

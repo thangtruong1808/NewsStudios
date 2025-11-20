@@ -8,7 +8,7 @@ import { showSuccessToast, showErrorToast } from "@/app/components/dashboard/sha
 
 // Component Info
 // Description: Comment form component for authenticated users to submit new comments.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface CommentFormProps {

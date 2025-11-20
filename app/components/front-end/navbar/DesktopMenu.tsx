@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Desktop navigation list rendering categories and their submenus.
-// Date: 2025-11-19
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import Link from "next/link";

@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Display quick statistics including comments, most liked article, and user counts.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { ChatBubbleLeftIcon, HandThumbUpIcon, UserGroupIcon } from "@heroicons/react/24/outline";

@@ -5,7 +5,7 @@ import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 
 // Component Info
 // Description: Scroll to top and bottom button component that displays one button at a time based on scroll position.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export default function ScrollButtons() {

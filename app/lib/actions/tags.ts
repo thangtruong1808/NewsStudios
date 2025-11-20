@@ -6,7 +6,7 @@ import { resolveTableName } from "../db/tableNameResolver";
 
 // Component Info
 // Description: Server actions for tag CRUD operations and queries.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 type TagCountRow = {

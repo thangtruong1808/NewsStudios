@@ -27,7 +27,7 @@ interface VideosGridProps {
 
 // Component Info
 // Description: Render dashboard video cards with admin controls, skeletons, and load-more support.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function VideosGrid({
   videos,

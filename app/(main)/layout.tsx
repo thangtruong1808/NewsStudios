@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 
 // Component Info
 // Description: Main site layout providing shared navigation, content frame, footer with modern background styling.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export default function MainLayout({

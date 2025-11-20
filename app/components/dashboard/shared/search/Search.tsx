@@ -14,7 +14,7 @@ interface SearchProps {
 
 // Component Info
 // Description: Debounced dashboard search input syncing with URL parameters when no callback provided.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 const Search = ({ placeholder, onSearch, defaultValue = "" }: SearchProps) => {
   const pathname = usePathname();

@@ -1,6 +1,6 @@
 // Component Info
 // Description: Icon mapping utility for categories and subcategories using Lucide React with duplicate prevention.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import type { LucideIcon } from "lucide-react";

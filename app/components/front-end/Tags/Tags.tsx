@@ -4,7 +4,7 @@ import TagsClient from "./TagsClient";
 
 // Component Info
 // Description: Server wrapper supplying navigation categories to the tags client UI.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 const navCategoriesPromise = getNavCategories();

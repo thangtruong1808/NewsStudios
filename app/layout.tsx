@@ -5,7 +5,7 @@ import { Metadata } from "next";
 
 // Component Info
 // Description: Root layout establishing global typography and mounting shared providers.
-// Date created: 2024-12-19
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 // Poppins for headings - modern, clean, and highly readable

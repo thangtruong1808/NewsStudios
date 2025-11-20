@@ -20,7 +20,7 @@ interface TabletViewProps<T extends { id: number }> extends ViewProps<T> {
 
 // Component Info
 // Description: Render tablet-friendly cards for table data with edit/delete actions.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function TabletView<T extends { id: number }>({
   data,

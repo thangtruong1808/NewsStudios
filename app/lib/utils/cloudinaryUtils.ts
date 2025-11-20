@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Client-side Cloudinary utility functions for image and video uploads, deletions, and URL transformations.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 // Import the server actions

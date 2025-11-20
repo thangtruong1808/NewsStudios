@@ -4,7 +4,7 @@ import { getArticleById } from '@/app/lib/actions/articles';
 
 // Component Info
 // Description: Server component generating metadata and rendering article detail page.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface ArticlePageProps {

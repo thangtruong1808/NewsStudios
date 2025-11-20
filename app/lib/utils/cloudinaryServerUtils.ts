@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Server-side Cloudinary utility functions for secure image and video uploads and deletions.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { v2 as cloudinary } from "cloudinary";

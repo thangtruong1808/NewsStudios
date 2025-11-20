@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Render authors table with pagination, sorting, and admin actions.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import Table from "@/app/components/dashboard/shared/table/Table";

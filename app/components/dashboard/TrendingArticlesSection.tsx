@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Display trending articles list with likes, comments, and publication dates.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { FireIcon, HandThumbUpIcon, ChatBubbleLeftIcon } from "@heroicons/react/24/outline";

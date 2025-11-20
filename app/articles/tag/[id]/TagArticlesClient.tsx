@@ -12,7 +12,7 @@ import ScrollButtons from "@/app/components/front-end/shared/ScrollButtons";
 
 // Component Info
 // Description: Client component displaying articles filtered by a specific tag with pagination.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface TagArticlesClientProps {

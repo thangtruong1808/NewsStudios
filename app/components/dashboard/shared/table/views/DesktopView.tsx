@@ -17,7 +17,7 @@ interface DesktopViewProps<T extends { id: number }> extends ViewProps<T> {
 
 // Component Info
 // Description: Render desktop table layout with skeleton, empty states, and sequence-aware rows.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function DesktopView<T extends { id: number }>({
   data,

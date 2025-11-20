@@ -15,7 +15,7 @@ import { FaLinkedin, FaGithub, FaFacebook } from "react-icons/fa";
 
 // Component Info
 // Description: Server-rendered footer showcasing brand info, helpful links, and navigation categories with modern styling.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 const navCategoriesPromise = getNavCategories();
@@ -191,7 +191,7 @@ export default function Footer() {
           <div className="flex flex-col items-center justify-center gap-2 text-sm text-slate-500 sm:flex-row">
             <HeartIcon className="h-5 w-5 text-pink-500 animate-pulse" />
             <p className="text-center">
-              Crafted with passion by thangtruong • © {new Date().getFullYear()} NewsStudios
+              Crafted with passion by thangtruong •  {new Date().getFullYear()} NewsStudios - Version 1.2
             </p>
             <HeartIcon className="h-5 w-5 text-pink-500 animate-pulse" />
           </div>

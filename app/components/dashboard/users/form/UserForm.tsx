@@ -20,7 +20,7 @@ interface UserFormProps {
 
 // Component Info
 // Description: A form component for creating and editing users with validation and error handling. Supports both create and edit modes with different validation schemas.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function UserForm({ user, isEditMode = false }: UserFormProps) {
   // Initialize form with react-hook-form and zod validation

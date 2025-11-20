@@ -20,7 +20,7 @@ interface PhotosGridProps {
 
 // Component Info
 // Description: Render dashboard photo thumbnails with loading state, empty state, and load-more control.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function PhotosGrid({
   photos,

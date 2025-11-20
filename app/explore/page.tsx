@@ -5,7 +5,7 @@ import { getCategoryById } from '@/app/lib/actions/categories';
 
 // Component Info
 // Description: Server component generating metadata and rendering explore page.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface ExplorePageProps {

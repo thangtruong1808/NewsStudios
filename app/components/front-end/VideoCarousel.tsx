@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Enhanced video carousel with smooth transitions, keyboard navigation, improved styling, and better UX.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -22,9 +22,10 @@ interface Video {
 
 // Header component
 const VideoHeader = () => (
-  <div className="w-screen bg-violet-100 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
+  <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-8  bg-violet-100">
     <div className="max-w-[1536px] mx-auto px-6">
       <div className="py-8">
+        {/* Header section with title and description */}
         <div className="flex items-center space-x-3">
           <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-purple-100 shadow-sm">
             <PlayIcon className="h-6 w-6 text-purple-600" />
@@ -34,6 +35,7 @@ const VideoHeader = () => (
             <p className="text-sm text-gray-600 mt-1">Watch our featured video content</p>
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -149,7 +151,7 @@ export default function VideoCarousel() {
     return (
       <div className="w-screen bg-slate-100 relative left-1/2 right-1/2 -mx-[50vw] mb-8">
         <div className="max-w-[1536px] mx-auto px-6">
-          <VideoHeader />
+          {/* <VideoHeader /> */}
           <div className="bg-white rounded-xl shadow-sm p-12 text-center">
             <div className="flex flex-col items-center justify-center space-y-4">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-purple-100">

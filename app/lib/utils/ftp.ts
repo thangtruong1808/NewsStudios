@@ -14,7 +14,7 @@ interface FTPConfig {
 
 // Component Info
 // Description: FTP utility functions for file uploads to remote server.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 // Get FTP configuration from environment variables

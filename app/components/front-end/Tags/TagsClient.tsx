@@ -10,7 +10,7 @@ import type { NavMenuCategory, NavMenuSubcategory } from "../navbar/types";
 
 // Component Info
 // Description: Client interface for browsing tags with category and subcategory filters.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface TagsClientProps {

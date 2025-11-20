@@ -118,7 +118,7 @@ const normalizeHighlightArticle = (
 
 // Component Info
 // Description: Showcase highlight articles with carousel, grid, and pagination controls.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function HighlightArticles() {
   // State management for articles, loading state, and error handling

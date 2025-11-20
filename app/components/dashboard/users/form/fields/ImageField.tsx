@@ -22,7 +22,7 @@ interface ImageFieldProps {
 
 // Component Info
 // Description: Render user profile image uploader with preview, upload progress, and failure handling.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function ImageField({
   errors,

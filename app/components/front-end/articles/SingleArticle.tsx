@@ -19,7 +19,7 @@ import ArticleActions from "./components/ArticleActions";
 
 // Component Info
 // Description: Render article detail view with media galleries and share actions.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 // Define the props interface for the SingleArticle component

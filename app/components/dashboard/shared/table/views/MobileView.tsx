@@ -20,7 +20,7 @@ interface MobileViewProps<T extends { id: number }> extends ViewProps<T> {
 
 // Component Info
 // Description: Render mobile card layout for table data with admin action controls.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function MobileView<T extends { id: number }>({
   data,

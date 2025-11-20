@@ -5,7 +5,7 @@ import ArticleForm from "./ArticleForm";
 
 // Component Info
 // Description: Container component that wraps the article form with layout styling.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 interface ArticleFormContainerProps {

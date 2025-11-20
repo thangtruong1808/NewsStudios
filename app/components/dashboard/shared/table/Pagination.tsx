@@ -2,7 +2,7 @@
 
 // Component Info
 // Description: Render responsive pagination controls with First, Previous, Next, Last buttons and limited page numbers.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 // Interface defining the required props for the Pagination component

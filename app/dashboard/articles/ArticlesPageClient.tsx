@@ -14,7 +14,7 @@ import type { Article } from "@/app/lib/definition";
  */
 // Component Info
 // Description: Dashboard page listing articles with search, sorting, and admin actions.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function ArticlesPageClient() {
   const { data: session } = useSession();

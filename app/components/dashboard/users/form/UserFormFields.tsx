@@ -28,7 +28,7 @@ interface UserFormFieldsProps {
 
 // Component Info
 // Description: Assemble user form sections including image upload, identity, roles, and metadata fields.
-// Date created: 2025-11-18
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function UserFormFields({
   register,

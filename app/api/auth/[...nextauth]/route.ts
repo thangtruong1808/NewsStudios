@@ -1,6 +1,6 @@
 // Component Info
 // Description: NextAuth route handler for authentication endpoints.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 import NextAuth from "next-auth";

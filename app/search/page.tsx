@@ -3,7 +3,7 @@ import SearchPageClient from "./SearchPageClient";
 
 // Component Info
 // Description: Server component rendering search results page with metadata.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 
 export const metadata: Metadata = {

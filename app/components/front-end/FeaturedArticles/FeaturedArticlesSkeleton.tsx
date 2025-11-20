@@ -4,7 +4,7 @@ import { StarIcon } from "@heroicons/react/24/outline";
 
 // Component Info
 // Description: Skeleton layout for featured articles section with carousel and grid placeholders.
-// Date created: 2025-01-27
+// Date updated: 2025-November-21
 // Author: thangtruong
 export default function FeaturedArticlesSkeleton() {
   const gridItems = Array.from({ length: 10 }, (_, index) => index);
