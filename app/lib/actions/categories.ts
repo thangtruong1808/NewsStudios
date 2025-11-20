@@ -44,7 +44,7 @@ export async function getCategories({
       subcategoriesTable = resolvedTables[1] || "SubCategories";
       articlesTable = resolvedTables[2] || "Articles";
     } catch (_resolveError) {
-      // Fallback to preferred names if resolution fails
+      // Fallback to capitalized names if resolution fails (Vercel uses capitalized table names)
       categoriesTable = "Categories";
       subcategoriesTable = "SubCategories";
       articlesTable = "Articles";
@@ -139,7 +139,7 @@ export async function getCategoryById(id: number) {
       categoriesTable = await resolveTableName("Categories");
       categoriesTable = categoriesTable || "Categories";
     } catch (_resolveError) {
-      // Fallback to preferred name if resolution fails
+      // Fallback to capitalized name if resolution fails (Vercel uses capitalized table names)
       categoriesTable = "Categories";
     }
 
@@ -308,7 +308,7 @@ export async function getNavCategories(): Promise<{
       categoriesTable = resolvedTables[0] || "Categories";
       subcategoriesTable = resolvedTables[1] || "SubCategories";
     } catch (_resolveError) {
-      // Fallback to preferred names if resolution fails
+      // Fallback to capitalized names if resolution fails (Vercel uses capitalized table names)
       categoriesTable = "Categories";
       subcategoriesTable = "SubCategories";
     }

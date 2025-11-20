@@ -223,24 +223,24 @@ export async function getArticleById(id: number) {
         resolveTableName("Likes"),
         resolveTableName("Comments"),
       ]);
-      articlesTable = resolvedTables[0] || "articles";
-      categoriesTable = resolvedTables[1] || "categories";
-      subcategoriesTable = resolvedTables[2] || "subcategories";
-      authorsTable = resolvedTables[3] || "authors";
-      articleTagsTable = resolvedTables[4] || "article_tags";
-      tagsTable = resolvedTables[5] || "tags";
-      likesTable = resolvedTables[6] || "likes";
-      commentsTable = resolvedTables[7] || "comments";
+      articlesTable = resolvedTables[0] || "Articles";
+      categoriesTable = resolvedTables[1] || "Categories";
+      subcategoriesTable = resolvedTables[2] || "SubCategories";
+      authorsTable = resolvedTables[3] || "Authors";
+      articleTagsTable = resolvedTables[4] || "Article_Tags";
+      tagsTable = resolvedTables[5] || "Tags";
+      likesTable = resolvedTables[6] || "Likes";
+      commentsTable = resolvedTables[7] || "Comments";
     } catch (_resolveError) {
-      // Fallback to lowercase names if resolution fails (common for localhost MySQL)
-      articlesTable = "articles";
-      categoriesTable = "categories";
-      subcategoriesTable = "subcategories";
-      authorsTable = "authors";
-      articleTagsTable = "article_tags";
-      tagsTable = "tags";
-      likesTable = "likes";
-      commentsTable = "comments";
+      // Fallback to capitalized names if resolution fails (Vercel uses capitalized table names)
+      articlesTable = "Articles";
+      categoriesTable = "Categories";
+      subcategoriesTable = "SubCategories";
+      authorsTable = "Authors";
+      articleTagsTable = "Article_Tags";
+      tagsTable = "Tags";
+      likesTable = "Likes";
+      commentsTable = "Comments";
     }
 
     const { data, error } = await query(

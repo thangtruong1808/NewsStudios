@@ -24,16 +24,16 @@ export async function getComments({
   limit = 10,
 }: GetCommentsParams) {
   try {
-    // Resolve table names with fallback to lowercase names
+    // Resolve table names with fallback to capitalized names
     let commentsTable: string;
     let usersTable: string;
 
     try {
       const resolvedCommentsTable = await resolveTableName("Comments");
-      commentsTable = resolvedCommentsTable || "comments";
+      commentsTable = resolvedCommentsTable || "Comments";
     } catch (_resolveError) {
-      // Fallback to lowercase name if resolution fails
-      commentsTable = "comments";
+      // Fallback to capitalized name if resolution fails (Vercel uses capitalized table names)
+      commentsTable = "Comments";
     }
 
     const limitValue = Math.max(1, Number(limit) || 10);
@@ -53,10 +53,10 @@ export async function getComments({
     // Resolve Users table name with fallback
     try {
       const resolvedUsersTable = await resolveTableName("Users");
-      usersTable = resolvedUsersTable || "users";
+      usersTable = resolvedUsersTable || "Users";
     } catch (_resolveError) {
-      // Fallback to lowercase name if resolution fails
-      usersTable = "users";
+      // Fallback to capitalized name if resolution fails (Vercel uses capitalized table names)
+      usersTable = "Users";
     }
 
     // Get paginated comments with user info
